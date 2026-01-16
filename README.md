@@ -1,6 +1,6 @@
 # SquaredUp Community Plugins
 [![Discourse Users](https://img.shields.io/discourse/topics?server=https%3A%2F%2Fcommunity.squaredup.com&style=flat-square&label=community&color=%23FFC72C)](https://community.squaredup.com)
-![Plugins](https://img.shields.io/github/directory-file-count/squaredup/plugins/plugins?type=dir&label=plugins&style=flat-square)
+[![Plugins](https://img.shields.io/github/directory-file-count/squaredup/plugins/plugins?type=dir&label=plugins&style=flat-square)](https://squaredup.com/plugins)
 [![GitHub issues](https://img.shields.io/github/issues/squaredup/plugins?style=flat-square)](https://github.com/squaredup/plugins/issues)
 [![License](https://img.shields.io/github/license/squaredup/plugins?style=flat-square)](https://github.com/squaredup/plugins/blob/main/LICENSE)
 
@@ -13,9 +13,10 @@ SquaredUp is the operational intelligence platform that enables data-driven IT a
 SquaredUp has 60+ plugins out of the box. This repository contains all community-authored plugins and provides guidance on how to author your own plugin and submit it this repository.
 
 ### Reporting issues or feature requests
-If you encounter a problem or have an idea on how to improve a _community-authored plugin_ you can raise an issue in this repository.
 
-For issues/feature requests with _plugins authored by SquaredUp_ please use [Community Answers](https://community.squaredup.com) or contact our support team at support@squaredup.com
+- **Community-authored plugins**: Raise issues or improvement ideas directly in this repo - [create a new issue](issues/new/choose)
+- **SquaredUp-authored plugins**: Use [Community Answers](https://community.squaredup.com) or contact support@squaredup.com
+- **The SquaredUp platform itself**: Use [Community Answers](https://community.squaredup.com) or contact support@squaredup.com
 
 ## What is a plugin?
 Plugins are key components of SquaredUp. Each plugin defines how connect to and read data from a third-party system. A plugin typically includes:
@@ -25,11 +26,18 @@ Plugins are key components of SquaredUp. Each plugin defines how connect to and 
 * **Out of the box dashboards** - useful dashboards to help users get started
 * **Index definition** - defines how SquaredUp indexes objects from a third-party system
 
-## How do I use a plugin?
+> [!TIP]
+> We use the term `plugins` in code, while the UI refers to them as `data sources`.
+
+[Learn more about plugins](https://docs.squaredup.com/features/connect-and-explore/plugins-and-data-sources)
+
+## How do I use a data source?
 - Sign up for an account at app.squaredup.com
 - Browse to Data Sources -> +
-- Select your desired plugin from our catalog
-- Configure and add the plugin to get started
+- Select your desired data source from our catalog
+- Configure and add the data source to get started
+
+[Learn more about adding a data source](https://docs.squaredup.com/first-steps/adding-a-data-source)
 
 ## How do I build my own plugin?
 > [!NOTE]
