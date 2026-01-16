@@ -32,5 +32,5 @@ Plugins are key components of SquaredUp. Each plugin defines how connect to and 
 - Configure and add the plugin to get started
 
 ## How do I build my own plugin?
-
-TBC
+> [!NOTE]
+> If you're interested in joining our private preview, please contact support@squaredup.com.
