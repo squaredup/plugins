@@ -1,4 +1,8 @@
 # SquaredUp Community Plugins
+[![Discourse Users](https://img.shields.io/discourse/topics?server=https%3A%2F%2Fcommunity.squaredup.com&style=flat-square&label=community&color=%23FFC72C)](https://community.squaredup.com)
+![Plugins](https://img.shields.io/github/directory-file-count/squaredup/plugins/plugins?type=dir&label=plugins&style=flat-square)
+[![GitHub issues](https://img.shields.io/github/issues/squaredup/plugins?style=flat-square)](https://github.com/squaredup/plugins/issues)
+[![License](https://img.shields.io/github/license/squaredup/plugins?style=flat-square)](https://github.com/squaredup/plugins/blob/main/LICENSE)
 
 SquaredUp is the operational intelligence platform that enables data-driven IT and engineering teams to make better decisions, faster. [Learn more](https://squaredup.com?utm_source=GitHub).
 
