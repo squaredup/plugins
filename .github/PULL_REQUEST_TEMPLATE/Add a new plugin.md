@@ -1,19 +1,12 @@
 <!--
   Thanks for contributing a new community-authored SquaredUp plugin!
 -->
-
 ## 🔌 Plugin overview
 
 - **Plugin name**:
 - **Purpose / problem solved**:
 - **Primary audience** (e.g. platform teams, SREs, product teams):
-
----
-
-## 🧩 Plugin configuration
-
 - **Authentication method(s)** (e.g. OAuth, Username/Password, API Key):
-
 ---
 
 ## 🖼️ Plugin screenshots
@@ -33,10 +26,10 @@
 
 ---
 
-
 ## ⚠️ Known limitations
-
-Are there any known gaps, constraints, or follow-up ideas?
+<!--
+  Are there any known gaps, constraints, or follow-up ideas?
+-->
 
 ---
 
