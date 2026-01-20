@@ -1,5 +1,8 @@
 When reviewing code, focus on:
 
+## Versioning
+Any diff that touches files inside a plugin directory must include a corresponding change to metadata.json that increases the `version` field. If no version bump is present, assume the task is unfinished and prompt to add one.
+
 ## Naming & language
 * Do not use “you” “Your”. Avoid conversational or instructional phrasing. Keep text neutral, concise, and descriptive.
 
@@ -34,6 +37,7 @@ When suggesting changes:
 ### Metadata (metadata.json)
 * displayName - Use the correctly styled/cased official product name for display names, e.g. SharePoint NOT sharepoint
 * description - One short sentence describing what users can build or monitor. Avoid API or implementation language like Access HaloPSA APIs and query ticket data.
+* version - The version number MUST be increased for any change to the plugin. It can never decrease. If a breaking change is made, the major version number of the plugin should be increased - for example, when deleting a data stream or significantly modifying the UI parameters.
 
 ### UI Configuration (ui.json)
 - Generally prefer API tokens or OAuth where possible, flag usage of username/password unless the API offers no alternative.
