@@ -3,14 +3,10 @@ When reviewing code, focus on:
 ## Versioning
 Any diff that touches files inside a plugin directory must include a corresponding change to metadata.json that increases the `version` field. If no version bump is present, assume the task is unfinished and prompt to add one.
 
-## Naming & language
-* Do not use “you” “Your”. Avoid conversational or instructional phrasing. Keep text neutral, concise, and descriptive.
-
 ## Security
 - Check for hardcoded secrets, API keys, or credentials
 
-## Formatting
-
+## Code formatting
 * Follow existing formatting in the repo
 * Use consistent naming
 * Do not introduce formatting tools or config files unless explicitly requested.
