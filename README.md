@@ -14,7 +14,7 @@ SquaredUp has 60+ plugins out of the box. This repository contains all community
 
 ### Reporting issues or feature requests
 
-- **Community-authored plugins**: Raise issues or improvement ideas directly in this repo - [create a new issue](/issues/new/choose)
+- **Community-authored plugins**: Raise issues or improvement ideas directly in this repo - [create a new issue](https://github.com/squaredup/plugins/issues/new/choose)
 - **SquaredUp-authored plugins**: Use [Community Answers](https://community.squaredup.com) or contact support@squaredup.com
 - **The SquaredUp platform itself**: Use [Community Answers](https://community.squaredup.com) or contact support@squaredup.com
 
