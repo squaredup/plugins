@@ -32,8 +32,11 @@ When suggesting changes:
 
 ### Metadata (metadata.json)
 * displayName - Use the correctly styled/cased official product name for display names, e.g. SharePoint NOT sharepoint
-* description - One short sentence describing what users can build or monitor. Avoid API or implementation language like Access HaloPSA APIs and query ticket data.
+* description - One short sentence describing what users can build or monitor. Avoid API or implementation language like Access HaloPSA APIs and query ticket data. Should always be appropriately punctuated, e.g. ending with a full stop.
 * version - The version number MUST be increased for any change to the plugin. It can never decrease. If a breaking change is made, the major version number of the plugin should be increased - for example, when deleting a data stream or significantly modifying the UI parameters.
+* author.type - Should always be set to `community`
+* author.name - Should typically be a GitHub username, prefixed with @. For example @username1
+* links - Should typically contain two links, one link with `category: source` linking to the GitHub repository, and another link with `category: documentation` linking to the markdown documentation in the repository. The links can be in any order, and there may be other links. 
 
 ### UI Configuration (ui.json)
 - Generally prefer API tokens or OAuth where possible, flag usage of username/password unless the API offers no alternative.
