@@ -43,7 +43,7 @@ When suggesting changes:
 - Check that only stricly required fields are marked as `required`. Advanced options should never block first-time success.
 - Tooltips - Do not use tooltips unless they add specific value. Never state the obvious (e.g. “Enter the API key here”).
 - Placeholder text - Mandatory for text fields. Use example placeholders (especially for URLs) or “Enter the [data source] [info needed in lowercase]”. Use default values instead of hint text where a value is commonly the same across environments (e.g. default ports).
-- Do not use “you” “Your”. Avoid conversational or instructional phrasing. Keep text neutral, concise, and descriptive.
+- Do not use “you” “Your” in field names or labels. Keep text neutral, concise, and descriptive.
 * Should not specify the `title` attribute on fields
 
 ### Out-of-the-box dashboards (*.dash.json)

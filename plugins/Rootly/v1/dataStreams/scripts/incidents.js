@@ -2,7 +2,6 @@ result = data.data.map((i) => ({
     id: i.attributes.sequential_id,
     title: i.attributes.title,
     status: i.attributes.status,
-    created_at: i.attributes.created_at,
     url: i.attributes.url,
     user: i.attributes.user?.data?.attributes?.full_name,
     slug: i.attributes.severity.data.attributes.name,
