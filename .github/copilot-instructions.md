@@ -44,15 +44,15 @@ When suggesting changes:
 - Tooltips - Do not use tooltips unless they add specific value. Never state the obvious (e.g. “Enter the API key here”).
 - Placeholder text - Mandatory for text fields. Use example placeholders (especially for URLs) or “Enter the [data source] [info needed in lowercase]”. Use default values instead of hint text where a value is commonly the same across environments (e.g. default ports).
 - Do not use “you” “Your” in field names or labels. Keep text neutral, concise, and descriptive.
-* Should not specify the `title` attribute on fields
+* Should not specify the `title` attribute on any fields.
 
 ### Out-of-the-box dashboards (*.dash.json)
 * Dashboard names - Use title case
 * Tile names - Use title case
 
 ### Data streams - dataStreams/*.json
-* Display name - Use noun-based names describing the returned data, e.g. Tickets. Avoid verbs such as Get, Fetch, Run, Execute
-* Description - One sentence only. No full stop at the end. Add relevant clarifications in brackets. Never use two sentences.
+* Display name - Use noun-based names describing the returned data, e.g. Tickets. Avoid verbs such as Get, Fetch, Run, Execute.
+* Description - Typically one sentence only. No full stop at the end. Add relevant clarifications in brackets. Never use two sentences.
 * Category - Mandatory. Reuse an existing category from other plugins where possible (e.g. Query).
 * ui
   * Field names - First word uppercase, then lowercase (e.g. “Table name”). Single value: singular. Multiple values: “(s)” (e.g. Tables name(s)
