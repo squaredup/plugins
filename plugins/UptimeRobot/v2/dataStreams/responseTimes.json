@@ -1,0 +1,68 @@
+{
+    "name": "responseTimes",
+    "displayName": "Response Times",
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "getMonitors",
+        "postBody": {
+            "format": "json",
+            "monitors": "{{objects.map((n) => n.monitorId).join('-')}}",
+            "response_times_end_date": "{{timeframe.unixEnd}}",
+            "response_times_start_date": "{{timeframe.unixStart}}",
+            "response_times": 1
+        },
+        "postRequestScript": "responseTimes.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "body",
+                "path": "limit",
+                "value": "50"
+            },
+            "offset": {
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "monitors"
+                },
+                "mode": "row",
+                "base": "0"
+            },
+            "out": {
+                "realm": "body",
+                "path": "offset"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "UptimeRobot HTTP Monitor",
+                "UptimeRobot Keyword Monitor",
+                "UptimeRobot Ping Monitor",
+                "UptimeRobot Port Monitor",
+                "UptimeRobot Heartbeat Monitor"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "friendly_name",
+            "displayName": "Monitor",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "datetime",
+            "displayName": "Timestamp",
+            "shape": "date"
+        },
+        {
+            "name": "value",
+            "displayName": "Average Response",
+            "shape": "milliseconds",
+            "role": "value"
+        }
+    ]
+}

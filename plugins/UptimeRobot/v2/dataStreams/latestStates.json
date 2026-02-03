@@ -1,0 +1,82 @@
+{
+    "name": "latestStates",
+    "displayName": "Latest States",
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "getMonitors",
+        "postBody": {
+            "format": "json",
+            "monitors": "{{objects.map((n) => n.monitorId).join('-')}}"
+        },
+        "postRequestScript": "latestStates.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "body",
+                "path": "limit",
+                "value": "50"
+            },
+            "offset": {
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "monitors"
+                },
+                "mode": "row",
+                "base": "0"
+            },
+            "out": {
+                "realm": "body",
+                "path": "offset"
+            }
+        }
+    },
+    "timeframes": false,
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "UptimeRobot HTTP Monitor",
+                "UptimeRobot Keyword Monitor",
+                "UptimeRobot Ping Monitor",
+                "UptimeRobot Port Monitor",
+                "UptimeRobot Heartbeat Monitor"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "state"
+        },
+        {
+            "name": "friendly_name",
+            "displayName": "Friendly Name",
+            "visible": false,
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "link",
+            "displayName": "Monitor",
+            "shape": [
+                "url",
+                {
+                    "label": "{{column.friendly_name}}"
+                }
+            ]
+        },
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        }
+    ]
+}
