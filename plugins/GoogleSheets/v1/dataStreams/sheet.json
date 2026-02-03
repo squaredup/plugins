@@ -1,0 +1,62 @@
+{
+    "name": "sheet",
+    "displayName": "Sheet",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{sheetId}}",
+        "getArgs": [
+            {
+                "key": "includeGridData",
+                "value": "true"
+            },
+            {
+                "key": "fields",
+                "value": "sheets.tables(columnProperties),sheets.data.rowData.values(effectiveValue,userEnteredValue,formattedValue)"
+            },
+            {
+                "key": "ranges",
+                "value": "{{sheetName}}"
+            }
+        ],
+        "postRequestScript": "sheet.js",
+        "headers": []
+    },
+    "matches": "none",
+    "timeframes": false,
+    "ui": [
+        {
+            "name": "sheetId",
+            "type": "autocomplete",
+            "label": "Spreadsheet",
+            "placeholder": "Select a spreadsheet from Google Drive",
+            "validation": { "required": true, "message": "You must select a spreadsheet" },
+            "allowCustomValues": false,
+            "isMulti": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "spreadsheetsInDrive",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "name": "sheetName",
+            "type": "autocomplete",
+            "label": "Sheet Name",
+            "placeholder": "Select a sheet name",
+            "validation": { "required": true, "message": "You must select a sheet name" },
+            "allowCustomValues": false,
+            "isMulti": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "sheetsInSpreadsheet",
+                "dataSourceConfig": {
+                    "endpointPath": {
+                        "fieldName": "sheetId",
+                        "required": true
+                    }
+                }
+            }
+        }
+    ]
+}
