@@ -29,4 +29,4 @@ result = data.monitors.map((result) => ({
     status: getStatus(result.status),
     state: getState(result.status),
     type: getType(result.type)
-}));;
+}));
