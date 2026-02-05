@@ -1,8 +1,8 @@
-const pageVars = '{{objects.map((v) => v.sourceId)}}';
-const sourceIds = pageVars.split(',').map(i => i.split('/')[1]);
+const pageVars = '{{objects.map((v) => v.deviceId)}}';
+const ids = pageVars.split(',');
 result = data.data.map((s) =>
     s.devices
-        .filter((d) => sourceIds.includes(d.id))
+        .filter((d) => ids.includes(d.id))
         .map((d) => ({
             ...d,
             sourceId: d.id,
