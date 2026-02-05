@@ -43,7 +43,7 @@ When suggesting changes:
 - author.type - Should always be set to `community`
 - author.name - Should typically be a GitHub username, prefixed with @ OR an organisation name. For example `@username1` or `Contoso Inc.`
 - category - Mandatory. Reuse an existing category from other plugins where possible.
-- importNotSupported - Should be true unless a importDefinition/default.json is included.
+- importNotSupported - Should be true unless an importDefinition/default.json is included.
 - links - Should typically contain two links, one link with `category: source` linking to the GitHub repository, and another link with `category: documentation` linking to the markdown documentation in the repository. The links can be in any order, and there may be other links. 
 
 ### UI Configuration (ui.json)
