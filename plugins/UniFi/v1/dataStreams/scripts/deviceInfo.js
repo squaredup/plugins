@@ -1,4 +1,4 @@
-const pageVars = '{{variable1.map((v) => v.sourceId)}}';
+const pageVars = '{{objects.map((v) => v.sourceId)}}';
 const sourceIds = pageVars.split(',');
 result = data.data.map((s) =>
     s.devices
