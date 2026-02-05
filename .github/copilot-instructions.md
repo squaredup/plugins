@@ -68,7 +68,7 @@ When suggesting changes:
 - description - Typically one sentence only. No full stop at the end. Add relevant clarifications in brackets. Never use two sentences.
 - tags - Mandatory. Reuse an existing category from other plugins where possible.
 - ui
-  - displayName - First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s). Do not use "you" "Your" in display names. Keep text neutral, concise, and descriptive.
+  - displayName - First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use "you" "Your" in display names. Keep text neutral, concise, and descriptive.
   - help - Use extremely sparingly. Never state the obvious. Only use when something important must be understood. Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format").
 
 ### Documentation - (docs/README.md)
