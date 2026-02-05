@@ -1,7 +1,3 @@
-## Overview
-
-A plugin for Sumo Logic metrics data.
-
 ## Setup
 
 Authentication is via Personal Access Key.
