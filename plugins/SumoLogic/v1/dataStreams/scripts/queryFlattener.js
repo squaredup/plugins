@@ -4,7 +4,7 @@ if (errors?.errors?.length && !queryResultBody?.timeSeriesList?.timeSeries?.leng
     throw new Error(errors.errors.map(({ message }) => message).join(', '));
 }
 
-if (queryResultBody) {
+if (queryResultBody?.timeSeriesList?.timeSeries?.length) {
     const timeseriesResults = queryResultBody.timeSeriesList.timeSeries;
 
     result = timeseriesResults.flatMap(({ metricDefinition, points }) => 
