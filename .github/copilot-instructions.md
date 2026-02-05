@@ -19,7 +19,7 @@ When suggesting changes:
 - Optimise for reviewability
 - Keep diffs focused and minimal
 - If a change is non-obvious, add a short comment explaining intent.
-- Comments should explain **why**, not restate **what*- the code does
+- Comments should explain **why**, not restate **what** the code does
 - Use a neutral, professional tone
 - Avoid humour, sarcasm, or emojis in code comments
 - Include all review comments in the first review, do not add additional review comments to code that hasn't changed since the previous commit.
@@ -47,11 +47,10 @@ When suggesting changes:
 - Generally prefer API tokens or OAuth where possible, flag usage of username/password unless the API offers no alternative.
 - Check that only strictly required fields are marked as `required: true`. Advanced options should never block first-time success.
 - For each field in the array:
-  - displayName - First word uppercase, then lowercase (e.g. “Table name", or "API key"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s))
+  - displayName - First word uppercase, then lowercase (e.g. “Table name", or "API key"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
   - name - Should typically be the camel-cased version of the displayName.
-  - help - Do not use tooltips unless they add specific value. Never state the obvious (e.g. “Enter the API key here"). Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format"). Encourage include a reference link if relevant `Create an API key in the [Phare portal](https://docs.phare.io/api-reference/introduction)`
+  - help - Do not use tooltips unless they add specific value. Never state the obvious (e.g. “Enter the API key here"). Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format"). Encourage the author to include a reference link if relevant `Create an API key in the [Phare portal](https://docs.phare.io/api-reference/introduction)`
   - placeholder - Mandatory for text fields. Use example placeholders (especially for URLs or values that follow a fixed pattern, e.g. rootly_xxxxxxxxx or https://organisation.atlassian.net) or “Enter the [data source] [info needed in lowercase]". Use default values instead of hint text where a value is commonly the same across environments (e.g. default ports).
-  - displayName - Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
   - title - Should not specify the `title` attribute on any fields.
 
 ### Out-of-the-box dashboards (defaultContent/**/*.dash.json)
@@ -66,7 +65,7 @@ When suggesting changes:
 - description - Typically one sentence only. No full stop at the end. Add relevant clarifications in brackets. Never use two sentences.
 - tags - Mandatory. Reuse an existing category from other plugins where possible.
 - ui
-  - displayName- First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s). Do not use "you" "Your" in display names.
+  - displayName - First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s). Do not use "you" "Your" in display names. Keep text neutral, concise, and descriptive.
   - help - Use extremely sparingly. Never state the obvious. Only use when something important must be understood. Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format").
 
 ### Documentation - (docs/README.md)
