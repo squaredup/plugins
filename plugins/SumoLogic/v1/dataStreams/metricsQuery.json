@@ -1,0 +1,125 @@
+{
+    "name": "metricsQuery",
+    "displayName": "Metrics Query",
+    "description": "Execute a metrics query returning time series data",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "manualConfigApply": true,
+    "config": {
+        "httpMethod": "post",
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "v1/metricsQueries",
+        "getArgs": [],
+        "headers": [],
+        "postBody": {
+            "queries": [{
+                "rowId": "A",
+                "query": "{{metricQuery}}",
+                "quantization": "{{ typeof quantization !== 'undefined' && quantization ? Number(quantization) : undefined }}",
+                "rollup": "{{ typeof rollup !== 'undefined' && rollup ? rollup : undefined }}",
+                "timeshift": "{{ typeof timeshift !== 'undefined' && timeshift ? Number(timeshift) : undefined }}"
+            }],
+            "timeRange": {
+                "type": "BeginBoundedTimeRange",
+                "from": {
+                    "type": "Iso8601TimeRangeBoundary",
+                    "iso8601Time": "{{timeframe.start}}"
+                },
+                "to": {
+                    "type": "Iso8601TimeRangeBoundary",
+                    "iso8601Time": "{{timeframe.end}}"
+                }
+            }
+        },
+        "postRequestScript": "queryFlattener.js"
+    },
+    "timeframes": true,
+    "ui": [
+        {
+            "name": "metricQuery",
+            "label": "Metric query",
+            "placeholder": "metric=CPU_Idle",
+            "type": "text",
+            "validation": {
+                "required": true,
+                "maxLength": 3000
+            }
+        },
+        {
+            "name": "quantization",
+            "label": "Quantization",
+            "placeholder": "60000",
+            "help": "Segregates time series data by time period. This allows you to create aggregated results in buckets of fixed intervals (for example, 5-minute intervals). The value is in milliseconds.",
+            "type": "number",
+            "validation": {
+                "required": false,
+                "min": 1
+            }
+        },
+        {
+            "isMulti": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "Avg",
+                        "label": "Avg"
+                    },
+                    {
+                        "value": "Sum",
+                        "label": "Sum"
+                    },
+                    {
+                        "value": "Min",
+                        "label": "Min"
+                    },
+                    {
+                        "value": "Max",
+                        "label": "Max"
+                    },
+                    {
+                        "value": "Count",
+                        "label": "Count"
+                    },
+                    {
+                        "value": "None",
+                        "label": "None"
+                    }
+                ]
+            },
+            "name": "rollup",
+            "label": "Rollup",
+            "placeholder": "Select rollup",
+            "type": "autocomplete",
+            "allowCustomValues": false
+        },
+        {
+            "name": "timeshift",
+            "label": "Timeshift",
+            "placeholder": "-3600000",
+            "type": "number",
+            "help": "Shifts the time series from your metrics query by the specified amount of time. This can help when comparing a time series across multiple time periods. Specified as a signed duration in milliseconds.",
+            "validation": {
+                "max": 0,
+                "required": false
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ],
+            "name": "timestamp"
+        },
+        {
+            "pattern": ".*"
+        }
+    ]
+}
+
