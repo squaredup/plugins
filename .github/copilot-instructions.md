@@ -11,6 +11,9 @@ Any diff that touches files inside a plugin directory must include a correspondi
 - Use consistent naming
 - Do not introduce formatting tools or config files unless explicitly requested.
 
+## CODEOWNERS
+- If the user is adding a new plugin, encourage them to update the .github/CODEOWNERS file so they can help review future contributions.
+
 ## Suggesting changes
 
 When suggesting changes:
