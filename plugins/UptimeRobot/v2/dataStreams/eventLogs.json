@@ -1,0 +1,75 @@
+{
+    "name": "eventLogs",
+    "displayName": "Event Logs",
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "getMonitors",
+        "postBody": {
+            "format": "json",
+            "monitors": "{{objects.map((n) => n.monitorId).join('-')}}",
+            "logs": 1
+        },
+        "postRequestScript": "eventLogs.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "body",
+                "path": "limit",
+                "value": "50"
+            },
+            "offset": {
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "monitors"
+                },
+                "mode": "row",
+                "base": "0"
+            },
+            "out": {
+                "realm": "body",
+                "path": "offset"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "UptimeRobot HTTP Monitor",
+                "UptimeRobot Keyword Monitor",
+                "UptimeRobot Ping Monitor",
+                "UptimeRobot Port Monitor",
+                "UptimeRobot Heartbeat Monitor"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "friendly_name",
+            "displayName": "Monitor",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "datetime",
+            "displayName": "Timestamp",
+            "shape": "date"
+        },
+        {
+            "name": "reason.code",
+            "displayName": "Code",
+            "shape": "string"
+        },
+        {
+            "name": "reason.detail",
+            "displayName": "Message",
+            "shape": "string"
+        },
+        {
+            "name": "duration",
+            "displayName": "Duration",
+            "shape": "seconds"
+        }
+    ]
+}
