@@ -1,3 +1,5 @@
+# Configuration
+
 ## Instance URL
 
 The base URL of your OpenSearch database.
@@ -5,7 +7,7 @@ The base URL of your OpenSearch database.
 For example:
 `https://<your-opensearch-host>:9200`
 
-Do *not* include the `/api' path. 
+Do *not* include the `/api` path. 
 
 ## Authentication
 
