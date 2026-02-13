@@ -1,4 +1,4 @@
-if (data.aggregations && data.aggregations.length > 0) {
+if (data.aggregations && Object.keys(data.aggregations).length > 0) {
   
   const agg = data.aggregations[Object.keys(data.aggregations).at(-1)]; // last aggregation to support pipelining
 
