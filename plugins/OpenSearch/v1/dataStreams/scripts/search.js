@@ -27,6 +27,3 @@ if (data.aggregations && Object.keys(data.aggregations).length > 0) {
   result = data.hits.hits.map(hit => hit._source);
 
 }
-
-
-
