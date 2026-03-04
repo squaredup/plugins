@@ -1,0 +1,25 @@
+result = data.map((repo) => {
+    return {
+        archived: repo.archived,
+        created_at: repo.created_at,
+        default_branch: repo.default_branch,
+        description: repo.description,
+        fork: repo.fork,
+        forks_count: repo.forks_count,
+        full_name: repo.full_name,
+        html_url: repo.html_url,
+        id: repo.id,
+        language: repo.language,
+        license: repo.license?.name,
+        name: repo.name,
+        open_issues: repo.open_issues_count,
+        owner: repo.owner.login,
+        private: repo.private,
+        pushed_at: repo.pushed_at,
+        size: repo.size,
+        stargazers: repo.stargazers_count,
+        topics: repo.topics?.join(', '),
+        updated_at: repo.updated_at,
+        visibility: repo.visibility,
+    };
+});

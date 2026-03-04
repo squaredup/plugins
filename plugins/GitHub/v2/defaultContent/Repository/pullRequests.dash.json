@@ -1,0 +1,524 @@
+{
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 6,
+        "contents": [
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "dateFilter": "created",
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "typeFilter": ["closed", "draft", "merged", "open"]
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [["created_at", "byDay"]]
+                        },
+                        "id": "{{dataStreams.pullRequests}}",
+                        "metadata": [],
+                        "name": "pullRequests"
+                    },
+                    "description": "",
+                    "title": "Opened Over Time",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-line-graph": {
+                                "seriesColumn": "created_at_byDay",
+                                "showTrendLine": true,
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": false,
+                                "xAxisColumn": "created_at_byDay",
+                                "yAxisColumn": "count"
+                            }
+                        },
+                        "type": "data-stream-line-graph"
+                    }
+                },
+                "h": 2,
+                "i": "6da079f1-dc66-4048-817d-8deab51decc9",
+                "moved": false,
+                "static": false,
+                "w": 3,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "dateFilter": "merged",
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "typeFilter": ["merged"]
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [["closed_at", "byDay"]]
+                        },
+                        "id": "{{dataStreams.pullRequests}}",
+                        "metadata": [],
+                        "name": "pullRequests"
+                    },
+                    "description": "",
+                    "title": "Merged Over Time",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-line-graph": {
+                                "seriesColumn": "closed_at_byDay",
+                                "showTrendLine": true,
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": false,
+                                "xAxisColumn": "closed_at_byDay",
+                                "yAxisColumn": "count"
+                            }
+                        },
+                        "type": "data-stream-line-graph"
+                    }
+                },
+                "h": 2,
+                "i": "9a50dc70-2ea3-47f5-95f3-e795346d96f0",
+                "moved": false,
+                "static": false,
+                "w": 3,
+                "x": 3,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "filter": {
+                            "filters": [
+                                {
+                                    "column": "created_at",
+                                    "operation": "datemorethan",
+                                    "tenseUnit": "before",
+                                    "unit": "days",
+                                    "value": "30"
+                                }
+                            ],
+                            "multiOperation": "and"
+                        },
+                        "id": "{{dataStreams.pullRequests}}",
+                        "name": "pullRequests"
+                    },
+                    "description": "",
+                    "timeframe": "last7days",
+                    "title": "Stale (Open > 30 days)",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "value": {
+                                    "type": "count"
+                                }
+                            }
+                        },
+                        "type": "data-stream-scalar"
+                    }
+                },
+                "h": 1,
+                "i": "73640e50-a748-4508-8f95-7f28620f7530",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT\n  AVG(CURRENT_DATE - CAST(created_at AS DATE)) AS average_open_age_days\nFROM\n  openprs;",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": ["{{configId}}"],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "repos": {
+                                                    "scope": "{{scopes.[GitHub Repositories]}}",
+                                                    "variable": "{{variables.[GitHub Repository]}}",
+                                                    "workspace": "{{workspaceId}}"
+                                                },
+                                                "resultType": "list",
+                                                "typeFilter": ["open", "draft"]
+                                            },
+                                            "id": "{{dataStreams.pullRequests}}",
+                                            "name": "pullRequests"
+                                        },
+                                        "timeframe": "last7days",
+                                        "variables": ["{{variables.[GitHub Repository]}}"]
+                                    },
+                                    "tableName": "openprs"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql",
+                        "metadata": [
+                            {
+                                "name": "average_open_age_days",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "description": "",
+                    "title": "Average Open Age",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "days",
+                                "labelPosition": "bottom",
+                                "value": "average_open_age_days"
+                            }
+                        },
+                        "type": "data-stream-scalar"
+                    }
+                },
+                "h": 1,
+                "i": "b1b835c4-f60b-4960-87d5-c509d41ce2aa",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT\n  AVG(DATE_DIFF('day', created_at, closed_at)) AS avg_time_to_merge_days\nFROM\n  closedprs;",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": ["{{configId}}"],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "dateFilter": "merged",
+                                                "repos": {
+                                                    "scope": "{{scopes.[GitHub Repositories]}}",
+                                                    "variable": "{{variables.[GitHub Repository]}}",
+                                                    "workspace": "{{workspaceId}}"
+                                                },
+                                                "resultType": "list",
+                                                "typeFilter": ["merged"]
+                                            },
+                                            "id": "{{dataStreams.pullRequests}}",
+                                            "name": "pullRequests"
+                                        },
+                                        "timeframe": "last7days",
+                                        "variables": ["{{variables.[GitHub Repository]}}"]
+                                    },
+                                    "tableName": "closedprs"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql",
+                        "metadata": [
+                            {
+                                "name": "avg_time_to_merge_days",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "description": "",
+                    "title": "Average Time To Merge",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "days",
+                                "value": "avg_time_to_merge_days"
+                            }
+                        },
+                        "type": "data-stream-scalar"
+                    }
+                },
+                "h": 1,
+                "i": "9fdf5ae0-6513-47f9-9004-b2ee3ab82ada",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 4,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "dateFilter": "created",
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "typeFilter": ["open"]
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [["user", "uniqueValues"]]
+                        },
+                        "id": "{{dataStreams.pullRequests}}",
+                        "name": "pullRequests"
+                    },
+                    "description": "",
+                    "title": "Opened by User",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "labelColumn": "user_uniqueValues",
+                                "legendMode": "table",
+                                "legendPosition": "right",
+                                "showValuesAsPercentage": false,
+                                "valueColumn": "count"
+                            }
+                        },
+                        "type": "data-stream-donut-chart"
+                    }
+                },
+                "h": 2,
+                "i": "4c50de98-b32a-4721-a79f-1462dba670c2",
+                "moved": false,
+                "static": false,
+                "w": 3,
+                "x": 0,
+                "y": 3,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "dateFilter": "merged",
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "typeFilter": ["merged"]
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [["user", "uniqueValues"]]
+                        },
+                        "id": "{{dataStreams.pullRequests}}",
+                        "name": "pullRequests"
+                    },
+                    "description": "",
+                    "title": "Merged by User",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "labelColumn": "user_uniqueValues",
+                                "legendMode": "table",
+                                "legendPosition": "right",
+                                "showValuesAsPercentage": false,
+                                "valueColumn": "count"
+                            }
+                        },
+                        "type": "data-stream-donut-chart"
+                    }
+                },
+                "h": 2,
+                "i": "7bfd06e3-dd08-4198-b249-3581c3bc5f7c",
+                "moved": false,
+                "static": false,
+                "w": 3,
+                "x": 3,
+                "y": 3,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "group": {
+                            "aggregate": [],
+                            "by": []
+                        },
+                        "id": "{{dataStreams.pullRequests}}",
+                        "name": "pullRequests",
+                        "sort": {
+                            "by": [["created_at", "desc"]]
+                        }
+                    },
+                    "description": "",
+                    "title": "Opened List",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "title",
+                                    "html_url",
+                                    "draft",
+                                    "user",
+                                    "labels",
+                                    "assignee",
+                                    "reviewers",
+                                    "review_status",
+                                    "created_at",
+                                    "updated_at",
+                                    "closed_at"
+                                ],
+                                "hiddenColumns": ["number", "state"]
+                            }
+                        },
+                        "type": "data-stream-table"
+                    }
+                },
+                "h": 3,
+                "i": "64ae1874-5bc5-4634-a425-8ef8df839953",
+                "moved": false,
+                "static": false,
+                "w": 3,
+                "x": 0,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "dateFilter": "merged",
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "typeFilter": ["merged"]
+                        },
+                        "group": {
+                            "aggregate": [],
+                            "by": []
+                        },
+                        "id": "{{dataStreams.pullRequests}}",
+                        "name": "pullRequests",
+                        "sort": {
+                            "by": [["closed_at", "desc"]]
+                        }
+                    },
+                    "description": "",
+                    "title": "Merged List",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "title",
+                                    "html_url",
+                                    "user",
+                                    "labels",
+                                    "assignee",
+                                    "reviewers",
+                                    "review_status",
+                                    "created_at",
+                                    "updated_at",
+                                    "closed_at"
+                                ],
+                                "hiddenColumns": ["number", "sourceId", "state", "draft"]
+                            }
+                        },
+                        "type": "data-stream-table"
+                    }
+                },
+                "h": 3,
+                "i": "cde782ad-fa82-4b90-ad15-6e818a092b5f",
+                "moved": false,
+                "static": false,
+                "w": 3,
+                "x": 3,
+                "y": 5,
+                "z": 0
+            }
+        ],
+        "version": 454
+    },
+    "folderPath": ["Repository"],
+    "name": "Pull Requests",
+    "path": "repository/pull-requests",
+    "schemaVersion": "1.4",
+    "timeframe": "last7days",
+    "variables": ["{{variables.[GitHub Repository]}}"]
+}

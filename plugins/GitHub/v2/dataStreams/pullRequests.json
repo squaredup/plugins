@@ -1,0 +1,240 @@
+{
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "endpointPath": "api.github.com/search/issues",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "q",
+                "value": "{{typeof repos !== 'undefined' && repos.length > 0 ? `repo:${repos[0].fullName}` : `org:${dataSource.org}`}} is:pr{{(() => { if (!typeFilter || !typeFilter.length) return ''; let q = ''; if (typeFilter.includes('merged') !== typeFilter.includes('unmerged')) q += typeFilter.includes('merged') ? ' is:merged' : ' is:unmerged'; else if (!typeFilter.includes('merged') && typeFilter.includes('open') !== typeFilter.includes('closed')) q += typeFilter.includes('open') ? ' state:open' : ' state:closed'; if (typeFilter.includes('draft') && typeFilter.length === 1) q += ' draft:true'; else if (!typeFilter.includes('draft')) q += ' draft:false'; return q; })()}}{{timeframe && timeframe.start ? ` ${dateFilter}:${timeframe.start}..${timeframe.end}` : ''}}"
+            },
+            {
+                "key": "advanced_search",
+                "value": "true"
+            }
+        ],
+        "headers": [],
+        "httpMethod": "get",
+        "paging": {
+            "in": {
+                "path": "next",
+                "realm": {
+                    "label": "Web link",
+                    "value": "webLink"
+                }
+            },
+            "mode": "nextUrl",
+            "pageSize": {
+                "path": "per_page",
+                "realm": {
+                    "label": "Query parameter",
+                    "value": "queryArg"
+                },
+                "value": "{{!resultType || resultType === 'list' ? 100 : 1}}"
+            }
+        },
+        "postRequestScript": "pullRequests.js"
+    },
+    "displayName": "Pull Requests",
+    "manualConfigApply": true,
+    "metadata": [
+        {
+            "displayName": "Title",
+            "name": "title",
+            "role": "label",
+            "shape": "string",
+            "sourceId": "repo_id"
+        },
+        {
+            "displayName": "Number",
+            "name": "html_url",
+            "shape": [
+                "url",
+                {
+                    "label": "{{column.number}}"
+                }
+            ]
+        },
+        {
+            "name": "number",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "displayName": "State",
+            "name": "state",
+            "shape": "string"
+        },
+        {
+            "displayName": "Draft",
+            "name": "draft",
+            "shape": "boolean"
+        },
+        {
+            "displayName": "Author",
+            "name": "user",
+            "shape": "string"
+        },
+        {
+            "displayName": "Labels",
+            "name": "labels",
+            "shape": "string"
+        },
+        {
+            "displayName": "Repo",
+            "name": "repo_url",
+            "shape": [
+                "url",
+                {
+                    "label": "{{column.repo_name}}"
+                }
+            ]
+        },
+        {
+            "displayName": "Assignee",
+            "name": "assignee",
+            "shape": "string"
+        },
+        {
+            "displayName": "Created At",
+            "name": "created_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Updated At",
+            "name": "updated_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Closed At",
+            "name": "closed_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "PR ID",
+            "name": "id",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "displayName": "Repo ID",
+            "name": "repo_id",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "count",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "name": "pullRequests",
+    "timeframes": true,
+    "ui": [
+        {
+            "label": "Repository",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "GitHub Repo"
+                }
+            },
+            "name": "repos",
+            "nodeProperties": ["name", "fullName", "sourceId"],
+            "objectLimit": 1,
+            "placeholder": "Select...",
+            "searchPlaceholder": "Search repositories...",
+            "type": "objects"
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Open",
+                        "value": "open"
+                    },
+                    {
+                        "label": "Closed",
+                        "value": "closed"
+                    },
+                    {
+                        "label": "Draft",
+                        "value": "draft"
+                    },
+                    {
+                        "label": "Merged",
+                        "value": "merged"
+                    },
+                    {
+                        "label": "Unmerged",
+                        "value": "unmerged"
+                    }
+                ]
+            },
+            "defaultValue": ["open", "draft"],
+            "isMulti": true,
+            "label": "State",
+            "name": "typeFilter",
+            "type": "autocomplete"
+        },
+        {
+            "defaultValue": "list",
+            "label": "Result type",
+            "name": "resultType",
+            "options": [
+                {
+                    "label": "List",
+                    "value": "list"
+                },
+                {
+                    "label": "Count",
+                    "value": "count"
+                }
+            ],
+            "type": "radio"
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Created",
+                        "value": "created"
+                    },
+                    {
+                        "label": "Updated",
+                        "value": "updated"
+                    },
+                    {
+                        "label": "Closed",
+                        "value": "closed"
+                    },
+                    {
+                        "label": "Merged",
+                        "value": "merged"
+                    }
+                ]
+            },
+            "defaultValue": "created",
+            "help": "Select the column that contains the date/time to apply the timeframe",
+            "isClearable": false,
+            "isMulti": false,
+            "label": "Date filter",
+            "name": "dateFilter",
+            "type": "autocomplete",
+            "validation": {
+                "required": true
+            }
+        }
+    ]
+}

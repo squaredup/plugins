@@ -1,0 +1,439 @@
+{
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "contents": [
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "filter": {
+                            "filters": [],
+                            "multiOperation": "and"
+                        },
+                        "id": "{{dataStreams.issues}}",
+                        "name": "issues"
+                    },
+                    "description": "",
+                    "timeframe": "last7days",
+                    "title": "Active Issues",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "value": {
+                                    "type": "count"
+                                }
+                            }
+                        },
+                        "type": "data-stream-scalar"
+                    }
+                },
+                "h": 2,
+                "i": "073e9a7c-f119-4833-b25b-80a2bb91244b",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "filter": {
+                            "filters": [
+                                {
+                                    "column": "created_at",
+                                    "operation": "datemorethan",
+                                    "tenseUnit": "before",
+                                    "unit": "days",
+                                    "value": "30"
+                                }
+                            ],
+                            "multiOperation": "and"
+                        },
+                        "id": "{{dataStreams.issues}}",
+                        "name": "issues"
+                    },
+                    "description": "",
+                    "timeframe": "last7days",
+                    "title": "Stale (Open > 30 days)",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "value": {
+                                    "type": "count"
+                                }
+                            }
+                        },
+                        "type": "data-stream-scalar"
+                    }
+                },
+                "h": 2,
+                "i": "468c924a-47ee-4221-9813-e9a10822b65c",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 1,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT\n  AVG(CURRENT_DATE - CAST(created_at AS DATE)) AS average_open_age_days\nFROM\n  openissues;",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": ["{{configId}}"],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "repos": {
+                                                    "scope": "{{scopes.[GitHub Repositories]}}",
+                                                    "variable": "{{variables.[GitHub Repository]}}",
+                                                    "workspace": "{{workspaceId}}"
+                                                },
+                                                "resultType": "list",
+                                                "stateFilter": ["open"]
+                                            },
+                                            "id": "{{dataStreams.issues}}",
+                                            "name": "issues"
+                                        },
+                                        "timeframe": "last7days",
+                                        "variables": ["{{variables.[GitHub Repository]}}"]
+                                    },
+                                    "tableName": "openissues"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "",
+                    "title": "Average Open Age",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "days",
+                                "value": "average_open_age_days"
+                            }
+                        },
+                        "type": "data-stream-scalar"
+                    }
+                },
+                "h": 2,
+                "i": "33b120a4-394a-4978-82e7-61f113432c21",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 2,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT\n  AVG(DATE_DIFF('day', created_at, closed_at)) AS avg_time_to_close_days\nFROM\n  closedissues;",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": ["{{configId}}"],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "dateFilter": "closed",
+                                                "repos": {
+                                                    "scope": "{{scopes.[GitHub Repositories]}}",
+                                                    "variable": "{{variables.[GitHub Repository]}}",
+                                                    "workspace": "{{workspaceId}}"
+                                                },
+                                                "resultType": "list",
+                                                "stateFilter": ["closed"]
+                                            },
+                                            "id": "{{dataStreams.issues}}",
+                                            "name": "issues"
+                                        },
+                                        "variables": ["{{variables.[GitHub Repository]}}"]
+                                    },
+                                    "tableName": "closedissues"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql",
+                        "metadata": [
+                            {
+                                "name": "avg_time_to_close_days",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "description": "",
+                    "title": "Average Time To Close",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "days",
+                                "value": "avg_time_to_close_days"
+                            }
+                        },
+                        "type": "data-stream-scalar"
+                    }
+                },
+                "h": 2,
+                "i": "6fa5efee-f13f-43b6-a56b-77f7b065c91b",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 3,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "dateFilter": "closed",
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "stateFilter": ["closed"]
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [["created_at", "byDay"]]
+                        },
+                        "id": "{{dataStreams.issues}}",
+                        "name": "issues"
+                    },
+                    "description": "",
+                    "title": "Closed Over Time",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-line-graph": {
+                                "seriesColumn": "created_at_byDay",
+                                "showTrendLine": true,
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": false,
+                                "xAxisColumn": "created_at_byDay",
+                                "yAxisColumn": "count"
+                            }
+                        },
+                        "type": "data-stream-line-graph"
+                    }
+                },
+                "h": 2,
+                "i": "eb5b07e4-2258-409f-9c73-3b3615c53f0c",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "stateFilter": ["open"]
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [["created_at", "byDay"]]
+                        },
+                        "id": "{{dataStreams.issues}}",
+                        "name": "issues"
+                    },
+                    "description": "",
+                    "title": "Opened Over Time",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-line-graph": {
+                                "seriesColumn": "created_at_byDay",
+                                "showTrendLine": true,
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": false,
+                                "xAxisColumn": "created_at_byDay",
+                                "yAxisColumn": "count"
+                            }
+                        },
+                        "type": "data-stream-line-graph"
+                    }
+                },
+                "h": 2,
+                "i": "c6b9f07a-48fa-43e1-9147-1bac59a058ab",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "stateFilter": ["open"]
+                        },
+                        "id": "{{dataStreams.issues}}",
+                        "name": "issues"
+                    },
+                    "description": "",
+                    "title": "Opened List",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "title",
+                                    "html_url",
+                                    "state",
+                                    "user",
+                                    "repo_url",
+                                    "created_at",
+                                    "updated_at",
+                                    "closed_at"
+                                ],
+                                "hiddenColumns": ["sourceId", "number", "repo_name", "___squp_data_source_name"]
+                            }
+                        },
+                        "type": "data-stream-table"
+                    }
+                },
+                "h": 2,
+                "i": "01f027e2-3aeb-4081-8c69-cd88e6d640fd",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 4,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "dateFilter": "closed",
+                            "repos": {
+                                "scope": "{{scopes.[GitHub Repositories]}}",
+                                "variable": "{{variables.[GitHub Repository]}}",
+                                "workspace": "{{workspaceId}}"
+                            },
+                            "resultType": "list",
+                            "stateFilter": ["closed"]
+                        },
+                        "id": "{{dataStreams.issues}}",
+                        "name": "issues"
+                    },
+                    "description": "",
+                    "title": "Closed List",
+                    "variables": ["{{variables.[GitHub Repository]}}"],
+                    "visualisation": {
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "title",
+                                    "html_url",
+                                    "state",
+                                    "user",
+                                    "repo_url",
+                                    "created_at",
+                                    "updated_at",
+                                    "closed_at"
+                                ],
+                                "hiddenColumns": ["sourceId", "number", "repo_name", "___squp_data_source_name"]
+                            }
+                        },
+                        "type": "data-stream-table"
+                    }
+                },
+                "h": 2,
+                "i": "e865ab5d-331c-4a22-9bb0-e02f71b3e455",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 4,
+                "z": 0
+            }
+        ],
+        "version": 319
+    },
+    "folderPath": ["Repository"],
+    "name": "Issues",
+    "path": "repository/issues",
+    "schemaVersion": "1.4",
+    "timeframe": "last7days",
+    "variables": ["{{variables.[GitHub Repository]}}"]
+}

@@ -1,0 +1,197 @@
+{
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "endpointPath": "api.github.com/{{typeof repos !== 'undefined' && repos.length > 0 ? `repos/${repos[0].fullName}` : `orgs/${dataSource.org}`}}/code-scanning/alerts",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "state",
+                "value": "{{state}}"
+            },
+            {
+                "key": "severity",
+                "value": "{{typeof severity !== 'undefined' ? severity : ''}}"
+            },
+            {
+                "key": "direction",
+                "value": "desc"
+            }
+        ],
+        "headers": [],
+        "httpMethod": "get",
+        "paging": {
+            "in": {
+                "path": "next",
+                "realm": {
+                    "label": "Web link",
+                    "value": "webLink"
+                }
+            },
+            "mode": "nextUrl",
+            "pageSize": {
+                "path": "per_page",
+                "realm": {
+                    "label": "Query parameter",
+                    "value": "queryArg"
+                },
+                "value": "100"
+            }
+        },
+        "postRequestScript": "codeScan.js"
+    },
+    "displayName": "Code Scanning",
+    "manualConfigApply": true,
+    "metadata": [
+        {
+            "displayName": "Number",
+            "name": "html_url",
+            "shape": [
+                "url",
+                {
+                    "label": "{{column.number}}"
+                }
+            ]
+        },
+        {
+            "displayName": "Title",
+            "name": "rule_description",
+            "shape": "string"
+        },
+        {
+            "displayName": "Severity",
+            "name": "rule_security_severity_level",
+            "shape": "string"
+        },
+        {
+            "displayName": "State",
+            "name": "state",
+            "shape": "string"
+        },
+        {
+            "displayName": "Tool",
+            "name": "tool_name",
+            "shape": "string"
+        },
+        {
+            "displayName": "Repository",
+            "name": "repo",
+            "shape": "string"
+        },
+        {
+            "displayName": "Created At",
+            "name": "created_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Updated At",
+            "name": "updated_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Fixed At",
+            "name": "fixed_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Number (Raw)",
+            "name": "number",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "name": "codeScan",
+    "timeframes": false,
+    "ui": [
+        {
+            "label": "Repository",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "GitHub Repo"
+                }
+            },
+            "name": "repos",
+            "nodeProperties": ["name", "fullName", "sourceId"],
+            "objectLimit": 1,
+            "placeholder": "Select...",
+            "searchPlaceholder": "Search repositories...",
+            "type": "objects"
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Open",
+                        "value": "open"
+                    },
+                    {
+                        "label": "Closed",
+                        "value": "closed"
+                    },
+                    {
+                        "label": "Dismissed",
+                        "value": "dismissed"
+                    },
+                    {
+                        "label": "Fixed",
+                        "value": "fixed"
+                    }
+                ]
+            },
+            "defaultValue": "open",
+            "isClearable": false,
+            "isMulti": false,
+            "label": "State",
+            "name": "state",
+            "type": "autocomplete"
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Low",
+                        "value": "low"
+                    },
+                    {
+                        "label": "Medium",
+                        "value": "medium"
+                    },
+                    {
+                        "label": "High",
+                        "value": "high"
+                    },
+                    {
+                        "label": "Critical",
+                        "value": "critical"
+                    },
+                    {
+                        "label": "Error",
+                        "value": "error"
+                    },
+                    {
+                        "label": "Warning",
+                        "value": "warning"
+                    },
+                    {
+                        "label": "Note",
+                        "value": "note"
+                    }
+                ]
+            },
+            "isMulti": false,
+            "label": "Severity",
+            "name": "severity",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        }
+    ]
+}

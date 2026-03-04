@@ -1,0 +1,271 @@
+{
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "endpointPath": "api.github.com/{{typeof repos !== 'undefined' && repos.length > 0 ? `repos/${repos[0].fullName}` : `orgs/${dataSource.org}`}}/dependabot/alerts",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "state",
+                "value": "{{state.join(',')}}"
+            },
+            {
+                "key": "severity",
+                "value": "{{typeof severity !== 'undefined' ? severity.join(',') : 'low,medium,high,critical'}}"
+            },
+            {
+                "key": "ecosystem",
+                "value": "{{typeof ecosystem !== 'undefined' ? ecosystem.join(',') : 'composer,go,maven,npm,nuget,pip,pub,rubygems,rust'}}"
+            },
+            {
+                "key": "scope",
+                "value": "{{typeof scope !== 'undefined' ? scope : 'development,runtime'}}"
+            },
+            {
+                "key": "direction",
+                "value": "desc"
+            }
+        ],
+        "headers": [],
+        "httpMethod": "get",
+        "paging": {
+            "in": {
+                "path": "next",
+                "realm": {
+                    "label": "Web link",
+                    "value": "webLink"
+                }
+            },
+            "mode": "nextUrl",
+            "pageSize": {
+                "path": "per_page",
+                "realm": {
+                    "label": "Query parameter",
+                    "value": "queryArg"
+                },
+                "value": "100"
+            }
+        },
+        "postRequestScript": "dependabotAlerts.js"
+    },
+    "displayName": "Dependabot Alerts",
+    "manualConfigApply": true,
+    "metadata": [
+        {
+            "displayName": "Number",
+            "name": "html_url",
+            "shape": [
+                "url",
+                {
+                    "label": "{{column.number}}"
+                }
+            ]
+        },
+        {
+            "displayName": "Title",
+            "name": "security_advisory_summary",
+            "shape": "string"
+        },
+        {
+            "displayName": "Severity",
+            "name": "security_advisory_severity",
+            "shape": "string"
+        },
+        {
+            "displayName": "State",
+            "name": "state",
+            "shape": "string"
+        },
+        {
+            "displayName": "Package",
+            "name": "dependency_package_name",
+            "shape": "string"
+        },
+        {
+            "displayName": "CVE ID",
+            "name": "security_advisory_cve_id",
+            "shape": "string"
+        },
+        {
+            "displayName": "CVSS Score",
+            "name": "security_advisory_cvss_score",
+            "shape": "string"
+        },
+        {
+            "displayName": "Repository",
+            "name": "repo",
+            "shape": "string"
+        },
+        {
+            "displayName": "Created At",
+            "name": "created_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Updated At",
+            "name": "updated_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Number (Raw)",
+            "name": "number",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "name": "dependabotAlerts",
+    "timeframes": false,
+    "ui": [
+        {
+            "label": "Repository",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "GitHub Repo"
+                }
+            },
+            "name": "repos",
+            "nodeProperties": ["name", "fullName", "sourceId"],
+            "objectLimit": 1,
+            "placeholder": "Select...",
+            "searchPlaceholder": "Search repositories...",
+            "type": "objects"
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Open",
+                        "value": "open"
+                    },
+                    {
+                        "label": "Dismissed",
+                        "value": "dismissed"
+                    },
+                    {
+                        "label": "Auto Dismissed",
+                        "value": "auto_dismissed"
+                    },
+                    {
+                        "label": "Fixed",
+                        "value": "fixed"
+                    }
+                ]
+            },
+            "defaultValue": ["open"],
+            "isMulti": true,
+            "label": "State",
+            "name": "state",
+            "type": "autocomplete"
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Low",
+                        "value": "low"
+                    },
+                    {
+                        "label": "Medium",
+                        "value": "medium"
+                    },
+                    {
+                        "label": "High",
+                        "value": "high"
+                    },
+                    {
+                        "label": "Critical",
+                        "value": "critical"
+                    }
+                ]
+            },
+            "isMulti": true,
+            "label": "Severity",
+            "name": "severity",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Composer",
+                        "value": "composer"
+                    },
+                    {
+                        "label": "Go",
+                        "value": "go"
+                    },
+                    {
+                        "label": "Maven",
+                        "value": "maven"
+                    },
+                    {
+                        "label": "NPM",
+                        "value": "npm"
+                    },
+                    {
+                        "label": "NuGet",
+                        "value": "nuget"
+                    },
+                    {
+                        "label": "Pip",
+                        "value": "pip"
+                    },
+                    {
+                        "label": "Pub",
+                        "value": "pub"
+                    },
+                    {
+                        "label": "RubyGems",
+                        "value": "rubygems"
+                    },
+                    {
+                        "label": "Rust",
+                        "value": "rust"
+                    }
+                ]
+            },
+            "isMulti": true,
+            "label": "Ecosystem",
+            "name": "ecosystem",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Development",
+                        "value": "development"
+                    },
+                    {
+                        "label": "Runtime",
+                        "value": "runtime"
+                    }
+                ]
+            },
+            "isMulti": false,
+            "label": "Scope",
+            "name": "scope",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        }
+    ]
+}

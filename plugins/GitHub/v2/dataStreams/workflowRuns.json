@@ -1,0 +1,270 @@
+{
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "endpointPath": "api.github.com/repos/{{repos[0].fullName}}/actions/runs",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "exclude_pull_requests",
+                "value": "true"
+            },
+            {
+                "key": "status",
+                "value": "{{typeof status !== 'undefined' ? status : ''}}"
+            },
+            {
+                "key": "event",
+                "value": "{{typeof event !== 'undefined' ? event : ''}}"
+            },
+            {
+                "key": "branch",
+                "value": "{{typeof branch !== 'undefined' ? branch : ''}}"
+            },
+            {
+                "key": "created",
+                "value": "{{timeframe && timeframe.start ? `${timeframe.start}..${timeframe.end}` : ''}}"
+            }
+        ],
+        "headers": [],
+        "httpMethod": "get",
+        "paging": {
+            "in": {
+                "path": "next",
+                "realm": {
+                    "label": "Web link",
+                    "value": "webLink"
+                }
+            },
+            "mode": "nextUrl",
+            "pageSize": {
+                "path": "per_page",
+                "realm": {
+                    "label": "Query parameter",
+                    "value": "queryArg"
+                },
+                "value": "100"
+            }
+        },
+        "postRequestScript": "workflowRuns.js"
+    },
+    "displayName": "Workflow Runs",
+    "manualConfigApply": true,
+    "metadata": [
+        {
+            "displayName": "Run",
+            "name": "html_url",
+            "shape": [
+                "url",
+                {
+                    "label": "{{column.display_title}}"
+                }
+            ]
+        },
+        {
+            "displayName": "Workflow",
+            "name": "name",
+            "shape": "string"
+        },
+        {
+            "displayName": "Actor",
+            "name": "actor_login",
+            "shape": "string"
+        },
+        {
+            "displayName": "Trigger",
+            "name": "event",
+            "shape": "string"
+        },
+        {
+            "displayName": "Status",
+            "name": "status",
+            "shape": "string"
+        },
+        {
+            "displayName": "Conclusion",
+            "name": "conclusion",
+            "shape": "string"
+        },
+        {
+            "displayName": "Duration (s)",
+            "name": "duration",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "displayName": "Branch",
+            "name": "head_branch",
+            "shape": "string"
+        },
+        {
+            "displayName": "Repository",
+            "name": "repository_name",
+            "shape": "string"
+        },
+        {
+            "displayName": "Started At",
+            "name": "run_started_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Created At",
+            "name": "created_at",
+            "shape": "date"
+        },
+        {
+            "displayName": "Updated At",
+            "name": "updated_at",
+            "shape": "date"
+        },
+        {
+            "name": "display_title",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "name": "workflowRuns",
+    "timeframes": true,
+    "ui": [
+        {
+            "label": "Repository",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "GitHub Repo"
+                }
+            },
+            "name": "repos",
+            "nodeProperties": ["name", "fullName", "sourceId"],
+            "objectLimit": 1,
+            "placeholder": "Select...",
+            "searchPlaceholder": "Search repositories...",
+            "type": "objects",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "allowCustomValues": true,
+            "data": {
+                "dataSourceConfig": {
+                    "repos": {
+                        "fieldName": "repos",
+                        "required": true
+                    }
+                },
+                "dataStreamName": "workflowNames",
+                "source": "dataStream"
+            },
+            "isMulti": false,
+            "label": "Workflow",
+            "name": "workflow",
+            "placeholder": "e.g. CI Build",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        },
+        {
+            "allowCustomValues": true,
+            "data": {
+                "dataSourceConfig": {
+                    "repos": {
+                        "fieldName": "repos",
+                        "required": true
+                    }
+                },
+                "dataStreamName": "branches",
+                "source": "dataStream"
+            },
+            "isMulti": false,
+            "label": "Branch",
+            "name": "branch",
+            "placeholder": "e.g. main",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        },
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Completed",
+                        "value": "completed"
+                    },
+                    {
+                        "label": "In Progress",
+                        "value": "in_progress"
+                    },
+                    {
+                        "label": "Queued",
+                        "value": "queued"
+                    },
+                    {
+                        "label": "Requested",
+                        "value": "requested"
+                    },
+                    {
+                        "label": "Waiting",
+                        "value": "waiting"
+                    },
+                    {
+                        "label": "Pending",
+                        "value": "pending"
+                    }
+                ]
+            },
+            "isMulti": false,
+            "label": "Status",
+            "name": "status",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        },
+        {
+            "allowCustomValues": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Push",
+                        "value": "push"
+                    },
+                    {
+                        "label": "Pull Request",
+                        "value": "pull_request"
+                    },
+                    {
+                        "label": "Schedule",
+                        "value": "schedule"
+                    },
+                    {
+                        "label": "Workflow Dispatch",
+                        "value": "workflow_dispatch"
+                    },
+                    {
+                        "label": "Release",
+                        "value": "release"
+                    }
+                ]
+            },
+            "isMulti": false,
+            "label": "Event",
+            "name": "event",
+            "type": "autocomplete",
+            "validation": {
+                "required": false
+            }
+        }
+    ]
+}
