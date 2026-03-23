@@ -1,5 +1,5 @@
 {
-    "name": "Device Overview",
+    "name": "Security Overview",
     "schemaVersion": "1.4",
     "dashboard": {
         "_type": "layout/grid",
@@ -12,28 +12,33 @@
                 "h": 2,
                 "x": 0,
                 "y": 0,
-                "i": "kpi-devices-001",
+                "i": "sec-kpi-activethreats-001",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
                     "dataStream": {
-                        "name": "devices",
-                        "id": "{{dataStreams.devices}}",
+                        "name": "deviceHealth",
+                        "id": "{{dataStreams.deviceHealth}}",
                         "group": {
                             "by": [],
-                            "aggregate": [{ "type": "count" }]
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": ["activeThreatsCount"]
+                                }
+                            ]
                         },
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Total Devices",
+                    "title": "Active Threats",
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "count",
+                                "value": "activeThreatsCount_sum",
                                 "comparisonColumn": "none",
                                 "formatted": false
                             }
@@ -48,38 +53,33 @@
                 "h": 2,
                 "x": 1,
                 "y": 0,
-                "i": "kpi-offline-002",
+                "i": "sec-kpi-alertcount-002",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
                     "dataStream": {
-                        "name": "devices",
-                        "id": "{{dataStreams.devices}}",
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "offline",
-                                    "operation": "equals",
-                                    "value": "true"
-                                }
-                            ]
-                        },
+                        "name": "deviceHealth",
+                        "id": "{{dataStreams.deviceHealth}}",
                         "group": {
                             "by": [],
-                            "aggregate": [{ "type": "count" }]
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": ["alertCount"]
+                                }
+                            ]
                         },
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Offline Devices",
+                    "title": "Total Alerts",
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "count",
+                                "value": "alertCount_sum",
                                 "comparisonColumn": "none",
                                 "formatted": false
                             }
@@ -94,7 +94,7 @@
                 "h": 2,
                 "x": 2,
                 "y": 0,
-                "i": "kpi-criticalvuln-003",
+                "i": "sec-kpi-criticalvuln-003",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
@@ -135,7 +135,7 @@
                 "h": 2,
                 "x": 3,
                 "y": 0,
-                "i": "kpi-activethreats-004",
+                "i": "sec-kpi-highvuln-004",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
@@ -147,7 +147,7 @@
                             "aggregate": [
                                 {
                                     "type": "sum",
-                                    "names": ["activeThreatsCount"]
+                                    "names": ["highVulnerabilityCount"]
                                 }
                             ]
                         },
@@ -156,12 +156,12 @@
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Active Threats",
+                    "title": "High Vulnerabilities",
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "activeThreatsCount_sum",
+                                "value": "highVulnerabilityCount_sum",
                                 "comparisonColumn": "none",
                                 "formatted": false
                             }
@@ -176,42 +176,39 @@
                 "h": 4,
                 "x": 0,
                 "y": 2,
-                "i": "a1b2c3d4-5e6f-7890-abcd-ef1234567890",
+                "i": "sec-donut-threats-001",
                 "z": 0,
                 "config": {
-                    "timeframe": "none",
+                    "timeframe": "last7days",
                     "dataStream": {
-                        "name": "deviceHealth",
-                        "id": "{{dataStreams.deviceHealth}}",
+                        "name": "antivirusThreats",
+                        "id": "{{dataStreams.antivirusThreats}}",
+                        "metadata": [
+                            {
+                                "name": "severity_uniqueValues",
+                                "displayName": "Severity"
+                            }
+                        ],
+                        "group": {
+                            "by": [["severity", "uniqueValues"]],
+                            "aggregate": [{ "type": "count" }]
+                        },
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Device Health Status",
+                    "title": "Threats by Severity",
                     "visualisation": {
-                        "type": "data-stream-table",
+                        "type": "data-stream-donut-chart",
                         "config": {
-                            "data-stream-table": {
-                                "columnOrder": [
-                                    "healthStatus",
-                                    "activeThreatsCount",
-                                    "alertCount",
-                                    "pendingOSPatchesCount",
-                                    "failedOSPatchesCount",
-                                    "pendingSoftwarePatchesCount",
-                                    "failedSoftwarePatchesCount",
-                                    "criticalVulnerabilityCount",
-                                    "highVulnerabilityCount",
-                                    "offline"
-                                ],
-                                "hiddenColumns": [
-                                    "deviceId",
-                                    "quarantinedThreatsCount",
-                                    "mediumVulnerabilityCount",
-                                    "lowVulnerabilityCount"
-                                ],
-                                "transpose": false
+                            "data-stream-donut-chart": {
+                                "labelColumn": "severity_uniqueValues",
+                                "valueColumn": "count",
+                                "showValuesAsPercentage": true,
+                                "hideCenterValue": false,
+                                "legendPosition": "auto",
+                                "legendMode": "inline"
                             }
                         }
                     }
@@ -224,26 +221,39 @@
                 "h": 4,
                 "x": 2,
                 "y": 2,
-                "i": "b2c3d4e5-6f78-9012-cdef-234567890123",
+                "i": "sec-donut-alerts-002",
                 "z": 0,
                 "config": {
                     "timeframe": "last24hours",
                     "dataStream": {
                         "name": "alerts",
                         "id": "{{dataStreams.alerts}}",
+                        "metadata": [
+                            {
+                                "name": "severity_uniqueValues",
+                                "displayName": "Severity"
+                            }
+                        ],
+                        "group": {
+                            "by": [["severity", "uniqueValues"]],
+                            "aggregate": [{ "type": "count" }]
+                        },
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Recent Alerts",
+                    "title": "Alerts by Severity",
                     "visualisation": {
-                        "type": "data-stream-table",
+                        "type": "data-stream-donut-chart",
                         "config": {
-                            "data-stream-table": {
-                                "columnOrder": ["displayName", "severity", "status", "createdAt"],
-                                "hiddenColumns": ["id", "deviceId", "organizationId"],
-                                "transpose": false
+                            "data-stream-donut-chart": {
+                                "labelColumn": "severity_uniqueValues",
+                                "valueColumn": "count",
+                                "showValuesAsPercentage": true,
+                                "hideCenterValue": false,
+                                "legendPosition": "auto",
+                                "legendMode": "inline"
                             }
                         }
                     }
@@ -253,10 +263,10 @@
                 "static": false,
                 "w": 2,
                 "moved": false,
-                "h": 3,
+                "h": 4,
                 "x": 0,
                 "y": 6,
-                "i": "f1a2b3c4-5d6e-7890-abcd-ef1234567891",
+                "i": "s1a2b3c4-5d6e-7890-abcd-ef12345678s1",
                 "z": 0,
                 "config": {
                     "timeframe": "last7days",
@@ -273,8 +283,16 @@
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
-                                "columnOrder": ["name", "status", "severity", "category", "detectedAt", "actionTaken"],
-                                "hiddenColumns": ["id", "deviceId", "path"],
+                                "columnOrder": [
+                                    "name",
+                                    "status",
+                                    "severity",
+                                    "category",
+                                    "detectedAt",
+                                    "actionTaken",
+                                    "path"
+                                ],
+                                "hiddenColumns": ["id", "deviceId"],
                                 "transpose": false
                             }
                         }
@@ -285,10 +303,10 @@
                 "static": false,
                 "w": 2,
                 "moved": false,
-                "h": 3,
+                "h": 4,
                 "x": 2,
                 "y": 6,
-                "i": "f2b3c4d5-6e7f-8901-bcde-f12345678902",
+                "i": "s2b3c4d5-6e7f-8901-bcde-f12345678s2",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
@@ -300,7 +318,7 @@
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Antivirus Status",
+                    "title": "Antivirus Product Status",
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
@@ -323,28 +341,28 @@
                 "static": false,
                 "w": 2,
                 "moved": false,
-                "h": 3,
+                "h": 4,
                 "x": 0,
-                "y": 9,
-                "i": "c3d4e5f6-7890-1234-def0-345678901234",
+                "y": 10,
+                "i": "s3c4d5e6-7f89-0123-cdef-12345678s3",
                 "z": 0,
                 "config": {
-                    "timeframe": "none",
+                    "timeframe": "last24hours",
                     "dataStream": {
-                        "name": "operatingSystems",
-                        "id": "{{dataStreams.operatingSystems}}",
+                        "name": "alerts",
+                        "id": "{{dataStreams.alerts}}",
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Operating Systems",
+                    "title": "Recent Security Alerts",
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
-                                "columnOrder": ["name", "architecture", "buildNumber", "lastBootTime", "needsReboot"],
-                                "hiddenColumns": ["deviceId", "manufacturer", "releaseId"],
+                                "columnOrder": ["displayName", "severity", "status", "createdAt"],
+                                "hiddenColumns": ["id", "deviceId", "organizationId"],
                                 "transpose": false
                             }
                         }
@@ -355,118 +373,85 @@
                 "static": false,
                 "w": 2,
                 "moved": false,
-                "h": 3,
+                "h": 4,
                 "x": 2,
-                "y": 9,
-                "i": "f3c4d5e6-7f89-0123-cdef-123456789003",
+                "y": 10,
+                "i": "s4d5e6f7-8901-2345-def0-12345678s4",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
                     "dataStream": {
-                        "name": "computerSystems",
-                        "id": "{{dataStreams.computerSystems}}",
+                        "name": "deviceHealth",
+                        "id": "{{dataStreams.deviceHealth}}",
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Computer Systems",
+                    "title": "Device Security Health",
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
                                 "columnOrder": [
-                                    "manufacturer",
+                                    "healthStatus",
+                                    "activeThreatsCount",
+                                    "quarantinedThreatsCount",
+                                    "alertCount",
+                                    "criticalVulnerabilityCount",
+                                    "highVulnerabilityCount"
+                                ],
+                                "hiddenColumns": [
+                                    "deviceId",
+                                    "pendingOSPatchesCount",
+                                    "failedOSPatchesCount",
+                                    "pendingSoftwarePatchesCount",
+                                    "failedSoftwarePatchesCount",
+                                    "mediumVulnerabilityCount",
+                                    "lowVulnerabilityCount",
+                                    "offline"
+                                ],
+                                "transpose": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 4,
+                "x": 0,
+                "y": 14,
+                "i": "s5e6f7890-1234-5678-ef01-12345678s5",
+                "z": 0,
+                "config": {
+                    "timeframe": "none",
+                    "dataStream": {
+                        "name": "disks",
+                        "id": "{{dataStreams.disks}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "title": "Disk Health (SMART Status)",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "name",
+                                    "status",
                                     "model",
-                                    "serialNumber",
-                                    "systemType",
-                                    "domain",
-                                    "workgroup"
+                                    "manufacturer",
+                                    "mediaType",
+                                    "size",
+                                    "smartCapable",
+                                    "partitionCount"
                                 ],
-                                "hiddenColumns": ["deviceId", "totalPhysicalMemory"],
-                                "transpose": false
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "static": false,
-                "w": 2,
-                "moved": false,
-                "h": 4,
-                "x": 0,
-                "y": 12,
-                "i": "d4e5f678-9012-3456-ef01-456789012345",
-                "z": 0,
-                "config": {
-                    "timeframe": "none",
-                    "dataStream": {
-                        "name": "backupUsage",
-                        "id": "{{dataStreams.backupUsage}}",
-                        "pluginConfigId": "{{configId}}"
-                    },
-                    "_type": "tile/data-stream",
-                    "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Backup Usage by Location",
-                    "visualisation": {
-                        "type": "data-stream-bar-chart",
-                        "config": {
-                            "data-stream-bar-chart": {
-                                "xAxisData": "locationName",
-                                "yAxisData": ["usedBytes", "includedBytes"],
-                                "xAxisGroup": "none",
-                                "xAxisLabel": "Location",
-                                "yAxisLabel": "Bytes",
-                                "showXAxisLabel": true,
-                                "showYAxisLabel": true,
-                                "showLegend": true,
-                                "legendPosition": "bottom",
-                                "showGrid": true,
-                                "showValue": false,
-                                "showTotals": false,
-                                "displayMode": "actual",
-                                "horizontalLayout": "horizontal",
-                                "grouping": false,
-                                "range": { "type": "auto" }
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "static": false,
-                "w": 2,
-                "moved": false,
-                "h": 4,
-                "x": 2,
-                "y": 12,
-                "i": "f6789012-3456-7890-0123-678901234567",
-                "z": 0,
-                "config": {
-                    "timeframe": "none",
-                    "dataStream": {
-                        "name": "devices",
-                        "id": "{{dataStreams.devices}}",
-                        "pluginConfigId": "{{configId}}"
-                    },
-                    "_type": "tile/data-stream",
-                    "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
-                    "title": "All Devices",
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "columnOrder": [
-                                    "displayName",
-                                    "systemName",
-                                    "offline",
-                                    "lastContact",
-                                    "organizationId"
-                                ],
-                                "hiddenColumns": ["id", "uid", "nodeClass", "locationId", "policyId"],
+                                "hiddenColumns": ["deviceId", "interfaceType"],
                                 "transpose": false
                             }
                         }

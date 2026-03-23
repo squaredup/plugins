@@ -1,5 +1,5 @@
 {
-    "name": "Patch Management",
+    "name": "Jobs & Tasks",
     "schemaVersion": "1.4",
     "dashboard": {
         "_type": "layout/grid",
@@ -12,33 +12,43 @@
                 "h": 2,
                 "x": 0,
                 "y": 0,
-                "i": "patch-kpi-pendingos-001",
+                "i": "job-kpi-running-001",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
                     "dataStream": {
-                        "name": "deviceHealth",
-                        "id": "{{dataStreams.deviceHealth}}",
-                        "group": {
-                            "by": [],
-                            "aggregate": [
+                        "name": "jobs",
+                        "id": "{{dataStreams.jobs}}",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
                                 {
-                                    "type": "sum",
-                                    "names": ["pendingOSPatchesCount"]
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "running"
+                                },
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "in_progress"
                                 }
                             ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "count" }]
                         },
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Pending OS Patches",
+                    "title": "Running Jobs",
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "pendingOSPatchesCount_sum",
+                                "value": "count",
                                 "comparisonColumn": "none",
                                 "formatted": false
                             }
@@ -53,33 +63,43 @@
                 "h": 2,
                 "x": 1,
                 "y": 0,
-                "i": "patch-kpi-failedos-002",
+                "i": "job-kpi-failed-002",
                 "z": 0,
                 "config": {
-                    "timeframe": "none",
+                    "timeframe": "last7days",
                     "dataStream": {
-                        "name": "deviceHealth",
-                        "id": "{{dataStreams.deviceHealth}}",
-                        "group": {
-                            "by": [],
-                            "aggregate": [
+                        "name": "jobs",
+                        "id": "{{dataStreams.jobs}}",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
                                 {
-                                    "type": "sum",
-                                    "names": ["failedOSPatchesCount"]
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "failed"
+                                },
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "error"
                                 }
                             ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "count" }]
                         },
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Failed OS Patches",
+                    "title": "Failed Jobs",
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "failedOSPatchesCount_sum",
+                                "value": "count",
                                 "comparisonColumn": "none",
                                 "formatted": false
                             }
@@ -94,33 +114,38 @@
                 "h": 2,
                 "x": 2,
                 "y": 0,
-                "i": "patch-kpi-pendingsoft-003",
+                "i": "job-kpi-completed-003",
                 "z": 0,
                 "config": {
-                    "timeframe": "none",
+                    "timeframe": "last7days",
                     "dataStream": {
-                        "name": "deviceHealth",
-                        "id": "{{dataStreams.deviceHealth}}",
-                        "group": {
-                            "by": [],
-                            "aggregate": [
+                        "name": "jobs",
+                        "id": "{{dataStreams.jobs}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
                                 {
-                                    "type": "sum",
-                                    "names": ["pendingSoftwarePatchesCount"]
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "completed"
                                 }
                             ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "count" }]
                         },
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Pending Software Patches",
+                    "title": "Completed Jobs",
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "pendingSoftwarePatchesCount_sum",
+                                "value": "count",
                                 "comparisonColumn": "none",
                                 "formatted": false
                             }
@@ -135,20 +160,25 @@
                 "h": 2,
                 "x": 3,
                 "y": 0,
-                "i": "patch-kpi-reboot-004",
+                "i": "job-kpi-activetasks-004",
                 "z": 0,
                 "config": {
                     "timeframe": "none",
                     "dataStream": {
-                        "name": "operatingSystems",
-                        "id": "{{dataStreams.operatingSystems}}",
+                        "name": "tasks",
+                        "id": "{{dataStreams.tasks}}",
                         "filter": {
-                            "multiOperation": "and",
+                            "multiOperation": "or",
                             "filters": [
                                 {
-                                    "column": "needsReboot",
+                                    "column": "status",
                                     "operation": "equals",
-                                    "value": "true"
+                                    "value": "running"
+                                },
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "pending"
                                 }
                             ]
                         },
@@ -161,7 +191,7 @@
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Need Reboot",
+                    "title": "Active Tasks",
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
@@ -181,13 +211,13 @@
                 "h": 4,
                 "x": 0,
                 "y": 2,
-                "i": "patch-donut-osstatus-001",
+                "i": "job-donut-status-001",
                 "z": 0,
                 "config": {
                     "timeframe": "last7days",
                     "dataStream": {
-                        "name": "osPatches",
-                        "id": "{{dataStreams.osPatches}}",
+                        "name": "jobs",
+                        "id": "{{dataStreams.jobs}}",
                         "metadata": [
                             {
                                 "name": "status_uniqueValues",
@@ -203,7 +233,7 @@
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "OS Patches by Status",
+                    "title": "Jobs by Status",
                     "visualisation": {
                         "type": "data-stream-donut-chart",
                         "config": {
@@ -226,13 +256,13 @@
                 "h": 4,
                 "x": 2,
                 "y": 2,
-                "i": "patch-donut-softstatus-002",
+                "i": "task-donut-status-001",
                 "z": 0,
                 "config": {
                     "timeframe": "last7days",
                     "dataStream": {
-                        "name": "softwarePatches",
-                        "id": "{{dataStreams.softwarePatches}}",
+                        "name": "tasks",
+                        "id": "{{dataStreams.tasks}}",
                         "metadata": [
                             {
                                 "name": "status_uniqueValues",
@@ -248,7 +278,7 @@
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Software Patches by Status",
+                    "title": "Tasks by Status",
                     "visualisation": {
                         "type": "data-stream-donut-chart",
                         "config": {
@@ -271,24 +301,32 @@
                 "h": 5,
                 "x": 0,
                 "y": 6,
-                "i": "a1b2c3d4-5e6f-7890-abcd-ef1234567891",
+                "i": "j1a2b3c4-5d6e-7890-abcd-ef12345678j1",
                 "z": 0,
                 "config": {
                     "timeframe": "last7days",
                     "dataStream": {
-                        "name": "osPatches",
-                        "id": "{{dataStreams.osPatches}}",
+                        "name": "jobs",
+                        "id": "{{dataStreams.jobs}}",
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "OS Patch Status",
+                    "title": "Recent Jobs",
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
-                                "columnOrder": ["name", "status", "severity", "type", "kbNumber", "installedAt"],
+                                "columnOrder": [
+                                    "name",
+                                    "type",
+                                    "status",
+                                    "organizationId",
+                                    "startedAt",
+                                    "completedAt",
+                                    "duration"
+                                ],
                                 "hiddenColumns": ["id", "deviceId"],
                                 "transpose": false
                             }
@@ -303,33 +341,33 @@
                 "h": 5,
                 "x": 2,
                 "y": 6,
-                "i": "b2c3d4e5-6f78-9012-cdef-234567890124",
+                "i": "j2b3c4d5-6e7f-8901-bcde-f12345678j2",
                 "z": 0,
                 "config": {
                     "timeframe": "last7days",
                     "dataStream": {
-                        "name": "softwarePatches",
-                        "id": "{{dataStreams.softwarePatches}}",
+                        "name": "tasks",
+                        "id": "{{dataStreams.tasks}}",
                         "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Software Patch Status",
+                    "title": "Recent Tasks",
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
                                 "columnOrder": [
                                     "name",
-                                    "softwareName",
-                                    "softwarePublisher",
+                                    "type",
                                     "status",
-                                    "severity",
-                                    "version",
-                                    "installedAt"
+                                    "organizationId",
+                                    "createdAt",
+                                    "startedAt",
+                                    "completedAt"
                                 ],
-                                "hiddenColumns": ["id", "deviceId"],
+                                "hiddenColumns": ["id"],
                                 "transpose": false
                             }
                         }
@@ -343,129 +381,7 @@
                 "h": 4,
                 "x": 0,
                 "y": 11,
-                "i": "c3d4e5f6-7890-1234-def0-345678901235",
-                "z": 0,
-                "config": {
-                    "timeframe": "none",
-                    "dataStream": {
-                        "name": "operatingSystems",
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "needsReboot",
-                                    "operation": "equals",
-                                    "value": "true"
-                                }
-                            ]
-                        },
-                        "id": "{{dataStreams.operatingSystems}}",
-                        "pluginConfigId": "{{configId}}"
-                    },
-                    "_type": "tile/data-stream",
-                    "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Devices Needing Reboot",
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "columnOrder": ["name", "buildNumber", "lastBootTime", "needsReboot"],
-                                "hiddenColumns": ["deviceId", "manufacturer", "architecture", "releaseId"],
-                                "transpose": false
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "static": false,
-                "w": 2,
-                "moved": false,
-                "h": 4,
-                "x": 2,
-                "y": 11,
-                "i": "p1a2b3c4-5d6e-7890-abcd-ef12345678a1",
-                "z": 0,
-                "config": {
-                    "timeframe": "none",
-                    "dataStream": {
-                        "name": "deviceHealth",
-                        "id": "{{dataStreams.deviceHealth}}",
-                        "pluginConfigId": "{{configId}}"
-                    },
-                    "_type": "tile/data-stream",
-                    "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Patch Compliance Summary",
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "columnOrder": [
-                                    "healthStatus",
-                                    "pendingOSPatchesCount",
-                                    "failedOSPatchesCount",
-                                    "pendingSoftwarePatchesCount",
-                                    "failedSoftwarePatchesCount"
-                                ],
-                                "hiddenColumns": [
-                                    "deviceId",
-                                    "activeThreatsCount",
-                                    "quarantinedThreatsCount",
-                                    "alertCount",
-                                    "criticalVulnerabilityCount",
-                                    "highVulnerabilityCount",
-                                    "mediumVulnerabilityCount",
-                                    "lowVulnerabilityCount",
-                                    "offline"
-                                ],
-                                "transpose": false
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "static": false,
-                "w": 2,
-                "moved": false,
-                "h": 4,
-                "x": 0,
-                "y": 15,
-                "i": "p2b3c4d5-6e7f-8901-bcde-f12345678a2",
-                "z": 0,
-                "config": {
-                    "timeframe": "none",
-                    "dataStream": {
-                        "name": "policyOverrides",
-                        "id": "{{dataStreams.policyOverrides}}",
-                        "pluginConfigId": "{{configId}}"
-                    },
-                    "_type": "tile/data-stream",
-                    "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Policy Overrides",
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "columnOrder": ["policyName", "conditionType", "enabled", "createdAt", "updatedAt"],
-                                "hiddenColumns": ["deviceId", "policyId", "conditionId"],
-                                "transpose": false
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "static": false,
-                "w": 2,
-                "moved": false,
-                "h": 4,
-                "x": 2,
-                "y": 15,
-                "i": "d4e5f678-9012-3456-ef01-456789012346",
+                "i": "j3c4d5e6-7f89-0123-cdef-12345678j3",
                 "z": 0,
                 "config": {
                     "timeframe": "last7days",
@@ -475,19 +391,14 @@
                             "multiOperation": "or",
                             "filters": [
                                 {
-                                    "column": "type",
+                                    "column": "status",
                                     "operation": "equals",
-                                    "value": "patch"
+                                    "value": "failed"
                                 },
                                 {
-                                    "column": "type",
+                                    "column": "status",
                                     "operation": "equals",
-                                    "value": "os_patch"
-                                },
-                                {
-                                    "column": "type",
-                                    "operation": "equals",
-                                    "value": "software_patch"
+                                    "value": "error"
                                 }
                             ]
                         },
@@ -497,13 +408,159 @@
                     "_type": "tile/data-stream",
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
-                    "title": "Recent Patch Jobs",
+                    "title": "Failed Jobs",
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
-                                "columnOrder": ["name", "type", "status", "startedAt", "completedAt", "duration"],
-                                "hiddenColumns": ["id", "deviceId", "organizationId"],
+                                "columnOrder": ["name", "type", "status", "deviceId", "startedAt", "completedAt"],
+                                "hiddenColumns": ["id", "organizationId", "duration"],
+                                "transpose": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 2,
+                "moved": false,
+                "h": 4,
+                "x": 2,
+                "y": 11,
+                "i": "j4d5e6f7-8901-2345-def0-12345678j4",
+                "z": 0,
+                "config": {
+                    "timeframe": "last7days",
+                    "dataStream": {
+                        "name": "tasks",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "failed"
+                                },
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "cancelled"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.tasks}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "title": "Failed Tasks",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": ["name", "type", "status", "organizationId", "startedAt", "completedAt"],
+                                "hiddenColumns": ["id", "createdAt"],
+                                "transpose": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 2,
+                "moved": false,
+                "h": 4,
+                "x": 0,
+                "y": 15,
+                "i": "j5e6f7890-1234-5678-ef01-12345678j5",
+                "z": 0,
+                "config": {
+                    "timeframe": "none",
+                    "dataStream": {
+                        "name": "jobs",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "running"
+                                },
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "in_progress"
+                                },
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "pending"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.jobs}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "title": "Active Jobs",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": ["name", "type", "status", "deviceId", "startedAt"],
+                                "hiddenColumns": ["id", "organizationId", "completedAt", "duration"],
+                                "transpose": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 2,
+                "moved": false,
+                "h": 4,
+                "x": 2,
+                "y": 15,
+                "i": "j6f789012-3456-7890-f012-12345678j6",
+                "z": 0,
+                "config": {
+                    "timeframe": "none",
+                    "dataStream": {
+                        "name": "tasks",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "running"
+                                },
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "pending"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.tasks}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "title": "Active Tasks",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": ["name", "type", "status", "organizationId", "startedAt"],
+                                "hiddenColumns": ["id", "createdAt", "completedAt"],
                                 "transpose": false
                             }
                         }
