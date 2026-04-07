@@ -27,7 +27,7 @@ const convertTimestamps = (obj) => {
     return obj;
 };
 
-result = items.map(item => {
+const processedItems = items.map(item => {
     // Recursively convert timestamps in the item (modifies in place but we are mapping to a new object)
     const converted = convertTimestamps(item);
     
@@ -42,3 +42,18 @@ result = items.map(item => {
         locationId: converted.locationId ? converted.locationId.toString() : null
     };
 });
+
+// For flat array responses (like /v2/organization/{id}/devices), wrap the output
+// so pagination can find `next_page_token` and `results`.
+// For already wrapped responses (like /v2/devices), return an array and preserve metadata.
+if (Array.isArray(data)) {
+    result = {
+        results: processedItems,
+        next_page_token: processedItems.length > 0 ? processedItems[processedItems.length - 1].id : null
+    };
+} else {
+    result = processedItems;
+    if (data && data.metadata) {
+        result.metadata = data.metadata;
+    }
+}
