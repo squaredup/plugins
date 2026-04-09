@@ -43,17 +43,18 @@ const processedItems = items.map(item => {
     };
 });
 
-// For flat array responses (like /v2/organization/{id}/devices), wrap the output
-// so pagination can find `next_page_token` and `results`.
-// For already wrapped responses (like /v2/devices), return an array and preserve metadata.
-if (Array.isArray(data)) {
-    result = {
-        results: processedItems,
-        next_page_token: processedItems.length > 0 ? processedItems[processedItems.length - 1].id : null
-    };
-} else {
-    result = processedItems;
-    if (data && data.metadata) {
-        result.metadata = data.metadata;
-    }
+// Always return a consistent wrapped object for SquaredUp compatibility
+// This ensures that pathToData: "results" always works, and paging metadata is consistently located.
+result = {
+    results: processedItems,
+    metadata: (data && data.metadata) ? { ...data.metadata } : {}
+};
+
+// If the response was a flat array, we can still support paging by providing a next_page_token
+// if it's not already in the metadata.
+if (Array.isArray(data) && !result.metadata.next_page_token) {
+    result.metadata.next_page_token = processedItems.length > 0 ? processedItems[processedItems.length - 1].id : null;
 }
+
+// Return the result object
+result;
