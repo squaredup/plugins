@@ -1,6 +1,6 @@
-# Adding the Huntress Plugin
+# Before you start
 
-To connect SquaredUp to your Huntress Managed Security Platform, you will need to generate API credentials.
+To connect SquaredUp to Huntress, you will need to generate API credentials.
 
 ## Generating Huntress API Credentials
 
