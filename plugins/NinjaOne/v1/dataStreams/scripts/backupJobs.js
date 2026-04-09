@@ -32,7 +32,7 @@ const processedItems = filteredItems.map(item => {
     // Convert numeric IDs to strings
     const idFields = ['deviceId', 'organizationId', 'locationId'];
     idFields.forEach(field => {
-        if (converted[field] !== undefined) {
+        if (converted[field] !== undefined && converted[field] !== null) {
             converted[field] = converted[field].toString();
         }
     });
