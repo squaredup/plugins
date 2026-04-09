@@ -25,10 +25,9 @@ const convertTimestamps = (obj) => {
 };
 
 const filteredItems = items.filter(item => item != null);
-const processedItems = filteredItems.map(item => {
-    // Convert timestamps in the item (including nested upsyncJob)
+result = filteredItems.map(item => {
     const converted = convertTimestamps(item);
-    
+
     // Convert numeric IDs to strings
     const idFields = ['deviceId', 'organizationId', 'locationId'];
     idFields.forEach(field => {
@@ -39,12 +38,3 @@ const processedItems = filteredItems.map(item => {
 
     return converted;
 });
-
-// Preserve the cursor object for token-based pagination
-result = { results: processedItems };
-if (data && data.cursor) {
-    result.cursor = data.cursor;
-}
-
-// Return the transformed payload
-result;
