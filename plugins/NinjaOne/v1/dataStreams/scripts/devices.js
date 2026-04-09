@@ -50,8 +50,18 @@ result = {
     metadata: (data && data.metadata) ? { ...data.metadata } : {}
 };
 
+// Capture next_page_token from root if present (some endpoints put it there)
+if (data && data.next_page_token) {
+    result.metadata.next_page_token = data.next_page_token;
+}
+
+// Capture cursor from root if present (used by some endpoints)
+if (data && data.cursor) {
+    result.metadata.cursor = data.cursor;
+}
+
 // If the response was a flat array, we can still support paging by providing a next_page_token
-// if it's not already in the metadata.
+// based on the last item's ID (which is what NinjaOne often expects in 'after' param)
 if (Array.isArray(data) && !result.metadata.next_page_token) {
     result.metadata.next_page_token = processedItems.length > 0 ? processedItems[processedItems.length - 1].id : null;
 }
