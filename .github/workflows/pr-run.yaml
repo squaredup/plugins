@@ -1,0 +1,176 @@
+name: Validate & Deploy Plugins
+
+on:
+  pull_request:
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect modified plugins
+        id: detect
+        run: |
+          echo "Scanning for modified plugins against origin/main..."
+          changed_files=$(git diff --name-only origin/main... -- ./plugins)
+          plugin_paths=$(echo "$changed_files" | grep -oP 'plugins/[^/]+/v[^/]+' | sort -u)
+
+          if [ -z "$plugin_paths" ]; then
+            echo "No plugins were modified in this PR."
+            echo "plugins_modified=false" >> $GITHUB_OUTPUT
+          else
+            echo "Found modified plugin(s):"
+            echo "$plugin_paths"
+            echo "plugins_modified=true" >> $GITHUB_OUTPUT
+            echo "plugin_paths<<EOF" >> $GITHUB_OUTPUT
+            echo "$plugin_paths" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install & Configure SquaredUp CLI
+        if: steps.detect.outputs.plugins_modified == 'true'
+        env:
+          SQUAREDUP_API_KEY: ${{ secrets.SQUAREDUP_API_KEY }}
+        run: |
+            echo "Installing SquaredUp CLI..."
+            npm install -g @squaredup/cli
+            echo "Configuring SquaredUp CLI with API key..."
+            squaredup login --apiKey "$SQUAREDUP_API_KEY"
+
+      - name: Validate modified plugins
+        id: validate
+        if: steps.detect.outputs.plugins_modified == 'true'
+        run: |
+          validation_failed=false
+
+          while IFS= read -r plugin_path; do
+            echo "Validating ${plugin_path}..."
+            result=$(squaredup validate "${plugin_path}" --json) || true
+            echo "$result" | jq '.'
+            valid=$(echo "$result" | jq -r '.valid')
+
+            echo "$result" | jq -c --arg path "$plugin_path" '. + {plugin_path: $path}' >> /tmp/validation_results.ndjson
+
+            if [ "$valid" = "true" ]; then
+              plugin_name=$(echo "$result" | jq -r '.pluginName')
+              echo "[PASS] ${plugin_name} passed validation"
+              echo "$result" | jq '.summary'
+            else
+              echo "[FAIL] Validation failed for ${plugin_path}"
+              echo "$result" | jq -r '.errors[] | "  - [\(.file)] \(.message) (path: \(.path | join(".")))"'
+              validation_failed=true
+            fi
+            echo ""
+          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+
+          if [ "$validation_failed" = "true" ]; then
+            echo "One or more plugins failed validation."
+            exit 1
+          fi
+
+      - name: Deploy modified plugins
+        id: deploy
+        if: steps.detect.outputs.plugins_modified == 'true'
+        run: |
+          while IFS= read -r plugin_path; do
+            echo "Deploying ${plugin_path}..."
+            squaredup deploy "${plugin_path}" --suffix "${{ github.event.pull_request.number }}" --force
+            echo "Deployed ${plugin_path} successfully."
+            echo ""
+          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+
+      - name: Summary
+        if: always()
+        run: |
+          OUT=/tmp/summary.md
+
+          echo "## 🧩 Plugin PR Summary" >> $OUT
+          echo "" >> $OUT
+
+          if [ "${{ steps.detect.outputs.plugins_modified }}" != "true" ]; then
+            echo "ℹ️ No plugins were modified in this PR." >> $OUT
+            cat $OUT >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          echo "### 📦 Modified Plugins" >> $OUT
+          while IFS= read -r plugin_path; do
+            echo "- \`${plugin_path}\`" >> $OUT
+          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          echo "" >> $OUT
+
+          echo "### 📋 Results" >> $OUT
+          echo "| Step | Status |" >> $OUT
+          echo "|------|--------|" >> $OUT
+
+          validate_conclusion="${{ steps.validate.conclusion }}"
+          deploy_conclusion="${{ steps.deploy.conclusion }}"
+
+          [ "$validate_conclusion" = "success" ] && v_status="✅ Passed" || v_status="❌ Failed"
+          [ "$deploy_conclusion" = "success" ] && d_status="🚀 Deployed" || d_status="⏭️ Skipped"
+
+          echo "| Validation | ${v_status} |" >> $OUT
+          echo "| Deployment | ${d_status} |" >> $OUT
+          echo "" >> $OUT
+
+          if [ -f /tmp/validation_results.ndjson ]; then
+            echo "### 🔍 Validation Details" >> $OUT
+            echo "" >> $OUT
+            while IFS= read -r line; do
+              plugin_path=$(echo "$line" | jq -r '.plugin_path')
+              valid=$(echo "$line" | jq -r '.valid')
+              plugin_name=$(echo "$line" | jq -r '.pluginName // .plugin_path')
+              [ "$valid" = "true" ] && icon="✅" || icon="❌"
+
+              echo "<details>" >> $OUT
+              echo "<summary>${icon} <code>${plugin_name}</code></summary>" >> $OUT
+              echo "" >> $OUT
+              echo '```json' >> $OUT
+              echo "$line" | jq 'del(.plugin_path)' >> $OUT
+              echo '```' >> $OUT
+              echo "</details>" >> $OUT
+              echo "" >> $OUT
+            done < /tmp/validation_results.ndjson
+          fi
+
+          cat $OUT >> $GITHUB_STEP_SUMMARY
+
+      - name: Post PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- plugin-pr-summary -->';
+            const summary = fs.existsSync('/tmp/summary.md')
+              ? fs.readFileSync('/tmp/summary.md', 'utf8')
+              : '_No summary available._';
+            const body = `${marker}\n${summary}`;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+              });
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
