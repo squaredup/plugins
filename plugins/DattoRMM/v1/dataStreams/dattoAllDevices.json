@@ -1,6 +1,6 @@
 {
     "name": "dattoAllDevices",
-    "displayName": "Datto all devices",
+    "displayName": "Devices",
     "description": "All devices across all sites",
     "tags": ["Devices"],
     "baseDataSourceName": "httpRequestUnscoped",
@@ -23,7 +23,7 @@
             }
         },
         "expandInnerObjects": true,
-        "endpointPath": "account/devices",
+        "endpointPath": "api/v2/account/devices",
         "pathToData": "devices",
         "getArgs": [],
         "headers": []
@@ -32,6 +32,21 @@
         {
             "shape": "string",
             "name": "uid",
+            "visible": false
+        },
+        {
+            "shape": "string",
+            "name": "id",
+            "visible": false
+        },
+        {
+            "shape": "string",
+            "name": "siteUid",
+            "visible": false
+        },
+        {
+            "shape": "string",
+            "name": "siteId",
             "visible": false
         },
         {
@@ -65,18 +80,47 @@
             "name": "lastSeen"
         },
         {
-            "displayName": "Internal IP",
-            "shape": "string",
-            "name": "intIpAddress"
+            "displayName": "Creation Date",
+            "shape": ["date", { "timeZone": "Etc/UTC" }],
+            "name": "creationDate"
         },
         {
-            "displayName": "External IP",
-            "shape": "string",
-            "name": "extIpAddress"
+            "displayName": "Last Audit Date",
+            "shape": ["date", { "timeZone": "Etc/UTC" }],
+            "name": "lastAuditDate"
         },
         {
-            "shape": "string",
-            "name": "siteUid",
+            "displayName": "Patches Approved Pending",
+            "shape": ["number", { "decimalPlaces": 0 }],
+            "name": "patchManagement.patchesApprovedPending"
+        },
+        {
+            "displayName": "Patches Installed",
+            "shape": ["number", { "decimalPlaces": 0 }],
+            "name": "patchManagement.patchesInstalled"
+        },
+        {
+            "displayName": "Patches Not Approved",
+            "shape": ["number", { "decimalPlaces": 0 }],
+            "name": "patchManagement.patchesNotApproved"
+        },
+        {
+            "displayName": "Compliance State",
+            "name": "softwareComplianceState",
+            "computed": true,
+            "valueExpression": "{{ $['softwareStatus'] }}",
+            "shape": ["state", {
+                "map": {
+                    "success": ["Compliant"],
+                    "error": ["Not Compliant"],
+                    "warning": [],
+                    "unknown": [],
+                    "unmonitored": []
+                }
+            }]
+        },
+        {
+            "pattern": "udf.*",
             "visible": false
         },
         {
@@ -97,20 +141,5 @@
         "lastQuarter",
         "lastYear",
         "none"
-    ],
-    "defaultShaping": {
-        "group": {
-            "by": [
-                [
-                    "siteName",
-                    "uniqueValues"
-                ]
-            ],
-            "aggregate": [
-                {
-                    "type": "count"
-                }
-            ]
-        }
-    }
+    ]
 }
