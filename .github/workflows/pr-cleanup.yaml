@@ -1,0 +1,35 @@
+name: Cleanup PR Plugins
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install & Configure SquaredUp CLI
+        env:
+          SQUAREDUP_API_KEY: ${{ secrets.SQUAREDUP_API_KEY }}
+        run: |
+          npm install -g @squaredup/cli
+          squaredup login --apiKey "$SQUAREDUP_API_KEY"
+
+      - name: Delete PR plugins
+        run: |
+          pr_number="${{ github.event.pull_request.number }}"
+          echo "Looking for plugins deployed by PR #${pr_number}..."
+
+          plugins=$(squaredup list --json)
+          matches=$(echo "$plugins" | jq -r --arg pr "-${pr_number}" '.[] | select(.displayName | endswith($pr)) | .id')
+
+          if [ -z "$matches" ]; then
+            echo "No plugins found for PR #${pr_number}."
+            exit 0
+          fi
+
+          while IFS= read -r id; do
+            name=$(echo "$plugins" | jq -r --arg id "$id" '.[] | select(.id == $id) | .displayName')
+            echo "Deleting '${name}' (${id})..."
+            squaredup delete "${id}"
+          done <<< "$matches"
