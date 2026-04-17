@@ -4,7 +4,7 @@
 
 The Snowflake data source authenticates using OAuth.
 
-Before configuring the data source you will need to register SquaredUp with your Snowflake account bby creating a custom integration.
+Before configuring the data source you will need to register SquaredUp with your Snowflake account by creating a custom integration.
 
 Sample Snowflake commands for creating the integration are provided below.
 
@@ -23,7 +23,7 @@ CREATE SECURITY INTEGRATION oauth_squaredup
   COMMENT = 'Used by SquaredUp to connect to this Snowflake account'
 ```
 
-If your SquaredUp account is in the EU region (default):
+If your SquaredUp account is in the EU region:
 
 ```
 CREATE SECURITY INTEGRATION oauth_squaredup
@@ -66,9 +66,9 @@ Enter your Snowflake account identifier.
 
 This can be found in the Snowflake portal under 'Your Username' > Account > Account Identifier.
 
-The account identifier It is in the format <org_name>-<account_name>, e.g. ABCDEFG-XYZ12345
+The account identifier is in the format <org_name>-<account_name>.
 
-For example: `https://<your-opensearch-host>:9200`
+For example: `ABCDEFG-XYZ12345`
 
 Alternatively, run the following Snowflake query:
 
