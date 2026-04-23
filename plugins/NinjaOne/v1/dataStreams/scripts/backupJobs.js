@@ -26,15 +26,5 @@ const convertTimestamps = (obj) => {
 
 const filteredItems = items.filter(item => item != null);
 result = filteredItems.map(item => {
-    const converted = convertTimestamps(item);
-
-    // Convert numeric IDs to strings
-    const idFields = ['deviceId', 'organizationId', 'locationId'];
-    idFields.forEach(field => {
-        if (converted[field] !== undefined && converted[field] !== null) {
-            converted[field] = converted[field].toString();
-        }
-    });
-
-    return converted;
+    return convertTimestamps(item);
 });
