@@ -1,24 +1,37 @@
 {
-    "name": "disks",
-    "displayName": "Devices (Disks)",
+    "name": "disksGlobal",
+    "displayName": "Devices (Disks Global)",
     "tags": ["Monitoring"],
-    "description": "Physical disk inventory with SMART status",
-    "baseDataSourceName": "httpRequestScoped",
+    "description": "Physical disk inventory with SMART status across all devices",
+    "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
         "paging": {
-            "mode": "none"
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "cursor.name"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "cursor"
+            }
         },
         "expandInnerObjects": false,
-        "endpointPath": "/v2/device/{{objects[0].deviceId}}/disks",
-        "getArgs": [],
+        "endpointPath": "/v2/queries/disks",
+        "pathToData": "results",
+        "getArgs": [
+            {
+                "key": "ts",
+                "value": "{{timeframe.end}}"
+            }
+        ],
         "headers": []
-    },
-    "matches": {
-        "sourceType": {
-            "type": "oneOf",
-            "values": ["Device"]
-        }
     },
     "metadata": [
         {
@@ -41,6 +54,13 @@
             "displayName": "Disk Name",
             "shape": "string",
             "role": "label"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
         },
         {
             "name": "model",
@@ -91,5 +111,18 @@
             "pattern": ".*"
         }
     ],
-    "timeframes": false
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ]
 }
