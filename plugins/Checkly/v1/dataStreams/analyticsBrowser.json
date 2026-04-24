@@ -1,0 +1,98 @@
+{
+    "name": "analyticsBrowserChecks",
+    "displayName": "Analytics – Browser Check",
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "check"
+        },
+        "checkType": {
+            "type": "equals",
+            "value": "BROWSER"
+        }
+    },
+    "tags": [
+        "Analytics"
+    ],
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "validation": {
+                "required": true
+            },
+            "isMulti": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "availableMetrics",
+                "dataSourceConfig": {
+                    "checkType": "BROWSER"
+                }
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "analytics/browser-checks/{{object.checkId}}",
+        "getArgs": [
+            {
+                "key": "metrics",
+                "value": "{{metric}}"
+            },
+            {
+                "key": "from",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "to",
+                "value": "{{timeframe.unixEnd}}"
+            },
+            {
+                "key": "limit",
+                "value": "100"
+            }
+        ],
+        "postRequestScript": "analytics-post.js",
+        "headers": []
+    },
+    "metadata": [
+        {
+            "shape": "string",
+            "name": "name",
+            "sourceId": "checkId",
+            "sourceType": "check"
+        },
+        {
+            "shape": "string",
+            "name": "checkId"
+        },
+        {
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "name": "attempts"
+        },
+        {
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "name": "statusCode"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true
+}
