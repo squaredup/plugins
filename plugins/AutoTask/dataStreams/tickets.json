@@ -1,0 +1,47 @@
+{
+    "name": "tickets",
+    "displayName": "Tickets",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth", "thisQuarter", "lastQuarter", "thisYear"],
+    "config": {
+        "httpMethod": "get",
+        "expandInnerObjects": true,
+        "endpointPath": "atservicesrest/v1.0/Tickets/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"gte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.start}}\"},{\"op\":\"lte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.end}}\"}]}",
+        "pathToData": "",
+        "postRequestScript": "scripts/tickets.js",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": { "value": "none", "label": "none" } },
+            "in": {
+                "realm": { "value": "payload", "label": "payload" },
+                "path": "pageDetails.nextPageUrl"
+            }
+        }
+    },
+    "metadata": [
+        { "name": "id", "displayName": "Ticket ID", "shape": "string" },
+        { "name": "title", "displayName": "Title" },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "shape": ["state", {
+                "map": {
+                    "success": ["Complete"],
+                    "error": ["Escalate"],
+                    "warning": ["New", "In Progress"],
+                    "unknown": ["Waiting Customer", "Waiting Materials", "Waiting Vendor", "Waiting Approval"]
+                }
+            }]
+        },
+        { "name": "priority", "displayName": "Priority", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "companyID", "sourceType": "autotask-company", "visible": false },
+        { "name": "companyName", "displayName": "Company", "sourceId": "companyID", "objectPropertyPath": "name" },
+        { "name": "contactID", "sourceType": "autotask-contact", "visible": false },
+        { "name": "contactName", "displayName": "Contact", "sourceId": "contactID", "objectPropertyPath": "name" },
+        { "name": "assignedResourceID", "sourceType": "autotask-resource", "visible": false },
+        { "name": "assignedResourceName", "displayName": "Assigned Resource", "sourceId": "assignedResourceID", "objectPropertyPath": "name" },
+        { "name": "lastActivityDate", "displayName": "Last Activity Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "dueDateTime", "displayName": "Due Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "pattern": ".*" }
+    ]
+}
