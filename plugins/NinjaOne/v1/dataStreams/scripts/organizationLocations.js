@@ -1,4 +1,4 @@
-const orgIds = '{{objects.map((o) => o.organizationId)}}'.split(',');
+const orgIds = context.objects.map(o => o.organizationId.toString());
 const items = (data && data.results ? data.results : (Array.isArray(data) ? data : []));
 result = items
     .filter(item => orgIds.includes(item.organizationId ? item.organizationId.toString() : null))
