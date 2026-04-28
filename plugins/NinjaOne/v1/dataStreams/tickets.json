@@ -2,21 +2,33 @@
     "name": "tickets",
     "displayName": "Tickets",
     "tags": ["Ticketing"],
-    "description": "Tickets from a specific board (single board selection only)",
+    "description": "Tickets from one or more ticket boards",
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "post",
         "paging": {
-            "mode": "none"
+            "mode": "token",
+            "pageSize": {
+                "realm": "body",
+                "path": "pageSize",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "metadata.lastCursorId"
+            },
+            "out": {
+                "realm": "body",
+                "path": "lastCursorId"
+            }
         },
         "expandInnerObjects": true,
         "endpointPath": "/v2/ticketing/trigger/board/{{object.boardId}}/run",
         "postRequestScript": "tickets.js",
-        "pathToData": "",
+        "pathToData": "data",
         "getArgs": [],
         "headers": [],
         "postBody": {
-            "pageSize": 100,
             "filters": [
                 {
                     "field": "created",
