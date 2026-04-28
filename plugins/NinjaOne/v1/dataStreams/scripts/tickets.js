@@ -1,5 +1,5 @@
 // Process NinjaOne ticketing board data
-const items = Array.isArray(data) ? data : [];
+const items = (data && data.data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
 
 /**
  * Recursively converts NinjaOne Unix timestamps (seconds) to ISO strings.
