@@ -7,7 +7,7 @@
         "httpMethod": "get",
         "expandInnerObjects": true,
         "endpointPath": "atservicesrest/v1.0/Tickets/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"gte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.start}}\"},{\"op\":\"lte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.end}}\"}]}",
-        "postRequestScript": "scripts/tickets.js",
+        "pathToData": "items",
         "paging": {
             "mode": "nextUrl",
             "pageSize": { "realm": "none" },
@@ -23,12 +23,14 @@
         {
             "name": "statusName",
             "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['status'] == 1 ? 'New' : $['status'] == 5 ? 'Complete' : $['status'] == 8 ? 'In Progress' : $['status'] == 9 ? 'Waiting Customer' : $['status'] == 10 ? 'Waiting Materials' : $['status'] == 11 ? 'Waiting Vendor' : $['status'] == 12 ? 'Escalate' : $['status'] == 13 ? 'Waiting Approval' : 'Unknown' }}",
             "shape": ["state", {
                 "map": {
                     "success": ["Complete"],
                     "error": ["Escalate"],
                     "warning": ["New", "In Progress"],
-                    "unknown": ["Waiting Customer", "Waiting Materials", "Waiting Vendor", "Waiting Approval"]
+                    "unknown": ["Waiting Customer", "Waiting Materials", "Waiting Vendor", "Waiting Approval", "Unknown"]
                 }
             }]
         },
