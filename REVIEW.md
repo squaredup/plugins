@@ -3,6 +3,8 @@ When reviewing code, focus on:
 ## Versioning
 Any diff that touches files inside a plugin directory must include a corresponding change to metadata.json that increases the `version` field. If no version bump is present, assume the task is unfinished and prompt to add one.
 
+- Breaking changes (e.g. removing or renaming a data stream, significantly changing UI parameters) require a new major version **folder** (e.g. `plugins/MyPlugin/v2/`), not just a version bump within the existing folder. The old folder must remain to avoid breaking existing users.
+
 ## Security
 - Check for hardcoded secrets, API keys, or credentials
 
@@ -10,6 +12,7 @@ Any diff that touches files inside a plugin directory must include a correspondi
 - Follow existing formatting in the repo
 - Use consistent naming
 - Do not introduce formatting tools or config files unless explicitly requested.
+- Do not commit editor or AI tool configuration files (e.g. `.claude/settings.json`). Personal tooling config belongs in the user's home directory.
 
 ## CODEOWNERS
 - If the user is adding a new plugin, encourage them to update the .github/CODEOWNERS file so they can help review future contributions.
@@ -40,7 +43,7 @@ When suggesting changes:
 - description - One short sentence describing what users can build or monitor. Avoid API or implementation language like Access HaloPSA APIs and query ticket data. Should always be appropriately punctuated, e.g. ending with a full stop.
 - schemaVersion - Should be 2.0 or higher.
 - version - The version number MUST be increased for any change to the plugin. It can never decrease. If a breaking change is made, the major version number of the plugin should be increased - for example, when deleting a data stream or significantly modifying the UI parameters.
-- author.type - Should always be set to `community`
+- author.type - Should be `community` for community-contributed plugins, or `labs` for SquaredUp-authored experimental plugins.
 - author.name - Should typically be a GitHub username, prefixed with @ OR an organisation name. For example `@username1` or `Contoso Inc.`
 - category - Mandatory. Reuse an existing category from other plugins where possible.
 - links - Should typically contain two links, one link with `category: source` linking to the GitHub repository, and another link with `category: documentation` linking to the markdown documentation in the repository. The links can be in any order, and there may be other links. 
@@ -52,12 +55,13 @@ When suggesting changes:
   - displayName - First word uppercase, then lowercase (e.g. “Table name", or "API key"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
   - name - Should typically be the camel-cased version of the displayName.
   - help - Do not use tooltips unless they add specific value. Never state the obvious (e.g. “Enter the API key here"). Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format"). Encourage the author to include a reference link if relevant `Create an API key in the [Phare portal](https://docs.phare.io/api-reference/introduction)`
-  - placeholder - Mandatory for text fields. Use example placeholders (especially for URLs or values that follow a fixed pattern, e.g. rootly_xxxxxxxxx or https://organisation.atlassian.net) or “Enter the [data source] [info needed in lowercase]". Use default values instead of hint text where a value is commonly the same across environments (e.g. default ports).
+  - placeholder - Mandatory for text fields. Use example placeholders (especially for URLs or values that follow a fixed pattern, e.g. rootly_xxxxxxxxx or https://organisation.atlassian.net) or “Enter the [data source] [info needed in lowercase]”. Use default values instead of hint text where a value is commonly the same across environments (e.g. default ports). 
   - title - Should not specify the `title` attribute on any fields.
 
 ### Out-of-the-box dashboards (defaultContent/**/*.dash.json)
 - Dashboard names - Use title case
 - Tile names - Use title case
+- IDs - All `id` fields must be GUIDs (e.g. `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"`), not arbitrary strings.
 
 ### Out-of-the-box dashboard manifest (defaultContent/**/manifest.json)
 - If out of the box dashboards are specified, ensure they are included in the manifest.json for the relevant folder.
@@ -66,14 +70,25 @@ When suggesting changes:
 - displayName - Use noun-based names describing the returned data, e.g. Tickets. Avoid verbs such as Get, Fetch, Run, Execute.
 - description - Typically one sentence only. No full stop at the end. Add relevant clarifications in brackets. Never use two sentences.
 - tags - Mandatory. Reuse an existing category from other plugins where possible.
+- objectLimit - If a data stream only processes a single object (e.g. uses `objects[0]` in its expression), suggest either using the `httpRequestScopedSingle` dataSource (HTTP Request with Objects (request per object) OR setting `objectLimit: 1`.
+- timeframe - Data streams that don't support time-based filtering must explicitly declare `”none”` as an available timeframe. Omitting this causes UI warnings and incorrect default behaviour in OOB dashboards.
+- Numeric values - Return raw numeric values rather than pre-formatted strings (e.g. return `1234.56` not `”£1,234.56”`). Use column format expressions in dashboards for display formatting.
+- Column shapes - Use the `bytes` shape for columns representing byte sizes; SquaredUp will automatically display the most appropriate unit (e.g. 4.2 GB). Check for other applicable semantic shapes such as `timestamp` and `duration`.
+- Timestamps - SquaredUp expects ISO 8601 strings for timestamp columns. If the upstream API returns Unix timestamps, the script must convert them.
+- Expressions - Where a transformation can be expressed using `map`, prefer it over a mustache-style value expression, or complex processing in a script for performance.
+- Deduplication - If multiple data streams share the same API endpoint and differ only by a filter, consider merging them into a single stream with a UI parameter to control the filter.
 - ui
-  - displayName - First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use "you" "Your" in display names. Keep text neutral, concise, and descriptive.
-  - help - Use extremely sparingly. Never state the obvious. Only use when something important must be understood. Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format").
+  - displayName - First word uppercase, then lowercase (e.g. “Table name”). Single value: singular. Multiple values: “(s)” (e.g. Tables name(s)). Do not use “you” “Your” in display names. Keep text neutral, concise, and descriptive.
+  - help - Use extremely sparingly. Never state the obvious. Only use when something important must be understood. Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format”).
+
+### Source types (indexDefinitions/)
+- Name source types after how they are referred to in the upstream product or API (e.g. `agent`, `device`). Do not prefix them with the plugin name (e.g. avoid `NinjaOne Device`). A separate friendly display name can be configured if needed (via custom_types.json).
 
 ### Documentation - (docs/README.md)
 - Should typically start headings from level 1. When embedded in SquaredUp, the headings will be sized appropriately.
 - When the docs are embedded in SquaredUp, they are shown under a heading labelled "Need help?". As such, discourage documentation that starts with similar headings, or headings that don't make sense. Avoid headings that repeat the plugin name or use "Overview". A good heading might be something like `# Before you start` or `# Prerequisites`.
+- The Setup or Configuration section should appear near the top of the documentation, as the README is shown in-product when a user is configuring the plugin for the first time.
 - Encourage the author to include documentation for all UI fields from metadata.json unless otherwise covered by a tooltip or help text.
 - Encourage the author to include links to the third-party tool or their documentation when appropriate, e.g. `Browse to [unifi.ui.com](https://unifi.ui.com) > Settings -> API Keys > Create New API Key`
 - The language should be neutral and clear, providing guidance on how to setup and use the plugin.
-- Note that only the README.md is shown within SquaredUp, so do not apply these rules to other markdown files.
+- Note that only the README.md is shown within SquaredUp, so do not apply these rules to other markdown files. The documentation file may use a different filename as long as it matches the URL configured in `metadata.json` under the `links` array.
