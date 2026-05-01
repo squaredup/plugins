@@ -1,0 +1,85 @@
+{
+    "name": "dattoScopeOpenAlerts",
+    "displayName": "Open Alerts",
+    "description": "Open alerts for a specific site",
+    "tags": ["Alerts"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Datto Site"
+        }
+    },
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "path": "max",
+                "realm": "queryArg",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "pageDetails.nextPageUrl"
+            }
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "api/v2/site/{{objects[0].siteUid}}/alerts/open",
+        "pathToData": "alerts",
+        "getArgs": [],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "shape": "string",
+            "name": "uid",
+            "visible": false
+        },
+        {
+            "name": "sourceId",
+            "displayName": "Object ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "displayName": "Alert Message",
+            "shape": "string",
+            "name": "alertSourceInfo.alertMessage"
+        },
+        {
+            "displayName": "Alert Type",
+            "shape": "string",
+            "name": "alertSourceInfo.alertTypeDescription"
+        },
+        {
+            "displayName": "Device",
+            "shape": "string",
+            "name": "alertSourceInfo.alertContext.hostname"
+        },
+        {
+            "shape": "string",
+            "name": "alertSourceInfo.alertContext.deviceUid",
+            "visible": false
+        },
+        {
+            "shape": "string",
+            "name": "alertSourceInfo.alertContext.siteUid",
+            "visible": false
+        },
+        {
+            "displayName": "Priority",
+            "shape": "string",
+            "name": "priority"
+        },
+        {
+            "displayName": "Timestamp",
+            "shape": ["date", { "timeZone": "Etc/UTC" }],
+            "name": "timestamp"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}
