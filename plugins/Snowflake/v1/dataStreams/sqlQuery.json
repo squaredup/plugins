@@ -1,0 +1,77 @@
+{
+    "name": "sqlQuery",
+    "displayName": "SQL Query",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "/v2/statements/",
+        "postBody": {
+            "database": "{{typeof database !== 'undefined' ? database : undefined}}",
+            "schema": "{{typeof schema !== 'undefined' ? schema : undefined}}",
+            "statement": "{{query}}"
+        },
+        "postRequestScript": "sqlQuery-post.js",
+        "getArgs": [],
+        "headers": []        
+    },
+    "ui": [
+        {
+          "name": "database",
+          "type": "autocomplete",
+          "label": "Database",
+          "validation": {
+            "required": false
+          },
+          "isMulti": false,
+          "allowCustomValues": true,
+          "data": {
+            "source": "dataStream",
+            "dataStreamName": "sqlQuery",
+            "dataSourceConfig": {
+              "valueColumn": "name",
+              "query": "show databases"
+            }
+          }
+        },
+                {
+          "name": "schema",
+          "type": "autocomplete",
+          "label": "Schema",
+          "validation": {
+            "required": false
+          },
+          "isMulti": false,
+          "allowCustomValues": true,
+          "data": {
+            "source": "dataStream",
+            "dataStreamName": "sqlQuery",
+            "dataSourceConfig": {
+                "valueColumn": "name",
+                "database": {
+                    "fieldName": "database",
+                    "required": true
+                },
+                "query": "show schemas"
+            }
+          }
+        },
+        {
+            "help": "Enter a query using Snowflake SQL syntax. You can also use parameters like {{timeframe.start}}, e.g. event_time BETWEEN '{{timeframe.start}}' AND '{{timeframe.end}}'",
+            "name": "query",
+            "language": "sql",
+            "label": "SQL query",
+            "type": "code",
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "supportsNoneTimeframe": true,
+    "requiresParameterTimeframe": true,
+    "defaultTimeframe": "none"
+}
