@@ -1,0 +1,446 @@
+{
+    "name": "Tickets",
+    "schemaVersion": "1.4",
+    "dashboard": {
+        "_type": "layout/grid",
+        "contents": [
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 1,
+                "x": 0,
+                "y": 0,
+                "i": "35674a0b-dd87-4845-a083-33fac61b20a8",
+                "z": 0,
+                "config": {
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "name": "tickets",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "dueDateTime",
+                                    "tenseUnit": "before",
+                                    "unit": "minutes",
+                                    "operation": "datemorethan",
+                                    "value": "1"
+                                },
+                                {
+                                    "column": "statusName",
+                                    "operation": "notequals",
+                                    "value": "success"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.tickets}}"
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [
+                                "apiVendorID"
+                            ],
+                            "logic": {
+                                "if": [
+                                    {
+                                        ">": [
+                                            {
+                                                "var": "top"
+                                            },
+                                            0
+                                        ]
+                                    },
+                                    "error"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "column": "apiVendorID",
+                        "aggregation": "top",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 720
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Overdue Tickets",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": {
+                                    "type": "count"
+                                },
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 1,
+                "x": 1,
+                "y": 0,
+                "i": "99af9bf5-ac61-4546-a13f-d2cd838fd3b6",
+                "z": 0,
+                "config": {
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "name": "tickets",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "status",
+                                    "operation": "notequals",
+                                    "value": "5"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.tickets}}"
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Open Tickets",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": {
+                                    "type": "count"
+                                },
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 1,
+                "x": 2,
+                "y": 0,
+                "i": "353ede63-eccf-433d-91c0-5f6a2dc33af5",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "timeframe": "last7days",
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "scope": {
+                                            "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                                            "bindings": {},
+                                            "queryDetail": {}
+                                        },
+                                        "dataStream": {
+                                            "name": "tickets",
+                                            "filter": {
+                                                "multiOperation": "and",
+                                                "filters": [
+                                                    {
+                                                        "column": "statusName",
+                                                        "operation": "equals",
+                                                        "value": "success"
+                                                    },
+                                                    {
+                                                        "column": "createDate",
+                                                        "unit": "days",
+                                                        "operation": "datewithinlast",
+                                                        "value": "30"
+                                                    }
+                                                ]
+                                            },
+                                            "id": "{{dataStreams.tickets}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT\r\n   ROUND( AVG(DATE_DIFF('hour', \"createDate\",\"firstResponseDateTime\")),2) AS \"avg_hours_difference\"\r\nFROM\r\n    \"dataset1\""
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Avg First Response Time",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "avg_hours_difference",
+                                "comparisonColumn": "none",
+                                "label": "Hours"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 1,
+                "x": 3,
+                "y": 0,
+                "i": "113d7b96-e608-4dca-82f8-fa93ff880528",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "timeframe": "last7days",
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "scope": {
+                                            "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                                            "bindings": {},
+                                            "queryDetail": {}
+                                        },
+                                        "dataStream": {
+                                            "name": "tickets",
+                                            "filter": {
+                                                "multiOperation": "and",
+                                                "filters": [
+                                                    {
+                                                        "column": "statusName",
+                                                        "operation": "equals",
+                                                        "value": "success"
+                                                    }
+                                                ]
+                                            },
+                                            "id": "{{dataStreams.tickets}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "WITH\r\n    \"resolution_times\" AS (\r\n        SELECT\r\n            CAST(\r\n                EXTRACT (\r\n                    EPOCH\r\n                    FROM\r\n                        \"resolvedDateTime\" - \"createDate\"\r\n                ) AS INTEGER\r\n            ) / 3600 AS \"resolution_time_hours\"\r\n        FROM\r\n            \"dataset1\"\r\n    )\r\nSELECT\r\n    ROUND(AVG(\"resolution_time_hours\"),2)\r\nFROM\r\n    \"resolution_times\""
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Avg Time to Resolution",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "Hours",
+                                "value": "avg(resolution_time_hours)",
+                                "formatted": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 2,
+                "moved": false,
+                "h": 3,
+                "x": 0,
+                "y": 1,
+                "i": "73f1150f-0a49-49be-974f-f2da0e33a0b5",
+                "z": 0,
+                "config": {
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "name": "tickets",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "resolvedDateTime",
+                                    "operation": "empty"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.tickets}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "assignedResourceName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "Open tickets",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Tickets per Assigned Resource",
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisGroup": "none",
+                                "showLegend": false,
+                                "range": {
+                                    "type": "auto"
+                                },
+                                "showGrid": true,
+                                "grouping": false,
+                                "displayMode": "actual",
+                                "xAxisData": "assignedResourceName_uniqueValues",
+                                "showTotals": false,
+                                "yAxisLabel": "",
+                                "horizontalLayout": "vertical",
+                                "showValue": false,
+                                "yAxisData": [
+                                    "count"
+                                ],
+                                "showYAxisLabel": true,
+                                "xAxisLabel": "",
+                                "legendPosition": "bottom",
+                                "showXAxisLabel": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 2,
+                "moved": false,
+                "h": 3,
+                "x": 2,
+                "y": 1,
+                "i": "15c45143-76f4-4d64-93e1-5e270dd78396",
+                "z": 0,
+                "config": {
+                    "timeframe": "last7days",
+                    "dataStream": {
+                        "name": "tickets",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "resolvedDateTime",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.tickets}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "assignedResourceName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Tickets Closed per Resource",
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisGroup": "none",
+                                "showLegend": false,
+                                "range": {
+                                    "type": "auto"
+                                },
+                                "showGrid": true,
+                                "grouping": false,
+                                "displayMode": "actual",
+                                "xAxisData": "assignedResourceName_uniqueValues",
+                                "showTotals": false,
+                                "yAxisLabel": "",
+                                "horizontalLayout": "vertical",
+                                "showValue": false,
+                                "yAxisData": [
+                                    "count"
+                                ],
+                                "showYAxisLabel": true,
+                                "xAxisLabel": "",
+                                "legendPosition": "bottom",
+                                "showXAxisLabel": true
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "version": 78,
+        "columns": 4
+    },
+    "path": "tickets",
+    "folderPath": []
+}
