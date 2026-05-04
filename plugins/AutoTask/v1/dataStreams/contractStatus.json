@@ -1,15 +1,18 @@
 {
     "name": "contractStatus",
     "displayName": "Contract Status",
-    "description": "Status and key dates for all contracts",
+    "description": "Status and key dates for contracts belonging to the selected company",
     "tags": ["Contracts"],
-    "baseDataSourceName": "httpRequestUnscoped",
+    "baseDataSourceName": "httpRequestScopedSingle",
     "timeframes": false,
     "config": {
         "httpMethod": "get",
         "expandInnerObjects": true,
-        "endpointPath": "atservicesrest/v1.0/Contracts/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"exist\",\"field\":\"id\"}]}",
+        "endpointPath": "atservicesrest/v1.0/Contracts/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"eq\",\"field\":\"companyID\",\"value\":{{objects[0].companyId}}}]}",
         "pathToData": "items",
+        "matches": {
+            "sourceType": "autotask-company"
+        },
         "paging": {
             "mode": "nextUrl",
             "pageSize": { "realm": "none" },
@@ -20,13 +23,15 @@
         }
     },
     "metadata": [
-        { "name": "id", "displayName": "ID", "visible": false },
-        { "name": "contractName", "displayName": "Contract Name" },
+        { "name": "sourceId", "displayName": "Object ID", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "ID", "sourceType": "autotask-contract", "shape": "string", "visible": false },
+        { "name": "contractName", "displayName": "Contract Name", "sourceId": "id", "objectPropertyPath": "name" },
+        { "name": "companyID", "displayName": "Company ID", "sourceType": "autotask-company", "shape": "string", "visible": false },
+        { "name": "companyName", "displayName": "Company", "sourceId": "companyID", "objectPropertyPath": "name" },
         { "name": "contractType", "displayName": "Contract Type", "shape": ["number", { "decimalPlaces": 0 }] },
         { "name": "status", "displayName": "Status", "shape": ["number", { "decimalPlaces": 0 }] },
         { "name": "startDate", "displayName": "Start Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
         { "name": "endDate", "displayName": "End Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
-        { "name": "companyID", "displayName": "Company ID" },
         { "pattern": ".*" }
     ]
 }
