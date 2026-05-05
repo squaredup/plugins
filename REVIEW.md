@@ -55,7 +55,7 @@ When suggesting changes:
   - displayName - First word uppercase, then lowercase (e.g. “Table name", or "API key"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
   - name - Should typically be the camel-cased version of the displayName.
   - help - Do not use tooltips unless they add specific value. Never state the obvious (e.g. “Enter the API key here"). Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format"). Encourage the author to include a reference link if relevant `Create an API key in the [Phare portal](https://docs.phare.io/api-reference/introduction)`
-  - placeholder - Mandatory for text fields. Use example placeholders (especially for URLs or values that follow a fixed pattern, e.g. rootly_xxxxxxxxx or https://organisation.atlassian.net) or “Enter the [data source] [info needed in lowercase]”. Use default values instead of hint text where a value is commonly the same across environments (e.g. default ports). 
+  - placeholder - Mandatory for text fields. Use example placeholders (especially for URLs or values that follow a fixed pattern, e.g. rootly_xxxxxxxxx or https://organisation.atlassian.net) or “Enter the [data source] [info needed in lowercase]". Use default values instead of hint text where a value is commonly the same across environments (e.g. default ports). 
   - title - Should not specify the `title` attribute on any fields.
 
 ### Out-of-the-box dashboards (defaultContent/**/*.dash.json)
@@ -70,16 +70,16 @@ When suggesting changes:
 - displayName - Use noun-based names describing the returned data, e.g. Tickets. Avoid verbs such as Get, Fetch, Run, Execute.
 - description - Typically one sentence only. No full stop at the end. Add relevant clarifications in brackets. Never use two sentences.
 - tags - Mandatory. Reuse an existing category from other plugins where possible.
-- objectLimit - If a data stream only processes a single object (e.g. uses `objects[0]` in its expression), suggest either using the `httpRequestScopedSingle` dataSource (HTTP Request with Objects (request per object) OR setting `objectLimit: 1`.
-- timeframe - Data streams that don't support time-based filtering must explicitly declare `”none”` as an available timeframe. Omitting this causes UI warnings and incorrect default behaviour in OOB dashboards.
-- Numeric values - Return raw numeric values rather than pre-formatted strings (e.g. return `1234.56` not `”£1,234.56”`). Use column format expressions in dashboards for display formatting.
+- objectLimit - If a data stream only processes a single object (e.g. uses `objects[0]` in its expression), suggest either using the `httpRequestScopedSingle` dataSource (HTTP Request with Objects (request per object)) OR setting `objectLimit: 1`.
+- timeframe - Data streams that don't support time-based filtering must explicitly declare `"none"` as an available timeframe. Omitting this causes UI warnings and incorrect default behaviour in OOB dashboards.
+- Numeric values - Return raw numeric values rather than pre-formatted strings (e.g. return `1234.56` not `"£1,234.56"`). Use column format expressions in dashboards for display formatting.
 - Column shapes - Use the `bytes` shape for columns representing byte sizes; SquaredUp will automatically display the most appropriate unit (e.g. 4.2 GB). Check for other applicable semantic shapes such as `timestamp` and `duration`.
 - Timestamps - SquaredUp expects ISO 8601 strings for timestamp columns. If the upstream API returns Unix timestamps, the script must convert them.
 - Expressions - Where a transformation can be expressed using `map`, prefer it over a mustache-style value expression, or complex processing in a script for performance.
 - Deduplication - If multiple data streams share the same API endpoint and differ only by a filter, consider merging them into a single stream with a UI parameter to control the filter.
 - ui
-  - displayName - First word uppercase, then lowercase (e.g. “Table name”). Single value: singular. Multiple values: “(s)” (e.g. Tables name(s)). Do not use “you” “Your” in display names. Keep text neutral, concise, and descriptive.
-  - help - Use extremely sparingly. Never state the obvious. Only use when something important must be understood. Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format”).
+  - displayName - First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
+  - help - Use extremely sparingly. Never state the obvious. Only use when something important must be understood. Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format").
 
 ### Source types (indexDefinitions/)
 - Name source types after how they are referred to in the upstream product or API (e.g. `agent`, `device`). Do not prefix them with the plugin name (e.g. avoid `NinjaOne Device`). A separate friendly display name can be configured if needed (via custom_types.json).
