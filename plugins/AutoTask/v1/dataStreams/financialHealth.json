@@ -22,11 +22,29 @@
     "metadata": [
         { "name": "id", "displayName": "ID", "visible": false, "shape":"string" },
         { "name": "contractName", "displayName": "Contract Name" },
-        { "name": "contractType", "displayName": "Contract Type", "shape": ["number", { "decimalPlaces": 0 }] },
+        {
+            "name": "contractTypeName",
+            "displayName": "Contract Type",
+            "computed": true,
+            "valueExpression": "{{ $['contractType'] == 1 ? 'Time and Materials' : $['contractType'] == 3 ? 'Fixed Price' : $['contractType'] == 4 ? 'Block Hours' : $['contractType'] == 6 ? 'Retainer' : $['contractType'] == 7 ? 'Recurring Service' : $['contractType'] == 8 ? 'Incident' : 'Unknown' }}"
+        },
         { "name": "estimatedRevenue", "displayName": "Estimated Revenue", "shape": ["number", { "decimalPlaces": 2 }] },
         { "name": "estimatedCost", "displayName": "Estimated Cost", "shape": ["number", { "decimalPlaces": 2 }] },
         { "name": "estimatedHours", "displayName": "Estimated Hours", "shape": ["number", { "decimalPlaces": 2 }] },
-        { "name": "status", "displayName": "Status", "shape": ["number", { "decimalPlaces": 0 }] },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['status'] == 1 ? 'Active' : $['status'] == 2 ? 'Upcoming' : $['status'] == 3 ? 'Cancelled' : $['status'] == 4 ? 'Completed' : $['status'] == 6 ? 'Inactive' : 'Unknown' }}",
+            "shape": ["state", {
+                "map": {
+                    "success": ["Active", "Completed"],
+                    "error": ["Cancelled"],
+                    "warning": ["Upcoming"],
+                    "unknown": ["Inactive", "Unknown"]
+                }
+            }]
+        },
         { "pattern": ".*" }
     ]
 }

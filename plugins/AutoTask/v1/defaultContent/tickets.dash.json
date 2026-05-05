@@ -46,16 +46,16 @@
                     "monitor": {
                         "tileRollsUp": true,
                         "monitorType": "threshold",
-                        "condition": {
-                            "columns": [
-                                "apiVendorID"
-                            ],
+                    "aggregation": "count",
+                    "groupBy": "__group_by_none__",
+                    "condition": {
+                        "columns": [],
                             "logic": {
                                 "if": [
                                     {
                                         ">": [
                                             {
-                                                "var": "top"
+                                                "var": "count"
                                             },
                                             0
                                         ]
@@ -65,9 +65,6 @@
                             }
                         },
                         "_type": "simple",
-                        "column": "apiVendorID",
-                        "aggregation": "top",
-                        "groupBy": "__group_by_none__",
                         "frequency": 720
                     },
                     "activePluginConfigIds": [
@@ -249,7 +246,7 @@
                                     "tableName": "dataset1"
                                 }
                             ],
-                            "sql": "WITH\r\n    \"resolution_times\" AS (\r\n        SELECT\r\n            CAST(\r\n                EXTRACT (\r\n                    EPOCH\r\n                    FROM\r\n                        \"resolvedDateTime\" - \"createDate\"\r\n                ) AS INTEGER\r\n            ) / 3600 AS \"resolution_time_hours\"\r\n        FROM\r\n            \"dataset1\"\r\n    )\r\nSELECT\r\n    ROUND(AVG(\"resolution_time_hours\"),2)\r\nFROM\r\n    \"resolution_times\""
+                            "sql": "WITH\r\n    \"resolution_times\" AS (\r\n        SELECT\r\n            CAST(\r\n                EXTRACT (\r\n                    EPOCH\r\n                    FROM\r\n                        \"resolvedDateTime\" - \"createDate\"\r\n                ) AS INTEGER\r\n            ) / 3600 AS \"resolution_time_hours\"\r\n        FROM\r\n            \"dataset1\"\r\n    )\r\nSELECT\r\n    ROUND(AVG(\"resolution_time_hours\"),2) AS \"avg_resolution_hours\"\r\nFROM\r\n    \"resolution_times\""
                         },
                         "id": "datastream-sql"
                     },
@@ -270,8 +267,7 @@
                             "data-stream-scalar": {
                                 "comparisonColumn": "none",
                                 "label": "Hours",
-                                "value": "avg(resolution_time_hours)",
-                                "formatted": true
+                                "value": "avg_resolution_hours"
                             }
                         }
                     }

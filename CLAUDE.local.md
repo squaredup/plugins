@@ -299,6 +299,7 @@ Plain `"shape": "date"` also works for standard date strings.
 
 ## Known Issues / Gotchas
 - `"providesPluginDiagnostics": true` fails schema validation on the squaredup-plugin-repository pipeline — avoid or remove before submitting a PR
+- `"importNotSupported": false` is not a recognised `metadata.json` field and will also fail schema validation — remove it. Import is enabled by default whenever `indexDefinitions/` is present; no flag needed to enable it.
 - `*.local.json` and `*.local.md` are gitignored in this repo
 
 ## Schemas
