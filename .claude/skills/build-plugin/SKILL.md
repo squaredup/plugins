@@ -188,6 +188,12 @@ my-plugin/
 
 Token refresh is handled automatically by SquaredUp for all OAuth2 flows — no extra configuration needed.
 
+**Notes:**
+- `category`: choose from the list of available categories. Common options: `"Monitoring"`, `"Database"`, `"Security"`, `"Network"`, `"Infrastructure"`, `"Cloud Platforms"`, `"APM"`, `"CI/CD Tools"`, `"Alert Management"`, `"Issue Tracking"`, `"Collaboration"`, `"Service Management"`, `"Analytics"`, `"CRM"`, `"Version Control"`, `"CDN"`, `"Utility"`, `"Fun"`. New categories can be added, but consider whether an existing one is a close enough fit first.
+- `schemaVersion`: always `"2.0"` for Low Code Plugins.
+- `links` and `keywords` must be added manually — they are not populated by the export modal.
+- The plugin **folder name** in the repo uses PascalCase (e.g. `MyPlugin`, `GoogleSheets`); the `name` field in `metadata.json` uses lowercase kebab-case (e.g. `my-plugin`). These are separate things.
+
 ### Plugin type
 
 For Web API plugins, always use `"hybrid"` unless the user specifically requests otherwise.
@@ -207,6 +213,10 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 - `defaultValue` — pre-populated value
 - `validation` — e.g. `{ "required": true }`
 - `allowEncryption: true` — marks the field as a secret (encrypted at rest); use on any token, password, or key field
+- `help` — tooltip text; **supports markdown** (links, bold, etc.)
+- `tileEditorStep` — controls which tile editor step the field appears in; defaults to `["Parameters"]`. Set to `["Timeframe"]` to place a field on the Timeframe step. **JSON-only** — cannot be set via the Save as data stream modal; must be added directly to the data stream JSON file after export.
+
+> ⚠️ Do **not** set a `title` attribute on fields. It is not used and should be omitted.
 
 ### Field types
 
@@ -274,6 +284,8 @@ Defines the config form shown when a user adds the plugin. One entry per config 
     "dataSourceConfig": { "dataSourceName": "datasourceName" } }
 }
 ```
+
+> ⚠️ When using a data stream as the autocomplete source, the backing stream must return rows with `label` (string) and `value` columns, and those columns must have `"role": "label"` and `"role": "value"` declared in the stream's metadata — otherwise the dropdown won't populate correctly.
 
 **`key-value`** — list of key/value pairs (useful for custom headers, tags):
 ```json
@@ -357,6 +369,7 @@ Defines what gets imported into the SquaredUp graph.
 - `properties` are extra fields stored on the graph node and accessible in data stream scripts as `object.propName`.
 - Use `{ "targetProp": "sourceProp" }` syntax when the column name differs from the property name you want.
 - The `sourceType` column value **must** match an entry in `objectTypes` — otherwise objects won't import.
+- `importFrequencyMinutes` — controls how often SquaredUp re-runs the import. Defaults to `720` (12 hours).
 
 **Import data stream pattern** — the stream called by an import step must return one flat row per object with at least `sourceId`, `name`, `sourceType`:
 
@@ -386,6 +399,7 @@ result = installations.map((inst) => ({
     "name": "batterySummary",
     "displayName": "Battery Summary",
     "description": "Current battery state",
+    "tags": ["Energy", "Battery"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "get",
@@ -434,7 +448,28 @@ result = installations.map((inst) => ({
 }
 ```
 
-**Choosing between them:** Use `httpRequestScopedSingle` when the API only supports one object at a time. Use `httpRequestScoped` when the API can accept multiple objects in one call, or returns a summary across objects. Both allow the user to select multiple objects — the difference is purely how the underlying HTTP requests are made.
+**`httpRequestUnscoped`** — no object selection at all. The stream makes a single request with no object context. Use for global/account-level endpoints (e.g. top-level alerts, account summary). Pair with `"matches": "none"`.
+
+```json
+{
+    "name": "accountAlerts",
+    "displayName": "Account Alerts",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "alerts"
+    },
+    "matches": "none"
+}
+```
+
+**Choosing between them:** Use `httpRequestScopedSingle` when the API only supports one object at a time. Use `httpRequestScoped` when the API accepts multiple objects in one call. Use `httpRequestUnscoped` for endpoints that need no object context at all.
+
+**Stream naming:** The `name` field is the internal identifier. It is derived by camelCasing the display name (e.g. `"CPU Usage"` → `cpuUsage`). Keep it stable — renaming a stream is a breaking change.
+
+**`description`:** One sentence, no full stop at the end.
+
+**`tags`:** Required. Array of strings shown in the UI — use title case (e.g. `"Battery"`, `"Energy"`, not `"battery"`). Don't add too many; group streams within a plugin effectively under a small set of tags.
 
 ### `matches` — whether the user picks objects
 
@@ -519,6 +554,12 @@ Each element of the resolved array becomes one row. For more complex response tr
 ```
 
 For current-state streams (live device metrics, status), always use `"timeframes": false`.
+
+Two additional **JSON-only** timeframe properties (cannot be set via the Save as data stream modal):
+```json
+"supportsNoneTimeframe": true      // Adds "None" as a valid timeframe option
+"defaultTimeframe": "none"         // New tiles default to "None" ("none" or "dashboard")
+```
 
 ### `metadata` — column definitions
 
@@ -960,21 +1001,45 @@ Adds friendly display names and FontAwesome icons per object type. The `sourceTy
 ]
 ```
 
-Use FontAwesome free icon names (without the `fa-` prefix): `house`, `bolt`, `sun`, `battery-full`, `plug`, `thermometer-half`, `industry`, `gears`, `globe`, `wind`, `microchip`, `rotate`, `car`, `tint`, `atom`, `gas-pump`, `wifi`, `camera`, `desktop`, `building`, `key`.
+Use **FontAwesome** icon names (see `fontawesome.com/icons`), in lowercase kebab-case — e.g. `house`, `bolt`, `sun`, `battery-full`, `plug`, `thermometer`, `factory`, `gear`, `globe`, `wind`, `microchip`, `rotate`, `car`, `droplet`, `atom`, `gas-pump`, `wifi`, `camera`, `display`, `building`, `key`.
 
 ---
 
 ## Phase 11: Validate & Deploy
 
+**Prerequisites:** Node.js 22 or later.
+
 ```bash
-# From the plugin's versioned directory (e.g. my-plugin/v1/)
-squaredup validate        # check the plugin against the schema
-squaredup deploy --force  # deploy to your connected SquaredUp tenant
+# Login (interactive)
+squaredup login
+
+# Login (non-interactive, for CI)
+squaredup login --apiKey <key> --region eu   # regions: us, eu, dev
+
+# Check login status
+squaredup status
+
+# Deploy from the plugin's versioned directory (e.g. my-plugin/v1/)
+squaredup deploy --suffix <yourname>   # suffix namespaces your deployment (e.g. initials)
+
+# Global flags
+squaredup --debug    # verbose output
+squaredup --silent   # suppress output
 ```
+
+The CLI will prompt for confirmation if a plugin with the same name and suffix already exists.
 
 Always validate before deploying. The validator catches: missing required fields, unknown keys, invalid matches syntax, broken dashboard references.
 
-**Versioning:** New plugins start at `1.0.0`. For changes to an existing plugin, bump the version in `metadata.json` at least once before submitting or publishing — it doesn't need to increment on every local deploy during development.
+**Versioning:** New plugins start at `1.0.0`. Use semver:
+
+| Change type | Bump |
+|---|---|
+| Bug fix, docs, icon, metadata tweak | PATCH (`1.0.x`) |
+| New stream, new optional config field, new default content | MINOR (`1.x.0`) |
+| Deleted/renamed stream, breaking config change | MAJOR (`x.0.0`) |
+
+Every PR that modifies plugin files must include a version bump. For breaking (MAJOR) changes, **do not create a new major version without asking the user first** — it is often possible to avoid the breaking change entirely with a different approach. If a major version is genuinely needed, create a new versioned folder (e.g. `v2/`) rather than modifying `v1/`, preserving the existing version for users who haven't migrated. When removing a stream, mark it `deprecated` in one release, then remove it in a follow-up major bump.
 
 ---
 
@@ -990,27 +1055,55 @@ SquaredUp includes a built-in `datastream-properties` data stream that automatic
 }
 ```
 
-### Hiding a stream
+### Stream visibility
 
-To hide a stream from the UI without affecting its matching behaviour, use `visibility`:
 ```json
+// Hide from UI entirely
 "visibility": { "type": "hidden" }
+
+// Mark as deprecated — hidden and flagged; include a reason to guide users
+"visibility": { "type": "deprecated", "reason": "Use deviceMetrics instead" }
+```
+
+### Object property lookup in metadata
+
+Replace a raw ID column with a human-readable property from a related indexed object, using `objectPropertyPath`. Optionally combine properties using `valueExpression`:
+
+```json
+// Replace AgentID column value with the agent's name from the graph
+{ "name": "AgentName", "sourceId": "AgentID", "sourceType": "my-agent", "objectPropertyPath": "name" }
+
+// Combine properties into a custom display string
+{ "name": "AgentLabel", "sourceId": "AgentID", "sourceType": "my-agent",
+  "objectPropertyPath": "name", "valueExpression": "{{ object.name }} ({{ object.company }})" }
 ```
 
 ### Config validation
 
-Add a `configValidation.json` file to test connectivity when a user sets up the plugin. No extra flag is needed in `metadata.json` — the presence of the file is sufficient.
+Add a `configValidation.json` file to test connectivity when a user sets up the plugin. No extra flag is needed in `metadata.json` — the presence of the file is sufficient. Use a **lightweight endpoint** (e.g. `/me`, `/user`) — avoid calls that return large datasets.
 
 ```json
 {
-    "steps": [{
-        "displayName": "Connect to API",
-        "dataStream": { "name": "installations" },
-        "error": "Could not connect. Check your API token.",
-        "success": "Connected successfully."
-    }]
+    "steps": [
+        {
+            "displayName": "Authenticate",
+            "dataStream": { "name": "currentUser" },
+            "required": true,
+            "error": "Could not authenticate. Check your API key has the required scopes.",
+            "success": "Connected successfully."
+        },
+        {
+            "displayName": "Check data access",
+            "dataStream": { "name": "installations" },
+            "required": false,
+            "error": "Authenticated but no installations found.",
+            "success": "Installations accessible."
+        }
+    ]
 }
 ```
+
+`required: true` — a failing step blocks the user from completing setup. Write error messages that tell the user what to check (e.g. specific scopes needed), not just that something failed.
 
 ---
 
