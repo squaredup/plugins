@@ -163,6 +163,13 @@ my-plugin/
 "basicAuthPassword": "{{password}}"
 ```
 
+**Digest auth:**
+```json
+"authMode": "digest",
+"digestAuthUsername": "{{username}}",
+"digestAuthPassword": "{{password}}"
+```
+
 **OAuth2 client credentials:**
 ```json
 "authMode": "oauth2",
@@ -188,7 +195,33 @@ my-plugin/
 
 Token refresh is handled automatically by SquaredUp for all OAuth2 flows — no extra configuration needed.
 
+**OAuth2 password grant** (username/password exchanged for a token — rare in modern APIs):
+```json
+"authMode": "oauth2",
+"oauth2GrantType": "password",
+"oauth2TokenUrl": "https://api.example.com/oauth/token",
+"oauth2ClientId": "{{clientId}}",
+"oauth2ClientSecret": "{{clientSecret}}",
+"oauth2PasswordGrantUserName": "{{username}}",
+"oauth2PasswordGrantPassword": "{{password}}"
+```
+
+**Advanced OAuth2 options** (provider-specific edge cases):
+```json
+"oauth2ClientSecretLocationDuringAuth": "body",    // "query" (default), "body", or "header"
+"oauth2SendTokenInParameters": true,               // send access token as query param instead of Bearer header
+"oauth2TokenExtraArgs": [{ "key": "k", "value": "v" }],     // extra token request body params
+"oauth2TokenExtraHeaders": [{ "key": "k", "value": "v" }],  // extra token request headers
+```
+
+OAuth URLs and scopes support `{{fieldName}}` expressions — useful when the auth URL includes a tenant/account ID from the user's config:
+```json
+"oauth2AuthUrl": "https://{{accountId}}.example.com/oauth/authorize",
+"oauth2Scope": "read {{role ? 'role:' + role : ''}}"
+```
+
 **Notes:**
+- `author.type`: `"community"` for external contributors, `"labs"` for SquaredUp Labs plugins.
 - `category`: choose from the list of available categories. Common options: `"Monitoring"`, `"Database"`, `"Security"`, `"Network"`, `"Infrastructure"`, `"Cloud Platforms"`, `"APM"`, `"CI/CD Tools"`, `"Alert Management"`, `"Issue Tracking"`, `"Collaboration"`, `"Service Management"`, `"Analytics"`, `"CRM"`, `"Version Control"`, `"CDN"`, `"Utility"`, `"Fun"`. New categories can be added, but consider whether an existing one is a close enough fit first.
 - `schemaVersion`: always `"2.0"` for Low Code Plugins.
 - `links` and `keywords` must be added manually — they are not populated by the export modal.
@@ -312,9 +345,20 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 { "type": "markdown", "name": "info", "content": "**Note:** Replace the placeholder values below." }
 ```
 
+**`script`** — inline JavaScript editor (for user-defined post-request scripts):
+```json
+{ "type": "script", "name": "postRequestScript", "label": "Script", "placeholder": "result = data;" }
+```
+
 **`fieldGroup`** — groups related fields together under a shared label:
 ```json
 { "type": "fieldGroup", "label": "Advanced Options", "fields": [ ...field definitions... ] }
+```
+
+Add `"displayAs": "fieldGroupToggle"` to make the group collapsible:
+```json
+{ "type": "fieldGroup", "name": "advanced", "label": "Advanced Options", "displayAs": "fieldGroupToggle",
+  "fields": [ ...field definitions... ] }
 ```
 
 **`oAuth2`** — renders the OAuth2 sign-in button (used alongside `authCode` grant type in `metadata.json`):
@@ -531,6 +575,120 @@ Expressions support **inline JavaScript**, so you can use any JS expression insi
 
 In OOB dashboard tiles, set the stream parameter in the tile's `dataStream` config rather than hardcoding it in the stream definition.
 
+### POST requests
+
+For APIs that require a request body, use `"httpMethod": "post"` and `postBody`:
+
+```json
+"config": {
+    "httpMethod": "post",
+    "endpointPath": "queries/_search",
+    "postBody": "{{query}}"
+}
+```
+
+`postBody` can be a template string (as above) or a JSON object with expressions:
+```json
+"postBody": {
+    "statement": "{{query}}",
+    "database": "{{typeof database !== 'undefined' ? database : undefined}}"
+}
+```
+
+### `expandInnerObjects`
+
+```json
+"config": {
+    "expandInnerObjects": true,
+    ...
+}
+```
+
+Flattens nested objects in the response into dot-notation column names (e.g. a nested `{ "patchManagement": { "patchesInstalled": 5 } }` becomes column `patchManagement.patchesInstalled`). Useful when the API returns rich nested objects you want to expose as flat columns without writing a post-request script.
+
+### `manualConfigApply`
+
+```json
+"manualConfigApply": true
+```
+
+When set, the tile shows an **Apply** button rather than running on every config change. Use for streams with expensive or slow queries (e.g. database queries, large search requests) where auto-executing on each keystroke would be disruptive.
+
+### Pagination (`paging`)
+
+The `paging` block in `config` controls how SquaredUp fetches multiple pages.
+
+**No paging (single page):**
+```json
+"paging": { "mode": "none" }
+```
+
+**Next-URL** — API returns a URL for the next page in the response body or a header:
+```json
+"paging": {
+    "mode": "nextUrl",
+    "pageSize": {
+        "realm": "queryArg",   // "queryArg", "header", or "body" (POST only)
+        "path": "max",         // parameter name
+        "value": "100"
+    },
+    "in": {
+        "realm": "payload",    // "payload" (body), "header", or "webLink"
+        "path": "pageDetails.nextPageUrl"  // path to the next URL in the response
+    }
+}
+```
+
+**Token** — API returns a cursor/token in the response which is sent with the next request:
+```json
+"paging": {
+    "mode": "token",
+    "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+    "in": {
+        "realm": "payload",    // "payload" or "header"
+        "path": "meta.next_cursor"
+    },
+    "out": {
+        "realm": "queryArg",   // "queryArg", "header", or "body" (POST)
+        "path": "cursor"
+    }
+}
+```
+
+**Offset** — increments a page number or row offset on each request:
+```json
+"paging": {
+    "mode": "offset",
+    "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+    "offset": {
+        "mode": "page",        // "page" (increments 1,2,3...) or "row" (increments by page size)
+        "rowCountIn": {
+            "realm": "payloadArraySize",  // "payloadArraySize", "payload", or "header"
+            "path": "items"               // path to array (payloadArraySize) or count (others)
+        },
+        "base": 1              // starting page/row (usually 0 or 1)
+    },
+    "out": {
+        "realm": "queryArg",   // where to send the page number / row offset
+        "path": "page"
+    }
+}
+```
+
+### `errorHandling`
+
+By default, SquaredUp shows the HTTP status code and error body to the user. You can customise this:
+
+```json
+// Extract error message from a specific response field
+"errorHandling": { "type": "path", "realm": "payload", "path": "error.message" }
+
+// Custom error handling script — access `response` (.status, .body) and `data`
+"errorHandling": { "type": "script", "script": "result = response.status + ': ' + data.error;" }
+```
+
+`realm` for `path` mode: `"payload"` (body) or `"header"`.
+
 ### `pathToData` — navigating the response envelope
 
 If the API returns `{ "data": { "items": [...] } }`, use `pathToData` in the stream config to point at the array:
@@ -555,10 +713,23 @@ Each element of the resolved array becomes one row. For more complex response tr
 
 For current-state streams (live device metrics, status), always use `"timeframes": false`.
 
-Two additional **JSON-only** timeframe properties (cannot be set via the Save as data stream modal):
+Three additional **JSON-only** timeframe properties (cannot be set via the Save as data stream modal):
 ```json
 "supportsNoneTimeframe": true      // Adds "None" as a valid timeframe option
 "defaultTimeframe": "none"         // New tiles default to "None" ("none" or "dashboard")
+"requiresParameterTimeframe": true // Timeframe params are always injected even without a user selection
+```
+
+### `defaultShaping`
+
+Sets default sort/group/aggregate behaviour when a tile is first added. Users can override it via the tile editor.
+
+```json
+"defaultShaping": {
+    "sort": {
+        "by": [["rank", "asc"]]
+    }
+}
 ```
 
 ### `metadata` — column definitions
@@ -639,6 +810,19 @@ Always use `displayName` to give columns human-readable labels. Column names in 
 ```
 
 Fetch the datastream schema for full options on any shape when needed.
+
+**Computed columns** — derive a column value from another column using a `valueExpression`, rather than from the raw response. Useful for mapping a raw API field to a `state` shape without a post-request script:
+```json
+{
+    "name": "complianceState",
+    "displayName": "Compliance State",
+    "computed": true,
+    "valueExpression": "{{ $['softwareStatus'] }}",
+    "shape": ["state", {
+        "map": { "success": ["Compliant"], "error": ["Not Compliant"], "warning": [], "unknown": [] }
+    }]
+}
+```
 
 **Date/timestamp columns:** The platform automatically interprets Unix timestamps (seconds or ms) and ISO 8601 strings. Any other format must either be converted in a script or configured with an input format in metadata. Declare the column with `"role": "timestamp"` so the platform knows to treat it as a time axis.
 
@@ -1104,6 +1288,25 @@ Add a `configValidation.json` file to test connectivity when a user sets up the 
 ```
 
 `required: true` — a failing step blocks the user from completing setup. Write error messages that tell the user what to check (e.g. specific scopes needed), not just that something failed.
+
+Each step's `dataStream` block can include a `config` object to override stream parameters — useful when the validation stream is parameterised (e.g. a SQL query stream):
+```json
+{
+    "displayName": "Check warehouse access",
+    "dataStream": {
+        "name": "sqlQuery",
+        "config": {
+            "query": "select 1",
+            "errorOnEmptyResults": true
+        }
+    },
+    "required": true,
+    "error": "No warehouse access.",
+    "success": "Warehouse accessible."
+}
+```
+
+`errorOnEmptyResults: true` in the config causes the step to fail if the stream returns no rows — useful for permission checks where an empty result means access was denied.
 
 ---
 
