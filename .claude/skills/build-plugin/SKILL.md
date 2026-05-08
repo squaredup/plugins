@@ -68,13 +68,15 @@ Decide before writing code. **Write this plan down and share it with the user be
 
 ## Phase 3: File Structure
 
-**Icon:** Do not create or generate the icon yourself. Find the official brand/product logo online (SVG preferred), or ask the user to supply one. A square icon works best. Never auto-generate a generic icon.
+**Icon:** Do not create or generate the icon yourself. Find the official brand/product logo online (SVG or PNG accepted by the validator), or ask the user to supply one. A square icon works best. Never auto-generate a generic icon.
 
 **configValidation.json:** Optional but strongly preferred. Wrap a simple API call (e.g. `/me`, `/user`, or any lightweight authenticated endpoint) to verify the config works on setup. For complex APIs with distinct permission scopes (e.g. AWS CloudWatch, Cost Explorer, EC2), include multiple validation steps — one per capability — so users know exactly what's working.
 
 **scopes.json:** Only needs to include scopes that are actually used by OOB dashboards or dashboard variables. Don't add scopes speculatively.
 
 **Folder structure:** Sub-folders under `defaultContent/` are not always named `Devices/` — use names that reflect the plugin's object model. Nested folders are supported; a good pattern is to mirror the API's own structure.
+
+**Single-dashboard rule:** If an object type only has one perspective dashboard, place the `.dash.json` file directly in `defaultContent/` and reference it with `"type": "dashboard"` in the top-level `manifest.json`. Only create a sub-folder when you have **multiple dashboards** for the same type that need to be grouped together.
 
 ```
 my-plugin/
@@ -93,10 +95,12 @@ my-plugin/
     defaultContent/
       manifest.json        # Top-level dashboard list
       scopes.json          # Scopes used by OOB dashboards only
-      myDashboard.dash.json
-      Installations/       # Sub-folder name reflects the object type
+      overviewDashboard.dash.json
+      deviceDashboard.dash.json   # Single perspective — no sub-folder needed
+      Installations/       # Sub-folder only when multiple dashboards for one type
         manifest.json
-        myDashboard.dash.json
+        dashboard1.dash.json
+        dashboard2.dash.json
 ```
 
 ---
@@ -225,6 +229,7 @@ OAuth URLs and scopes support `{{fieldName}}` expressions — useful when the au
 - `category`: choose from the list of available categories. Common options: `"Monitoring"`, `"Database"`, `"Security"`, `"Network"`, `"Infrastructure"`, `"Cloud Platforms"`, `"APM"`, `"CI/CD Tools"`, `"Alert Management"`, `"Issue Tracking"`, `"Collaboration"`, `"Service Management"`, `"Analytics"`, `"CRM"`, `"Version Control"`, `"CDN"`, `"Utility"`, `"Fun"`. New categories can be added, but consider whether an existing one is a close enough fit first.
 - `schemaVersion`: always `"2.0"` for Low Code Plugins.
 - `links` and `keywords` must be added manually — they are not populated by the export modal.
+- **Documentation link:** Always point the `documentation` link to an in-repo `docs/README.md` (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`). This file is surfaced in-product when users add the plugin. Do not link directly to the third-party product's own docs — users may not have access, and the README lets you control what instructions appear.
 - The plugin **folder name** in the repo uses PascalCase (e.g. `MyPlugin`, `GoogleSheets`); the `name` field in `metadata.json` uses lowercase kebab-case (e.g. `my-plugin`). These are separate things.
 
 ### Plugin type
@@ -722,6 +727,8 @@ Each element of the resolved array becomes one row. For more complex response tr
 
 > `rowPath` is a legacy alternative — use `pathToData` for new streams.
 
+> **Scalars and primitives:** `pathToData` works on primitives — a string, number, or boolean at the resolved path is returned as a single row with a `result` column.
+
 ### `timeframes`
 
 ```json
@@ -871,6 +878,8 @@ Fetch the datastream schema for full options on any shape when needed.
 ```
 > ⚠️ `sourceType` must be a hardcoded string. Dynamic per-row sourceType is not supported. If a stream returns rows from multiple object types, drilldowns are not possible.
 
+> ⚠️ **Blocks tiles need extra wiring:** The drilldown metadata entry makes clicks work automatically in table tiles, but blocks tiles also require `linkColumn` in the viz config set to the same column as `name` in the drilldown entry. Without this, blocks render correctly but don't navigate anywhere.
+
 ---
 
 ## Phase 8: Post-Request Scripts
@@ -951,7 +960,8 @@ One scope per object type — used to populate tile scope pickers in dashboards:
         "variable": {
             "name": "Installation",
             "allowMultipleSelection": false,
-            "default": "none"
+            "default": "none",
+            "type": "object"
         }
     },
     {
@@ -960,7 +970,8 @@ One scope per object type — used to populate tile scope pickers in dashboards:
         "variable": {
             "name": "Device",
             "allowMultipleSelection": false,
-            "default": "none"
+            "default": "none",
+            "type": "object"
         }
     }
 ]
@@ -972,12 +983,13 @@ One scope per object type — used to populate tile scope pickers in dashboards:
 {
     "items": [
         { "name": "installationOverview", "type": "dashboard" },
-        { "name": "Devices", "type": "folder" }
+        { "name": "deviceDashboard", "type": "dashboard" },
+        { "name": "Installations", "type": "folder" }
     ]
 }
 ```
 
-Folders map to sub-directories. Each sub-directory needs its own `manifest.json`.
+Single `.dash.json` files reference directly as `"type": "dashboard"`. Folders map to sub-directories and each needs its own `manifest.json`. Only create a folder when there are multiple dashboards to group for the same object type.
 
 ### Dashboard layout
 
@@ -1028,15 +1040,17 @@ Folders map to sub-directories. Each sub-directory needs its own `manifest.json`
 ```
 
 **Dashboard rules:**
+- **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI, so "Overview" reads as "MyPlugin / Overview" — adding the plugin name again produces "MyPlugin / MyPlugin Overview".
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.
 - Omit `"timeframe"` on tiles to inherit the dashboard timeframe — do not hardcode `"last24hours"` on tiles.
-- All tile IDs (`"i"`) must be unique UUIDs within the dashboard.
+- All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate them with `uuidgen` (macOS/Linux) or `python3 -c "import uuid; print(uuid.uuid4())"`. Never invent fake patterned UUIDs like `a1111111-1111-1111-1111-111111111111`.
 
 **Grid layout:**
 - The `columns` value can be any number — choose what suits the layout.
 - `w` + `x` must not exceed the column count.
 - `h=2` works well for most tiles; adjust as needed to create a balanced layout.
 - Side-by-side pairing: attributes table `w=1, x=0` + chart `w=3, x=1` at same `y`.
+- **Match heights for side-by-side tiles.** Tiles placed at the same `y` must have the same `h` — mismatched heights leave a visible gap below the shorter tile.
 
 **Visualisation types:**
 
@@ -1134,6 +1148,19 @@ Folders map to sub-directories. Each sub-directory needs its own `manifest.json`
         "stateColumn": "state",
         "sublabel": "status",
         "linkColumn": "none",
+        "columns": 4
+    }}
+}
+```
+
+When data has no state, use `"stateColumn": "none"` — blocks render without health colour. To enable drilldowns, set `"linkColumn"` to the column named in the drilldown metadata entry:
+```json
+{
+    "type": "data-stream-blocks",
+    "config": { "data-stream-blocks": {
+        "labelColumn": "name",
+        "stateColumn": "none",
+        "linkColumn": "name",
         "columns": 4
     }}
 }
