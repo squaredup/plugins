@@ -249,6 +249,25 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 - `help` — tooltip text; **supports markdown** (links, bold, etc.)
 - `tileEditorStep` — controls which tile editor step the field appears in; defaults to `["Parameters"]`. Set to `["Timeframe"]` to place a field on the Timeframe step. **JSON-only** — cannot be set via the Save as data stream modal; must be added directly to the data stream JSON file after export.
 
+**Conditional visibility** — any field or fieldGroup can be conditionally shown using `visible`:
+
+```json
+// Show when another field equals a specific value
+{ "type": "fieldGroup", "visible": { "authMode": "basic" }, "fields": [...] }
+
+// Show when a field matches one of several values
+{ "type": "fieldGroup", "visible": { "authMode": { "type": "oneOf", "values": ["basic", "digest"] } }, "fields": [...] }
+
+// Always visible (explicit)
+{ "type": "fieldGroup", "visible": "true", "fields": [...] }
+```
+
+**`ignoreCertificateErrors`** — add this checkbox to any plugin that may be used with on-prem instances or self-signed certificates:
+```json
+{ "type": "checkbox", "name": "ignoreCertificateErrors", "label": "Ignore certificate errors",
+  "help": "Enable when connecting to an instance with a self-signed certificate." }
+```
+
 > ⚠️ Do **not** set a `title` attribute on fields. It is not used and should be omitted.
 
 ### Field types
@@ -1203,15 +1222,24 @@ squaredup login --apiKey <key> --region eu   # regions: us, eu, dev
 # Check login status
 squaredup status
 
-# Deploy from the plugin's versioned directory (e.g. my-plugin/v1/)
+# Validate a plugin (run from the versioned directory, e.g. my-plugin/v1/)
+squaredup validate              # validate current directory
+squaredup validate --watch      # re-validate on every file change (useful during development)
+squaredup validate --json       # output JSON — use this flag when running validation as Claude/AI agent
+
+# Deploy
 squaredup deploy --suffix <yourname>   # suffix namespaces your deployment (e.g. initials)
+squaredup deploy --suffix <yourname> --force   # overwrite without confirmation prompt
+squaredup deploy --watch               # re-deploy automatically on file changes
+
+# List and delete deployed plugins
+squaredup list     # list all plugins deployed to your tenant
+squaredup delete   # interactively select and delete a deployed plugin
 
 # Global flags
 squaredup --debug    # verbose output
 squaredup --silent   # suppress output
 ```
-
-The CLI will prompt for confirmation if a plugin with the same name and suffix already exists.
 
 Always validate before deploying. The validator catches: missing required fields, unknown keys, invalid matches syntax, broken dashboard references.
 
