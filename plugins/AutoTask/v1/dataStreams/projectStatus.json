@@ -22,7 +22,20 @@
     "metadata": [
         { "name": "id", "displayName": "ID", "shape": "string" },
         { "name": "projectName", "displayName": "Project Name" },
-        { "name": "status", "displayName": "Status", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "status", "displayName": "Status (Raw)", "shape": ["number", { "decimalPlaces": 0 }], "visible": false },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['status'] == 1 ? 'Active' : $['status'] == 2 ? 'Inactive' : $['status'] == 3 ? 'Completed' : $['status'] == 5 ? 'On Hold' : 'Unknown' }}",
+            "shape": ["state", {
+                "map": {
+                    "success": ["Active", "Completed"],
+                    "warning": ["On Hold"],
+                    "unknown": ["Inactive", "Unknown"]
+                }
+            }]
+        },
         { "name": "completedPercentage", "displayName": "Completed %", "shape": ["number", { "decimalPlaces": 0 }] },
         { "name": "actualHours", "displayName": "Actual Hours", "shape": ["number", { "decimalPlaces": 2 }] },
         { "name": "estimatedTime", "displayName": "Estimated Hours", "shape": ["number", { "decimalPlaces": 2 }] },
