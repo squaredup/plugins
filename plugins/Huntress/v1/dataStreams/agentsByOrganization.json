@@ -9,8 +9,23 @@
         "endpointPath": "/v1/agents",
         "pathToData": "agents",
         "queryParameters": {
-            "limit": "500",
             "organization_id": "{{objects[0].id}}"
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "pagination.next_page_token"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page_token"
+            }
         }
     },
     "matches": {
@@ -111,7 +126,7 @@
         {
             "name": "firewall_status",
             "displayName": "Firewall Status",
-            "shape": "string"
+            "shape": ["state", { "map": { "success": ["Enabled"], "error": ["Disabled"], "warning": ["Pending Isolation", "Isolated", "Pending Release"] } }]
         },
         {
             "name": "os_build_version",
