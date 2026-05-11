@@ -1,27 +1,12 @@
 // Process NinjaOne ticketing board data
 const items = (data && data.data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
 
-// Apply SquaredUp timeframe client-side: the trigger/board endpoint has no
-// documented date-filter syntax, so filter raw Unix-second values here before
-// they get converted to ISO strings below.
-const startTime = parseInt('{{timeframe.unixStart}}', 10);
-const endTime = parseInt('{{timeframe.unixEnd}}', 10);
-const hasTimeframe = Number.isFinite(startTime) && Number.isFinite(endTime);
-
-const pickTimestamp = (item) => {
-    const candidates = [item.updatedAt, item.lastActivityAt, item.createdAt];
-    for (const v of candidates) {
-        if (typeof v === 'number' && v > 1000000000 && v < 10000000000) return v;
-    }
-    return null;
-};
-
-const filtered = hasTimeframe
-    ? items.filter((item) => {
-        const ts = pickTimestamp(item);
-        return ts !== null && ts >= startTime && ts <= endTime;
-    })
-    : items;
+// SquaredUp timeframe (Unix seconds). If substitution doesn't happen the
+// parseInt yields NaN and hasTimeframe is false — filter is skipped and all
+// rows pass through.
+const startTime = parseInt('{{timeframe.unixStart}}');
+const endTime = parseInt('{{timeframe.unixEnd}}');
+const hasTimeframe = !isNaN(startTime) && !isNaN(endTime);
 
 /**
  * Recursively converts NinjaOne Unix timestamps (seconds) to ISO strings.
@@ -47,20 +32,33 @@ const convertTimestamps = (obj) => {
     return obj;
 };
 
-result = filtered.map(item => {
-    const converted = convertTimestamps(item);
-    
-    return { 
-        ...converted, 
-        // Normalize IDs as strings for SquaredUp correlation
-        id: converted.id ? converted.id.toString() : null,
-        organizationId: (converted.organizationId || converted.clientId) ? (converted.organizationId || converted.clientId).toString() : null,
-        deviceId: (converted.deviceId || converted.nodeId) ? (converted.deviceId || converted.nodeId).toString() : null,
-        boardId: converted.boardId ? converted.boardId.toString() : null,
-        requesterId: converted.requesterId ? converted.requesterId.toString() : null,
-        assigneeId: (converted.assigneeId || converted.assignedAppUserId) ? (converted.assigneeId || converted.assignedAppUserId).toString() : null,
-        ticketFormId: converted.ticketFormId ? converted.ticketFormId.toString() : null,
-        // Ensure tags are a comma-separated string if they are an array
-        tags: Array.isArray(converted.tags) ? converted.tags.join(', ') : converted.tags
-    };
-});
+result = items
+    .filter((item) => {
+        if (!hasTimeframe) return true;
+        const raw = (typeof item.updatedAt === 'number' && item.updatedAt > 1e9) ? item.updatedAt
+            : (typeof item.lastActivityAt === 'number' && item.lastActivityAt > 1e9) ? item.lastActivityAt
+            : (typeof item.createdAt === 'number' && item.createdAt > 1e9) ? item.createdAt
+            : (typeof item.updateTime === 'number' && item.updateTime > 1e9) ? item.updateTime
+            : (typeof item.createTime === 'number' && item.createTime > 1e9) ? item.createTime
+            : null;
+        if (raw === null) return false;
+        const tsSec = raw > 1e12 ? Math.floor(raw / 1000) : raw;
+        return tsSec >= startTime && tsSec <= endTime;
+    })
+    .map(item => {
+        const converted = convertTimestamps(item);
+
+        return {
+            ...converted,
+            // Normalize IDs as strings for SquaredUp correlation
+            id: converted.id ? converted.id.toString() : null,
+            organizationId: (converted.organizationId || converted.clientId) ? (converted.organizationId || converted.clientId).toString() : null,
+            deviceId: (converted.deviceId || converted.nodeId) ? (converted.deviceId || converted.nodeId).toString() : null,
+            boardId: converted.boardId ? converted.boardId.toString() : null,
+            requesterId: converted.requesterId ? converted.requesterId.toString() : null,
+            assigneeId: (converted.assigneeId || converted.assignedAppUserId) ? (converted.assigneeId || converted.assignedAppUserId).toString() : null,
+            ticketFormId: converted.ticketFormId ? converted.ticketFormId.toString() : null,
+            // Ensure tags are a comma-separated string if they are an array
+            tags: Array.isArray(converted.tags) ? converted.tags.join(', ') : converted.tags
+        };
+    });
