@@ -1,0 +1,55 @@
+{
+    "name": "contractStatus",
+    "displayName": "Contract Status",
+    "description": "Status and key dates for contracts belonging to the selected company",
+    "tags": ["Contracts"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "timeframes": false,
+    "matches": {
+        "sourceType": "autotask-company"
+    },
+    "config": {
+        "httpMethod": "get",
+        "expandInnerObjects": true,
+        "endpointPath": "atservicesrest/v1.0/Contracts/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"eq\",\"field\":\"companyID\",\"value\":{{objects[0].companyId}}}]}",
+        "pathToData": "items",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "none" },
+            "in": {
+                "realm": "payload",
+                "path": "pageDetails.nextPageUrl"
+            }
+        }
+    },
+    "metadata": [
+        { "name": "sourceId", "displayName": "Object ID", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "ID", "sourceType": "autotask-contract", "shape": "string", "visible": false },
+        { "name": "contractName", "displayName": "Contract Name" },
+        { "name": "companyID", "displayName": "Company ID", "sourceType": "autotask-company", "shape": "string", "visible": false },
+        { "name": "companyName", "displayName": "Company", "sourceId": "companyID", "objectPropertyPath": "name" },
+        {
+            "name": "contractTypeName",
+            "displayName": "Contract Type",
+            "computed": true,
+            "valueExpression": "{{ $['contractType'] == 1 ? 'Time and Materials' : $['contractType'] == 3 ? 'Fixed Price' : $['contractType'] == 4 ? 'Block Hours' : $['contractType'] == 6 ? 'Retainer' : $['contractType'] == 7 ? 'Recurring Service' : $['contractType'] == 8 ? 'Incident' : 'Unknown' }}"
+        },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['status'] == 1 ? 'Active' : $['status'] == 2 ? 'Upcoming' : $['status'] == 3 ? 'Cancelled' : $['status'] == 4 ? 'Completed' : $['status'] == 6 ? 'Inactive' : 'Unknown' }}",
+            "shape": ["state", {
+                "map": {
+                    "success": ["Active", "Completed"],
+                    "error": ["Cancelled"],
+                    "warning": ["Upcoming"],
+                    "unknown": ["Inactive", "Unknown"]
+                }
+            }]
+        },
+        { "name": "startDate", "displayName": "Start Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "endDate", "displayName": "End Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "pattern": ".*" }
+    ]
+}

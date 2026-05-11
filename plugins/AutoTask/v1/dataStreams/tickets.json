@@ -1,0 +1,177 @@
+{
+    "name": "tickets",
+    "displayName": "Tickets",
+    "description": "Tickets with last activity within the selected timeframe",
+    "tags": ["Tickets"],
+    "baseDataSourceName": "httpRequestScoped",
+    "timeframes": true,
+    "matches": {
+        "sourceType": "autotask-company"
+    },
+    "config": {
+        "httpMethod": "get",
+        "expandInnerObjects": true,
+        "endpointPath": "atservicesrest/v1.0/Tickets/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"in\",\"field\":\"status\",\"value\":[{{statusFilter}}]},{\"op\":\"in\",\"field\":\"priority\",\"value\":[{{priorityFilter}}]},{\"op\":\"gte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.start}}\"},{\"op\":\"lte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.end}}\"}]}",
+        "postRequestScript": "tickets.js",
+        "pathToData": "items",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "none" },
+            "in": {
+                "realm": "payload",
+                "path": "pageDetails.nextPageUrl"
+            }
+        }
+    },
+    "metadata": [
+        { "name": "sourceId", "displayName": "Object ID", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "Ticket ID", "shape": "string", "visible": false },
+        { "name": "title", "displayName": "Title" },
+        { "name": "description", "displayName": "Description", "visible": false },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "visible": true,
+            "computed": true,
+            "valueExpression": "{{ $['status'] == 1 ? 'New' : $['status'] == 5 ? 'Complete' : $['status'] == 8 ? 'In Progress' : $['status'] == 9 ? 'Waiting Customer' : $['status'] == 10 ? 'Waiting Materials' : $['status'] == 11 ? 'Waiting Vendor' : $['status'] == 12 ? 'Escalate' : $['status'] == 13 ? 'Waiting Approval' : 'Unknown' }}",
+            "shape": ["state", {
+                "map": {
+                    "success": ["Complete"],
+                    "error": ["Escalate"],
+                    "warning": ["New", "In Progress"],
+                    "unknown": ["Waiting Customer", "Waiting Materials", "Waiting Vendor", "Waiting Approval", "Unknown"]
+                }
+            }]
+        },
+        {
+            "name": "priorityName",
+            "displayName": "Priority",
+            "computed": true,
+            "valueExpression": "{{ $['priority'] == 1 ? 'Critical' : $['priority'] == 2 ? 'High' : $['priority'] == 3 ? 'Medium' : $['priority'] == 4 ? 'Low' : 'Unknown' }}"
+        },
+        { "name": "priority", "displayName": "Priority (Raw)", "shape": ["number", { "decimalPlaces": 0 }], "visible": false },
+        { "name": "companyID", "sourceType": "autotask-company", "shape": "string", "visible": false },
+        { "name": "companyName", "displayName": "Company", "sourceId": "companyID", "objectPropertyPath": "name" },
+        { "name": "contactID", "sourceType": "autotask-contact", "shape": "string", "visible": false },
+        { "name": "contactName", "displayName": "Contact", "sourceId": "contactID", "objectPropertyPath": "name" },
+        { "name": "contractID", "sourceType": "autotask-contract", "shape": "string", "visible": false },
+        { "name": "contractName", "displayName": "Contract", "sourceId": "contractID", "objectPropertyPath": "name" },
+        { "name": "assignedResourceID", "sourceType": "autotask-resource", "shape": "string", "visible": false },
+        { "name": "assignedResourceName", "displayName": "Assigned Resource", "sourceId": "assignedResourceID", "objectPropertyPath": "name" },
+        { "name": "completedByResourceID", "sourceType": "autotask-resource", "shape": "string", "visible": false },
+        { "name": "completedByResourceName", "displayName": "Completed By", "sourceId": "completedByResourceID", "objectPropertyPath": "name" },
+        { "name": "firstresponeassignedresourceID", "displayName": "First Response Assigned Resource ID", "sourceType": "autotask-resource", "shape": "string", "visible": false },
+        { "name": "firstResponseAssignedResourceName", "displayName": "First Response Resource", "sourceId": "firstresponeassignedresourceID", "objectPropertyPath": "name" },
+        { "name": "lastActivityResourceID", "sourceType": "autotask-resource", "shape": "string", "visible": false },
+        { "name": "lastActivityResourceName", "displayName": "Last Activity Resource", "sourceId": "LastActivityResourceID", "objectPropertyPath": "name" },
+        { "name": "issueType", "displayName": "Issue Type" },
+        { "name": "resolution", "displayName": "Resolution" },
+        { "name": "creatorResourceID", "sourceType": "autotask-resource", "shape": "string", "visible": false },
+        { "name": "creatorResourceName", "displayName": "Creator", "sourceId": "CreatorResourceID", "objectPropertyPath": "name" },
+        { "name": "lastActivityDate", "displayName": "Last Activity Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "dueDateTime", "displayName": "Due Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "apiVendorID", "displayName": "API Vendor ID", "shape": "string", "visible": false },
+        { "name": "assignedResourceRoleID", "displayName": "Assigned Resource Role ID", "shape": "string", "visible": false },
+        { "name": "billingCodeID", "displayName": "Billing Code ID", "shape": "string", "visible": false },
+        { "name": "companyLocationID", "displayName": "Company Location ID", "shape": "string", "visible": false },
+        { "name": "configurationItemID", "displayName": "Configuration Item ID", "shape": "string", "visible": false },
+        { "name": "contractServiceBundleID", "displayName": "Contract Service Bundle ID", "shape": "string", "visible": false },
+        { "name": "contractServiceID", "displayName": "Contract Service ID", "shape": "string", "visible": false },
+        { "name": "createdByContactID", "displayName": "Created By Contact ID", "shape": "string", "visible": false },
+        { "name": "externalID", "displayName": "External ID", "shape": "string", "visible": false },
+        { "name": "firstResponseInitiatingResourceID", "displayName": "First Response Initiating Resource ID", "shape": "string", "visible": false },
+        { "name": "impersonatorCreatorResourceID", "displayName": "Impersonator Creator Resource ID", "shape": "string", "visible": false },
+        { "name": "monitorID", "displayName": "Monitor ID", "shape": "string", "visible": false },
+        { "name": "monitorTypeID", "displayName": "Monitor Type ID", "shape": "string", "visible": false },
+        { "name": "opportunityID", "displayName": "Opportunity ID", "shape": "string", "visible": false },
+        { "name": "organizationalLevelAssociationID", "displayName": "Organizational Level Association ID", "shape": "string", "visible": false },
+        { "name": "problemTicketId", "displayName": "Problem Ticket ID", "shape": "string", "visible": false },
+        { "name": "projectID", "displayName": "Project ID", "shape": "string", "visible": false },
+        { "name": "queueID", "displayName": "Queue ID", "shape": "string", "visible": false },
+        { "name": "rmmAlertID", "displayName": "RMM Alert ID", "shape": "string", "visible": false },
+        { "name": "serviceLevelAgreementID", "displayName": "SLA ID", "shape": "string", "visible": false },
+        { "name": "completedDate", "displayName": "Completed Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "createDate", "displayName": "Created Date", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "firstResponseDateTime", "displayName": "First Response Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "firstResponseDueDateTime", "displayName": "First Response Due Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "lastCustomerNotificationDateTime", "displayName": "Last Customer Notification Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "lastCustomerVisibleActivityDateTime", "displayName": "Last Customer Visible Activity Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "lastTrackedModificationDateTime", "displayName": "Last Tracked Modification Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "resolutionPlanDateTime", "displayName": "Resolution Plan Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "resolutionPlanDueDateTime", "displayName": "Resolution Plan Due Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "resolvedDateTime", "displayName": "Resolved Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "resolvedDueDateTime", "displayName": "Resolved Due Date Time", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "estimatedHours", "displayName": "Estimated Hours", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "hoursToBeScheduled", "displayName": "Hours To Be Scheduled", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "serviceLevelAgreementPausedNextEventHours", "displayName": "SLA Paused Next Event Hours", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "changeApprovalBoard", "displayName": "Change Approval Board" , "visible": false },
+        { "name": "changeApprovalStatus", "displayName": "Change Approval Status" , "visible": false },
+        { "name": "changeApprovalType", "displayName": "Change Approval Type" , "visible": false },
+        { "name": "changeInfoField1", "displayName": "Change Info Field 1", "visible": false },
+        { "name": "changeInfoField2", "displayName": "Change Info Field 2", "visible": false },
+        { "name": "changeInfoField3", "displayName": "Change Info Field 3", "visible": false },
+        { "name": "changeInfoField4", "displayName": "Change Info Field 4", "visible": false },
+        { "name": "changeInfoField5", "displayName": "Change Info Field 5", "visible": false },
+        { "name": "creatorType", "displayName": "Creator Type" },
+        { "name": "currentServiceThermometerRating", "displayName": "Current Service Thermometer Rating" },
+        { "name": "isAssignedToComanaged", "displayName": "Is Assigned To Co-Managed", "visible": false },
+        { "name": "isVisibleToComanaged", "displayName": "Is Visible To Co-Managed", "visible": false },
+        { "name": "lastActivityPersonType", "displayName": "Last Activity Person Type", "visible": false },
+        { "name": "previousServiceThermometerRating", "displayName": "Previous Service Thermometer Rating", "visible": false },
+        { "name": "purchaseOrderNumber", "displayName": "Purchase Order Number" },
+        { "name": "rmaStatus", "displayName": "RMA Status" },
+        { "name": "rmaType", "displayName": "RMA Type" },
+        { "name": "serviceLevelAgreementHasBeenMet", "displayName": "SLA Has Been Met" },
+        { "name": "serviceThermometerTemperature", "displayName": "Service Thermometer Temperature", "visible": false },
+        { "name": "source", "displayName": "Source" , "visible": false},
+        { "name": "subIssueType", "displayName": "Sub Issue Type", "visible": false },
+        { "name": "ticketCategory", "displayName": "Ticket Category" },
+        { "name": "ticketNumber", "displayName": "Ticket Number" },
+        { "name": "ticketType", "displayName": "Ticket Type" },
+        { "pattern": ".*" , "visible": false }
+    ],
+    "ui": [
+        {
+            "name": "statusFilter",
+            "type": "autocomplete",
+            "label": "Status",
+            "allowCustomValues": true,
+            "isMulti": true,
+            "defaultValue": "1,5,8,9,10,11,12,13",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "1,5,8,9,10,11,12,13", "label": "All Statuses" },
+                    { "value": "1",  "label": "New" },
+                    { "value": "8",  "label": "In Progress" },
+                    { "value": "9",  "label": "Waiting Customer" },
+                    { "value": "10", "label": "Waiting Materials" },
+                    { "value": "11", "label": "Waiting Vendor" },
+                    { "value": "13", "label": "Waiting Approval" },
+                    { "value": "12", "label": "Escalate" },
+                    { "value": "5",  "label": "Complete" }
+                ]
+            },
+            "validation": { "required": true }
+        },
+        {
+            "name": "priorityFilter",
+            "type": "autocomplete",
+            "label": "Priority",
+            "allowCustomValues": true,
+            "isMulti": true,
+            "defaultValue": "1,2,3,4",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "1,2,3,4", "label": "All Priorities" },
+                    { "value": "1", "label": "Critical" },
+                    { "value": "2", "label": "High" },
+                    { "value": "3", "label": "Medium" },
+                    { "value": "4", "label": "Low" }
+                ]
+            },
+            "validation": { "required": true }
+        }
+    ]
+}
