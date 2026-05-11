@@ -1,9 +1,31 @@
 // Process NinjaOne ticketing board data
 const items = (data && data.data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
 
+// Apply SquaredUp timeframe client-side: the trigger/board endpoint has no
+// documented date-filter syntax, so filter raw Unix-second values here before
+// they get converted to ISO strings below.
+const startTime = parseInt('{{timeframe.unixStart}}', 10);
+const endTime = parseInt('{{timeframe.unixEnd}}', 10);
+const hasTimeframe = Number.isFinite(startTime) && Number.isFinite(endTime);
+
+const pickTimestamp = (item) => {
+    const candidates = [item.updatedAt, item.lastActivityAt, item.createdAt];
+    for (const v of candidates) {
+        if (typeof v === 'number' && v > 1000000000 && v < 10000000000) return v;
+    }
+    return null;
+};
+
+const filtered = hasTimeframe
+    ? items.filter((item) => {
+        const ts = pickTimestamp(item);
+        return ts !== null && ts >= startTime && ts <= endTime;
+    })
+    : items;
+
 /**
  * Recursively converts NinjaOne Unix timestamps (seconds) to ISO strings.
- * @param {any} obj 
+ * @param {any} obj
  * @returns {any}
  */
 const convertTimestamps = (obj) => {
@@ -25,7 +47,7 @@ const convertTimestamps = (obj) => {
     return obj;
 };
 
-result = items.map(item => {
+result = filtered.map(item => {
     const converted = convertTimestamps(item);
     
     return { 
