@@ -1258,9 +1258,8 @@ squaredup validate --watch      # re-validate on every file change (useful durin
 squaredup validate --json       # output JSON — use this flag when running validation as Claude/AI agent
 
 # Deploy
-squaredup deploy --suffix <yourname>   # suffix namespaces your deployment (e.g. initials)
-squaredup deploy --suffix <yourname> --force   # overwrite without confirmation prompt
-squaredup deploy --watch               # re-deploy automatically on file changes
+squaredup deploy --force   # overwrite without confirmation prompt
+squaredup deploy --watch   # re-deploy automatically on file changes
 
 # List and delete deployed plugins
 squaredup list     # list all plugins deployed to your tenant
