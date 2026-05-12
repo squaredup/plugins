@@ -441,7 +441,7 @@ Defines what gets imported into the SquaredUp graph.
 - `properties` are extra fields stored on the graph node and accessible in data stream scripts as `object.propName`.
 - Use `{ "targetProp": "sourceProp" }` syntax when the column name differs from the property name you want.
 - The `sourceType` column value **must** match an entry in `objectTypes` — otherwise objects won't import.
-- `importFrequencyMinutes` — controls how often SquaredUp re-runs the import. Defaults to `720` (12 hours).
+- `frequencyMinutes` — controls how often SquaredUp re-runs the import. Defaults to `720` (12 hours).
 
 **Import data stream pattern** — the stream called by an import step must return one flat row per object with at least `sourceId`, `name`, `sourceType`:
 
