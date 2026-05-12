@@ -254,7 +254,7 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 - `help` — tooltip text shown as a `(?)` icon
 - `defaultValue` — pre-populated value
 - `validation` — e.g. `{ "required": true }`
-- `allowEncryption: true` — marks the field as a secret (encrypted at rest); use on any token, password, or key field
+- `allowEncryption: true` — legacy way to mark a `text` field as a secret; **prefer `type: "password"` instead** for any token, password, or key field
 - `help` — tooltip text; **supports markdown** (links, bold, etc.)
 - `tileEditorStep` — controls which tile editor step the field appears in; defaults to `["Parameters"]`. Set to `["Timeframe"]` to place a field on the Timeframe step. **JSON-only** — cannot be set via the Save as data stream modal; must be added directly to the data stream JSON file after export.
 
@@ -286,7 +286,7 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 { "type": "text", "name": "hostname", "label": "Hostname", "placeholder": "api.example.com" }
 ```
 
-**`password`** — masked text input (alternative to `text` + `allowEncryption`):
+**`password`** — masked text input; **use this for any API key, token, secret, or password field** (preferred over `text` + `allowEncryption`):
 ```json
 { "type": "password", "name": "apiKey", "label": "API Key" }
 ```
