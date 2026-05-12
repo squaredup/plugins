@@ -251,11 +251,10 @@ For Web API plugins, always use `"hybrid"` unless the user specifically requests
 Defines the config form shown when a user adds the plugin. One entry per config field. All field types share these common properties:
 - `name` — the field's key, referenced as `{{fieldName}}` in expressions
 - `label` — displayed in the form
-- `help` — tooltip text shown as a `(?)` icon
 - `defaultValue` — pre-populated value
 - `validation` — e.g. `{ "required": true }`
 - `allowEncryption: true` — legacy way to mark a `text` field as a secret; **prefer `type: "password"` instead** for any token, password, or key field
-- `help` — tooltip text; **supports markdown** (links, bold, etc.)
+- `help` — tooltip text shown as a (?) icon; **supports markdown** (links, bold, etc.))
 - `tileEditorStep` — controls which tile editor step the field appears in; defaults to `["Parameters"]`. Set to `["Timeframe"]` to place a field on the Timeframe step. **JSON-only** — cannot be set via the Save as data stream modal; must be added directly to the data stream JSON file after export.
 
 **Conditional visibility** — any field or fieldGroup can be conditionally shown using `visible`:
