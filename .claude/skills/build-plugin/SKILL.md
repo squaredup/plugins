@@ -114,6 +114,8 @@ my-plugin/
 
 ## Phase 4: metadata.json
 
+**Before writing `metadata.json`, use `AskUserQuestion` to ask the user for their author name or GitHub handle.** Use `"community"` as the `author.type`.
+
 ```json
 {
     "name": "my-plugin",
