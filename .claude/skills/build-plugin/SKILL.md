@@ -1,6 +1,9 @@
 ---
 name: build-plugin
 description: Build a SquaredUp low-code plugin for any HTTP/REST API — from exploring the API through writing data streams, dashboards, and deploying. Use when building or extending a SquaredUp plugin, data source, or integration. Trigger phrases include "build a plugin", "create a plugin", "new plugin", "add a data source", "integrate with", "build an integration", "connect to [service]", "I want to pull data from", "monitor [service] in SquaredUp".
+metadata: 
+    author: SquaredUp
+    version: "0.0.1"
 ---
 
 # Building a SquaredUp Low-Code Plugin
