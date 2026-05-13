@@ -1312,9 +1312,11 @@ SquaredUp includes a built-in `datastream-properties` data stream that automatic
 
 ```json
 "dataStream": {
-    "name": "datastream-properties"
+    "id": "datastream-properties"
 }
 ```
+
+> ⚠️ The built-in stream is referenced by `id`, not `name`. Using `"name": "datastream-properties"` will appear to validate but the tile won't resolve the stream at runtime.
 
 ### Stream visibility
 
