@@ -33,7 +33,7 @@ Create a TodoWrite task for each phase before starting:
 
 - [ ] **Phase 1** — Explore the API
 - [ ] **Phase 2** — Plan the plugin structure
-- [ ] **Phase 3** — Scaffold files (`metadata.json`, `ui.json`, `icon.png`)
+- [ ] **Phase 3** — Scaffold files (`metadata.json`, `ui.json`, `icon.png`, `docs/README.md`)
 - [ ] **Phase 4** — Write import definitions (`indexDefinitions/default.json`)
 - [ ] **Phase 5** — Write data streams
 - [ ] **Phase 6** — Write OOB default content (dashboards, scopes)
@@ -93,6 +93,8 @@ my-plugin/
     icon.svg               # Square SVG — use official brand logo, ask user if unsure
     custom_types.json      # Friendly names + FontAwesome icons per type
     configValidation.json  # Preferred: validate config on setup
+    docs/
+      README.md            # REQUIRED: shown in-product when users add the plugin
     indexDefinitions/
       default.json         # Import steps
     dataStreams/
@@ -109,6 +111,20 @@ my-plugin/
         dashboard1.dash.json
         dashboard2.dash.json
 ```
+
+### docs/README.md (required)
+
+This file is surfaced in-product when a user adds the plugin — it is the primary place to tell users how to configure it. Always create it as part of scaffolding, before moving to later phases. The `documentation` link in `metadata.json` must point to it (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`).
+
+The README should cover:
+
+1. **What the plugin monitors** — one short paragraph: what the service is, what objects are imported, and what the dashboards show.
+2. **Prerequisites / getting credentials** — step-by-step instructions to obtain an API key, token, or OAuth credentials. Include any required scopes or permissions. Link to the service's own credential pages where helpful.
+3. **Configuration fields** — a table or short list explaining every field in `ui.json`: what it is, where to find the value, and whether it's required.
+4. **What gets imported** — list the object types and what they represent.
+5. **Known limitations** — rate limits, permission requirements, or API behaviours the user should know about.
+
+Write this as if the user has never seen the API before. They're reading it inside SquaredUp, not on the vendor's site, so don't assume they'll follow external links for basic setup steps.
 
 ---
 
