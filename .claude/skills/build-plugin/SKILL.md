@@ -16,6 +16,18 @@ This skill guides you through building a complete SquaredUp low-code plugin for 
 
 ---
 
+## Required user inputs (always ask)
+
+The following inputs **cannot be inferred from the environment** and must be collected via `AskUserQuestion` before the corresponding file is written. **Ask these even when the user has requested autonomous / "no clarifying questions" mode** — they are not clarifying questions, they are required data that ends up baked into the plugin (and into git history).
+
+| Input | When to ask | Why |
+| --- | --- | --- |
+| **Author handle** (GitHub handle or display name) | Before writing `metadata.json` (Phase 4) | Goes into `author.name` in `metadata.json` and shows in the UI. Guessing from git config or environment frequently picks the wrong identity (employer email vs personal handle, etc.). |
+
+If the user has already volunteered the answer earlier in the conversation, use that and skip the prompt. Otherwise, ask — even in autonomous mode.
+
+---
+
 ## When to Use
 
 - Building a new plugin for an HTTP/REST API
@@ -130,7 +142,6 @@ Write this as if the user has never seen the API before. They're reading it insi
 
 ## Phase 4: metadata.json
 
-**Before writing `metadata.json`, use `AskUserQuestion` to ask the user for their author name or GitHub handle.** Use `"community"` as the `author.type`.
 
 ```json
 {
