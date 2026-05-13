@@ -1075,6 +1075,7 @@ Single `.dash.json` files reference directly as `"type": "dashboard"`. Folders m
 
 **Dashboard rules:**
 - **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI, so "Overview" reads as "MyPlugin / Overview" — adding the plugin name again produces "MyPlugin / MyPlugin Overview".
+- **Give each dashboard a distinct, descriptive name.** Perspective tabs sit next to each other in the UI — identical names (e.g. every perspective called "Overview") are indistinguishable.
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.
 - Omit `"timeframe"` on tiles to inherit the dashboard timeframe — do not hardcode `"last24hours"` on tiles.
 - All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate them with `uuidgen` (macOS/Linux) or `python3 -c "import uuid; print(uuid.uuid4())"`. Never invent fake patterned UUIDs like `a1111111-1111-1111-1111-111111111111`.
