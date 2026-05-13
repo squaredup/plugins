@@ -87,7 +87,13 @@ Decide before writing code. **Write this plan down and share it with the user be
 
 ## Phase 3: File Structure
 
-**Icon:** Do not create or generate the icon yourself. Find the official brand/product logo online (SVG or PNG accepted by the validator), or ask the user to supply one. A square icon works best. Never auto-generate a generic icon.
+**Icon:** Do not create or generate the icon yourself. Find the official brand/product logo online (SVG or PNG accepted by the validator), or ask the user to supply one. Never auto-generate a generic icon.
+
+**Post-process SVG icons only if needed.** SquaredUp displays icons on a dark background in dark mode and a white background in light mode. If the SVG lacks a background or is not square, fix it:
+
+1. **Make it square** — Set `width="512" height="512" viewBox="0 0 512 512"`.
+2. **Add a background** — Insert `<rect width="512" height="512" fill="BRAND_COLOR"/>` as the first child. Pick a colour that contrasts with the logo paths.
+3. **Add padding** — Wrap paths in `<g transform="translate(X, Y) scale(S)">` targeting ~10% padding (inner area 409.6×409.6): `S = min(409.6/w, 409.6/h)`, `X = (512−w*S)/2`, `Y = (512−h*S)/2`.
 
 **configValidation.json:** Optional but strongly preferred. Wrap a simple API call (e.g. `/me`, `/user`, or any lightweight authenticated endpoint) to verify the config works on setup. For complex APIs with distinct permission scopes (e.g. AWS CloudWatch, Cost Explorer, EC2), include multiple validation steps — one per capability — so users know exactly what's working.
 
