@@ -253,7 +253,6 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 - `label` — displayed in the form
 - `defaultValue` — pre-populated value
 - `validation` — e.g. `{ "required": true }`
-- `allowEncryption: true` — legacy way to mark a `text` field as a secret; **prefer `type: "password"` instead** for any token, password, or key field
 - `help` — tooltip text shown as a (?) icon; **supports markdown** (links, bold, etc.))
 - `tileEditorStep` — controls which tile editor step the field appears in; defaults to `["Parameters"]`. Set to `["Timeframe"]` to place a field on the Timeframe step. **JSON-only** — cannot be set via the Save as data stream modal; must be added directly to the data stream JSON file after export.
 
@@ -347,9 +346,9 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 
 > ⚠️ When using a data stream as the autocomplete source, the backing stream must return rows with `label` (string) and `value` columns, and those columns must have `"role": "label"` and `"role": "value"` declared in the stream's metadata — otherwise the dropdown won't populate correctly.
 
-**`key-value`** — list of key/value pairs (useful for custom headers, tags):
+**`key-value`** — list of key/value pairs (useful for custom headers, tags). Set `allowEncryption: true` to let users mark individual values as encrypted — use this when the field may contain sensitive data such as secret environment variables:
 ```json
-{ "type": "key-value", "name": "headers", "label": "Headers" }
+{ "type": "key-value", "name": "headers", "label": "Headers", "allowEncryption": true }
 ```
 
 **`expression`** — expression/template input:
