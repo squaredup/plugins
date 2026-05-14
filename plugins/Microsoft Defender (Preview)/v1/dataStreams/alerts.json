@@ -1,0 +1,115 @@
+{
+  "name": "alerts",
+  "displayName": "Alerts",
+  "baseDataSourceName": "httpRequestUnscoped",
+  "config": {
+    "httpMethod": "get",
+    "errorHandling": {
+      "type": "default"
+    },
+    "paging": {
+      "mode": "offset",
+      "pageSize": {
+        "realm": {
+          "value": "queryArg",
+          "label": "Query parameter"
+        },
+        "path": "$top",
+        "value": "100"
+      },
+      "offset": {
+        "rowCountIn": {
+          "realm": {
+            "value": "payloadArraySize",
+            "label": "Body array size"
+          },
+          "path": "value"
+        },
+        "mode": "row",
+        "base": "0"
+      },
+      "out": {
+        "realm": {
+          "value": "queryArg",
+          "label": "queryArg"
+        },
+        "path": "$skip"
+      }
+    },
+    "expandInnerObjects": true,
+    "endpointPath": "api/alerts",
+    "getArgs": [
+      {
+        "key": "$filter",
+        "value": "{{ status && status.length > 0 ? \"(status eq \" + status.map((m) => { return `'${m}'` }).join(\" or status eq \") + \") and \" : \"\" }}{{ severity && severity.length > 0 ? \"(severity eq \" + severity.map((m) => { return `'${m}'` }).join(\" or severity eq \") + \") and \" : \"\" }}{{ category ? \"(category eq \" + category.split(\",\").map(c => {return `'${c.trim()}'`}).join(\" or category eq \") + \") and \" : \"\"}}{{timeframe.enum !== \"none\" ? timeframeCol + \" ge \" + timeframe.start + \" and \" + timeframeCol + \" le \" + timeframe.end : \"1 eq 1\"}}"
+      }
+    ],
+    "pathToData": "value",
+    "headers": []
+  },
+  "providesPluginDiagnostics": true,
+  "manualConfigApply": true,
+  "rowPath": [],
+  "matches": [
+    {
+      "sourceType": {
+        "type": "equals",
+        "value": "squaredup/data-source"
+      },
+      "pluginId": {
+        "type": "equals",
+        "value": "plugin-bi89KMBtdXqKNJIwcn2N"
+      },
+      "sourceId": {
+        "type": "equals",
+        "value": "config-4Y3oF35ZzEn8X2Gxq8we"
+      }
+    }
+  ],
+  "timeframes": [
+    "last1hour",
+    "last12hours",
+    "last24hours",
+    "last7days",
+    "last30days",
+    "thisMonth",
+    "thisQuarter",
+    "thisYear",
+    "lastMonth",
+    "lastQuarter",
+    "lastYear"
+  ],
+  "tags": [
+    "Alerts"
+  ],
+  "ui": [
+    {
+      "name": "status",
+      "description": "Filter alerts by the specified status",
+      "label": "Status",
+      "type": "autocomplete",
+      "data": {
+        "source": "fixed",
+        "values": [
+          {
+            "value": "Unknown",
+            "label": "Unknown"
+          },
+          {
+            "value": "New",
+            "label": "New"
+          },
+          {
+            "value": "InProgress",
+            "label": "InProgress"
+          },
+          {
+            "value": "Resolved",
+            "label": "Resolved"
+          }
+        ]
+      },
+      "isClearable": true
+    }
+  ]
+}
