@@ -624,7 +624,7 @@ Expressions support **inline JavaScript**, so you can use any JS expression insi
     "name": "deviceMetric",
     "displayName": "Device Metric",
     "ui": [
-        { "name": "metric", "displayName": "Metric Name", "type": "text" }
+        { "name": "metric", "label": "Metric Name", "type": "text" }
     ],
     "config": {
         "endpointPath": "devices/{{object.deviceId}}/metrics",
