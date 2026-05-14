@@ -139,7 +139,7 @@ The README should cover:
 1. **What the plugin monitors** — one short paragraph: what the service is, what objects are imported, and what the dashboards show.
 2. **Prerequisites / getting credentials** — step-by-step instructions to obtain an API key, token, or OAuth credentials. Include any required scopes or permissions. Link to the service's own credential pages where helpful.
 3. **Configuration fields** — a table or short list explaining every field in `ui.json`: what it is, where to find the value, and whether it's required.
-4. **What gets imported** — list the object types and what they represent.
+4. **What gets indexed** — list the object types and what they represent.
 5. **Known limitations** — rate limits, permission requirements, or API behaviours the user should know about.
 
 Write this as if the user has never seen the API before. They're reading it inside SquaredUp, not on the vendor's site, so don't assume they'll follow external links for basic setup steps.
@@ -384,7 +384,7 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 
 > ⚠️ When using a data stream as the autocomplete source, the backing stream must return rows with `label` (string) and `value` columns, and those columns must have `"role": "label"` and `"role": "value"` declared in the stream's metadata — otherwise the dropdown won't populate correctly.
 
-**`key-value`** — list of key/value pairs (useful for custom headers, tags). Set `allowEncryption: true` to let users mark individual values as encrypted — use this when the field may contain sensitive data such as secret environment variables:
+**`key-value`** — list of key/value pairs (useful for custom headers, tags). 
 ```json
 { "type": "key-value", "name": "headers", "label": "Headers", "allowEncryption": true }
 ```
