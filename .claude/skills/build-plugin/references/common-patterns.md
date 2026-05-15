@@ -4,7 +4,6 @@
 
 - [custom_types.json](#custom_typesjson)
 - [Built-in properties stream](#built-in-properties-stream)
-- [Stream visibility and deprecation](#stream-visibility-and-deprecation)
 - [Config validation steps](#config-validation-steps)
 - [Schema references](#schema-references)
 
@@ -45,18 +44,6 @@ SquaredUp includes a built-in `datastream-properties` stream that automatically 
 "dataStream": {
     "id": "datastream-properties"
 }
-```
-
----
-
-## Stream visibility and deprecation
-
-```json
-// Hide from UI entirely
-"visibility": { "type": "hidden" }
-
-// Mark as deprecated — hidden and flagged; always include a reason
-"visibility": { "type": "deprecated", "reason": "Use deviceMetrics instead" }
 ```
 
 ---

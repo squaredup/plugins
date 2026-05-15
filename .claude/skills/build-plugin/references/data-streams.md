@@ -4,6 +4,7 @@
 
 - [baseDataSourceName — request modes](#basedatasourcename)
 - [Stream-level properties](#stream-level-properties)
+- [Visibility](#visibility)
 - [matches — object selection](#matches)
 - [Expressions in paths and query args](#expressions)
 - [POST requests](#post-requests)
@@ -80,6 +81,22 @@
 - `displayName` — shown in the UI.
 - `description` — one sentence, no full stop at end.
 - `tags` — required; title case (e.g. `"Battery"`, `"Energy"`). Keep to a small, meaningful set.
+
+---
+
+## Visibility
+
+Hide a stream from the tile editor when any of these apply:
+
+- **Feeds a tile-editor dropdown only** — another stream references it via `dataInputs[].data.dataStreamName` (e.g. a stream that lists spreadsheets so the user can pick one). Not meant for dashboarding.
+- **Powers indexing only** — referenced by `indexDefinitions/*.json` and the rows are awkward as a tile (raw IDs, internal fields). Users see the indexed objects via the built-in `datastream-properties` stream instead.
+- **Used only by `configValidation.json`** — sole purpose is testing credentials or access during setup.
+
+If a stream serves a real dashboarding purpose *and* one of the above, leave it visible — the dashboard use case wins.
+
+```json
+"visibility": { "type": "hidden" }
+```
 
 ---
 
