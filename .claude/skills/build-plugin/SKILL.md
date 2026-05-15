@@ -1,6 +1,9 @@
 ---
 name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
+metadata:
+    author: SquaredUp
+    version: "0.0.2"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -17,7 +20,7 @@ description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, fro
 | ------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------- |
 | **Author handle** (GitHub handle or display name) | Before writing `metadata.json` (Phase 4) | Goes into `author.name`. Guessing from git config frequently picks the wrong identity. |
 
-Ask even in autonomous mode — this is required data baked into git history, not a clarifying question.
+If the user has already volunteered the answer earlier in the conversation or you're updating a plugin, use that and skip the prompt. Otherwise, ask — even in autonomous mode.
 
 ---
 
