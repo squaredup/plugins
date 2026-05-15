@@ -1,0 +1,19 @@
+name: Community Plugins — Release
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  trigger-deploy:
+    name: Trigger Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch to plugins-automation
+        env:
+          GH_TOKEN: ${{ secrets.AUTOMATION_DISPATCH_TOKEN }}
+          SHA: ${{ github.sha }}
+        run: |
+          printf '{"event_type":"community-plugins-deploy","client_payload":{"sha":"%s"}}' "$SHA" \
+          | gh api repos/squaredup/plugins-automation/dispatches --method POST --input -
