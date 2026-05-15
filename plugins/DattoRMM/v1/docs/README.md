@@ -11,11 +11,9 @@ The following objects are imported and kept in sync:
 
 ## Data streams
 
-| Data stream | Description |
-|-------------|-------------|
-| **All Devices** | Returns all devices across every site. Use this to build fleet-wide views or group by site. |
-| **Open Alerts** | Returns open alerts scoped to an imported site object. Use this on site dashboards to surface active issues. |
-| **Closed Alerts** | Returns resolved alerts scoped to an imported site object, for a given time range. |
+- **All Devices** — Returns all devices across every site. Use this to build fleet-wide views or group by site.
+- **Open Alerts** — Returns open alerts scoped to an imported site object. Use this on site dashboards to surface active issues.
+- **Closed Alerts** — Returns resolved alerts scoped to an imported site object, for a given time range.
 
 ## Setup
 

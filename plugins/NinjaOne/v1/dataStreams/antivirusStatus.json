@@ -1,0 +1,103 @@
+{
+    "name": "antivirusStatus",
+    "displayName": "Antivirus Status",
+    "tags": ["Security"],
+    "description": "Antivirus product status and definition updates",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "cursor.name"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "cursor"
+            }
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "/v2/queries/antivirus-status",
+        "pathToData": "results",
+        "getArgs": [
+            {
+                "key": "ts",
+                "value": "{{timeframe.end}}"
+            }
+        ],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "name": "productState",
+            "displayName": "Product State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["disabled", "off"],
+                        "warning": ["partial"],
+                        "success": ["enabled", "on"],
+                        "unknown": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "productName",
+            "displayName": "Product Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "definitionStatus",
+            "displayName": "Definition Status",
+            "shape": "string"
+        },
+        {
+            "name": "version",
+            "displayName": "Version",
+            "shape": "string"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "timestamp",
+            "displayName": "Last Updated",
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ]
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ]
+}
