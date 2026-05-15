@@ -1,0 +1,57 @@
+{
+    "name": "grafanaRuleAlerts",
+    "displayName": "Active Alerts",
+    "description": "Currently firing alert instances for selected Grafana alert rules",
+    "tags": ["Alerts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "alertRules",
+            "label": "Alert Rules",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Grafana Alert Rule"] } }
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": {
+                    "value": "queryArg",
+                    "label": "Query parameter"
+                },
+                "path": "group_limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": {
+                    "value": "payload",
+                    "label": "payload"
+                },
+                "path": "data.groupNextToken"
+            },
+            "out": {
+                "realm": {
+                    "value": "queryArg",
+                    "label": "queryArg"
+                },
+                "path": "group_next_token"
+            }
+        },
+        "endpointPath": "api/prometheus/grafana/api/v1/rules{{Array.isArray(alertRules) && alertRules.length > 0 ? '?rule_group[]=' + [...new Set(alertRules.map(o => encodeURIComponent(o.groupName)))].join('&rule_group[]=') : '' }}",
+        "postRequestScript": "grafanaRuleAlerts.js"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "ruleName", "displayName": "Rule", "shape": "string", "role": "label" },
+        { "name": "groupName", "displayName": "Group", "shape": "string" },
+        { "name": "namespace", "displayName": "Namespace", "shape": "string" },
+        { "name": "state", "displayName": "State", "shape": ["state", { "map": { "error": ["firing"], "warning": ["pending"], "success": ["inactive"] } }] },
+        { "name": "activeAt", "displayName": "Active Since", "shape": ["date", { "format": "dd/MM/yyyy HH:mm", "timeZone": "Etc/UTC" }] },
+        { "name": "labels", "displayName": "Labels", "shape": "string" },
+        { "name": "annotations", "displayName": "Annotations", "shape": "string" },
+        { "name": "value", "displayName": "Value", "shape": "string" }
+    ],
+    "timeframes": false
+}
