@@ -1,6 +1,9 @@
 ---
 name: build-plugin
 description: Build a SquaredUp low-code plugin for any HTTP/REST API — from exploring the API through writing data streams, dashboards, and deploying. Use when building or extending a SquaredUp plugin, data source, or integration. Trigger phrases include "build a plugin", "create a plugin", "new plugin", "add a data source", "integrate with", "build an integration", "connect to [service]", "I want to pull data from", "monitor [service] in SquaredUp".
+metadata: 
+    author: SquaredUp
+    version: "0.0.1"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -10,6 +13,18 @@ This skill guides you through building a complete SquaredUp low-code plugin for 
 > **Scope:** This skill covers **Web API-based plugins only**. SquaredUp plugins can also be built on other data sources (e.g. PowerShell), but those are out of scope here. If the target tool does not have a usable REST API, PowerShell may be a better fit — but do not use this skill to build it. Suggest that alternative to the user and stop.
 
 **Announce at start:** "I'm using the build-plugin skill."
+
+---
+
+## Required user inputs (always ask)
+
+The following inputs **cannot be inferred from the environment** and must be collected via `AskUserQuestion` before the corresponding file is written. **Ask these even when the user has requested autonomous / "no clarifying questions" mode** — they are not clarifying questions, they are required data that ends up baked into the plugin (and into git history).
+
+| Input | When to ask | Why |
+| --- | --- | --- |
+| **Author handle** (GitHub handle or display name) | Before writing `metadata.json` (Phase 4) | Goes into `author.name` in `metadata.json` and shows in the UI. Guessing from git config or environment frequently picks the wrong identity (employer email vs personal handle, etc.). |
+
+If the user has already volunteered the answer earlier in the conversation, use that and skip the prompt. Otherwise, ask — even in autonomous mode.
 
 ---
 
@@ -30,7 +45,7 @@ Create a TodoWrite task for each phase before starting:
 
 - [ ] **Phase 1** — Explore the API
 - [ ] **Phase 2** — Plan the plugin structure
-- [ ] **Phase 3** — Scaffold files (`metadata.json`, `ui.json`, `icon.png`)
+- [ ] **Phase 3** — Scaffold files (`metadata.json`, `ui.json`, `icon.png`, `docs/README.md`)
 - [ ] **Phase 4** — Write import definitions (`indexDefinitions/default.json`)
 - [ ] **Phase 5** — Write data streams
 - [ ] **Phase 6** — Write OOB default content (dashboards, scopes)
@@ -72,7 +87,13 @@ Decide before writing code. **Write this plan down and share it with the user be
 
 ## Phase 3: File Structure
 
-**Icon:** Do not create or generate the icon yourself. Find the official brand/product logo online (SVG or PNG accepted by the validator), or ask the user to supply one. A square icon works best. Never auto-generate a generic icon.
+**Icon:** Do not create or generate the icon yourself. Find the official brand/product logo online (SVG or PNG accepted by the validator), or ask the user to supply one. Never auto-generate a generic icon.
+
+**Post-process SVG icons only if needed.** SquaredUp displays icons on a dark background in dark mode and a white background in light mode. If the SVG lacks a background or is not square, fix it:
+
+1. **Make it square** — Set `width="512" height="512" viewBox="0 0 512 512"`.
+2. **Add a background** — Insert `<rect width="512" height="512" fill="BRAND_COLOR"/>` as the first child. Pick a colour that contrasts with the logo paths.
+3. **Add padding** — Wrap paths in `<g transform="translate(X, Y) scale(S)">` targeting ~10% padding (inner area 409.6×409.6): `S = min(409.6/w, 409.6/h)`, `X = (512−w*S)/2`, `Y = (512−h*S)/2`.
 
 **configValidation.json:** Optional but strongly preferred. Wrap a simple API call (e.g. `/me`, `/user`, or any lightweight authenticated endpoint) to verify the config works on setup. For complex APIs with distinct permission scopes (e.g. AWS CloudWatch, Cost Explorer, EC2), include multiple validation steps — one per capability — so users know exactly what's working.
 
@@ -90,6 +111,8 @@ my-plugin/
     icon.svg               # Square SVG — use official brand logo, ask user if unsure
     custom_types.json      # Friendly names + FontAwesome icons per type
     configValidation.json  # Preferred: validate config on setup
+    docs/
+      README.md            # REQUIRED: shown in-product when users add the plugin
     indexDefinitions/
       default.json         # Import steps
     dataStreams/
@@ -107,9 +130,24 @@ my-plugin/
         dashboard2.dash.json
 ```
 
+### docs/README.md (required)
+
+This file is surfaced in-product when a user adds the plugin — it is the primary place to tell users how to configure it. Always create it as part of scaffolding, before moving to later phases. The `documentation` link in `metadata.json` must point to it (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`).
+
+The README should cover:
+
+1. **What the plugin monitors** — one short paragraph: what the service is, what objects are imported, and what the dashboards show.
+2. **Prerequisites / getting credentials** — step-by-step instructions to obtain an API key, token, or OAuth credentials. Include any required scopes or permissions. Link to the service's own credential pages where helpful.
+3. **Configuration fields** — a table or short list explaining every field in `ui.json`: what it is, where to find the value, and whether it's required.
+4. **What gets indexed** — list the object types and what they represent.
+5. **Known limitations** — rate limits, permission requirements, or API behaviours the user should know about.
+
+Write this as if the user has never seen the API before. They're reading it inside SquaredUp, not on the vendor's site, so don't assume they'll follow external links for basic setup steps.
+
 ---
 
 ## Phase 4: metadata.json
+
 
 ```json
 {
@@ -251,11 +289,9 @@ For Web API plugins, always use `"hybrid"` unless the user specifically requests
 Defines the config form shown when a user adds the plugin. One entry per config field. All field types share these common properties:
 - `name` — the field's key, referenced as `{{fieldName}}` in expressions
 - `label` — displayed in the form
-- `help` — tooltip text shown as a `(?)` icon
 - `defaultValue` — pre-populated value
 - `validation` — e.g. `{ "required": true }`
-- `allowEncryption: true` — marks the field as a secret (encrypted at rest); use on any token, password, or key field
-- `help` — tooltip text; **supports markdown** (links, bold, etc.)
+- `help` — tooltip text shown as a (?) icon; **supports markdown** (links, bold, etc.))
 - `tileEditorStep` — controls which tile editor step the field appears in; defaults to `["Parameters"]`. Set to `["Timeframe"]` to place a field on the Timeframe step. **JSON-only** — cannot be set via the Save as data stream modal; must be added directly to the data stream JSON file after export.
 
 **Conditional visibility** — any field or fieldGroup can be conditionally shown using `visible`:
@@ -286,7 +322,7 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 { "type": "text", "name": "hostname", "label": "Hostname", "placeholder": "api.example.com" }
 ```
 
-**`password`** — masked text input (alternative to `text` + `allowEncryption`):
+**`password`** — masked text input; **use this for any API key, token, secret, or password field** (preferred over `text` + `allowEncryption`):
 ```json
 { "type": "password", "name": "apiKey", "label": "API Key" }
 ```
@@ -348,9 +384,9 @@ Defines the config form shown when a user adds the plugin. One entry per config 
 
 > ⚠️ When using a data stream as the autocomplete source, the backing stream must return rows with `label` (string) and `value` columns, and those columns must have `"role": "label"` and `"role": "value"` declared in the stream's metadata — otherwise the dropdown won't populate correctly.
 
-**`key-value`** — list of key/value pairs (useful for custom headers, tags):
+**`key-value`** — list of key/value pairs (useful for custom headers, tags). 
 ```json
-{ "type": "key-value", "name": "headers", "label": "Headers" }
+{ "type": "key-value", "name": "headers", "label": "Headers", "allowEncryption": true }
 ```
 
 **`expression`** — expression/template input:
@@ -441,7 +477,7 @@ Defines what gets imported into the SquaredUp graph.
 - `properties` are extra fields stored on the graph node and accessible in data stream scripts as `object.propName`.
 - Use `{ "targetProp": "sourceProp" }` syntax when the column name differs from the property name you want.
 - The `sourceType` column value **must** match an entry in `objectTypes` — otherwise objects won't import.
-- `importFrequencyMinutes` — controls how often SquaredUp re-runs the import. Defaults to `720` (12 hours).
+- `frequencyMinutes` — controls how often SquaredUp re-runs the import. Defaults to `720` (12 hours).
 
 **Import data stream pattern** — the stream called by an import step must return one flat row per object with at least `sourceId`, `name`, `sourceType`:
 
@@ -588,7 +624,7 @@ Expressions support **inline JavaScript**, so you can use any JS expression insi
     "name": "deviceMetric",
     "displayName": "Device Metric",
     "ui": [
-        { "name": "metric", "displayName": "Metric Name", "type": "text" }
+        { "name": "metric", "label": "Metric Name", "type": "text" }
     ],
     "config": {
         "endpointPath": "devices/{{object.deviceId}}/metrics",
@@ -1045,6 +1081,7 @@ Single `.dash.json` files reference directly as `"type": "dashboard"`. Folders m
 
 **Dashboard rules:**
 - **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI, so "Overview" reads as "MyPlugin / Overview" — adding the plugin name again produces "MyPlugin / MyPlugin Overview".
+- **Give each dashboard a distinct, descriptive name.** Perspective tabs sit next to each other in the UI — identical names (e.g. every perspective called "Overview") are indistinguishable.
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.
 - Omit `"timeframe"` on tiles to inherit the dashboard timeframe — do not hardcode `"last24hours"` on tiles.
 - All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate them with `uuidgen` (macOS/Linux) or `python3 -c "import uuid; print(uuid.uuid4())"`. Never invent fake patterned UUIDs like `a1111111-1111-1111-1111-111111111111`.
@@ -1259,9 +1296,8 @@ squaredup validate --watch      # re-validate on every file change (useful durin
 squaredup validate --json       # output JSON — use this flag when running validation as Claude/AI agent
 
 # Deploy
-squaredup deploy --suffix <yourname>   # suffix namespaces your deployment (e.g. initials)
-squaredup deploy --suffix <yourname> --force   # overwrite without confirmation prompt
-squaredup deploy --watch               # re-deploy automatically on file changes
+squaredup deploy --force   # overwrite without confirmation prompt
+squaredup deploy --watch   # re-deploy automatically on file changes
 
 # List and delete deployed plugins
 squaredup list     # list all plugins deployed to your tenant
@@ -1294,7 +1330,7 @@ SquaredUp includes a built-in `datastream-properties` data stream that automatic
 
 ```json
 "dataStream": {
-    "name": "datastream-properties"
+    "id": "datastream-properties"
 }
 ```
 
