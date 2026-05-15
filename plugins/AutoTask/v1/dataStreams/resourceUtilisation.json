@@ -1,0 +1,33 @@
+{
+    "name": "resourceUtilisation",
+    "displayName": "Resource Utilization",
+    "description": "Time entries logged by resources within the selected timeframe",
+    "tags": ["Resources"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "timeframes": true,
+    "config": {
+        "httpMethod": "get",
+        "expandInnerObjects": true,
+        "endpointPath": "atservicesrest/v1.0/TimeEntries/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"gte\",\"field\":\"dateWorked\",\"value\":\"{{timeframe.start}}\"},{\"op\":\"lte\",\"field\":\"dateWorked\",\"value\":\"{{timeframe.end}}\"}]}",
+        "pathToData": "items",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "none" },
+            "in": {
+                "realm": "payload",
+                "path": "pageDetails.nextPageUrl"
+            }
+        }
+    },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "visible": false,"shape":"string" },
+        { "name": "resourceID", "sourceType": "autotask-resource", "shape": "string", "visible": false },
+        { "name": "resourceName", "displayName": "Resource", "sourceId": "resourceID", "objectPropertyPath": "name" },
+        { "name": "dateWorked", "displayName": "Date Worked", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "hoursWorked", "displayName": "Hours Worked", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "hoursToBill", "displayName": "Hours to Bill", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "billingCodeID", "displayName": "Billing Code ID" },
+        { "name": "ticketID", "displayName": "Ticket ID" },
+        { "pattern": ".*" }
+    ]
+}

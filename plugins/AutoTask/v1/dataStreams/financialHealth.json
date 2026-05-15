@@ -1,0 +1,50 @@
+{
+    "name": "financialHealth",
+    "displayName": "Financial Health",
+    "description": "Estimated revenue, cost, and hours across all contracts",
+    "tags": ["Finance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "timeframes": false,
+    "config": {
+        "httpMethod": "get",
+        "expandInnerObjects": true,
+        "endpointPath": "atservicesrest/v1.0/Contracts/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"exist\",\"field\":\"id\"}]}",
+        "pathToData": "items",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "none" },
+            "in": {
+                "realm": "payload",
+                "path": "pageDetails.nextPageUrl"
+            }
+        }
+    },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "visible": false, "shape":"string" },
+        { "name": "contractName", "displayName": "Contract Name" },
+        {
+            "name": "contractTypeName",
+            "displayName": "Contract Type",
+            "computed": true,
+            "valueExpression": "{{ $['contractType'] == 1 ? 'Time and Materials' : $['contractType'] == 3 ? 'Fixed Price' : $['contractType'] == 4 ? 'Block Hours' : $['contractType'] == 6 ? 'Retainer' : $['contractType'] == 7 ? 'Recurring Service' : $['contractType'] == 8 ? 'Incident' : 'Unknown' }}"
+        },
+        { "name": "estimatedRevenue", "displayName": "Estimated Revenue", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "estimatedCost", "displayName": "Estimated Cost", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "estimatedHours", "displayName": "Estimated Hours", "shape": ["number", { "decimalPlaces": 2 }] },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['status'] == 1 ? 'Active' : $['status'] == 2 ? 'Upcoming' : $['status'] == 3 ? 'Cancelled' : $['status'] == 4 ? 'Completed' : $['status'] == 6 ? 'Inactive' : 'Unknown' }}",
+            "shape": ["state", {
+                "map": {
+                    "success": ["Active", "Completed"],
+                    "error": ["Cancelled"],
+                    "warning": ["Upcoming"],
+                    "unknown": ["Inactive", "Unknown"]
+                }
+            }]
+        },
+        { "pattern": ".*" }
+    ]
+}

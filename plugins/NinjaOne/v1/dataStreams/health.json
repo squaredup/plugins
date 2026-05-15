@@ -1,0 +1,66 @@
+{
+    "name": "health",
+    "displayName": "Devices (Health Scoped)",
+    "tags": ["Monitoring"],
+    "description": "Device health status",
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "cursor.name"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "cursor"
+            }
+        },
+        "expandInnerObjects": true,
+        "postRequestScript": "health.js",
+        "endpointPath": "/v2/queries/device-health",
+        "pathToData": "results",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Device"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "healthStatus",
+            "displayName": "Health Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["UNHEALTHY"],
+                        "warning": ["NEEDS_ATTENTION"],
+                        "success": ["HEALTHY"],
+                        "unknown": ["UNKNOWN"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}
