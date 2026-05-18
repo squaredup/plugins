@@ -121,7 +121,7 @@ Single `.dash.json` files reference as `"type": "dashboard"`. Folders map to sub
 - **Give each dashboard a distinct name.** Perspective tabs sit next to each other — identical names are indistinguishable.
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.
 - Omit `"timeframe"` on tiles to inherit the dashboard timeframe — do not hardcode it on individual tiles.
-- All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate with `node .claude/skills/build-plugin/scripts/gen-uuids.js [N]`. Never invent patterned UUIDs.
+- All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate with `node ".claude/skills/build-plugin/scripts/gen-uuids.js" [N]`. Never invent patterned UUIDs.
 
 **Grid layout:**
 

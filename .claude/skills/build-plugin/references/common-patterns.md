@@ -1,11 +1,12 @@
 # Common Patterns and Custom Types
 
+> **Note:** `$schema` is not a valid property in any SquaredUp plugin JSON file.
+
 ## Contents
 
 - [custom_types.json](#custom_typesjson)
 - [Built-in properties stream](#built-in-properties-stream)
 - [Config validation steps](#config-validation-steps)
-- [Schema references](#schema-references)
 
 ---
 
@@ -91,17 +92,3 @@ Steps can override stream parameters for validation-specific queries:
 ```
 
 `errorOnEmptyResults: true` causes the step to fail if the stream returns no rows — useful when empty means access was denied.
-
----
-
-## Schema references
-
-Fetch on demand — don't load upfront:
-
-- Data stream: `https://schemas.squaredup.com/schemas/latest/datastream.schema.json`
-- Plugin metadata: `https://schemas.squaredup.com/schemas/latest/metadata.schema.json`
-- Config validation: `https://schemas.squaredup.com/schemas/latest/configValidation.schema.json`
-- Dashboard: `https://schemas.squaredup.com/schemas/latest/defaultContent.schema.json`
-- Manifest: `https://schemas.squaredup.com/schemas/latest/manifest.schema.json`
-- Scopes: `https://schemas.squaredup.com/schemas/latest/scopes.schema.json`
-- UI config: `https://schemas.squaredup.com/schemas/latest/ui.schema.json`

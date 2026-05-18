@@ -150,7 +150,7 @@ Read the corresponding reference file before writing each phase:
 | 7 — OOB default content    | `defaultContent/`, `scopes.json`                    | [oob-content.md](references/oob-content.md)                      |
 | 8 — Custom types           | `custom_types.json`                                 | [common-patterns.md](references/common-patterns.md)              |
 
-For reusable patterns (built-in properties stream, configValidation steps, schema URLs), read [common-patterns.md](references/common-patterns.md).
+For reusable patterns (built-in properties stream, configValidation steps), read [common-patterns.md](references/common-patterns.md).
 
 ---
 
