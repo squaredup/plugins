@@ -49,17 +49,83 @@ Defines what gets imported into the SquaredUp graph.
 
 ## Import data stream pattern
 
-The stream called by an import step must return one flat row per object with at least `sourceId`, `name`, `sourceType`:
+The stream called by an import step must return one flat row per object with at least `sourceId`, `name`, `sourceType`.
+
+### Prefer a script-less stream
+
+A typical paged list endpoint — response shape `{ items: [{ id, attributes: { name, ... } }, ...] }` — can be turned into an indexable stream with **no post-request script**:
+
+```json
+{
+    "name": "devices",
+    "displayName": "Devices",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "devices",
+        "pathToData": "items",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": { "mode": "page", "rowCountIn": { "realm": "payloadArraySize", "path": "items" }, "base": 1 },
+            "out": { "realm": "queryArg", "path": "page" }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "sourceId", "computed": true, "valueExpression": "{{ $['id'] }}", "visible": false },
+        { "name": "sourceType", "computed": true, "valueExpression": "My Device", "visible": false },
+        { "name": "attributes.name", "displayName": "Name", "role": "label" },
+        {
+            "name": "attributes.cpuCores",
+            "displayName": "CPU Cores",
+            "valueExpression": "{{ ['unknown','n/a',''].includes($['attributes.cpuCores']) ? null : Number($['attributes.cpuCores']) }}",
+            "shape": ["number", { "decimalPlaces": 0 }]
+        }
+    ],
+    "timeframes": false
+}
+```
+
+How this avoids a script:
+
+- `pathToData: "items"` walks into the paged array — no `data.items.map(...)` in JS.
+- `expandInnerObjects: true` flattens `attributes.*` into dot-notation columns (`attributes.name`, `attributes.cpuCores`).
+- `computed: true` + `valueExpression` materialises `sourceId`/`sourceType` from `id` and a constant string.
+- `valueExpression` coerces `"unknown"` / `"n/a"` to `null` for numeric columns.
+
+The index definition then references the dot-notation column names directly:
+
+```json
+"objectMapping": {
+    "id": "sourceId",
+    "name": "attributes.name",
+    "type": "sourceType",
+    "properties": [
+        { "deviceId": "id" },
+        { "cpuCores": "attributes.cpuCores" }
+    ]
+}
+```
+
+### When a script is justified
+
+Use a post-request script only when the transformation can't be expressed declaratively — for example, an API that returns nested arrays you need to expand into rows:
 
 ```javascript
-// scripts/installations.js
+// scripts/installations.js — flattens a nested device array within each installation
 const installations = data?.records || [];
 
-result = installations.map((inst) => ({
-    sourceId: String(inst.idSite),
-    sourceType: "My Installation",
-    name: inst.name,
-    siteId: String(inst.idSite),
-    timezone: inst.timezone,
-}));
+result = installations.flatMap((inst) =>
+    (inst.devices || []).map((d) => ({
+        sourceId: `${inst.idSite}-${d.id}`,
+        sourceType: "My Device",
+        name: d.name,
+        siteId: String(inst.idSite),
+        timezone: inst.timezone
+    }))
+);
 ```
+
+See [data-streams.md § Post-request scripts](data-streams.md#post-request-scripts) for the full "do I need a script?" checklist.

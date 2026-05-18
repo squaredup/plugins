@@ -93,7 +93,7 @@ Hide a stream from the tile editor when any of these apply:
 - **Powers indexing only** — referenced by `indexDefinitions/*.json` and the rows are awkward as a tile (raw IDs, internal fields). Users see the indexed objects via the built-in `datastream-properties` stream instead.
 - **Used only by `configValidation.json`** — sole purpose is testing credentials or access during setup.
 
-If a stream serves a real dashboarding purpose *and* one of the above, leave it visible — the dashboard use case wins.
+If a stream serves a real dashboarding purpose _and_ one of the above, leave it visible — the dashboard use case wins.
 
 ```json
 "visibility": { "type": "hidden" }
@@ -208,6 +208,8 @@ Shows an **Apply** button instead of running on every config change. Use for exp
 ---
 
 ## Pagination
+
+The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 
 **No paging:**
 
@@ -487,16 +489,37 @@ Replace a raw ID column with a human-readable property from a related indexed ob
 
 Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects.
 
-**Only use a script when the response genuinely needs structural transformation.** Avoid scripts for:
+> ⚠️ **Don't imitate existing plugins on this.** Many shipped plugins use scripts where they shouldn't — they predate `valueExpression` / `expandInnerObjects` or were never refactored. Evaluate against the checklist below, not against precedent.
 
-- Renaming columns — use `displayName` in metadata instead
-- State mapping — use the `state` shape with a `map` option instead
-- Simple path selection — use `pathToData` instead
-- **Per-row value transforms** (unit conversions, computed fields, building URLs) — use `valueExpression` instead
-- **Display-only formatting** of an existing value — use `formatExpression` instead
-- **Simple `data.items.map(...)` reshape scripts** — point `pathToData` at the array and use `displayName` for renames, `valueExpression` / `formatExpression` for per-column work. If the only thing the script does is map-and-rename, delete it.
+### Default: no script
 
-Use scripts for: flattening nested structures, filtering, deduplicating, joining response fields, computing values that need cross-row context (e.g. ranking, running totals).
+Most streams that look like they need one don't. Run through this checklist first — if every line of the script you were about to write resolves to a row in this table, delete it before you write it:
+
+| Need                                                       | Use instead                                                                                |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Navigate to a nested array                                 | `pathToData: "a.b.items"`                                                                  |
+| Each row is a primitive (string/number) you need to parse  | `pathToData` + `valueExpression` reading `$['result']`                                     |
+| Flatten one level of nested object per row                 | `expandInnerObjects: true` (produces `nested.field` columns)                               |
+| Constant column value per row (e.g. fixed sourceType)      | `{ "name": "sourceType", "computed": true, "valueExpression": "My Type" }`                 |
+| Derive one column from others on the same row              | `valueExpression: "{{ $['a'] + $['b'] }}"` (add `"computed": true` if not in response)     |
+| Coerce `"unknown"` / `"n/a"` / `""` to null for a numeric  | `valueExpression: "{{ ['unknown','n/a',''].includes($['x']) ? null : Number($['x']) }}"`   |
+| Count an array on the row                                  | `valueExpression: "{{ ($['arr'] \|\| []).length }}"`                                       |
+| Rename for display only                                    | `displayName` in the column's metadata entry                                               |
+| Map enum codes to friendly labels                          | `state` shape with `map` (or `formatExpression` for non-state)                             |
+
+If a script does nothing beyond items in this table, delete it.
+
+### When a script IS the right tool
+
+Use scripts ONLY for transformations that can't be expressed declaratively:
+
+- Flattening **deeply nested** (>1 level) or **array-into-rows** structures
+- Filtering rows based on cross-field logic
+- Deduplicating
+- Joining values across rows (rankings, running totals)
+- Anything that needs `_.groupBy` or similar reduce-style operations
+
+Renaming, flattening single-level nesting, value coercion, adding constant columns, and `data.items.map(...)` reshapes are **never** valid reasons.
 
 > ⚠️ `pathToData` is **ignored** when `postRequestScript` is set. The script receives the raw response body as `data` regardless of `pathToData`, so leaving both configured is dead config — pick one. If a script isn't actually needed, drop it and use `pathToData` alone.
 
