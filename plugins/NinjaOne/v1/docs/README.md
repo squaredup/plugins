@@ -8,12 +8,11 @@ To use this data source, you will need to create OAuth2 API credentials in your 
 2. Navigate to **Administration** > **API** > **Add Application**
 3. Configure the application:
     - **Application Name**: Enter a descriptive name (e.g., "SquaredUp Integration")
-    - **Allowed Grant Types**: Ensure "Client Credentials" is enabled
+    - **Allowed Grant Types**: Ensure "Client Credentials" is enabled. "Refresh token" is not required and can be left disabled.
     - **Scopes**: Select the following scopes:
-        - `monitoring` - Required for device monitoring data
-        - `management` - Required for management operations
-        - `control` - Required for control operations
-        - `offline_access` - Required for refresh tokens
+        - `Monitoring` - Required for device monitoring data
+        - `Management` - Required for management operations
+        - `Control` - Required for control operations
 4. Click **Create Application**
 5. Copy the **Client ID** and **Client Secret** - you will need these when configuring the plugin in SquaredUp
 
@@ -81,7 +80,7 @@ This plugin provides the following data streams for monitoring your NinjaOne env
 
 **No Data Returned**: Verify that the selected API Region matches your NinjaOne instance region.
 
-**Insufficient Permissions**: Ensure the API application has all required scopes (`monitoring`, `management`, `control`, `offline_access`).
+**Insufficient Permissions**: Ensure the API application has all required scopes (`Monitoring`, `Management`, `Control`).
 
 ## Additional Resources
 
