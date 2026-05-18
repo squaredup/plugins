@@ -17,7 +17,7 @@
 - [timeframes](#timeframes)
 - [defaultShaping](#defaultshaping)
 - [metadata — column definitions](#metadata-column-definitions)
-- [Post-request scripts](#post-request-scripts)
+- [Post-request scripts](#post-request-scripts) — [Wiring a script](#wiring-a-script-to-a-stream), [When to use](#default-no-script), [Globals](#available-globals)
 
 ---
 
@@ -409,6 +409,10 @@ _Special_
 
 Use `valueExpression` or `formatExpression` to transform per-row data without a post-request script. Both use `{{ ... }}` syntax; inside the expression, `$['columnName']` reads the current row's value for that column.
 
+> ⚠️ **`$['columnName']` only works for columns that are declared in `metadata`.** If the column you want to read is not listed as a metadata entry, the expression receives `undefined`. This applies to both `computed: true` and regular (non-computed) columns. If you need to derive a value from a response field that you don't want to show in the UI, declare the field in metadata with `"visible": false` so the expression can reference it.
+
+> ⚠️ **Don't use `computed: true` just to rename a column.** A `computed` entry whose entire expression is `{{ $['otherField'] }}` is redundant — declare `otherField` directly in metadata and use `displayName` to rename it. Only use `computed: true` when the column doesn't exist in the response at all and must be synthesised (e.g. a constant `sourceType`, or a value derived from two or more other columns).
+
 **`valueExpression`** — computes the column's **actual value**. Sorts, aggregations, shape inference, and downstream tile features all see the result.
 
 With `"computed": true`, the column doesn't have to exist in the response — empty rows are materialized and the expression fills them. Use this to derive a new column from other columns:
@@ -429,6 +433,12 @@ With `"computed": true`, the column doesn't have to exist in the response — em
         }
     ]
 }
+```
+
+If the column `softwareStatus` doesn't appear in metadata, `$['softwareStatus']` is `undefined` and the expression silently returns nothing. Add it explicitly if needed:
+
+```json
+{ "name": "softwareStatus", "visible": false }
 ```
 
 Without `computed: true`, `valueExpression` overrides the value of a column that's already in the response — useful for building a derived link from raw fields:
@@ -489,6 +499,43 @@ Replace a raw ID column with a human-readable property from a related indexed ob
 
 Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects.
 
+### Wiring a script to a stream
+
+Set `postRequestScript` inside `config` to the script's filename — **the `.js` extension is required**. Name the file after the stream's `name` field and place it in `dataStreams/scripts/`.
+
+Stream JSON (`dataStreams/incidents.json`):
+
+```json
+{
+    "name": "incidents",
+    "displayName": "Incidents",
+    "description": "All open incidents grouped by severity",
+    "tags": ["Incidents"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "incidents",
+        "postRequestScript": "incidents.js"
+    },
+    "matches": "none",
+    "metadata": [{ "pattern": ".*" }],
+    "timeframes": false
+}
+```
+
+Script file (`dataStreams/scripts/incidents.js`):
+
+```javascript
+// dataStreams/scripts/incidents.js
+result = (data.groups || []).flatMap((group) =>
+    group.items.map((item) => ({ severity: group.severity, ...item }))
+);
+```
+
+> ⚠️ `pathToData` is **ignored** when `postRequestScript` is set. The script receives the raw response body as `data` regardless of `pathToData`, so leaving both configured is dead config — pick one. If a script isn't actually needed, drop it and use `pathToData` alone.
+
+---
+
 > ⚠️ **Don't imitate existing plugins on this.** Many shipped plugins use scripts where they shouldn't — they predate `valueExpression` / `expandInnerObjects` or were never refactored. Evaluate against the checklist below, not against precedent.
 
 ### Default: no script
@@ -521,13 +568,12 @@ Use scripts ONLY for transformations that can't be expressed declaratively:
 
 Renaming, flattening single-level nesting, value coercion, adding constant columns, and `data.items.map(...)` reshapes are **never** valid reasons.
 
-> ⚠️ `pathToData` is **ignored** when `postRequestScript` is set. The script receives the raw response body as `data` regardless of `pathToData`, so leaving both configured is dead config — pick one. If a script isn't actually needed, drop it and use `pathToData` alone.
-
 ### Available globals
 
 Scripts have access to `data`, `context`, and **lodash** (`_`):
 
 ```javascript
+// dataStreams/scripts/myStream.js
 _.groupBy(items, "type");
 _.uniqBy(items, "id");
 _.orderBy(items, ["name"], ["asc"]);
@@ -536,6 +582,7 @@ _.orderBy(items, ["name"], ["asc"]);
 ### The context object
 
 ```javascript
+// dataStreams/scripts/myStream.js
 context.objects; // array of selected objects (their indexed properties)
 context.objects[0]; // first selected object — use with httpRequestScopedSingle
 context.timeframe; // { start, end, unixStart, unixEnd, interval, enum }
@@ -549,6 +596,7 @@ Return actual JS number primitives for numeric columns — returning `"29.19"` (
 ### Deduplication pattern
 
 ```javascript
+// dataStreams/scripts/myStream.js
 const seen = new Set();
 const devices = [];
 
