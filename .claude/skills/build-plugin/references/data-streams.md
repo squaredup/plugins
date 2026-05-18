@@ -35,8 +35,7 @@
     "config": {
         "httpMethod": "get",
         "endpointPath": "installations/{{object.siteId}}/widgets/BatterySummary",
-        "getArgs": [{ "key": "instance", "value": "{{object.instance}}" }],
-        "postRequestScript": "batterySummary.js"
+        "getArgs": [{ "key": "instance", "value": "{{object.instance}}" }]
     },
     "matches": { "sourceType": { "type": "oneOf", "values": ["My Battery"] } },
     "metadata": [...],
@@ -57,8 +56,7 @@
                 "key": "ids",
                 "value": "{{objects.map(o => o.deviceId).join(',')}}"
             }
-        ],
-        "postRequestScript": "deviceStatus.js"
+        ]
     },
     "matches": { "sourceType": { "type": "oneOf", "values": ["My Device"] } }
 }
@@ -278,6 +276,8 @@ Selects a path within the response body; each element of the resolved array beco
 "config": { "httpMethod": "get", "endpointPath": "devices", "pathToData": "data.items" }
 ```
 
+If the response body is already a root-level array, omit `pathToData` entirely — the plugin iterates the root array directly. No script needed.
+
 Works on primitives too — a string, number, or boolean at the path is returned as a single row with a `result` column.
 
 > `rowPath` is a legacy alternative — use `pathToData` for new streams.
@@ -495,17 +495,17 @@ Scripts run after the HTTP response is received. Input is `data` (parsed JSON bo
 
 Most streams that look like they need one don't. Run through this checklist first — if every line of the script you were about to write resolves to a row in this table, delete it before you write it:
 
-| Need                                                       | Use instead                                                                                |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Navigate to a nested array                                 | `pathToData: "a.b.items"`                                                                  |
-| Each row is a primitive (string/number) you need to parse  | `pathToData` + `valueExpression` reading `$['result']`                                     |
-| Flatten one level of nested object per row                 | `expandInnerObjects: true` (produces `nested.field` columns)                               |
-| Constant column value per row (e.g. fixed sourceType)      | `{ "name": "sourceType", "computed": true, "valueExpression": "My Type" }`                 |
-| Derive one column from others on the same row              | `valueExpression: "{{ $['a'] + $['b'] }}"` (add `"computed": true` if not in response)     |
-| Coerce `"unknown"` / `"n/a"` / `""` to null for a numeric  | `valueExpression: "{{ ['unknown','n/a',''].includes($['x']) ? null : Number($['x']) }}"`   |
-| Count an array on the row                                  | `valueExpression: "{{ ($['arr'] \|\| []).length }}"`                                       |
-| Rename for display only                                    | `displayName` in the column's metadata entry                                               |
-| Map enum codes to friendly labels                          | `state` shape with `map` (or `formatExpression` for non-state)                             |
+| Need                                                      | Use instead                                                                              |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Navigate to a nested array                                | `pathToData: "a.b.items"`                                                                |
+| Each row is a primitive (string/number) you need to parse | `pathToData` + `valueExpression` reading `$['result']`                                   |
+| Flatten one level of nested object per row                | `expandInnerObjects: true` (produces `nested.field` columns)                             |
+| Constant column value per row (e.g. fixed sourceType)     | `{ "name": "sourceType", "computed": true, "valueExpression": "My Type" }`               |
+| Derive one column from others on the same row             | `valueExpression: "{{ $['a'] + $['b'] }}"` (add `"computed": true` if not in response)   |
+| Coerce `"unknown"` / `"n/a"` / `""` to null for a numeric | `valueExpression: "{{ ['unknown','n/a',''].includes($['x']) ? null : Number($['x']) }}"` |
+| Count an array on the row                                 | `valueExpression: "{{ ($['arr'] \|\| []).length }}"`                                     |
+| Rename for display only                                   | `displayName` in the column's metadata entry                                             |
+| Map enum codes to friendly labels                         | `state` shape with `map` (or `formatExpression` for non-state)                           |
 
 If a script does nothing beyond items in this table, delete it.
 

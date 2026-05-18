@@ -11,7 +11,7 @@
 
 ## custom_types.json
 
-Adds friendly display names and FontAwesome icons per object type. The `sourceType` value must exactly match the type used in `objectMapping.type`.
+Adds friendly display names and FontAwesome icons per object type. The `sourceType` value must exactly match the type used in `objectMapping.type` in `indexDefinitions/default.json`.
 
 ```json
 [
