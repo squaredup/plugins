@@ -6,7 +6,8 @@
 - [Stream-level properties](#stream-level-properties)
 - [Visibility](#visibility)
 - [matches — object selection](#matches)
-- [Expressions in paths and query args](#expressions)
+- [Expressions in config](#expressions)
+- [Column expressions (valueExpression, formatExpression)](#column-expressions)
 - [POST requests](#post-requests)
 - [expandInnerObjects](#expandinnerobjects)
 - [manualConfigApply](#manualconfigapply)
@@ -120,6 +121,8 @@ Available operators on any property: `oneOf`, `notOneOf`, `contains`, `notContai
 ---
 
 ## Expressions
+
+**Any string value anywhere under `config` can contain `{{ ... }}` expressions.** The server walks every string leaf of the config object and substitutes placeholders before the request is sent — there is no allowlist of fields. Common cases are `endpointPath`, `getArgs[].value`, `headers[].value`, and `postBody`, but the same syntax works in any string under `config` (e.g. a paging path, an `errorHandling.path`).
 
 Expressions support **inline JavaScript** inside `{{ }}`:
 
@@ -400,9 +403,13 @@ _Special_
 | `description` | Supplementary explanatory content                                            |
 | `none`        | No specific role                                                             |
 
-### Computed columns
+### Column expressions
 
-Derive a value from another column without a script:
+Use `valueExpression` or `formatExpression` to transform per-row data without a post-request script. Both use `{{ ... }}` syntax; inside the expression, `$['columnName']` reads the current row's value for that column.
+
+**`valueExpression`** — computes the column's **actual value**. Sorts, aggregations, shape inference, and downstream tile features all see the result.
+
+With `"computed": true`, the column doesn't have to exist in the response — empty rows are materialized and the expression fills them. Use this to derive a new column from other columns:
 
 ```json
 {
@@ -415,14 +422,36 @@ Derive a value from another column without a script:
         {
             "map": {
                 "success": ["Compliant"],
-                "error": ["Not Compliant"],
-                "warning": [],
-                "unknown": []
+                "error": ["Not Compliant"]
             }
         }
     ]
 }
 ```
+
+Without `computed: true`, `valueExpression` overrides the value of a column that's already in the response — useful for building a derived link from raw fields:
+
+```json
+{
+    "name": "link",
+    "valueExpression": "{{ $['status'] !== 'success' ? `https://status.example.com/#${$['id']}` : '' }}",
+    "shape": ["url", { "label": "" }]
+}
+```
+
+**`formatExpression`** — changes only the **displayed string** for a column. The underlying raw value is untouched, so sorting, aggregations, and rollups still operate on the original value.
+
+Use it when the API returns a value in one unit but you want to display another, or to map enum codes to friendly labels for display only:
+
+```json
+{ "name": "download_kbps", "displayName": "Download Speed",
+  "formatExpression": "{{ $['download_kbps'] / 1000 }} Mbps", "shape": "number" }
+
+{ "name": "impact",
+  "formatExpression": "{{ ({ maintenance: 'Maintenance', degradedPerformance: 'Degraded Performance' })[$['impact']] || $['impact'] }}" }
+```
+
+> If the transformed value needs to participate in math, sort, or aggregation, use `valueExpression`. `formatExpression` is display-only and the raw value still flows downstream.
 
 ### Drilldown metadata entry
 
@@ -463,8 +492,13 @@ Scripts run after the HTTP response is received. Input is `data` (parsed JSON bo
 - Renaming columns — use `displayName` in metadata instead
 - State mapping — use the `state` shape with a `map` option instead
 - Simple path selection — use `pathToData` instead
+- **Per-row value transforms** (unit conversions, computed fields, building URLs) — use `valueExpression` instead
+- **Display-only formatting** of an existing value — use `formatExpression` instead
+- **Simple `data.items.map(...)` reshape scripts** — point `pathToData` at the array and use `displayName` for renames, `valueExpression` / `formatExpression` for per-column work. If the only thing the script does is map-and-rename, delete it.
 
-Use scripts for: flattening nested structures, filtering, deduplicating, joining response fields, computing derived values.
+Use scripts for: flattening nested structures, filtering, deduplicating, joining response fields, computing values that need cross-row context (e.g. ranking, running totals).
+
+> ⚠️ `pathToData` is **ignored** when `postRequestScript` is set. The script receives the raw response body as `data` regardless of `pathToData`, so leaving both configured is dead config — pick one. If a script isn't actually needed, drop it and use `pathToData` alone.
 
 ### Available globals
 
