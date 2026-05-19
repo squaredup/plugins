@@ -81,6 +81,16 @@ for (const group of groups) {
                             shape: shapeForValue(value),
                             displayName: `${key} (annotation)`,
                         });
+                        if (key === "__dashboardUid__") {
+                            metadataAnnotations.push({
+                                name: 'dashboardName',
+                                role: 'label',
+                                displayName: 'Dashboard Name',
+                                sourceId: annotationName,
+                                sourceType: "Grafana Dashboard",
+                                objectPropertyPath: 'name'
+                            });
+                        }
                     }
                     alertRow[annotationName] = value;
                 }
