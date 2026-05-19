@@ -1,0 +1,43 @@
+{
+    "name": "apiKeyUsage",
+    "displayName": "API Key Usage",
+    "description": "Token consumption over time for a specific API key, broken down by model",
+    "tags": ["Usage", "Tokens"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "organizations/usage_report/messages",
+        "getArgs": [
+            { "key": "starting_at", "value": "{{timeframe.start}}" },
+            { "key": "ending_at", "value": "{{timeframe.end}}" },
+            { "key": "api_key_ids[]", "value": "{{object.apiKeyId}}" },
+            { "key": "group_by[]", "value": "model" },
+            { "key": "bucket_width", "value": "{{bucketWidth}}" }
+        ],
+        "postRequestScript": "apiKeyUsage.js"
+    },
+    "ui": [
+        {
+            "type": "radio",
+            "name": "bucketWidth",
+            "label": "Bucket width",
+            "defaultValue": "1h",
+            "options": [
+                { "value": "1m", "label": "1 minute" },
+                { "value": "1h", "label": "1 hour" },
+                { "value": "1d", "label": "1 day" }
+            ]
+        }
+    ],
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Anthropic API Key"] } },
+    "metadata": [
+        { "name": "timestamp", "displayName": "Time", "shape": ["date", { "format": "dd/MM/yyyy HH:mm", "timeZone": "Etc/UTC" }], "role": "timestamp" },
+        { "name": "model", "displayName": "Model", "role": "label" },
+        { "name": "input_tokens", "displayName": "Input Tokens", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "cache_read_tokens", "displayName": "Cache Read Tokens", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "cache_creation_tokens", "displayName": "Cache Creation Tokens", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "output_tokens", "displayName": "Output Tokens", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "total_tokens", "displayName": "Total Tokens", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }], "role": "value" }
+    ],
+    "timeframes": true
+}

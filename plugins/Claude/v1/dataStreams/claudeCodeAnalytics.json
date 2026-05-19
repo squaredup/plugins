@@ -1,0 +1,49 @@
+{
+    "name": "claudeCodeAnalytics",
+    "displayName": "Claude Code Analytics",
+    "description": "Per-user Claude Code productivity metrics for a single UTC day, including sessions, lines of code, commits, tool acceptance, and estimated cost",
+    "tags": ["Claude Code", "Productivity"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "organizations/usage_report/claude_code",
+        "getArgs": [
+            { "key": "starting_at", "value": "{{ date || new Date(Date.now() - 86400000).toISOString().split('T')[0] }}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "next_page" },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "postRequestScript": "claudeCodeAnalytics.js"
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "date",
+            "label": "UTC Date (YYYY-MM-DD)",
+            "placeholder": "2026-05-17",
+            "help": "Leave blank to query yesterday (UTC). Data is available with up to 1-hour delay."
+        }
+    ],
+    "matches": "none",
+    "metadata": [
+        { "name": "date", "displayName": "Date", "shape": ["date", { "format": "dd/MM/yyyy" }] },
+        { "name": "user", "displayName": "User", "role": "label" },
+        { "name": "actor_type", "displayName": "Actor Type" },
+        { "name": "customer_type", "displayName": "Customer Type" },
+        { "name": "terminal_type", "displayName": "Terminal" },
+        { "name": "sessions", "displayName": "Sessions", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "lines_added", "displayName": "Lines Added", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "lines_removed", "displayName": "Lines Removed", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "commits", "displayName": "Commits", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "prs", "displayName": "PRs", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "edit_accepted", "displayName": "Edits Accepted", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "edit_rejected", "displayName": "Edits Rejected", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "input_tokens", "displayName": "Input Tokens", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "output_tokens", "displayName": "Output Tokens", "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }] },
+        { "name": "estimated_cost_usd", "displayName": "Estimated Cost", "shape": ["currency", { "code": "usd" }], "role": "value" }
+    ],
+    "timeframes": false
+}

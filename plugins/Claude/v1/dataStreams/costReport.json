@@ -1,0 +1,30 @@
+{
+    "name": "costReport",
+    "displayName": "Cost Report",
+    "description": "Daily cost breakdown across workspaces in USD",
+    "tags": ["Cost"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "organizations/cost_report",
+        "getArgs": [
+            { "key": "starting_at", "value": "{{timeframe.start}}" },
+            { "key": "ending_at", "value": "{{timeframe.end}}" },
+            { "key": "group_by[]", "value": "workspace_id" },
+            { "key": "bucket_width", "value": "1d" }
+        ],
+        "postRequestScript": "costReport.js"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "timestamp", "displayName": "Date", "shape": ["date", { "format": "dd/MM/yyyy", "timeZone": "Etc/UTC" }], "role": "timestamp" },
+        { "name": "workspace_id", "displayName": "Workspace ID", "role": "label" },
+        {
+            "sourceId": "workspace_id",
+            "sourceType": "Anthropic Workspace",
+            "name": "workspace_name"
+        },
+        { "name": "amount_usd", "displayName": "Cost (USD)", "shape": ["currency", { "code": "usd" }], "role": "value" }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}
