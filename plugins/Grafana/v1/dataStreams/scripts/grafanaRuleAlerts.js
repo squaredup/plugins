@@ -17,7 +17,7 @@ const metadataBase = [
                     ],
                     success: [
                         "inactive", "Inactive",
-                        "normal", "Normal",
+                        "normal", "Normal", "normal (updated)", "Normal (Updated)",
                         "resolved", "Resolved",
                     ],
                 },
