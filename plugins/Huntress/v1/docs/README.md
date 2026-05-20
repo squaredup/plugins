@@ -12,8 +12,14 @@ To connect SquaredUp to Huntress, you will need to generate API credentials.
 You will receive a **Public Key** and a **Private Key**. These will act as your `publicKey` and `privateKey` in SquaredUp.
 **Important:** Make sure to copy the private key immediately, as it may only be displayed once!
 
+The default account-level credential is read-only, which is all this plugin needs.
+
 ## Configuring the Plugin in SquaredUp
 
 1. Add the **Huntress** plugin in SquaredUp.
 2. Enter the **Public Key** and **Private Key** generated from Huntress.
 3. Save the configuration to begin querying your agents, organizations, and incident reports.
+
+## Rate limits
+
+The Huntress API is limited to 60 requests per minute on a sliding window. Initial syncs of large environments (thousands of agents or many incident reports) may take longer to complete as the plugin paginates within this limit.
