@@ -9,28 +9,22 @@ const lines = values[idx["line"]] || [];
 
 const stateToInt = (state) => {
     const s = (state || "").toLowerCase();
-    if (["alerting", "firing", "error"].includes(s)) return 2;
-    if (["pending", "nodata"].includes(s)) return 1;
-    if (["inactive", "normal", "normal (updated)", "resolved"].includes(s)) return 0;
+    if (s.startsWith("normal") || s.startsWith("resolved")) return 0;
+    if (s.startsWith("pending") || s.startsWith("nodata")) return 1;
+    if (s.includes("alerting") || s.includes("firing") || s.includes("error")) return 2;
     return -1;
 };
 
-const stateShape = ["state", {
-    map: {
-        error: ["alerting", "Alerting", "firing", "Firing", "error", "Error"],
-        warning: ["pending", "Pending", "nodata", "NoData"],
-        success: ["inactive", "Inactive", "normal", "Normal", "normal (updated)", "Normal (Updated)", "resolved", "Resolved"]
-    }
-}];
+const numericStateShape = ["state", { map: { success: [0], warning: [1], error: [2], unknown: [-1] } }];
 
 const metadataBase = [
     { name: "time", displayName: "Time", shape: "date", role: "timestamp" },
-    { name: "current", displayName: "State", shape: stateShape },
-    { name: "previous", displayName: "Previous State", shape: stateShape },
+    { name: "current", displayName: "State String", shape: "string" },
+    { name: "currentInt", displayName: "State", shape: numericStateShape, role: "value" },
+    { name: "previous", displayName: "Previous State String", shape: "string" },
+    { name: "previousInt", displayName: "Previous State", shape: numericStateShape, role: "value" },
     { name: "condition", displayName: "Condition", shape: "string" },
     { name: "conditionValue", displayName: "Value", shape: "number" },
-    { name: "currentInt", displayName: "State (int)", shape: "number" },
-    { name: "previousInt", displayName: "Previous State (int)", shape: "number" },
     { name: "dashboardUID", displayName: "Dashboard UID", shape: "string", visible: false },
     { name: "dashboardName", displayName: "Dashboard", sourceId: "dashboardUID", sourceType: "Grafana Dashboard", objectPropertyPath: "name" }
 ];

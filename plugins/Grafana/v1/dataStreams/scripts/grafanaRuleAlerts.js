@@ -1,29 +1,19 @@
+const stateToInt = (state) => {
+    const s = (state || "").toLowerCase();
+    if (s.startsWith("normal") || s.startsWith("resolved")) return 0;
+    if (s.startsWith("pending") || s.startsWith("nodata")) return 1;
+    if (s.includes("alerting") || s.includes("firing") || s.includes("error")) return 2;
+    return -1;
+};
+
+const numericStateShape = ["state", { map: { success: [0], warning: [1], error: [2], unknown: [-1] } }];
+
 const metadataBase = [
     { name: "ruleName", displayName: "Rule", shape: "string", role: "label" },
     { name: "groupName", displayName: "Group", shape: "string" },
     { name: "namespace", displayName: "Folder", shape: "string" },
-    {
-        name: "state",
-        displayName: "State",
-        shape: [
-            "state",
-            {
-                map: {
-                    error: [
-                        "alerting", "Alerting",
-                        "firing", "Firing"],
-                    warning: [
-                        "pending", "Pending"
-                    ],
-                    success: [
-                        "inactive", "Inactive",
-                        "normal", "Normal", "normal (updated)", "Normal (Updated)",
-                        "resolved", "Resolved",
-                    ],
-                },
-            },
-        ],
-    },
+    { name: "state", displayName: "State String", shape: "string" },
+    { name: "stateInt", displayName: "State", shape: numericStateShape, role: "value" },
     { name: "activeAt", displayName: "Active Since", shape: "date" },
     { name: "value", displayName: "Value", shape: "number" },
 ];
@@ -53,6 +43,7 @@ for (const group of groups) {
                 ruleName: rule.name,
 
                 state: alert.state,
+                stateInt: stateToInt(alert.state),
                 activeAt: alert.activeAt,
                 value: alert.value || "",
             };
