@@ -67,15 +67,33 @@ A typical paged list endpoint — response shape `{ items: [{ id, attributes: { 
         "expandInnerObjects": true,
         "paging": {
             "mode": "offset",
-            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
-            "offset": { "mode": "page", "rowCountIn": { "realm": "payloadArraySize", "path": "items" }, "base": 1 },
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "items" },
+                "base": 1
+            },
             "out": { "realm": "queryArg", "path": "page" }
         }
     },
     "matches": "none",
     "metadata": [
-        { "name": "sourceId", "computed": true, "valueExpression": "{{ $['id'] }}", "visible": false },
-        { "name": "sourceType", "computed": true, "valueExpression": "My Device", "visible": false },
+        {
+            "name": "sourceId",
+            "computed": true,
+            "valueExpression": "{{ $['id'] }}",
+            "visible": false
+        },
+        {
+            "name": "sourceType",
+            "computed": true,
+            "valueExpression": "My Device",
+            "visible": false
+        },
         { "name": "attributes.name", "displayName": "Name", "role": "label" },
         {
             "name": "attributes.cpuCores",
@@ -123,8 +141,8 @@ result = installations.flatMap((inst) =>
         sourceType: "My Device",
         name: d.name,
         siteId: String(inst.idSite),
-        timezone: inst.timezone
-    }))
+        timezone: inst.timezone,
+    })),
 );
 ```
 

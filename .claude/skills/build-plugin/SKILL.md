@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.2"
+    version: "0.0.3"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -35,7 +35,7 @@ If the user has already volunteered the answer earlier in the conversation or yo
 
 ## Checklist
 
-Create a TodoWrite task for each phase:
+Create a TaskCreate task for each phase:
 
 - [ ] **Phase 1** — Explore the API
 - [ ] **Phase 2** — Plan the plugin structure
@@ -64,19 +64,66 @@ Before writing a single file, understand the API. **Use `AskUserQuestion` to ask
 
 ## Phase 2: Plan the Plugin Structure
 
-Write this plan and **share it with the user before implementing** — it surfaces scope questions early.
+This phase produces a written plan and a user-approval gate before any files are written. Object types, import shape, and sourceId format are expensive to change once Phase 3+ commits them to JSON — Phase 2 is where scope errors are cheap to fix.
 
-1. **Object types** — List every type that should appear in the SquaredUp graph. These go in `objectTypes` in `metadata.json` and as `sourceType` throughout.
+### The plan must cover
+
+1. **Object types** — Every type that should appear in the SquaredUp graph. These go in `objectTypes` in `metadata.json` and as `sourceType` throughout.
 2. **Import steps** — Let the API shape dictate: one step returning many types, or separate steps per type.
 3. **Data streams** — For each object type, plan:
     - A **summary/current state** stream (`"timeframes": false`, returns current values)
     - A **history/metrics** stream (supports timeframes, returns time-series rows)
     - Any **cross-object** streams scoped to a parent (e.g. alarms for an installation)
     - **Prefer configurable streams** over hardcoded ones — use a UI parameter rather than multiple streams for the same endpoint with different values.
-4. **What's intentionally omitted** — Document API capabilities not being implemented and why.
-5. **Authentication** — Note the auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
-6. **OOB dashboards** — Plan a **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
+4. **What's intentionally omitted** — API capabilities not being implemented, and why. Highest-value section for catching scope creep.
+5. **Authentication** — Auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
+6. **OOB dashboards** — A **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
 7. **sourceId format** — Use the raw API ID wherever possible.
+
+### Plan format
+
+Post the plan as markdown with one `###` heading per item above. Short example:
+
+```markdown
+## Plan
+
+### Object types
+- `My Installation` — sites being monitored
+- `My Device` — physical devices reporting telemetry
+
+### Import steps
+- `installations` — one step, returns both types
+
+### Data streams
+- `batterySummary` — per-device, current state
+- `batteryHistory` — per-device, time-series
+- `siteAlarms` — per-installation
+
+### What's intentionally omitted
+- Webhook ingestion (no v1 use case)
+
+### Authentication
+- API key in `X-API-Key` header
+
+### OOB dashboards
+- Overview, Installation perspective, Device perspective
+
+### sourceId format
+- Installation: raw API `id`
+- Device: composite `{installationId}-{deviceId}` (API has no global device ID)
+```
+
+### Approval gate
+
+**When to fire:** when `metadata.json` doesn't exist yet in the plugin folder, OR when the planned `objectTypes` differs from the current `metadata.json`. Otherwise skip — incremental work that doesn't introduce new entities doesn't need the gate.
+
+**How:** post the plan, then call `AskUserQuestion` **in the same turn** with three options:
+
+- `Approve as written` → proceed to Phase 3
+- `Trim scope — start with less` → user wants a smaller MVP; ask what to cut
+- `Adjust — different objects/streams/auth` → user wants changes; ask what specifically
+
+If the user picks anything other than approve (including "Other"), revise the plan and re-fire the gate with the updated plan. Loop until approval — a revised plan can introduce new wrong assumptions, so the second pass is doing real work, not theatre. If the user explicitly waives further gating ("just proceed", "looks fine, go", "stop asking"), honor that for the rest of this conversation.
 
 ---
 
