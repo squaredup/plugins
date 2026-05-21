@@ -9,6 +9,7 @@ for (const group of groups) {
             name: rule.name,
             groupName: group.name,
             namespace: group.file,
+            ruleUID: rule.uid || '',
             query: rule.query || '',
             duration: typeof rule.duration === 'number' ? rule.duration : 0,
             labels: rule.labels ? JSON.stringify(rule.labels) : '{}',
