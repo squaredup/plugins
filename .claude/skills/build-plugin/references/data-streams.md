@@ -528,7 +528,7 @@ Script file (`dataStreams/scripts/incidents.js`):
 ```javascript
 // dataStreams/scripts/incidents.js
 result = (data.groups || []).flatMap((group) =>
-    group.items.map((item) => ({ severity: group.severity, ...item }))
+    group.items.map((item) => ({ severity: group.severity, ...item })),
 );
 ```
 
@@ -588,6 +588,32 @@ context.objects[0]; // first selected object — use with httpRequestScopedSingl
 context.timeframe; // { start, end, unixStart, unixEnd, interval, enum }
 context.config; // current stream parameters (values set by the user in the tile)
 ```
+
+> ⚠️ **Properties you added via `objectMapping.properties` arrive on `context.objects[N]` as arrays.** The graph stores user-defined indexed properties as multi-valued, and the script context preserves that shape — so a scalar like `url` shows up as `["https://..."]`. Templates (`{{object.url}}`) auto-unwrap single-element arrays; the script context does not. Unwrap before comparing:
+>
+> ```javascript
+> const prop = (p) => (Array.isArray(p) ? p[0] : p);
+> result = (data || []).filter((row) =>
+>     (row.relatedUrls || []).includes(prop(context.objects[0]?.url)),
+> );
+> ```
+>
+> Common failure mode: `(arr || []).includes(scalar)` silently returns nothing because the script is comparing array-to-string.
+>
+> **Always-scalar fields** — these come from the entity envelope, not the indexed property bag, and don't need unwrapping. Source: `saas/packages/@squaredup/graph/src/mapNodeToExpressionObject.ts`.
+>
+> | Field on `context.objects[N]` | Type     | What it is                                          |
+> | ----------------------------- | -------- | --------------------------------------------------- |
+> | `id`                          | `string` | Internal graph node id                              |
+> | `sourceId`                    | `string` | Source-side id (value from `objectMapping.id`)      |
+> | `name`                        | `string` | Display name (alias of `displayName`)               |
+> | `displayName`                 | `string` | Display name                                        |
+> | `type`                        | `string` | The `sourceType`                                    |
+> | `tenant`                      | `string` | Tenant id                                           |
+> | `configId`                    | `string` | Plugin config instance id                           |
+> | `workspaceId`                 | `string` | Workspace id (absent on workspace nodes themselves) |
+>
+> Everything else — anything you added via `objectMapping.properties` in `indexDefinitions/` — needs the defensive unwrap above.
 
 ### Type primitives
 
