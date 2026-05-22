@@ -27,6 +27,8 @@ When adding the NinjaOne data source in SquaredUp, you will need to provide:
 
 3. **Client Secret**: Paste the Client Secret from your NinjaOne API application
 
+4. **NinjaOne Ticketing Module**: Leave this set to **Enabled** (the default) if your NinjaOne tenant has the optional Ticketing add-on enabled. Set it to **Disabled** if your tenant does not — otherwise the import will fail with the error `Ninja Ticketing Integration is not enabled`. When disabled, the **Ticket Boards** and **Tickets** data streams (and the OOB Ticket Board dashboard) will return no data.
+
 That's it! The plugin will automatically authenticate using Client Credentials flow when you save the configuration.
 
 ## Available Data Streams
