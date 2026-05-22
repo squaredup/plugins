@@ -10,7 +10,7 @@ Defines what gets imported into the SquaredUp graph.
             "dataStream": { "name": "installations" },
             "timeframe": "none",
             "objectMapping": {
-                "id": "sourceId",
+                "id": "uid",
                 "name": "name",
                 "type": "sourceType",
                 "properties": ["siteId", "timezone", "alarm"]
@@ -21,7 +21,7 @@ Defines what gets imported into the SquaredUp graph.
             "dataStream": { "name": "deviceList" },
             "timeframe": "none",
             "objectMapping": {
-                "id": "sourceId",
+                "id": "uid",
                 "name": "name",
                 "type": "sourceType",
                 "properties": [
@@ -37,7 +37,7 @@ Defines what gets imported into the SquaredUp graph.
 
 **Key rules:**
 
-- `id` maps to the column holding the unique stable ID. The stored `sourceId` is prefixed with `sourceType~` — e.g. if `id` returns `"123"` and type is `"My Device"`, the stored value is `"My Device~123"`. Never rely on the raw ID in expressions — add it as a separate `properties` entry (e.g. `deviceId`) and reference `{{object.deviceId}}`.
+- `id` maps to the column holding the unique stable ID. The stored `sourceId` is prefixed with `sourceType~` — e.g. if `id` returns `"123"` and type is `"My Device"`, the stored value is `"My Device~123"`. To use the raw ID in expressions use `{{object.rawId}}`.
 - `name` maps to the display name column.
 - `type` maps to the `sourceType` column. Can also be a fixed string: `{ "value": "My Device" }` — use when all rows are the same type.
 - `properties` are extra fields stored on the graph node, accessible in scripts as `object.propName`.
@@ -83,9 +83,7 @@ A typical paged list endpoint — response shape `{ items: [{ id, attributes: { 
     "matches": "none",
     "metadata": [
         {
-            "name": "sourceId",
-            "computed": true,
-            "valueExpression": "{{ $['id'] }}",
+            "name": "id",
             "visible": false
         },
         {
@@ -110,18 +108,17 @@ How this avoids a script:
 
 - `pathToData: "items"` walks into the paged array — no `data.items.map(...)` in JS.
 - `expandInnerObjects: true` flattens `attributes.*` into dot-notation columns (`attributes.name`, `attributes.cpuCores`).
-- `computed: true` + `valueExpression` materialises `sourceId`/`sourceType` from `id` and a constant string.
+- `computed: true` materialises `sourceId`/`sourceType` from a constant string.
 - `valueExpression` coerces `"unknown"` / `"n/a"` to `null` for numeric columns.
 
 The index definition then references the dot-notation column names directly:
 
 ```json
 "objectMapping": {
-    "id": "sourceId",
+    "id": "id",
     "name": "attributes.name",
     "type": "sourceType",
     "properties": [
-        { "deviceId": "id" },
         { "cpuCores": "attributes.cpuCores" }
     ]
 }
