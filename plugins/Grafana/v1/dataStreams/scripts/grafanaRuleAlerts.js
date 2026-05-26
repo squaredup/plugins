@@ -1,8 +1,8 @@
 const stateToInt = (state) => {
     const s = (state || "").toLowerCase();
     if (s.startsWith("normal") || s.startsWith("resolved")) return 0;
-    if (s.startsWith("pending") || s.startsWith("nodata")) return 1;
     if (s.includes("alerting") || s.includes("firing") || s.includes("error")) return 2;
+    if (s.startsWith("pending") || s.startsWith("nodata")) return 1;
     return -1;
 };
 
