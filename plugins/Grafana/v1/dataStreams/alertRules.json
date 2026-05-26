@@ -1,17 +1,9 @@
 {
     "name": "alertRules",
-    "displayName": "Active Alerts",
-    "description": "Currently firing alert instances for selected Grafana alert rules",
+    "displayName": "Alert Rules",
+    "description": "All Grafana alerting rules, flattened from rule groups for import",
     "tags": ["Alerts"],
     "baseDataSourceName": "httpRequestUnscoped",
-    "ui": [
-        {
-            "type": "objects",
-            "name": "alertRules",
-            "label": "Alert Rules",
-            "matches": { "sourceType": { "type": "oneOf", "values": ["Grafana Alert Rule"] } }
-        }
-    ],
     "config": {
         "httpMethod": "get",
         "paging": {
@@ -39,9 +31,21 @@
                 "path": "group_next_token"
             }
         },
-        "endpointPath": "api/prometheus/grafana/api/v1/rules{{Array.isArray(alertRules) && alertRules.length > 0 ? '?rule_group[]=' + [...new Set(alertRules.map(o => encodeURIComponent(o.groupName)))].join('&rule_group[]=') : '' }}",
-        "postRequestScript": "alertRules.js"
+        "endpointPath": "api/prometheus/grafana/api/v1/rules",
+        "getArgs": [
+            { "key": "exclude_alerts", "value": "true" }
+        ],
+        "postRequestScript": "importAlertRules.js"
     },
-    "matches": "none",
+    "metadata": [
+        { "name": "sourceId", "shape": "string", "visible": false },
+        { "name": "name", "displayName": "Rule Name", "shape": "string" },
+        { "name": "groupName", "displayName": "Group", "shape": "string" },
+        { "name": "namespace", "displayName": "Namespace", "shape": "string" },
+        { "name": "query", "displayName": "Query", "shape": "string" },
+        { "name": "duration", "displayName": "Duration (s)", "shape": "number" },
+        { "name": "labels", "displayName": "Labels", "shape": "string" },
+        { "name": "annotations", "displayName": "Annotations", "shape": "string" }
+    ],
     "timeframes": false
 }

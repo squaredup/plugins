@@ -1,0 +1,47 @@
+{
+    "name": "activeAlerts",
+    "displayName": "Active Alerts",
+    "description": "Currently firing alert instances for selected Grafana alert rules",
+    "tags": ["Alerts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "activeAlerts",
+            "label": "Alert Rules",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Grafana Alert Rule"] } }
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": {
+                    "value": "queryArg",
+                    "label": "Query parameter"
+                },
+                "path": "group_limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": {
+                    "value": "payload",
+                    "label": "payload"
+                },
+                "path": "data.groupNextToken"
+            },
+            "out": {
+                "realm": {
+                    "value": "queryArg",
+                    "label": "queryArg"
+                },
+                "path": "group_next_token"
+            }
+        },
+        "endpointPath": "api/prometheus/grafana/api/v1/rules{{Array.isArray(activeAlerts) && activeAlerts.length > 0 ? '?rule_group[]=' + [...new Set(activeAlerts.map(o => encodeURIComponent(o.groupName)))].join('&rule_group[]=') : '' }}",
+        "postRequestScript": "activeAlerts.js"
+    },
+    "matches": "none",
+    "timeframes": false
+}
