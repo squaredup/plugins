@@ -35,7 +35,7 @@ for (const group of groups) {
     for (const rule of group.rules) {
         if (rule.type !== "alerting") continue;
 
-        for (const alert of rule.alerts || []) {
+        for (const alert of (rule.alerts || []).filter(a => stateToInt(a.state) !== 0)) {
             const alertRow = {
                 groupName: group.name,
                 namespace: group.file,
