@@ -1,0 +1,138 @@
+{
+    "name": "usage",
+    "displayName": "Usage",
+    "description": "Token consumption over time, grouped and optionally filtered by workspace, model, or API key",
+    "tags": ["Usage", "Tokens"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "organizations/usage_report/messages",
+        "getArgs": [
+            { "key": "starting_at", "value": "{{timeframe.start}}" },
+            { "key": "ending_at", "value": "{{timeframe.end}}" },
+            { "key": "group_by[]", "value": "workspace_id" },
+            { "key": "group_by[]", "value": "model" },
+            { "key": "group_by[]", "value": "api_key_id" },
+            { "key": "workspace_ids[]", "value": "{{workspace && workspace.length > 0 ? workspace[0].sourceId : undefined}}" },
+            { "key": "api_key_ids[]", "value": "{{apiKey && apiKey.length > 0 ? apiKey[0].sourceId : undefined}}" },
+            { "key": "bucket_width", "value": "{{bucketWidth}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "{{bucketWidth === '1d' ? 31 : 100}}"
+            },
+            "in": { "realm": "payload", "path": "next_page" },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "postRequestScript": "usage.js"
+    },
+    "ui": [
+        {
+            "type": "radio",
+            "name": "bucketWidth",
+            "label": "Bucket width",
+            "defaultValue": "1h",
+            "options": [
+                { "value": "1m", "label": "1 minute" },
+                { "value": "1h", "label": "1 hour" },
+                { "value": "1d", "label": "1 day" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "workspace",
+            "label": "Filter by Workspace",
+            "matches": {
+                "sourceType": { "type": "equals", "value": "Anthropic Workspace" }
+            },
+            "nodeProperties": ["sourceId"],
+            "objectLimit": 1
+        },
+        {
+            "type": "objects",
+            "name": "apiKey",
+            "label": "Filter by API Key",
+            "matches": {
+                "sourceType": { "type": "equals", "value": "Anthropic API Key" }
+            },
+            "nodeProperties": ["sourceId"],
+            "objectLimit": 1
+        },
+        {
+            "type": "autocomplete",
+            "name": "model",
+            "label": "Filter by Model",
+            "isClearable": true,
+            "isMulti": false,
+            "allowCustomValues": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "models",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": ["date", { "format": "dd/MM/yyyy HH:mm", "timeZone": "Etc/UTC" }],
+            "role": "timestamp"
+        },
+        {
+            "name": "workspace_id",
+            "displayName": "Workspace ID",
+            "visible": false
+        },
+        {
+            "sourceId": "workspace_id",
+            "sourceType": "Anthropic Workspace",
+            "name": "workspace_name"
+        },
+        {
+            "name": "model",
+            "displayName": "Model"
+        },
+        {
+            "name": "api_key_id",
+            "displayName": "API Key ID",
+            "visible": false
+        },
+        {
+            "sourceId": "api_key_id",
+            "sourceType": "Anthropic API Key",
+            "name": "api_key_name"
+        },
+        {
+            "name": "input_tokens",
+            "displayName": "Input Tokens",
+            "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }]
+        },
+        {
+            "name": "cache_read_tokens",
+            "displayName": "Cache Read Tokens",
+            "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }]
+        },
+        {
+            "name": "cache_creation_tokens",
+            "displayName": "Cache Creation Tokens",
+            "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }]
+        },
+        {
+            "name": "output_tokens",
+            "displayName": "Output Tokens",
+            "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }]
+        },
+        {
+            "name": "total_tokens",
+            "displayName": "Total Tokens",
+            "shape": ["number", { "thousandsSeparator": true, "decimalPlaces": 0 }],
+            "role": "value"
+        }
+    ],
+    "timeframes": true
+}
