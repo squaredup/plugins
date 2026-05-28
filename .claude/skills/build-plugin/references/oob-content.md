@@ -5,6 +5,7 @@
 - [scopes.json](#scopesjson)
 - [manifest.json](#manifestjson)
 - [Dashboard layout](#dashboard-layout)
+- [Pre-populating objects fields in tiles](#pre-populating-objects-fields-in-tiles)
 - [Dashboard rules](#dashboard-rules)
 - [Visualisation types](#visualisation-types): table, line graph, bar chart, scalar, donut, blocks, gauge, embed
 - [Templating tokens](#templating-tokens)
@@ -112,6 +113,61 @@ Single `.dash.json` files reference as `"type": "dashboard"`. Folders map to sub
     }
 }
 ```
+
+---
+
+## Pre-populating objects fields in tiles
+
+When a data stream has an `objects` UI field, set its value in `dataSourceConfig` inside the tile's `dataStream` object. There are two forms.
+
+### Variable binding — follow the dashboard variable
+
+The most common OOB pattern. Binds the objects field to the dashboard's selected variable so the tile shows data for whichever object the user has chosen:
+
+```json
+"dataStream": {
+    "id": "{{dataStreams.[myStream]}}",
+    "name": "myStream",
+    "dataSourceConfig": {
+        "repositories": {
+            "scope": "{{scopes.[GitHub Repositories]}}",
+            "workspace": "{{workspaceId}}",
+            "variable": "{{variables.[GitHub Repository]}}"
+        }
+    }
+}
+```
+
+The three keys must match the scope and variable names declared in `scopes.json`.
+
+### Pre-selected objects — hard-code by search term
+
+Pre-selects objects matching a search term at dashboard creation time. Use this when an OOB tile targets a specific well-known object (e.g. a "CPU Utilization" metric):
+
+```json
+"dataStream": {
+    "id": "{{dataStreams.[myStream]}}",
+    "name": "myStream",
+    "dataSourceConfig": {
+        "metrics": {
+            "bindings": {
+                "booleanQuery_UNIQUEID": "CPU Util"
+            },
+            "query": "g.V().has('__search', __matchesQuery(booleanQuery_UNIQUEID)).order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).or(__.has(\"sourceType\", \"My Object Type\")).limit(500)",
+            "queryDetail": {
+                "booleanQuery": "CPU Util"
+            }
+        }
+    }
+}
+```
+
+Customise three things:
+- `"booleanQuery_UNIQUEID"` — replace `UNIQUEID` with a random alphanumeric string, unique within this tile
+- `"CPU Util"` — the search term (appears in both `bindings` value and `queryDetail.booleanQuery`)
+- `"My Object Type"` — the `sourceType` to match against (must match the field's `matches.sourceType`)
+
+Use the same random suffix in both `bindings` and the `query` string — they must match.
 
 ---
 
