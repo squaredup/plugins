@@ -224,6 +224,8 @@ This is a regular data stream whose job is to return one flat row per object. Pl
 
 ### The post-request script
 
+Only use the post-request script when absolutely necessary. Prefer using object mappings only. If you must use post-request scripts, inform the user in the step summary, and explain why.
+
 The HCP's `addVertexForApp` (or equivalent) becomes a `dataStreams/scripts/{streamName}.js` script. Transcribe the logic but adapt to the LCP script contract:
 
 > ⚠️ **Don't combine `pathToData` with a `postRequestScript` in the same stream.** When a script is present, the script's `data` is the **full response body** — `pathToData` does not pre-extract the array. Either use `pathToData` alone (with declarative metadata) or use a script alone and navigate the response inside the script (e.g. `const items = data?.orgs ?? [];`). Combining them looks correct but fails at runtime with `(data ?? []).map is not a function` because the script receives the wrapper object rather than the array.
@@ -330,6 +332,8 @@ HCP `data_streams.json` `dataStreams[i].template` becomes the stream's top-level
 
 HCP `data_streams.json` has a top-level `matches` and each stream may override. In LCP each stream has its own `matches`. Lift the constraints — most often `{ "sourceType": { "type": "oneOf", "values": ["..."] } }`. See `build-plugin` Phase 7.
 
+### Post-Request Scripts
+Only use the post-request script when absolutely necessary. Prefer using object mappings only. If you must use post-request scripts, inform the user in the step summary, and explain why.
 ### Migration discipline
 
 Each stream gets done one at a time. Don't batch all of them in one pass — it's easy to mis-map paging on stream 3 and propagate the same bug across all 12. Walk one stream end-to-end, show the user, then move on.
