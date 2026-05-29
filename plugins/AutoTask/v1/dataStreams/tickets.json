@@ -11,7 +11,7 @@
     "config": {
         "httpMethod": "get",
         "expandInnerObjects": true,
-        "endpointPath": "atservicesrest/v1.0/Tickets/query?search={\"MaxRecords\":500,\"filter\":[{\"op\":\"in\",\"field\":\"status\",\"value\":[{{statusFilter}}]},{\"op\":\"in\",\"field\":\"priority\",\"value\":[{{priorityFilter}}]},{\"op\":\"gte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.start}}\"},{\"op\":\"lte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.end}}\"}]}",
+        "endpointPath": "atservicesrest/v1.0/Tickets/query?search={\"MaxRecords\":500,\"filter\":[{{statusFilter ? '{\"op\":\"in\",\"field\":\"status\",\"value\":[' + statusFilter + ']},' : ''}}{{priorityFilter ? '{\"op\":\"in\",\"field\":\"priority\",\"value\":[' + priorityFilter + ']},' : ''}}{\"op\":\"gte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.start}}\"},{\"op\":\"lte\",\"field\":\"lastActivityDate\",\"value\":\"{{timeframe.end}}\"}]}",
         "postRequestScript": "tickets.js",
         "pathToData": "items",
         "paging": {
@@ -28,28 +28,33 @@
         { "name": "id", "displayName": "Ticket ID", "shape": "string", "visible": false },
         { "name": "title", "displayName": "Title" },
         { "name": "description", "displayName": "Description", "visible": false },
+        { "name": "status", "displayName": "Status (Raw)", "sourceType": "autotask-ticket-status", "shape": "string", "visible": false },
         {
             "name": "statusName",
             "displayName": "Status",
-            "visible": true,
+            "sourceId": "status",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "statusHealth",
+            "displayName": "Status Health",
             "computed": true,
-            "valueExpression": "{{ $['status'] == 1 ? 'New' : $['status'] == 5 ? 'Complete' : $['status'] == 8 ? 'In Progress' : $['status'] == 9 ? 'Waiting Customer' : $['status'] == 10 ? 'Waiting Materials' : $['status'] == 11 ? 'Waiting Vendor' : $['status'] == 12 ? 'Escalate' : $['status'] == 13 ? 'Waiting Approval' : 'Unknown' }}",
+            "valueExpression": "{{ $['statusName'] }}",
             "shape": ["state", {
                 "map": {
                     "success": ["Complete"],
                     "error": ["Escalate"],
-                    "warning": ["New", "In Progress"],
-                    "unknown": ["Waiting Customer", "Waiting Materials", "Waiting Vendor", "Waiting Approval", "Unknown"]
+                    "warning": ["New", "In Progress", "Waiting Customer", "Waiting Materials", "Waiting Vendor", "Waiting for Vendor", "Waiting Approval"]
                 }
             }]
         },
         {
             "name": "priorityName",
             "displayName": "Priority",
-            "computed": true,
-            "valueExpression": "{{ $['priority'] == 1 ? 'Critical' : $['priority'] == 2 ? 'High' : $['priority'] == 3 ? 'Medium' : $['priority'] == 4 ? 'Low' : 'Unknown' }}"
+            "sourceId": "priority",
+            "objectPropertyPath": "name"
         },
-        { "name": "priority", "displayName": "Priority (Raw)", "shape": ["number", { "decimalPlaces": 0 }], "visible": false },
+        { "name": "priority", "displayName": "Priority (Raw)", "sourceType": "autotask-ticket-priority", "shape": "string", "visible": false },
         { "name": "companyID", "sourceType": "autotask-company", "shape": "string", "visible": false },
         { "name": "companyName", "displayName": "Company", "sourceId": "companyID", "objectPropertyPath": "name" },
         { "name": "contactID", "sourceType": "autotask-contact", "shape": "string", "visible": false },
@@ -137,22 +142,11 @@
             "label": "Status",
             "allowCustomValues": true,
             "isMulti": true,
-            "defaultValue": "1,5,8,9,10,11,12,13",
             "data": {
-                "source": "fixed",
-                "values": [
-                    { "value": "1,5,8,9,10,11,12,13", "label": "All Statuses" },
-                    { "value": "1",  "label": "New" },
-                    { "value": "8",  "label": "In Progress" },
-                    { "value": "9",  "label": "Waiting Customer" },
-                    { "value": "10", "label": "Waiting Materials" },
-                    { "value": "11", "label": "Waiting Vendor" },
-                    { "value": "13", "label": "Waiting Approval" },
-                    { "value": "12", "label": "Escalate" },
-                    { "value": "5",  "label": "Complete" }
-                ]
-            },
-            "validation": { "required": true }
+                "source": "dataStream",
+                "dataStreamName": "ticketStatuses",
+                "dataSourceConfig": {}
+            }
         },
         {
             "name": "priorityFilter",
@@ -160,18 +154,11 @@
             "label": "Priority",
             "allowCustomValues": true,
             "isMulti": true,
-            "defaultValue": "1,2,3,4",
             "data": {
-                "source": "fixed",
-                "values": [
-                    { "value": "1,2,3,4", "label": "All Priorities" },
-                    { "value": "1", "label": "Critical" },
-                    { "value": "2", "label": "High" },
-                    { "value": "3", "label": "Medium" },
-                    { "value": "4", "label": "Low" }
-                ]
-            },
-            "validation": { "required": true }
+                "source": "dataStream",
+                "dataStreamName": "ticketPriorities",
+                "dataSourceConfig": {}
+            }
         }
     ]
 }
