@@ -1,0 +1,406 @@
+{
+    "name": "Cockpit",
+    "schemaVersion": "1.5",
+    "dashboard": {
+        "_type": "layout/grid",
+        "contents": [
+            {
+                "static": false,
+                "w": 2,
+                "moved": false,
+                "h": 2,
+                "x": 0,
+                "y": 0,
+                "i": "7a6ca038-e744-488e-8f2f-ad3d86b4e42d",
+                "z": 0,
+                "config": {
+                    "timeframe": "none",
+                    "dataStream": {
+                        "name": "secureScoreHistory",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "createdDateTime",
+                                    "unit": "days",
+                                    "operation": "datewithinlast",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "id": "{{dataStreams.secureScoreHistory}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Current Secure Score",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "currentScore",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 2,
+                "moved": false,
+                "h": 2,
+                "x": 2,
+                "y": 0,
+                "i": "bc314cab-b69a-4379-920a-872a3b005c66",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "pluginConfigId": "{{configId}}",
+                        "id": "{{dataStreams.devices}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "ExposureLevel",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').or(__.has(\"sourceType\", \"Defender Device\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Device Exposure State",
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisGroup": "none",
+                                "showLegend": false,
+                                "range": {
+                                    "type": "auto"
+                                },
+                                "showGrid": true,
+                                "grouping": false,
+                                "displayMode": "actual",
+                                "xAxisData": "ExposureLevel_uniqueValues",
+                                "showTotals": true,
+                                "yAxisLabel": "",
+                                "horizontalLayout": "vertical",
+                                "showValue": false,
+                                "yAxisData": [
+                                    "count"
+                                ],
+                                "showYAxisLabel": true,
+                                "xAxisLabel": "",
+                                "legendPosition": "bottom",
+                                "showXAxisLabel": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 2,
+                "x": 0,
+                "y": 2,
+                "i": "fe0118a8-d043-4bb4-9907-10b1b29cd486",
+                "z": 0,
+                "config": {
+                    "timeframe": "last24hours",
+                    "dataStream": {
+                        "name": "advancedHuntingQuery",
+                        "dataSourceConfig": {
+                            "query": "DeviceEvents\r\n| where ActionType in (\"AntivirusDetection\",\"AntivirusDetectionCancelled\",\"AntivirusMalwareActionFailed\")\r\n| project Timestamp, DeviceName, ActionType"
+                        },
+                        "id": "{{dataStreams.advancedHuntingQuery}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [],
+                            "logic": {
+                                "if": [
+                                    {
+                                        ">": [
+                                            {
+                                                "var": "count"
+                                            },
+                                            0
+                                        ]
+                                    },
+                                    "error"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "aggregation": "count",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 15
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Malware & Antivirus Detected",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {}
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 2,
+                "x": 1,
+                "y": 2,
+                "i": "cf2d60f6-b7cf-4602-bd3c-70f1ef215514",
+                "z": 0,
+                "config": {
+                    "timeframe": "last24hours",
+                    "dataStream": {
+                        "name": "advancedHuntingQuery",
+                        "dataSourceConfig": {
+                            "query": "DeviceEvents\r\n| where ActionType in (\"UserAccountCreated\",\"ScheduledTaskCreated\",\"ScheduledTaskDeleted\",\"UserAccountModified\",\"UserAccountAddedToLocalGroup\")\r\n| project Timestamp, DeviceName, ActionType"
+                        },
+                        "id": "{{dataStreams.advancedHuntingQuery}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [],
+                            "logic": {
+                                "if": [
+                                    {
+                                        ">": [
+                                            {
+                                                "var": "count"
+                                            },
+                                            0
+                                        ]
+                                    },
+                                    "error"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "aggregation": "count",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 15
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Persistence & Privilege Escalation",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": {
+                                    "type": "count"
+                                },
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 2,
+                "x": 2,
+                "y": 2,
+                "i": "cf1f3273-caa3-4b96-9e1f-b70c8a207214",
+                "z": 0,
+                "config": {
+                    "timeframe": "last24hours",
+                    "dataStream": {
+                        "name": "advancedHuntingQuery",
+                        "dataSourceConfig": {
+                            "query": "DeviceEvents\r\n| where ActionType startswith \"AppControl\"\r\n| project Timestamp, DeviceName, ActionType"
+                        },
+                        "id": "{{dataStreams.advancedHuntingQuery}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [],
+                            "logic": {
+                                "if": [
+                                    {
+                                        ">": [
+                                            {
+                                                "var": "count"
+                                            },
+                                            0
+                                        ]
+                                    },
+                                    "error"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "aggregation": "count",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 15
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Application Control",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": {
+                                    "type": "count"
+                                },
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 2,
+                "x": 3,
+                "y": 2,
+                "i": "21756e83-fc0c-47a8-98f7-7e96e765662b",
+                "z": 0,
+                "config": {
+                    "timeframe": "last24hours",
+                    "dataStream": {
+                        "name": "advancedHuntingQuery",
+                        "dataSourceConfig": {
+                            "query": "DeviceEvents\r\n| where ActionType in (\"ExploitGuardNetworkProtectionBlocked\",\"ExploitGuardNonMicrosoftSignedBlocked\")\r\n| project Timestamp, DeviceName, ActionType"
+                        },
+                        "id": "{{dataStreams.advancedHuntingQuery}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [],
+                            "logic": {
+                                "if": [
+                                    {
+                                        ">": [
+                                            {
+                                                "var": "count"
+                                            },
+                                            0
+                                        ]
+                                    },
+                                    "error"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "aggregation": "count",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 15
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Exploits",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": {
+                                    "type": "count"
+                                },
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 2,
+                "x": 0,
+                "y": 4,
+                "i": "5c32f4c0-9729-42dd-b3c4-c057f9547092",
+                "z": 0,
+                "config": {
+                    "timeframe": "none",
+                    "dataStream": {
+                        "name": "secureScoreHistory",
+                        "id": "{{dataStreams.secureScoreHistory}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Secure Score History",
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "yAxisLabel": "Secure Score",
+                                "xAxisColumn": "createdDateTime",
+                                "seriesColumn": "none",
+                                "xAxisLabel": "Date",
+                                "dataPoints": false,
+                                "showTrendLine": true,
+                                "yAxisRangeMode": "auto",
+                                "yAxisColumn": [
+                                    "currentScore"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "version": 49,
+        "columns": 4
+    }
+}

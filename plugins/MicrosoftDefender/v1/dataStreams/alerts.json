@@ -1,0 +1,143 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "errorHandling": {
+            "type": "default"
+        },
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": {
+                    "value": "none",
+                    "label": "none"
+                }
+            },
+            "in": {
+                "realm": {
+                    "value": "payload",
+                    "label": "payload"
+                },
+                "path": "@odata.nextLink"
+            }
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "alerts",
+        "pathToData": "value",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ status && status.length > 0 ? \"(status eq \" + status.map((m) => { return `'${m}'` }).join(\" or status eq \") + \") and \" : \"\" }}{{ severity && severity.length > 0 ? \"(severity eq \" + severity.map((m) => { return `'${m}'` }).join(\" or severity eq \") + \") and \" : \"\" }}{{timeframe.enum !== \"none\" ? timeframeCol + \" ge \" + timeframe.start + \" and \" + timeframeCol + \" le \" + timeframe.end : \"1 eq 1\"}}"
+            }
+        ],
+        "headers": []
+    },
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear"
+    ],
+    "supportsNoneTimeframe": true,
+    "providesPluginDiagnostics": true,
+    "tags": [],
+    "ui": [
+        {
+            "name": "severity",
+            "label": "Severity",
+            "type": "autocomplete",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "low",
+                        "label": "Low"
+                    },
+                    {
+                        "value": "medium",
+                        "label": "Medium"
+                    },
+                    {
+                        "value": "high",
+                        "label": "High"
+                    },
+                    {
+                        "value": "informational",
+                        "label": "Informational"
+                    },
+                    {
+                        "value": "unknown",
+                        "label": "Unknown"
+                    },
+                    {
+                        "value": "unknownFutureValue",
+                        "label": "Unknown Future Value"
+                    }
+                ]
+            },
+            "isClearable": true
+        },
+        {
+            "name": "status",
+            "label": "Status",
+            "type": "autocomplete",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "new",
+                        "label": "New"
+                    },
+                    {
+                        "value": "inProgress",
+                        "label": "In Progress"
+                    },
+                    {
+                        "value": "resolved",
+                        "label": "Resolved"
+                    },
+                    {
+                        "value": "unknown",
+                        "label": "Unknown"
+                    },
+                    {
+                        "value": "unknownFutureValue",
+                        "label": "Unknown Future Value"
+                    }
+                ]
+            },
+            "isClearable": true
+        },
+        {
+            "isMulti": false,
+            "help": "Select the column to apply the timeframe",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "createdDateTime",
+                        "label": "Creation Time"
+                    },
+                    {
+                        "value": "lastUpdateDateTime",
+                        "label": "Last Update Time"
+                    }
+                ]
+            },
+            "defaultValue": "createdDateTime",
+            "name": "timeframeCol",
+            "label": "Timeframe Column",
+            "type": "autocomplete",
+            "isClearable": false
+        }
+    ]
+}

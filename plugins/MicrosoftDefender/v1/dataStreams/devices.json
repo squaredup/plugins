@@ -1,0 +1,64 @@
+{
+    "name": "devices",
+    "displayName": "Devices",
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "default"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "runHuntingQuery",
+        "postBody": {
+            "Query": "DeviceInfo | where DeviceId in ({{objects.map(o => {return `\"${o.deviceid}\"`}).join(\",\")}}) | summarize arg_max(Timestamp, *) by DeviceId"
+        },
+        "pathToData": "results",
+        "getArgs": [],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "sourceId": "DeviceId",
+            "name": "DeviceName",
+            "shape": "string",
+            "role": "label",
+            "sourceType": "Defender Device"
+        },
+        {
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "unmonitored": [],
+                        "unknown": [],
+                        "error": [
+                            "High"
+                        ],
+                        "warning": [
+                            "Medium"
+                        ],
+                        "success": [
+                            "Low"
+                        ]
+                    }
+                }
+            ],
+            "name": "ExposureLevel"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Defender Device"
+        }
+    },
+    "timeframes": false,
+    "providesPluginDiagnostics": true,
+    "tags": []
+}
