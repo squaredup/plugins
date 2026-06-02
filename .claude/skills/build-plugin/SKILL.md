@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.3"
+    version: "0.0.5"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -11,6 +11,17 @@ metadata:
 > **Scope:** Web API-based plugins only. If the target tool has no usable REST API, PowerShell may be a better fit — suggest it and stop.
 
 **Announce at start:** "I'm using the build-plugin skill."
+
+---
+
+## Prerequisites
+
+This skill **tests every data stream against a live, authenticated plugin** in your tenant before relying on it — testing is not optional. That requires the `squaredup` CLI logged in and a tenant you can authenticate the plugin in. Confirm both **before Phase 1**:
+
+1. Run `squaredup status`. If it reports you are not logged in, ask the user to run `! squaredup login` in this session (interactive; regions: `us`, `eu`, `dev`), then re-check. Login/region mechanics live in the `deploy-plugin` skill.
+2. Confirm the user has a SquaredUp tenant where they can add and authenticate the plugin.
+
+If login or a tenant is unavailable, **stop** — this skill cannot build a plugin it cannot test.
 
 ---
 
@@ -35,17 +46,20 @@ If the user has already volunteered the answer earlier in the conversation or yo
 
 ## Checklist
 
-Create a TaskCreate task for each phase:
+Create a TaskCreate task for each phase. The flow deploys early and tests as it builds, so deploy/authenticate/test checkpoints are interleaved between the writing phases:
 
+- [ ] **Prerequisite** — `squaredup status`; ensure login + tenant (see [Prerequisites](#prerequisites))
 - [ ] **Phase 1** — Explore the API
 - [ ] **Phase 2** — Plan the plugin structure
 - [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md`)
-- [ ] **Phase 4** — Write `metadata.json` and `ui.json` → read [metadata.md](references/metadata.md) and [ui.md](references/ui.md)
-- [ ] **Phase 5** — Write import definitions → read [index-defs.md](references/index-defs.md)
-- [ ] **Phase 6** — Write data streams → read [data-streams.md](references/data-streams.md)
-- [ ] **Phase 7** — Write OOB default content → read [oob-content.md](references/oob-content.md)
-- [ ] **Phase 8** — Write `custom_types.json` → read [common-patterns.md](references/common-patterns.md)
-- [ ] **Phase 9** — Validate and deploy → invoke the `deploy-plugin` skill
+- [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
+- [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [testing.md](references/testing.md)
+- [ ] **Phase 5** — Write import definitions and import streams; test each → [index-defs.md](references/index-defs.md), [testing.md](references/testing.md)
+- [ ] **Checkpoint B** — Redeploy and run the first import so objects exist → [testing.md](references/testing.md)
+- [ ] **Phase 6** — Write data streams; test each before moving on → [data-streams.md](references/data-streams.md), [testing.md](references/testing.md)
+- [ ] **Phase 7** — Write OOB default content → [oob-content.md](references/oob-content.md)
+- [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
+- [ ] **Phase 9** — Final validate and deploy → invoke the `deploy-plugin` skill
 
 ---
 
@@ -146,7 +160,7 @@ my-plugin/
     ui.json
     icon.svg
     custom_types.json
-    configValidation.json      # preferred: validates config on setup
+    configValidation.json      # required for authenticated APIs; validates config on setup
     docs/
       README.md                # REQUIRED: shown in-product when users add the plugin
     indexDefinitions/
@@ -180,27 +194,76 @@ Write as if the user has never seen the API. They're reading it inside SquaredUp
 **Other rules:**
 
 - `scopes.json`: only include scopes used by OOB dashboards. Don't add speculatively.
-- `configValidation.json`: optional but strongly preferred — see [common-patterns.md](references/common-patterns.md).
+- `configValidation.json`: **required for authenticated APIs**, recommended otherwise. Its lightweight backing stream doubles as the auth probe in Checkpoint A — see [common-patterns.md](references/common-patterns.md).
 - **Single-dashboard rule:** Only create a sub-folder under `defaultContent/` when you have **multiple dashboards** for the same type.
 
 ---
 
-## Phases 4–8: Writing Files
+## Phase 4: Plugin identity, auth & config validation (the shell)
 
-Read the corresponding reference file before writing each phase:
+Write `metadata.json`, `ui.json`, and — for any authenticated API — `configValidation.json` plus its backing data stream. Read [metadata.md](references/metadata.md) and [ui.md](references/ui.md); for the validation step pattern read [common-patterns.md](references/common-patterns.md).
 
-| Phase                      | Files                                               | Reference                                                        |
-| -------------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| 4 — Plugin identity & auth | `metadata.json`, `ui.json`, `configValidation.json` | [metadata.md](references/metadata.md), [ui.md](references/ui.md) |
-| 5 — Import definitions     | `indexDefinitions/default.json`                     | [index-defs.md](references/index-defs.md)                        |
-| 6 — Data streams           | `dataStreams/*.json`, `scripts/*.js`                | [data-streams.md](references/data-streams.md)                    |
-| 7 — OOB default content    | `defaultContent/`, `scopes.json`                    | [oob-content.md](references/oob-content.md)                      |
-| 8 — Custom types           | `custom_types.json`                                 | [common-patterns.md](references/common-patterns.md)              |
+This is the deployable **shell**: just enough to deploy, add to a tenant, and authenticate. The configValidation backing stream is a single **unscoped** call to a lightweight endpoint (e.g. `/me`) — it both validates the user's config on setup and serves as the auth probe in Checkpoint A. Don't write data streams or import definitions yet.
+
+---
+
+## Checkpoint A: Deploy the shell & authenticate
+
+The shell can't be tested until it's deployed and a config is authenticated against it.
+
+1. **Deploy** — invoke the `deploy-plugin` skill to validate and deploy the shell.
+2. **Authenticate** — ask the user to add the plugin to their tenant in the SquaredUp UI and authenticate it. **Pause and wait for them to confirm.**
+3. **Capture the plugin id and config id** — run `squaredup configs --json` and grab both the `pluginId` and the config `id`. Reuse them as `--plugin-id <id> --config <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and config lookups each call.
+4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --config <id> --json` and confirm it returns without an auth error. Repeat until clean.
+
+Do not proceed to Phase 5 until auth is confirmed. See [testing.md](references/testing.md).
+
+---
+
+## Phase 5: Import definitions & import streams
+
+Write `indexDefinitions/default.json` and the unscoped list/import streams it calls. Read [index-defs.md](references/index-defs.md).
+
+Test each import stream as you write it — they are unscoped, so they need no object: `squaredup test <stream> --plugin-id <pluginId> --config <id> --json` (reusing the plugin and config ids captured at Checkpoint A). Inspect the returned rows and fix until each returns one flat row per object. See [testing.md](references/testing.md).
+
+---
+
+## Checkpoint B: Redeploy & run the first import
+
+Scoped data streams can't be tested until objects exist, which means the import steps must be live and an import must have run.
+
+1. **Redeploy** — invoke `deploy-plugin` again so the new import steps ship.
+2. **Import** — ask the user to let the initial import run in the UI (it kicks off when the config is added; otherwise trigger it). **Pause and wait.**
+3. **Confirm** — poll `squaredup objects <scopedStream> --plugin-id <pluginId> --config <id> --json` until it returns a non-empty list. Cap retries at a few attempts; if still empty, ask the user to check the import status rather than looping. See [testing.md](references/testing.md).
+
+---
+
+## Phase 6: Data streams
+
+Write `dataStreams/*.json` and any `scripts/*.js`. Read [data-streams.md](references/data-streams.md).
+
+**Test every stream before moving to the next** (full loop in [testing.md](references/testing.md)):
+
+Pass the `--plugin-id <id> --config <id>` you captured at Checkpoint A on every call (it saves the CLI a plugin and config lookup each time):
+
+- **Scoped stream** → `squaredup objects <stream> --plugin-id <pluginId> --config <id> --json` to get an object id, then `squaredup test <stream> --object <objId> --plugin-id <pluginId> --config <id> --json`.
+- **Global stream** → `squaredup test <stream> --plugin-id <pluginId> --config <id> --json`.
+
+Inspect the output (the `[Request] URL` and raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`), fix `pathToData`/scripts/metadata, and re-test until correct. `test` sends your **local** stream config, so you do **not** redeploy to test a new or edited stream — only Checkpoints A and B and the final deploy need a redeploy.
+
+---
+
+## Phases 7–8: OOB content & custom types
+
+| Phase | Files | Reference |
+| --- | --- | --- |
+| 7 — OOB default content | `defaultContent/`, `scopes.json` | [oob-content.md](references/oob-content.md) |
+| 8 — Custom types | `custom_types.json` | [common-patterns.md](references/common-patterns.md) |
 
 For reusable patterns (built-in properties stream, configValidation steps), read [common-patterns.md](references/common-patterns.md).
 
 ---
 
-## Phase 9: Validate & Deploy
+## Phase 9: Final validate & deploy
 
-Invoke the `deploy-plugin` skill.
+Invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
