@@ -2,7 +2,7 @@
 
 To connect SquaredUp to Huntress, you will need to generate API credentials.
 
-## Generating Huntress API Credentials
+## Generate API credentials
 
 1. Log in to your Huntress account at `https://<your_account_subdomain>.huntress.io`.
 2. Open the dropdown menu at the top-right corner of the site header and select **API Credentials**.
@@ -14,7 +14,7 @@ You will receive a **Public Key** and a **Private Key**. These will act as your 
 
 The default account-level credential is read-only, which is all this plugin needs.
 
-## Configuring the Plugin in SquaredUp
+## Configure the plugin
 
 1. Add the **Huntress** plugin in SquaredUp.
 2. Enter the **Public Key** and **Private Key** generated from Huntress.
