@@ -21,7 +21,7 @@ To use this data source, you will need to create OAuth2 API credentials in your 
 
 When adding the NinjaOne data source in SquaredUp, you will need to provide:
 
-1. **Region**: Select your NinjaOne instance region (US, EU, Canada, or OC). The API URL will be automatically configured based on your selection.
+1. **Region**: Select your NinjaOne instance region (US, US2, EU, Canada, or OC). The API URL will be automatically configured based on your selection.
 
 2. **Client ID**: Paste the Client ID from your NinjaOne API application
 
