@@ -1,4 +1,4 @@
-## Configuring the data source
+# Configuring the data source
 
 1. Display name:  
 Enter a name for your data source. This helps you to identify this data source in the list of your data sources.
@@ -19,17 +19,17 @@ Once this is completed, fill in the details below:
 
 3. Click Test and add to validate the data source configuration. SquaredUp will now attempt to connect using the provided authentication details.
 
-## Testing and troubleshooting
+# Testing and troubleshooting
 
 If you encounter an error refer to the guidance or contact our support team in-app or via [SquaredUp Support](https://docs.squaredup.com/submit-ticket)
 
 For errors on dashboard tiles see [Troubleshooting tiles](https://docs.squaredup.com/troubleshooting/troubleshooting-tiles).
 
-## Next Steps
+# Next Steps
 
 Once you have successfully connected to data source, you can start exploring your imported objects and using your data streams to create data tiles on your dashboards. Take a look at the pre-installed dashboards to see examples of how you can visualize your data.
 
-### Dashboards
+## Dashboards
 
 The following pre-built dashboards are available with this plugin:
 
@@ -41,23 +41,23 @@ The following pre-built dashboards are available with this plugin:
     - **Vulnerabilities** — Critical and high vulnerability counts, a severity breakdown, affected software, and the full list of vulnerabilities for the selected device.
     - **Recommendations** — Active security configuration recommendations for the selected device, grouped by configuration category and impact.
 
-### Graph imported objects
+## Graph imported objects
 The following objects are imported:
 
 - **Devices** — Contains data about each of the devices managed by the connected Defender instance.
 
-### Data streams
+## Data streams
 The following data streams are installed with this plugin:
 
-- **Advanced Hunting Query** — Queries a specified set of data supported by Defender to proactively look for specific threats in your environment. Parameters:
-    - Query: the KQL query to run.
+- **Advanced Hunting Query** — Queries a specified set of data supported by Defender to proactively look for specific threats in your environment. **Parameters:**
+    - **Query**: the KQL query to run.
 - **Secure Score History** — Retrieves the current tenant's Secure Score data from the past 90 days.
 - **Recommendations** — Returns recommendations data for the specified device.
 - **Vulnerabilities** — Returns vulnerabilities data for the specified device.
 - **Devices** — Returns detailed attributes and properties for the specified device.
-- **Alerts** — Returns a list of alert resources created to track suspicious activities in an organization. Parameters:
+- **Alerts** — Returns a list of alert resources created to track suspicious activities in an organization. **Parameters:**
     - Filters available: **Severity, Status**
-- **Incidents** — Returns a list of incident objects that Microsoft 365 Defender created to track attacks in an organization. Parameters:
+- **Incidents** — Returns a list of incident objects that Microsoft 365 Defender created to track attacks in an organization. **Parameters:**
     - Filters available: **Severity, Status**
 
 
