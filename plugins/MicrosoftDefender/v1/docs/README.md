@@ -1,15 +1,17 @@
 # Configuring the data source
 
-1. Display name:  
+**Display name:** 
+
 Enter a name for your data source. This helps you to identify this data source in the list of your data sources.
 
-2. Authentication:  
+**Authentication:** 
+
 M365 client credentials are required to configure this plugin. Follow the steps in [Configuring App Registration for the Microsoft 365 Plugin](https://docs.squaredup.com/data-sources/microsoft-365-plugin/configuring-app-registration-for-the-microsoft-365-plugin). Ensure to add the following permissions below to configure your app for Defender:
 
-- **SecurityAlert.Read.All**
-- **SecurityIncident.Read.All**
-- **ThreatHunting.Read.All**
-- **SecurityEvents.Read.All**
+- _SecurityAlert.Read.All_
+- _SecurityIncident.Read.All_
+- _ThreatHunting.Read.All_
+- _SecurityEvents.Read.All_
 
 Once this is completed, fill in the details below:
 
@@ -17,7 +19,7 @@ Once this is completed, fill in the details below:
 - _Application (Client) ID_
 - _Client Secret_
 
-3. Click Test and add to validate the data source configuration. SquaredUp will now attempt to connect using the provided authentication details.
+Click Test and add to validate the data source configuration. SquaredUp will now attempt to connect using the provided authentication details.
 
 # Testing and troubleshooting
 
@@ -49,15 +51,15 @@ The following objects are imported:
 ## Data streams
 The following data streams are installed with this plugin:
 
-- **Advanced Hunting Query** — Queries a specified set of data supported by Defender to proactively look for specific threats in your environment. **Parameters:**
-    - **Query**: the KQL query to run.
+- **Advanced Hunting Query** — Queries a specified set of data supported by Defender to proactively look for specific threats in your environment. *Parameters:*
+    - *Query*: the KQL query to run.
 - **Secure Score History** — Retrieves the current tenant's Secure Score data from the past 90 days.
 - **Recommendations** — Returns recommendations data for the specified device.
 - **Vulnerabilities** — Returns vulnerabilities data for the specified device.
 - **Devices** — Returns detailed attributes and properties for the specified device.
-- **Alerts** — Returns a list of alert resources created to track suspicious activities in an organization. **Parameters:**
-    - Filters available: **Severity, Status**
-- **Incidents** — Returns a list of incident objects that Microsoft 365 Defender created to track attacks in an organization. **Parameters:**
-    - Filters available: **Severity, Status**
+- **Alerts** — Returns a list of alert resources created to track suspicious activities in an organization. *Parameters:*
+    - Filters available: *Severity, Status*
+- **Incidents** — Returns a list of incident objects that Microsoft 365 Defender created to track attacks in an organization. *Parameters:*
+    - Filters available: *Severity, Status*
 
 
