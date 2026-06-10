@@ -6,7 +6,7 @@ Enter a name for your data source. This helps you to identify this data source i
 
 **Authentication:** 
 
-M365 client credentials are required to configure this plugin. Follow the steps in [Configuring App Registration for the Microsoft 365 Plugin](https://docs.squaredup.com/data-sources/microsoft-365-plugin/configuring-app-registration-for-the-microsoft-365-plugin). Ensure to add the following permissions below to configure your app for Defender:
+Client credentials are required to configure this plugin. Follow the same steps explained in the Microsoft 365 article [Configuring App Registration for the Microsoft 365 Plugin](https://docs.squaredup.com/data-sources/microsoft-365-plugin/configuring-app-registration-for-the-microsoft-365-plugin). Ensure to add the following permissions below to configure your app for Defender:
 
 - _SecurityAlert.Read.All_
 - _SecurityIncident.Read.All_
@@ -23,7 +23,7 @@ Click Test and add to validate the data source configuration. SquaredUp will now
 
 # Testing and troubleshooting
 
-If you encounter an error refer to the guidance or contact our support team in-app or via [SquaredUp Support](https://docs.squaredup.com/submit-ticket)
+If you encounter an error refer to the errors and warnings reported during on the data source configuration screen.
 
 For errors on dashboard tiles see [Troubleshooting tiles](https://docs.squaredup.com/troubleshooting/troubleshooting-tiles).
 
@@ -35,7 +35,7 @@ Once you have successfully connected to data source, you can start exploring you
 
 The following pre-built dashboards are available with this plugin:
 
-- **Cockpit** — Tenant-wide security overview, showing your current and historical Secure Score, device exposure state, active incidents, and a breakdown of detections by category (application control, exploits, persistence & privilege escalation, and malware & antivirus).
+- **Cockpit** — Tenant-wide security overview, showing your current and historical Secure Score, device exposure state, active incidents, and some example detections by category (application control, exploits, persistence & privilege escalation, and malware & antivirus).
 - **Devices Health** — Device fleet health, with counts of high- and medium-exposure devices, devices with critical vulnerabilities, and non-compliant devices.
 - **Incidents** — Incident operations view, showing active and unassigned incidents, average time to resolve, and incidents broken down by severity, status, and priority score.
 - **Devices** — Tiles will appear when you drill into a **Device** object:
@@ -46,7 +46,7 @@ The following pre-built dashboards are available with this plugin:
 ## Graph imported objects
 The following objects are imported:
 
-- **Devices** — Contains data about each of the devices managed by the connected Defender instance.
+- **Devices** — Contains property data about each of the devices managed by the connected Defender instance.
 
 ## Data streams
 The following data streams are installed with this plugin:
@@ -59,7 +59,7 @@ The following data streams are installed with this plugin:
 - **Devices** — Returns detailed attributes and properties for the specified device.
 - **Alerts** — Returns a list of alert resources created to track suspicious activities in an organization. *Parameters:*
     - Filters available: *Severity, Status*
-- **Incidents** — Returns a list of incident objects that Microsoft 365 Defender created to track attacks in an organization. *Parameters:*
+- **Incidents** — Returns a list of incident objects that Microsoft Defender created to track attacks in an organization. *Parameters:*
     - Filters available: *Severity, Status*
 
 
