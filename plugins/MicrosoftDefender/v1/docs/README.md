@@ -44,20 +44,20 @@ The following pre-built dashboards are available with this plugin:
 ### Graph imported objects
 The following objects are imported:
 
-| Object | Description |  
-| ------ | ------ |
-| Devices | Contains data about each of the devices managed by the connected Defender instance.
+- **Devices** — Contains data about each of the devices managed by the connected Defender instance.
 
 ### Data streams
-The following data streams are installed with this plugin.
-| Data Stream | Description | Parameters
-| ------ | ------ | ------ |
-| Advanced Hunting Query | Queries a specified set of data supported by Defender to proactively look for specific threats in your environment. | Query: The KQL query to run.
-| Secure Score History | Retrieves the current tenant's Secure Score data from the past 90 days | N/A
-| Recommendations | Returns recommendations data for the specified device. | N/A
-| Vulnerabilities | Returns vulnerabilities data for the specified device. | N/A
-| Devices | Returns detailed attributes and properties for the specified device. | N/A
-| Alerts | Returns a list of alert resources created to track suspicious activities in an organization. | Filters available: **Severity, Status**
-| Incidents | Returns a list of incident objects that Microsoft 365 Defender created to track attacks in an organization. | Filters available: **Severity, Status**
+The following data streams are installed with this plugin:
+
+- **Advanced Hunting Query** — Queries a specified set of data supported by Defender to proactively look for specific threats in your environment. Parameters:
+    - Query: the KQL query to run.
+- **Secure Score History** — Retrieves the current tenant's Secure Score data from the past 90 days.
+- **Recommendations** — Returns recommendations data for the specified device.
+- **Vulnerabilities** — Returns vulnerabilities data for the specified device.
+- **Devices** — Returns detailed attributes and properties for the specified device.
+- **Alerts** — Returns a list of alert resources created to track suspicious activities in an organization. Parameters:
+    - Filters available: **Severity, Status**
+- **Incidents** — Returns a list of incident objects that Microsoft 365 Defender created to track attacks in an organization. Parameters:
+    - Filters available: **Severity, Status**
 
 
