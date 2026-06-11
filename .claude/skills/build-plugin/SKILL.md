@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.5"
+    version: "0.0.6"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -20,6 +20,8 @@ This skill **tests every data stream against a live, authenticated plugin** in y
 
 1. Run `squaredup status`. If it reports you are not logged in, ask the user to run `! squaredup login` in this session (interactive; regions: `us`, `eu`, `dev`), then re-check. Login/region mechanics live in the `deploy-plugin` skill.
 2. Confirm the user has a SquaredUp tenant where they can add and authenticate the plugin.
+
+Checkpoint B drives the import with `squaredup index` / `index-status`, so a current `squaredup` CLI is assumed.
 
 If login or a tenant is unavailable, **stop** — this skill cannot build a plugin it cannot test.
 
@@ -55,7 +57,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
 - [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [testing.md](references/testing.md)
 - [ ] **Phase 5** — Write import definitions and import streams; test each → [index-defs.md](references/index-defs.md), [testing.md](references/testing.md)
-- [ ] **Checkpoint B** — Redeploy and run the first import so objects exist → [testing.md](references/testing.md)
+- [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [testing.md](references/testing.md)
 - [ ] **Phase 6** — Write data streams; test each before moving on → [data-streams.md](references/data-streams.md), [testing.md](references/testing.md)
 - [ ] **Phase 7** — Write OOB default content → [oob-content.md](references/oob-content.md)
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
@@ -102,27 +104,34 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 ## Plan
 
 ### Object types
+
 - `My Installation` — sites being monitored
 - `My Device` — physical devices reporting telemetry
 
 ### Import steps
+
 - `installations` — one step, returns both types
 
 ### Data streams
+
 - `batterySummary` — per-device, current state
 - `batteryHistory` — per-device, time-series
 - `siteAlarms` — per-installation
 
 ### What's intentionally omitted
+
 - Webhook ingestion (no v1 use case)
 
 ### Authentication
+
 - API key in `X-API-Key` header
 
 ### OOB dashboards
+
 - Overview, Installation perspective, Device perspective
 
 ### sourceId format
+
 - Installation: raw API `id`
 - Device: composite `{installationId}-{deviceId}` (API has no global device ID)
 ```
@@ -211,10 +220,13 @@ This is the deployable **shell**: just enough to deploy, add to a tenant, and au
 
 The shell can't be tested until it's deployed and a config is authenticated against it.
 
-1. **Deploy** — invoke the `deploy-plugin` skill to validate and deploy the shell.
-2. **Authenticate** — ask the user to add the plugin to their tenant in the SquaredUp UI and authenticate it. **Pause and wait for them to confirm.**
-3. **Capture the plugin id and config id** — run `squaredup configs --json` and grab both the `pluginId` and the config `id`. Reuse them as `--plugin-id <id> --config <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and config lookups each call.
-4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --config <id> --json` and confirm it returns without an auth error. Repeat until clean.
+1. **Deploy** — invoke the `deploy-plugin` skill to validate and deploy the shell. Deploy with `squaredup deploy --json --force`; the JSON output includes the deployed `pluginId` — **capture it here** rather than looking it up later.
+2. **Authenticate** — give the user a direct link to the plugin's setup page so they can add it to their tenant and authenticate:
+    - Plugin id: take the `pluginId` from the `deploy --json` output in step 1. (No need to run `squaredup list` — the deploy already returned it.)
+    - Region: `squaredup status` prints `Region: <region>`. Build the host — `us` → `app.squaredup.com`, any other region → `<region>.app.squaredup.com` (e.g. `eu` → `eu.app.squaredup.com`).
+    - Send them to `https://<host>/settings/plugins?addPluginId=<id>` and ask them to authenticate it. **Pause and wait for them to confirm.**
+3. **Capture the datasource id** — you already have the `pluginId` from step 1. The datasource only exists once the user authenticates, so run `squaredup datasources --json` now to grab the datasource `id`. Reuse both as `--plugin-id <id> --datasource-id <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and datasource lookups each call.
+4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json` and confirm it returns without an auth error. Repeat until clean.
 
 Do not proceed to Phase 5 until auth is confirmed. See [testing.md](references/testing.md).
 
@@ -224,17 +236,18 @@ Do not proceed to Phase 5 until auth is confirmed. See [testing.md](references/t
 
 Write `indexDefinitions/default.json` and the unscoped list/import streams it calls. Read [index-defs.md](references/index-defs.md).
 
-Test each import stream as you write it — they are unscoped, so they need no object: `squaredup test <stream> --plugin-id <pluginId> --config <id> --json` (reusing the plugin and config ids captured at Checkpoint A). Inspect the returned rows and fix until each returns one flat row per object. See [testing.md](references/testing.md).
+Test each import stream as you write it — they are unscoped, so they need no object: `squaredup test <stream> --plugin-id <pluginId> --datasource-id <id> --json` (reusing the plugin and datasource ids captured at Checkpoint A). Inspect the returned rows and fix until each returns one flat row per object. See [testing.md](references/testing.md).
 
 ---
 
 ## Checkpoint B: Redeploy & run the first import
 
-Scoped data streams can't be tested until objects exist, which means the import steps must be live and an import must have run.
+Scoped data streams can't be tested until objects exist, which means the import steps must be live and an import must have run. The CLI triggers and tracks the import for you, so **drive it yourself — don't ask the user to run it in the UI.**
 
-1. **Redeploy** — invoke `deploy-plugin` again so the new import steps ship.
-2. **Import** — ask the user to let the initial import run in the UI (it kicks off when the config is added; otherwise trigger it). **Pause and wait.**
-3. **Confirm** — poll `squaredup objects <scopedStream> --plugin-id <pluginId> --config <id> --json` until it returns a non-empty list. Cap retries at a few attempts; if still empty, ask the user to check the import status rather than looping. See [testing.md](references/testing.md).
+1. **Redeploy** — invoke `deploy-plugin` again so the new import steps ship. The import definitions only take effect once this redeploy lands, so the import must run _after_ it.
+2. **Trigger** — `squaredup index --datasource-id <id> --json`. This re-indexes the datasource and returns immediately with a `since` anchor; capture it. (If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.)
+3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [testing.md](references/testing.md).
+4. **Confirm** — check objects landed with an **inline scope**: `squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json` should return a non-empty list. `<Object Type>` is a `sourceType` from the `objectTypes` you defined in `metadata.json` / `indexDefinitions/default.json`. Use `--matches` here, **not** `objects <stream>`: that form resolves a data stream file's `matches`, but no scoped data stream exists yet (those come in Phase 6) and the import streams written so far have no `matches` to resolve. For the same reason, pass **inline** JSON — `--matches @<importStream>.json` won't work, as an import stream's `matches` is `none`/absent.
 
 ---
 
@@ -244,10 +257,10 @@ Write `dataStreams/*.json` and any `scripts/*.js`. Read [data-streams.md](refere
 
 **Test every stream before moving to the next** (full loop in [testing.md](references/testing.md)):
 
-Pass the `--plugin-id <id> --config <id>` you captured at Checkpoint A on every call (it saves the CLI a plugin and config lookup each time):
+Pass the `--plugin-id <id> --datasource-id <id>` you captured at Checkpoint A on every call (it saves the CLI a plugin and datasource lookup each time):
 
-- **Scoped stream** → `squaredup objects <stream> --plugin-id <pluginId> --config <id> --json` to get an object id, then `squaredup test <stream> --object <objId> --plugin-id <pluginId> --config <id> --json`.
-- **Global stream** → `squaredup test <stream> --plugin-id <pluginId> --config <id> --json`.
+- **Scoped stream** → `squaredup objects <stream> --plugin-id <pluginId> --datasource-id <id> --json` to get an object id, then `squaredup test <stream> --object <objId> --plugin-id <pluginId> --datasource-id <id> --json`.
+- **Global stream** → `squaredup test <stream> --plugin-id <pluginId> --datasource-id <id> --json`.
 
 Inspect the output (the `[Request] URL` and raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`), fix `pathToData`/scripts/metadata, and re-test until correct. `test` sends your **local** stream config, so you do **not** redeploy to test a new or edited stream — only Checkpoints A and B and the final deploy need a redeploy.
 
@@ -255,10 +268,10 @@ Inspect the output (the `[Request] URL` and raw `[Response] Body` under `request
 
 ## Phases 7–8: OOB content & custom types
 
-| Phase | Files | Reference |
-| --- | --- | --- |
-| 7 — OOB default content | `defaultContent/`, `scopes.json` | [oob-content.md](references/oob-content.md) |
-| 8 — Custom types | `custom_types.json` | [common-patterns.md](references/common-patterns.md) |
+| Phase                   | Files                            | Reference                                           |
+| ----------------------- | -------------------------------- | --------------------------------------------------- |
+| 7 — OOB default content | `defaultContent/`, `scopes.json` | [oob-content.md](references/oob-content.md)         |
+| 8 — Custom types        | `custom_types.json`              | [common-patterns.md](references/common-patterns.md) |
 
 For reusable patterns (built-in properties stream, configValidation steps), read [common-patterns.md](references/common-patterns.md).
 

@@ -31,6 +31,7 @@ squaredup validate --json       # JSON output — use this flag when running as 
 # Deploy
 squaredup deploy --force        # overwrite without confirmation prompt
 squaredup deploy --watch        # re-deploy automatically on file changes
+squaredup deploy --json --force # non-interactive deploy; emits the deployed pluginId as JSON — use this when running as a Claude/AI agent
 
 # List and delete deployed plugins
 squaredup list                  # list all plugins deployed to your tenant
@@ -42,6 +43,28 @@ squaredup --silent              # suppress output
 ```
 
 Always validate before deploying. The validator catches: missing required fields, unknown keys, invalid matches syntax, broken dashboard references.
+
+---
+
+## `--json` deploy (for AI agents / CI)
+
+Run `squaredup deploy --json --force`. On success it prints a single JSON object to stdout:
+
+```json
+{
+  "action": "created",
+  "pluginId": "abc123",
+  "pluginIds": ["abc123"],
+  "displayName": "MyPlugin",
+  "name": "myplugin",
+  "version": "1.0.0"
+}
+```
+
+- `pluginId` — the deployed plugin's id, populated whether the deploy **created** or **updated** the plugin. Capture it instead of running a separate `squaredup list` to look the id up.
+- `pluginIds` — every deployed id; usually one, but two for a hybrid (cloud + on-prem) plugin, with the primary (cloud) plugin first.
+- `--force` is required in `--json` mode to overwrite an existing plugin — the JSON path is non-interactive and won't prompt. Without it, deploying over an existing plugin fails cleanly (stderr + non-zero exit).
+- On validation failure, `--json` emits the same `ValidationResult` shape as `validate --json` instead of the deploy result, so one parser handles both.
 
 ---
 

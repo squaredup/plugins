@@ -13,48 +13,51 @@ Test data streams against a **deployed, authenticated** plugin so you see exactl
 
 You are running in a non-TTY shell, so the CLI's interactive pickers (object, config, data-stream selection) can't run and will block. **Always pass `--json`** and supply IDs explicitly via flags. `--json` also gives you parseable output instead of the interactive viewer.
 
-## Capture the plugin and config ids once
+## Capture the plugin and datasource ids once
 
-The first thing to do once a config exists (Checkpoint A) is grab **both** ids with `squaredup configs --json` and hold onto them for the rest of the session. Then pass `--plugin-id <id> --config <id>` on **every** `test`/`objects` call. If you omit them, the CLI re-resolves them on each invocation — two round-trips per call (`listPlugins` to turn the plugin name into an id, then `listPluginConfigs` to pick the config) that add up fast across the per-stream loops in Phases 5 and 6. Fetching both ids once and threading them through skips those lookups every time.
+The first thing to do once a datasource exists (Checkpoint A) is grab **both** ids with `squaredup datasources --json` and hold onto them for the rest of the session. Then pass `--plugin-id <id> --datasource-id <id>` on **every** `test`/`objects` call. If you omit them, the CLI re-resolves them on each invocation — two round-trips per call (`listPlugins` to turn the plugin name into an id, then a datasource lookup to pick the datasource) that add up fast across the per-stream loops in Phases 5 and 6. Fetching both ids once and threading them through skips those lookups every time.
 
 ```bash
-squaredup configs --json   # → { "pluginId": "plugin-...", "configs": [ { "id": "config-...", "displayName": "..." } ] }
+squaredup datasources --json   # → { "pluginId": "plugin-...", "datasources": [ { "id": "config-...", "displayName": "..." } ] }
 ```
 
-`--config` alone does **not** skip the plugin lookup — `--plugin-id` is what avoids the `listPlugins` round-trip, so pass both.
+`--datasource-id` alone does **not** skip the plugin lookup — `--plugin-id` is what avoids the `listPlugins` round-trip, so pass both.
 
 ## Commands
 
 ```bash
 # Global / unscoped stream (matches "none" or absent) — no object needed
-squaredup test <stream> --plugin-id <pluginId> --config <configId> --json
+squaredup test <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json
 
 # Scoped stream — first get an object id, then test against it
-squaredup objects <stream> --plugin-id <pluginId> --config <configId> --json   # → { "objects": [ { "id": "...", "name": "..." } ], "truncated": false }
-squaredup test <stream> --object <objectId> --plugin-id <pluginId> --config <configId> --json
+squaredup objects <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json   # → { "objects": [ { "id": "...", "name": "..." } ], "truncated": false }
+squaredup test <stream> --object <objectId> --plugin-id <pluginId> --datasource-id <datasourceId> --json
 ```
 
 All these commands resolve the plugin from `metadata.json` in the current folder (or a path argument). Run them from the versioned plugin directory, e.g. `my-plugin/v1/`.
 
-### Useful flags (shared by `test` / `objects` / `configs`)
+### Useful flags (shared by `test` / `objects` / `datasources`)
 
 | Flag | Applies to | Purpose |
 | --- | --- | --- |
 | `--json` | all | Machine-readable output; disables interactive prompts. Always use it. |
-| `--config <id>` | `test`, `objects` | Target a specific plugin config. Always pass it — capture the id once from `squaredup configs --json` (see above) so the CLI skips a config lookup on every call. Strictly required when more than one config exists, otherwise the picker blocks in this non-TTY shell. |
-| `--plugin-id <id>` | all | Target a deployed plugin by id instead of by name. Always pass it — capture the id once from `squaredup configs --json` (it's the `pluginId` field) so the CLI skips the `listPlugins` lookup it would otherwise do on every call to resolve the plugin name. |
+| `--datasource-id <id>` | `test`, `objects` | Target a specific datasource (plugin config). Always pass it — capture the id once from `squaredup datasources --json` (see above) so the CLI skips a datasource lookup on every call. Strictly required when more than one datasource exists, otherwise the picker blocks in this non-TTY shell. |
+| `--plugin-id <id>` | all | Target a deployed plugin by id instead of by name. Always pass it — capture the id once from `squaredup datasources --json` (it's the `pluginId` field) so the CLI skips the `listPlugins` lookup it would otherwise do on every call to resolve the plugin name. |
 | `--object <id>` | `test` | Scope a scoped stream to an object (node) id from `squaredup objects`. |
+| `--matches <json>` | `objects` | Resolve a scope inline instead of from a stream file — pass a `{"sourceType":...}` object. The way to check "did my objects index?" at Checkpoint B, before any scoped stream exists. Mutually exclusive with a stream name. The `@file` form only resolves a real scope — pointing it at an import/global stream (whose `matches` is `none`/absent) finds nothing, so pass inline JSON at Checkpoint B. |
 | `--suffix <s>` | all | Match a plugin deployed with `deploy --suffix <s>`. |
 | `--timeframe <enum>` | `test` | Timeframe to send, e.g. `last1hour`, `last24hours` (default `last1hour`). |
 | `--ui name=value` | `test` | Supply a value for a parameterised stream's UI field (repeatable), e.g. `--ui metric=cpu`. |
 | `--diagnostic <name>` | `test` | Print only the named plugin diagnostic (e.g. `--diagnostic Body`) and exit. **Omits the shaped `data`** — use a plain `--json` or `--data-only` run to see shaped rows. |
 | `--data-only` | `test` | Print only the shaped data stream response (`data`), skipping the plugin diagnostics. The mirror of `--diagnostic`; the two can't be combined. |
 
-`squaredup objects` errors if the stream is **not** scoped (it has no objects), and exits 0 with `{"objects":[]}` when the stream is scoped but nothing is imported yet — that empty list is your signal to wait for the import.
+The `objects <stream>` form resolves the named data stream file's `matches` — so it needs a **scoped** stream. It errors if the stream is **not** scoped (it has no objects), and exits 0 with `{"objects":[]}` when the stream is scoped but nothing is imported yet — an empty list means the import hasn't populated objects, so drive the Checkpoint B `import` / `import-status` loop to completion (below) and re-check. When no scoped stream exists yet (Checkpoint B, before Phase 6), use `--matches '{"sourceType":...}'` to resolve a scope inline instead — see the flags table above.
 
 ## Reading the output
 
 `squaredup test --json` returns the test endpoint's full response. Two top-level properties matter — `requests` (the raw API exchange) and `data` (the shaped result). (`completedAt` / `validForSeconds` are timestamps you can ignore.)
+
+> ⚠️ **Don't merge stderr into stdout when parsing `--json`.** The JSON payload goes to **stdout**; the progress spinner (`- Running diagnostics for "..."`) goes to **stderr**. Piping with `2>&1` (e.g. `squaredup test ... --json 2>&1 | jq`) merges that spinner line into the JSON stream and the parse fails on line 1. Pipe stdout only — `squaredup test ... --json | jq` — or redirect stderr away (`2>$null` in PowerShell). Also: on Windows there is no `/tmp`; use `$env:TEMP` if you need a scratch file.
 
 ### `requests` — the plugin diagnostics (raw API exchange)
 
@@ -97,7 +100,7 @@ The `raw → value → formatted` triple is your shaping debugger: if `raw` is c
 For each data stream:
 
 1. Write the stream JSON (and script, if needed).
-2. Test it, passing the `--plugin-id <id> --config <id>` you captured at Checkpoint A (`objects` → `test --object` for scoped; `test` for global).
+2. Test it, passing the `--plugin-id <id> --datasource-id <id>` you captured at Checkpoint A (`objects` → `test --object` for scoped; `test` for global).
 3. Inspect the output — the raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`. If the raw payload, shaped rows, or column types are wrong, fix `pathToData` / the script / `metadata` and go back to step 2.
 4. Only move to the next stream once it returns correct data. No redeploy required.
 
@@ -106,14 +109,30 @@ For each data stream:
 **Auth probe (Checkpoint A)** — after the user authenticates the config, capture the plugin id and config id, then confirm auth before building anything else. Reuse both on every `test`/`objects` call in Phases 5–6 and Checkpoint B:
 
 ```bash
-squaredup configs --json                              # → grab "pluginId" and the config "id"; the config now exists
-squaredup test <validationStream> --plugin-id <pluginId> --config <id> --json   # repeat until it returns without an auth error
+squaredup datasources --json                          # → grab "pluginId" and the datasource "id"; the datasource now exists
+squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json   # repeat until it returns without an auth error
 ```
 
-**Import poll (Checkpoint B)** — after redeploying import steps and asking the user to run the import:
+**Trigger & poll the import (Checkpoint B)** — after redeploying the import steps, drive the import via the CLI yourself (no UI, no user pause):
 
 ```bash
-squaredup objects <scopedStream> --plugin-id <pluginId> --config <id> --json   # poll until "objects" is non-empty
+# 1. Trigger a re-index; capture the `since` poll anchor it emits
+squaredup index --datasource-id <id> --json
+#    → { "datasourceId": "config-...", "triggered": true, "alreadyRunning": false, "since": 1717000000000 }
+
+# 2. Poll until done, passing that `since` so it pins to the run you just triggered
+squaredup index-status --datasource-id <id> --since 1717000000000 --json
+#    → { ..., "done": false, "status": "inProgress", "succeeded": null }  # keep polling
+#    → { ..., "done": true,  "status": "succeeded",   "succeeded": true, "steps": [ ... ] }  # objects indexed
+
+# 3. Confirm objects now exist — pass an inline scope (no scoped stream exists yet; import streams have no `matches` to resolve)
+squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json   # → non-empty "objects"
 ```
 
-Cap the poll at a few attempts. If it's still empty, ask the user to check the import status in the UI rather than looping indefinitely.
+Notes:
+
+- `index` / `index-status` are **folder-independent** — they need only `--datasource-id <id>` (not `--plugin-id`), since the re-index endpoint is keyed purely on the datasource.
+- **Branch on the JSON, not the exit code.** `index-status` exits `0` on every clean read regardless of import state. A failed import is `done: true, succeeded: false` — *not* a non-zero exit. Read the run-level `message` and the per-step `steps[]` (each step has `name`, `status`, `errorReason`, `totalObjectsReceived`, `totalObjectsWritten`) to see **which** step broke and why, fix that import stream, and re-trigger.
+- **`status` is the run's lifecycle, not the outcome.** While running it's `ready`/`inProgress`; once `done` it's one of `succeeded`, `failed`, `warning`, or `cancelled`. `succeeded` and `warning` both report `succeeded: true` (a `warning` run finished but a step emitted warnings — check the `steps[]`); `failed` and `cancelled` report `succeeded: false`. A datasource that has never imported reports `status: "notRun"`, `done: false`.
+- `--since` is **exclusive** (`scheduledStart > since`): always pass the `since` from `index` so `done` can't latch on a stale previous run.
+- If `index` reports `alreadyRunning: true`, it adopted the in-flight run — poll with the `since` it returned. Imports can take several minutes (object import allows up to ~10 min); use a generous overall timeout.
