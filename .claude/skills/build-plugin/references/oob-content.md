@@ -161,7 +161,7 @@ Use `transpose: true` for key-value single-row data:
     "config": {
         "data-stream-line-graph": {
             "xAxisColumn": "timestamp",
-            "yAxisColumns": ["value", "baseline"],
+            "yAxisColumn": ["value", "baseline"],
             "seriesColumn": "none",
             "showLegend": true,
             "legendPosition": "bottom",
@@ -172,6 +172,8 @@ Use `transpose: true` for key-value single-row data:
     }
 }
 ```
+
+> **Note:** `legendPosition` is required when `showLegend` is `true`. Valid values are `"top"`, `"bottom"`, `"left"`, and `"right"`.
 
 ### Bar chart
 
