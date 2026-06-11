@@ -143,4 +143,59 @@ result = installations.flatMap((inst) =>
 );
 ```
 
-See [data-streams.md § Post-request scripts](data-streams.md#post-request-scripts) for the full "do I need a script?" checklist.
+**"Do I need a script?" checklist** — if every line of the script you were about to write resolves to a row in this table, use the declarative feature and delete the script:
+
+| Need                                                      | Use instead                                                                              |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Navigate to a nested array                                | `pathToData: "a.b.items"`                                                                |
+| Flatten one level of nested object per row                | `expandInnerObjects: true` (produces `nested.field` columns)                             |
+| Constant column value per row (e.g. fixed sourceType)     | `{ "name": "sourceType", "computed": true, "valueExpression": "My Type" }`               |
+| Derive one column from others on the same row             | `valueExpression: "{{ $['a'] + $['b'] }}"` (add `"computed": true` if not in response)   |
+| Coerce `"unknown"` / `"n/a"` / `""` to null for a numeric | `valueExpression: "{{ ['unknown','n/a',''].includes($['x']) ? null : Number($['x']) }}"` |
+| Rename for display only                                   | `displayName` in the column's metadata entry                                             |
+
+Scripts are justified only for: deeply-nested (>1 level) or array-into-rows flattening (as above), cross-field filtering, deduplication, reduce-style operations (`_.groupBy` etc.), or parsing a non-JSON response body.
+
+**Script wiring essentials:**
+
+- Set `config.postRequestScript` to the filename **including `.js`**; name the file after the stream's `name` and place it in `dataStreams/scripts/`.
+- The script receives the parsed response body as `data` (plus `response.body` for non-JSON, and lodash as `_`) and must assign an array of flat row objects to `result`.
+- `pathToData` is **ignored** when a script is set — configure one or the other, never both.
+- Return real JS primitives (numbers as numbers, not strings) so column types infer correctly.
+
+### Other paging modes
+
+The example stream above uses `offset` paging. The other modes:
+
+```json
+"paging": { "mode": "none" }
+
+// Token/cursor — API returns a cursor to send with the next request
+"paging": {
+    "mode": "token",
+    "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+    "in": { "realm": "payload", "path": "meta.next_cursor" },
+    "out": { "realm": "queryArg", "path": "cursor" }
+}
+
+// Next-URL — API returns the next page's URL in the body or a header
+"paging": {
+    "mode": "nextUrl",
+    "pageSize": { "realm": "queryArg", "path": "max", "value": "100" },
+    "in": { "realm": "payload", "path": "pageDetails.nextPageUrl" }
+}
+```
+
+`realm` options: `queryArg`, `header`, `body` (POST only), `payload`, `payloadArraySize`. `offset.mode`: `page` (increments 1,2,3…) or `row` (increments by page size).
+
+### Stream-level requirements
+
+Import streams are ordinary data stream files in `dataStreams/` — they need `name`, `displayName`, `description`, and `tags` like any other stream. Mark import-only streams as hidden so they don't clutter the tile editor:
+
+```json
+"visibility": { "type": "hidden" }
+```
+
+---
+
+> **This file is self-contained.** Authoring import streams does **not** require `data-streams.md` — that is the Phase 6 authoring guide read by sub-agents only, and pulling it into the main context wastes ~8K tokens.

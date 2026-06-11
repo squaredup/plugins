@@ -234,7 +234,7 @@ Do not proceed to Phase 5 until auth is confirmed. See [testing.md](references/t
 
 ## Phase 5: Import definitions & import streams
 
-Write `indexDefinitions/default.json` and the unscoped list/import streams it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md).
+Write `indexDefinitions/default.json` and the unscoped list/import streams it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md) — it is **self-contained** for import-stream authoring (script checklist, paging modes, wiring). Do **not** read [data-streams.md](references/data-streams.md) for this or any later phase: it is the large Phase 6 authoring guide and only the testing sub-agents read it.
 
 Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
 
