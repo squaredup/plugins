@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.6"
+    version: "0.0.7"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -59,7 +59,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
 - [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [checkpoints.md](references/checkpoints.md)
 - [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
-- [ ] **Phase 7** — Write OOB default content → [oob-content.md](references/oob-content.md)
+- [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
 - [ ] **Phase 9** — Final validate and deploy → invoke the `deploy-plugin` skill
 
@@ -261,14 +261,22 @@ Collect the reports and resolve anything flagged. `test` sends the **local** str
 
 ---
 
-## Phases 7–8: OOB content & custom types
+## Phase 7: OOB default content — build in a sub-agent
 
-| Phase                   | Files                            | Reference                                           |
-| ----------------------- | -------------------------------- | --------------------------------------------------- |
-| 7 — OOB default content | `defaultContent/`, `scopes.json` | [oob-content.md](references/oob-content.md)         |
-| 8 — Custom types        | `custom_types.json`              | [common-patterns.md](references/common-patterns.md) |
+Dashboards are large JSON files and authoring them inline floods the main context. Spawn **one** build-mode sub-agent for all of Phase 7 — a single agent, not one per dashboard, because the dashboards share `manifest.json` and `scopes.json`. The main agent does **not** read [oob-content.md](references/oob-content.md) — the sub-agent does.
 
-For reusable patterns (built-in properties stream, configValidation steps), read [common-patterns.md](references/common-patterns.md).
+Pass in the prompt:
+
+- The versioned plugin dir, plus the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A.
+- The planned dashboards from Phase 2 (top-level summary + one perspective per object type) and the object types.
+- The data stream names to build tiles from — the sub-agent reads the stream files itself for columns and parameters.
+- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
+
+Resolve anything the report flags before Phase 8.
+
+## Phase 8: Custom types
+
+Write `custom_types.json` — for this and other reusable patterns (built-in properties stream, configValidation steps), read [common-patterns.md](references/common-patterns.md).
 
 ---
 

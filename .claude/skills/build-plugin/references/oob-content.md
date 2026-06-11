@@ -1,5 +1,7 @@
 # OOB Default Content Reference
 
+> **Audience: the Phase 7 sub-agent.** OOB content is authored by a single build-mode sub-agent (see SKILL.md Phase 7); the main agent passes the dashboard plan in the prompt and never reads this file.
+
 ## Contents
 
 - [scopes.json](#scopesjson)
