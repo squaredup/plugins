@@ -17,7 +17,7 @@
 - [timeframes](#timeframes)
 - [defaultShaping](#defaultshaping)
 - [metadata — column definitions](#metadata-column-definitions)
-- [Post-request scripts](#post-request-scripts) — [Wiring a script](#wiring-a-script-to-a-stream), [When to use](#default-no-script), [Globals](#available-globals)
+- [Post-request scripts](#post-request-scripts) — [Wiring a script](#wiring-a-script-to-a-stream), [When to use](#default-no-script), [Globals](#available-globals), [Non-JSON responses](#parsing-non-json-responses)
 
 ---
 
@@ -565,12 +565,13 @@ Use scripts ONLY for transformations that can't be expressed declaratively:
 - Deduplicating
 - Joining values across rows (rankings, running totals)
 - Anything that needs `_.groupBy` or similar reduce-style operations
+- Parsing a **non-JSON response body** (NDJSON, CSV, plain text) — the handler only auto-parses JSON and XML (see [Parsing non-JSON responses](#parsing-non-json-responses))
 
 Renaming, flattening single-level nesting, value coercion, adding constant columns, and `data.items.map(...)` reshapes are **never** valid reasons.
 
 ### Available globals
 
-Scripts have access to `data`, `context`, and **lodash** (`_`):
+Scripts have access to `data`, `response` (the raw HTTP response — `.status`, `.headers`, `.body`), `context`, and **lodash** (`_`):
 
 ```javascript
 // dataStreams/scripts/myStream.js
@@ -635,3 +636,20 @@ for (const record of data?.records || []) {
 
 result = devices;
 ```
+
+### Parsing non-JSON responses
+
+The handler auto-parses only **JSON** and **XML** response bodies into `data`. For any other format (NDJSON, CSV, plain text), `data` is `undefined` — the handler ran `JSON.parse` on the body, it threw, and the error was swallowed. The raw text is still available as `response.body`, so parse it yourself.
+
+NDJSON (one JSON object per line):
+
+```javascript
+// dataStreams/scripts/myStream.js
+result = response.body
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => JSON.parse(line));
+```
+
+The same approach applies to CSV or plain text — split and parse `response.body` into row objects, then assign the array to `result`.
