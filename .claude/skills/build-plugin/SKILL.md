@@ -56,9 +56,9 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md`)
 - [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
 - [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [testing.md](references/testing.md)
-- [ ] **Phase 5** — Write import definitions and import streams; test each → [index-defs.md](references/index-defs.md), [testing.md](references/testing.md)
+- [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
 - [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [testing.md](references/testing.md)
-- [ ] **Phase 6** — Write data streams; test each before moving on → [data-streams.md](references/data-streams.md), [testing.md](references/testing.md)
+- [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
 - [ ] **Phase 7** — Write OOB default content → [oob-content.md](references/oob-content.md)
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
 - [ ] **Phase 9** — Final validate and deploy → invoke the `deploy-plugin` skill
@@ -225,7 +225,7 @@ The shell can't be tested until it's deployed and a config is authenticated agai
     - Plugin id: take the `pluginId` from the `deploy --json` output in step 1. (No need to run `squaredup list` — the deploy already returned it.)
     - Region: `squaredup status` prints `Region: <region>`. Build the host — `us` → `app.squaredup.com`, any other region → `<region>.app.squaredup.com` (e.g. `eu` → `eu.app.squaredup.com`).
     - Send them to `https://<host>/settings/plugins?addPluginId=<id>` and ask them to authenticate it. **Pause and wait for them to confirm.**
-3. **Capture the datasource id** — you already have the `pluginId` from step 1. The datasource only exists once the user authenticates, so run `squaredup datasources --json` now to grab the datasource `id`. Reuse both as `--plugin-id <id> --datasource-id <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and datasource lookups each call.
+3. **Capture the datasource id** — you already have the `pluginId` from step 1. The datasource only exists once the user authenticates, so run `squaredup datasources --json` now to grab the datasource `id`. Reuse both as `--plugin-id <id> --datasource-id <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and datasource lookups each call. **Pass both ids into every testing sub-agent prompt** spawned in Phases 5 and 6 (see [test-agent.md](references/test-agent.md)).
 4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json` and confirm it returns without an auth error. Repeat until clean.
 
 Do not proceed to Phase 5 until auth is confirmed. See [testing.md](references/testing.md).
@@ -234,9 +234,9 @@ Do not proceed to Phase 5 until auth is confirmed. See [testing.md](references/t
 
 ## Phase 5: Import definitions & import streams
 
-Write `indexDefinitions/default.json` and the unscoped list/import streams it calls. Read [index-defs.md](references/index-defs.md).
+Write `indexDefinitions/default.json` and the unscoped list/import streams it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md).
 
-Test each import stream as you write it — they are unscoped, so they need no object: `squaredup test <stream> --plugin-id <pluginId> --datasource-id <id> --json` (reusing the plugin and datasource ids captured at Checkpoint A). Inspect the returned rows and fix until each returns one flat row per object. See [testing.md](references/testing.md).
+Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
 
 ---
 
@@ -253,16 +253,11 @@ Scoped data streams can't be tested until objects exist, which means the import 
 
 ## Phase 6: Data streams
 
-Write `dataStreams/*.json` and any `scripts/*.js`. Read [data-streams.md](references/data-streams.md).
+Data streams are independent files (`dataStreams/<name>.json` + optional `scripts/<name>.js`), and testing each one floods the main context with large raw response bodies. So **build + test each stream in its own sub-agent, spawned in parallel** — don't write or test them inline here. Read [test-agent.md](references/test-agent.md) for the contract; you do **not** need to read [data-streams.md](references/data-streams.md) yourself — the sub-agents do.
 
-**Test every stream before moving to the next** (full loop in [testing.md](references/testing.md)):
+For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all in a single message)**, passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A plus the stream's **build spec** (endpoint, method, scoping, candidate `pathToData`, planned columns + shapes, any `ui` params/timeframes). Each sub-agent writes the stream from the spec, tests it (`objects` → `test --object` for scoped; `test` for global), fixes `pathToData`/script/`metadata` until the shaped rows are correct, and returns a compact PASS/FAIL report.
 
-Pass the `--plugin-id <id> --datasource-id <id>` you captured at Checkpoint A on every call (it saves the CLI a plugin and datasource lookup each time):
-
-- **Scoped stream** → `squaredup objects <stream> --plugin-id <pluginId> --datasource-id <id> --json` to get an object id, then `squaredup test <stream> --object <objId> --plugin-id <pluginId> --datasource-id <id> --json`.
-- **Global stream** → `squaredup test <stream> --plugin-id <pluginId> --datasource-id <id> --json`.
-
-Inspect the output (the `[Request] URL` and raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`), fix `pathToData`/scripts/metadata, and re-test until correct. `test` sends your **local** stream config, so you do **not** redeploy to test a new or edited stream — only Checkpoints A and B and the final deploy need a redeploy.
+Collect the reports and resolve anything flagged. `test` sends the **local** stream config against the deployed plugin, so **no redeploy** is needed to test a new or edited stream — only Checkpoints A and B and the final deploy redeploy.
 
 ---
 

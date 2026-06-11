@@ -1,6 +1,8 @@
 # Testing data streams
 
-Test data streams against a **deployed, authenticated** plugin so you see exactly what the API returns — including for endpoints that require auth — before you rely on a stream. Used by Checkpoint A, Phase 5, Checkpoint B, and Phase 6.
+Test data streams against a **deployed, authenticated** plugin so you see exactly what the API returns — including for endpoints that require auth — before you rely on a stream.
+
+> **Who reads which part.** The **per-stream test loop (Phases 5 and 6) is run by sub-agents**, not the main agent — see [test-agent.md](test-agent.md). Those sub-agents are the primary audience for "Reading the output" and "The per-stream loop" below. The main agent runs the **Checkpoint A auth probe** and the **Checkpoint B import trigger/poll** inline (see "Checkpoint patterns") and captures the plugin/datasource ids it then threads into every sub-agent prompt.
 
 ## Mental model
 
