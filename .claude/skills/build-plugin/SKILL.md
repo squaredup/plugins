@@ -55,9 +55,9 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 2** — Plan the plugin structure
 - [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md`)
 - [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
-- [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [testing.md](references/testing.md)
+- [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [checkpoints.md](references/checkpoints.md)
 - [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
-- [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [testing.md](references/testing.md)
+- [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [checkpoints.md](references/checkpoints.md)
 - [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
 - [ ] **Phase 7** — Write OOB default content → [oob-content.md](references/oob-content.md)
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
@@ -228,7 +228,7 @@ The shell can't be tested until it's deployed and a config is authenticated agai
 3. **Capture the datasource id** — you already have the `pluginId` from step 1. The datasource only exists once the user authenticates, so run `squaredup datasources --json` now to grab the datasource `id`. Reuse both as `--plugin-id <id> --datasource-id <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and datasource lookups each call. **Pass both ids into every testing sub-agent prompt** spawned in Phases 5 and 6 (see [test-agent.md](references/test-agent.md)).
 4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json` and confirm it returns without an auth error. Repeat until clean.
 
-Do not proceed to Phase 5 until auth is confirmed. See [testing.md](references/testing.md).
+Do not proceed to Phase 5 until auth is confirmed. See [checkpoints.md](references/checkpoints.md) — the main agent never reads [testing.md](references/testing.md); that is the sub-agents' per-stream testing guide.
 
 ---
 
@@ -246,7 +246,7 @@ Scoped data streams can't be tested until objects exist, which means the import 
 
 1. **Redeploy** — invoke `deploy-plugin` again so the new import steps ship. The import definitions only take effect once this redeploy lands, so the import must run _after_ it.
 2. **Trigger** — `squaredup index --datasource-id <id> --json`. This re-indexes the datasource and returns immediately with a `since` anchor; capture it. (If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.)
-3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [testing.md](references/testing.md).
+3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [checkpoints.md](references/checkpoints.md).
 4. **Confirm** — check objects landed with an **inline scope**: `squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json` should return a non-empty list. `<Object Type>` is a `sourceType` from the `objectTypes` you defined in `metadata.json` / `indexDefinitions/default.json`. Use `--matches` here, **not** `objects <stream>`: that form resolves a data stream file's `matches`, but no scoped data stream exists yet (those come in Phase 6) and the import streams written so far have no `matches` to resolve. For the same reason, pass **inline** JSON — `--matches @<importStream>.json` won't work, as an import stream's `matches` is `none`/absent.
 
 ---
