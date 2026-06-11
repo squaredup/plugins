@@ -23,13 +23,13 @@ Click Test and add to validate the data source configuration. SquaredUp will now
 
 # Testing and troubleshooting
 
-If you encounter an error refer to the errors and warnings reported during on the data source configuration screen.
+If you encounter an error refer to the errors and warnings reported on the data source configuration screen.
 
 For errors on dashboard tiles see [Troubleshooting tiles](https://docs.squaredup.com/troubleshooting/troubleshooting-tiles).
 
 # Next Steps
 
-Once you have successfully connected to data source, you can start exploring your imported objects and using your data streams to create data tiles on your dashboards. Take a look at the pre-installed dashboards to see examples of how you can visualize your data.
+Once you have successfully connected to the data source, you can start exploring your imported objects and using your data streams to create data tiles on your dashboards. Take a look at the pre-installed dashboards to see examples of how you can visualize your data.
 
 ## Dashboards
 
