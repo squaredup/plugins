@@ -26,5 +26,4 @@ groupGames.forEach(function(g) {
 var pts = (w * 3) + d;
 var gd = gf - ga;
 
-var sourceId = context.objects[0] ? context.objects[0].sourceId : '';
-result = [{ country: teamName, group: group, mp: mp, w: w, d: d, l: l, pts: pts, gf: gf, ga: ga, gd: gd, sourceId: sourceId }];
+result = [{ country: teamName, group: group, mp: mp, w: w, d: d, l: l, pts: pts, gf: gf, ga: ga, gd: gd, sourceId: teamId }];

@@ -5,15 +5,15 @@ var groupGames = games.filter(function(g) { return g.type === 'group'; });
 
 var standings = {};
 
-function ensureTeam(name, group) {
+function ensureTeam(name, id, group) {
     if (!standings[name]) {
-        standings[name] = { group: group, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
+        standings[name] = { id: id, group: group, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
     }
 }
 
 groupGames.forEach(function(g) {
-    ensureTeam(g.home_team_name_en, g.group);
-    ensureTeam(g.away_team_name_en, g.group);
+    ensureTeam(g.home_team_name_en, g.home_team_id, g.group);
+    ensureTeam(g.away_team_name_en, g.away_team_id, g.group);
 
     if (g.finished !== 'TRUE') return;
 
@@ -38,6 +38,7 @@ groupGames.forEach(function(g) {
 var rows = Object.keys(standings).map(function(k) {
     var s = standings[k];
     return {
+        sourceId: s.id,
         team: k,
         group: s.group,
         mp: s.mp,
