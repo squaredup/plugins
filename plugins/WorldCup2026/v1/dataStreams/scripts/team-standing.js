@@ -1,21 +1,19 @@
-var games = data.games || [];
-var teamId = context.objects[0] ? String([].concat(context.objects[0].teamId)[0] || '') : '';
+var matches = data.matches || [];
 var teamName = context.objects[0] ? [].concat(context.objects[0].teamName)[0] || '' : '';
 var group = context.objects[0] ? [].concat(context.objects[0].group)[0] || '' : '';
 
-var groupGames = games.filter(function(g) {
-    return g.type === 'group' &&
-        (g.home_team_id === teamId || g.away_team_id === teamId);
+var groupGames = matches.filter(function(m) {
+    return m.group && (m.team1 === teamName || m.team2 === teamName);
 });
 
 var mp = 0, w = 0, d = 0, l = 0, gf = 0, ga = 0;
 
-groupGames.forEach(function(g) {
-    if (g.finished !== 'TRUE') return;
+groupGames.forEach(function(m) {
+    if (!m.score || !m.score.ft) return;
     mp++;
-    var isHome = g.home_team_id === teamId;
-    var myScore = parseInt(isHome ? g.home_score : g.away_score, 10) || 0;
-    var oppScore = parseInt(isHome ? g.away_score : g.home_score, 10) || 0;
+    var isHome = m.team1 === teamName;
+    var myScore = isHome ? m.score.ft[0] : m.score.ft[1];
+    var oppScore = isHome ? m.score.ft[1] : m.score.ft[0];
     gf += myScore;
     ga += oppScore;
     if (myScore > oppScore) w++;
@@ -26,4 +24,4 @@ groupGames.forEach(function(g) {
 var pts = (w * 3) + d;
 var gd = gf - ga;
 
-result = [{ country: teamName, group: group, mp: mp, w: w, d: d, l: l, pts: pts, gf: gf, ga: ga, gd: gd, sourceId: teamId }];
+result = [{ country: teamName, group: group, mp: mp, w: w, d: d, l: l, pts: pts, gf: gf, ga: ga, gd: gd, sourceId: teamName }];

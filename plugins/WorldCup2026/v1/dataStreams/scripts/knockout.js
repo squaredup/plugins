@@ -1,34 +1,27 @@
-var games = data.games || [];
+var matches = data.matches || [];
 
 var stageMap = {
-    r32: 'Round of 32',
-    r16: 'Round of 16',
-    qf: 'Quarter-Final',
-    sf: 'Semi-Final',
-    third: 'Third Place',
-    final: 'Final'
+    'Round of 32': 'Round of 32',
+    'Round of 16': 'Round of 16',
+    'Quarter-final': 'Quarter-Final',
+    'Semi-final': 'Semi-Final',
+    'Third-place play-off': 'Third Place',
+    'Final': 'Final'
 };
 
-result = games.filter(function(g) { return g.type !== 'group'; }).map(function(g) {
-    var homeTeam = g.home_team_id !== '0' ? g.home_team_name_en : (g.home_team_label || 'TBD');
-    var awayTeam = g.away_team_id !== '0' ? g.away_team_name_en : (g.away_team_label || 'TBD');
-
+result = matches.filter(function(m) { return !m.group; }).map(function(m) {
     var score = '-';
-    if (g.finished === 'TRUE') {
-        score = g.home_score + '-' + g.away_score;
-    } else if (g.time_elapsed !== 'notstarted') {
-        score = g.home_score + '-' + g.away_score + ' (Live)';
+    var status = 'Upcoming';
+    if (m.score && m.score.ft) {
+        score = m.score.ft[0] + '-' + m.score.ft[1];
+        status = 'Finished';
     }
 
-    var status = 'Upcoming';
-    if (g.finished === 'TRUE') status = 'Finished';
-    else if (g.time_elapsed !== 'notstarted') status = 'Live';
-
     return {
-        date: g.local_date,
-        round: stageMap[g.type] || g.type,
-        home_team: homeTeam,
-        away_team: awayTeam,
+        date: m.date,
+        round: stageMap[m.round] || m.round,
+        home_team: m.team1,
+        away_team: m.team2,
         score: score,
         status: status
     };

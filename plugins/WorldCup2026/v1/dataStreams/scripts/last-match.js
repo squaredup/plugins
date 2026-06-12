@@ -1,51 +1,41 @@
-var games = data.games || [];
-var teamId = context.objects[0] ? String(context.objects[0].teamId) : '';
+var matches = data.matches || [];
+var teamName = context.objects[0] ? [].concat(context.objects[0].teamName)[0] || '' : '';
+var sourceId = context.objects[0] ? context.objects[0].sourceId : '';
 
-var stageMap = {
-    group: 'Group Stage',
-    r32: 'Round of 32',
-    r16: 'Round of 16',
-    qf: 'Quarter-Final',
-    sf: 'Semi-Final',
-    third: 'Third Place',
-    final: 'Final'
+var knockoutStageMap = {
+    'Round of 32': 'Round of 32',
+    'Round of 16': 'Round of 16',
+    'Quarter-final': 'Quarter-Final',
+    'Semi-final': 'Semi-Final',
+    'Third-place play-off': 'Third Place',
+    'Final': 'Final'
 };
 
-function parseDate(d) {
-    var parts = d.split(' ');
-    var dateParts = parts[0].split('/');
-    return new Date(dateParts[2] + '-' + dateParts[0] + '-' + dateParts[1] + 'T' + parts[1] + ':00');
-}
-
-var played = games.filter(function(g) {
-    return g.finished === 'TRUE' &&
-        (g.home_team_id === teamId || g.away_team_id === teamId);
+var played = matches.filter(function(m) {
+    return m.score && (m.team1 === teamName || m.team2 === teamName);
 });
 
 played.sort(function(a, b) {
-    return parseDate(b.local_date) - parseDate(a.local_date);
+    return new Date(b.date) - new Date(a.date);
 });
-
-var sourceId = context.objects[0] ? context.objects[0].sourceId : '';
 
 if (played.length === 0) {
     result = [{ date: 'No matches played yet', home_away: '', opponent: '', score: '', result: '', stage: '', sourceId: sourceId }];
 } else {
     var last = played[0];
-    var isHome = last.home_team_id === teamId;
-    var opponent = isHome ? last.away_team_name_en : last.home_team_name_en;
-    var myScore = parseInt(isHome ? last.home_score : last.away_score, 10);
-    var oppScore = parseInt(isHome ? last.away_score : last.home_score, 10);
-    var scoreStr = isHome ? last.home_score + '-' + last.away_score : last.away_score + '-' + last.home_score;
+    var isHome = last.team1 === teamName;
+    var opponent = isHome ? last.team2 : last.team1;
+    var myScore = isHome ? last.score.ft[0] : last.score.ft[1];
+    var oppScore = isHome ? last.score.ft[1] : last.score.ft[0];
     var matchResult = myScore > oppScore ? 'Win' : myScore < oppScore ? 'Loss' : 'Draw';
 
     result = [{
-        date: last.local_date,
+        date: last.date,
         home_away: isHome ? 'Home' : 'Away',
         opponent: opponent,
-        score: scoreStr,
+        score: myScore + '-' + oppScore,
         result: matchResult,
-        stage: stageMap[last.type] || last.type,
+        stage: last.group ? 'Group Stage' : (knockoutStageMap[last.round] || last.round),
         sourceId: sourceId
     }];
 }

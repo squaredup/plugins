@@ -1,54 +1,48 @@
-var games = data.games || [];
+var matches = data.matches || [];
 var teamFilter = context.objects[0] ? [].concat(context.objects[0].teamName)[0] || '' : '';
 
-var groupGames = games.filter(function(g) { return g.type === 'group'; });
+var groupMatches = matches.filter(function(m) { return m.group; });
 
 var standings = {};
 
-function ensureTeam(name, id, group) {
+function ensureTeam(name, group) {
     if (!standings[name]) {
-        standings[name] = { id: id, group: group, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
+        standings[name] = { group: group, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
     }
 }
 
-groupGames.forEach(function(g) {
-    ensureTeam(g.home_team_name_en, g.home_team_id, g.group);
-    ensureTeam(g.away_team_name_en, g.away_team_id, g.group);
+groupMatches.forEach(function(m) {
+    ensureTeam(m.team1, m.group);
+    ensureTeam(m.team2, m.group);
 
-    if (g.finished !== 'TRUE') return;
+    if (!m.score || !m.score.ft) return;
 
-    var homeScore = parseInt(g.home_score, 10) || 0;
-    var awayScore = parseInt(g.away_score, 10) || 0;
-    var home = standings[g.home_team_name_en];
-    var away = standings[g.away_team_name_en];
+    var s1 = m.score.ft[0];
+    var s2 = m.score.ft[1];
+    var t1 = standings[m.team1];
+    var t2 = standings[m.team2];
 
-    home.mp++; away.mp++;
-    home.gf += homeScore; home.ga += awayScore;
-    away.gf += awayScore; away.ga += homeScore;
+    t1.mp++; t2.mp++;
+    t1.gf += s1; t1.ga += s2;
+    t2.gf += s2; t2.ga += s1;
 
-    if (homeScore > awayScore) {
-        home.w++; home.pts += 3; away.l++;
-    } else if (awayScore > homeScore) {
-        away.w++; away.pts += 3; home.l++;
+    if (s1 > s2) {
+        t1.w++; t1.pts += 3; t2.l++;
+    } else if (s2 > s1) {
+        t2.w++; t2.pts += 3; t1.l++;
     } else {
-        home.d++; home.pts++; away.d++; away.pts++;
+        t1.d++; t1.pts++; t2.d++; t2.pts++;
     }
 });
 
-var rows = Object.keys(standings).map(function(k) {
-    var s = standings[k];
+var rows = Object.keys(standings).map(function(name) {
+    var s = standings[name];
     return {
-        sourceId: s.id,
-        team: k,
+        sourceId: name,
+        team: name,
         group: s.group,
-        mp: s.mp,
-        w: s.w,
-        d: s.d,
-        l: s.l,
-        gf: s.gf,
-        ga: s.ga,
-        gd: s.gf - s.ga,
-        pts: s.pts
+        mp: s.mp, w: s.w, d: s.d, l: s.l,
+        gf: s.gf, ga: s.ga, gd: s.gf - s.ga, pts: s.pts
     };
 });
 
