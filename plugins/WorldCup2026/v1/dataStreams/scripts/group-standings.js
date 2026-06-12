@@ -1,5 +1,5 @@
 var games = data.games || [];
-var teamFilter = context.objects[0] ? context.objects[0].name_en : '';
+var teamFilter = context.objects[0] ? context.objects[0].teamName : '';
 
 var groupGames = games.filter(function(g) { return g.type === 'group'; });
 

@@ -1,5 +1,5 @@
 var games = data.games || [];
-var teamName = context.objects[0] ? context.objects[0].name_en : '';
+var teamId = context.objects[0] ? String(context.objects[0].teamId) : '';
 
 var stageMap = {
     group: 'Group Stage',
@@ -19,7 +19,7 @@ function parseDate(d) {
 
 var played = games.filter(function(g) {
     return g.finished === 'TRUE' &&
-        (g.home_team_name_en === teamName || g.away_team_name_en === teamName);
+        (g.home_team_id === teamId || g.away_team_id === teamId);
 });
 
 played.sort(function(a, b) {
