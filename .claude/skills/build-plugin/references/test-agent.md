@@ -40,9 +40,9 @@ The sub-agent owns translating that spec into correct JSON and validating it aga
 
 1. **(Build-mode only)** Write the stream JSON from the spec — and a `scripts/<name>.js` only if the transformation can't be done declaratively (see the script checklist in `data-streams.md`).
 2. **Test** — non-interactively, always `--json`:
-   - **Scoped** → `squaredup objects <stream> --plugin-id <id> --datasource-id <id> --json` to get an object id, then `squaredup test <stream> --object <objId> --plugin-id <id> --datasource-id <id> --json`.
-   - **Global / import (unscoped)** → `squaredup test <stream> --plugin-id <id> --datasource-id <id> --json`.
-3. **Inspect** — the raw `[Response] Body` under `requests[0]` and the shaped rows under `data` (see "Reading the output" in `testing.md`). Use the `raw → value → formatted` triple to localise faults: wrong `raw` → `pathToData`/script; wrong `value`/`formatted` → column `metadata`/`valueExpression`.
+   - **Scoped** → `squaredup objects <stream> --plugin-id <id> --datasource-id <id> --json` to get object ids, then test against **two different objects**: `squaredup test <stream> --object <objId1> ... --json` **and** `squaredup test <stream> --object <objId2> ... --json`. See "The two-object rule for scoped streams" in `testing.md` — a scoped stream that returns rows for one object is **not** proven; it must return *different* results for two different objects (or you must justify why identical results are correct).
+   - **Global / import (unscoped)** → `squaredup test <stream> --plugin-id <id> --datasource-id <id> --json`. A single test is sufficient — there is no scope to vary.
+3. **Inspect** — the raw `[Response] Body` under `requests[0]` and the shaped rows under `data` (see "Reading the output" in `testing.md`). Use the `raw → value → formatted` triple to localise faults: wrong `raw` → `pathToData`/script; wrong `value`/`formatted` → column `metadata`/`valueExpression`. For a scoped stream, also **compare the two objects' rows** — confirm the filter actually narrows to the scoped object and isn't matching everything (the `undefined === undefined` / non-existent-property trap, see `testing.md`).
 4. **Fix and re-test** until correct. **No redeploy** — `test` sends the local stream config against the deployed, authenticated plugin.
 
 Non-TTY discipline (full detail in `testing.md`): always `--json`, supply ids via flags, and **never** merge stderr into stdout (`2>&1`) when parsing — the progress spinner goes to stderr and corrupts the JSON.
@@ -56,4 +56,5 @@ The sub-agent's final message is the only thing that reaches the main conversati
 - `pathToData` used, or the script filename if one was needed (and why, in a few words).
 - **Column list** — names + shapes.
 - **One** sample shaped row, truncated.
+- **For scoped streams — the two-object proof (required):** both object ids tested and a **one-line comparison** of their results, e.g. `obj A (id 1a2b, "prod-eu") → 3 rows, total $412; obj B (id 9f8e, "prod-us") → 3 rows, total $97 — differ ✓`. If the two objects returned **identical** results, the report **must** give an explicit, plausible justification for why that is legitimately expected (e.g. "both regions genuinely share one billing account"); without that justification, identical results are a **FAIL**, not a PASS. A scoped stream reported as PASS without two object ids and this comparison is incomplete — treat it as FAIL.
 - **Unresolved issues / assumptions / follow-ups** for the main agent (e.g. "assumed `id` is the stable sourceId", "endpoint returns 403 without the `read:metrics` scope"). A FAIL must say *why* and what was tried — never report a silent pass.

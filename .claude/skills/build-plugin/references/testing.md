@@ -22,12 +22,13 @@ Your prompt includes `--plugin-id <id>` and `--datasource-id <id>` (captured by 
 ## Commands
 
 ```bash
-# Global / unscoped stream (matches "none" or absent) — no object needed
+# Global / unscoped stream (matches "none" or absent) — no object needed, one test
 squaredup test <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json
 
-# Scoped stream — first get an object id, then test against it
-squaredup objects <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json   # → { "objects": [ { "id": "...", "name": "..." } ], "truncated": false }
-squaredup test <stream> --object <objectId> --plugin-id <pluginId> --datasource-id <datasourceId> --json
+# Scoped stream — get object ids, then test against TWO DIFFERENT objects (see "The two-object rule" below)
+squaredup objects <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json   # → { "objects": [ { "id": "...", "name": "..." }, ... ], "truncated": false }
+squaredup test <stream> --object <objectId1> --plugin-id <pluginId> --datasource-id <datasourceId> --json
+squaredup test <stream> --object <objectId2> --plugin-id <pluginId> --datasource-id <datasourceId> --json
 ```
 
 All these commands resolve the plugin from `metadata.json` in the current folder (or a path argument). Run them from the versioned plugin directory, e.g. `my-plugin/v1/`.
@@ -91,12 +92,33 @@ The `raw → value → formatted` triple is your shaping debugger: if `raw` is c
 - `squaredup test <stream> --data-only --json` → emits **only** the `data` object (shaped rows + column metadata). The fast path when you only need to check shaping.
 - `squaredup test <stream> --diagnostic <name> --json` → emits **only** the named plugin diagnostic (e.g. `--diagnostic Body`) and **omits `data`**. Don't conclude shaping is broken from a `--diagnostic` run — use a plain `--json` or `--data-only` run to see shaped rows.
 
+## The two-object rule for scoped streams
+
+> **A scoped stream that "returns rows" is not proven.** It only passes when tested against **two different objects** *and* the two results differ — or you give an explicit, plausible reason why identical results are legitimately expected.
+
+A scoped stream is meant to narrow data to the one object it's scoped to. The dangerous failure mode is a filter that *looks* like it scopes but actually matches everything — so every object gets the same (often account-level) data, and the per-object tile is silently wrong for every object but one. Real example: a script filter `Tags.ProjectId === projectId` where **both sides were `undefined`** (the object had no such property and the stream passed no such input). The comparison `undefined === undefined` is `true`, so it matched untagged account-level rows, returned one plausible row, and shipped — every project's Cost History tile then showed the same account-level total.
+
+Filtering on a **non-existent object property** (the `rawId` / wrong-field-name trap) is the same bug: the field resolves to `undefined`, the comparison degenerates, and the filter matches the wrong set. A single test hides it because the one row looks fine. **Testing two objects exposes it: their results come back identical when they should differ → FAIL.**
+
+**The rule:**
+
+1. Run `squaredup objects <stream> …` and pick **two different** object ids (prefer two you'd expect to hold different data).
+2. `squaredup test <stream> --object <id1> …` **and** `--object <id2> …`.
+3. **Compare the shaped `data` rows from the two runs:**
+   - **Results differ** → the scope is doing its job → **PASS** (assuming shaping is also correct).
+   - **Results identical** → **FAIL by default.** Treat it as an unscoped filter (the `undefined === undefined` / non-existent-property trap) until proven otherwise. It only passes if you can state an explicit, plausible reason the two objects genuinely share the value (e.g. both genuinely roll up to one shared billing account) — and that reason goes **in the report**.
+4. Also sanity-check that the `[Request] URL` / filter actually references the object's id or a property the object really has — confirm the field name exists in the object, not just that a row came back.
+
+**Unscoped / global / import streams keep the existing single-test pass** — there is no scope to vary, so one test that returns the expected shaped rows is sufficient.
+
+The report must record **both object ids** and a **one-line comparison** of their results (see the return format in [test-agent.md](test-agent.md)).
+
 ## The per-stream loop (Phase 6)
 
 For each data stream:
 
 1. Write the stream JSON (and script, if needed).
-2. Test it, passing the `--plugin-id <id> --datasource-id <id>` from your prompt (`objects` → `test --object` for scoped; `test` for global).
-3. Inspect the output — the raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`. If the raw payload, shaped rows, or column types are wrong, fix `pathToData` / the script / `metadata` and go back to step 2.
+2. Test it, passing the `--plugin-id <id> --datasource-id <id>` from your prompt. **Scoped** → `objects` to get ids, then `test --object` against **two different objects** and compare (see "The two-object rule for scoped streams" above). **Global / unscoped** → a single `test`.
+3. Inspect the output — the raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`. If the raw payload, shaped rows, or column types are wrong, fix `pathToData` / the script / `metadata` and go back to step 2. For a scoped stream, also confirm the two objects' results differ (or are justifiably identical) — identical-without-justification means the filter isn't scoping and is a **FAIL**.
 4. Only move to the next stream once it returns correct data. No redeploy required.
 
