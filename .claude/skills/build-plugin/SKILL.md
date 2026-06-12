@@ -72,7 +72,10 @@ Before writing a single file, understand the API. **Use `AskUserQuestion` to ask
 1. **Find the docs** — Gather URLs or spec files from the user, then fetch and read them.
 2. **Identify the object model** — What are the core entities? (e.g. installations, devices, sites). These become the **indexed objects** in SquaredUp — available for drilldown, search, scoping dashboards, and use as variables.
 3. **Find the list endpoints** — Used to import objects. Prefer fetching **50–250 records per page** across multiple requests — SquaredUp has a per-page timeout but supports as many paged requests as needed.
-4. **Find the data endpoints** — These power data streams. Identify whether each is scoped to a single object, multiple objects, or global (no object context).
+4. **Find the data endpoints** — These power data streams. For each, record:
+    - **Scoping** — scoped to a single object, multiple objects, or global (no object context).
+    - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter)? If it returns a fixed snapshot / current values with no way to ask for a range, the stream's `timeframes` will be `false` (the user can't pick a range).
+    - **Data granularity** — when the endpoint *does* accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read this off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range). Granularity drives the stream's `timeframes` array in Phase 2 — an endpoint aggregated to daily (e.g. billing) returns nothing for the default `last1hour` timeframe, so capturing it here prevents first-test 404s in Phase 6.
 5. **Understand pagination** — Cursor/next-token, or offset/limit? Separate concern from response transformation.
 6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth? Determine from the docs.
 
@@ -91,6 +94,10 @@ This phase produces a written plan and a user-approval gate before any files are
     - A **history/metrics** stream (supports timeframes, returns time-series rows)
     - Any **cross-object** streams scoped to a parent (e.g. alarms for an installation)
     - **Prefer configurable streams** over hardcoded ones — use a UI parameter rather than multiple streams for the same endpoint with different values.
+    - **Supported timeframes** — state each stream's `timeframes` value, derived from the endpoint's **time-range control** and **data granularity** recorded in Phase 1:
+        - `false` when the endpoint exposes no time-range parameter — the user can't choose a range (returns a fixed snapshot or current values regardless).
+        - An **array** when the endpoint accepts a range but aggregates coarsely: don't leave the default `true`, because a daily-granularity endpoint can't serve `last1hour`. Restrict `timeframes` to the smallest window the granularity supports and up (e.g. daily → `last7days`+).
+        - `true` when the endpoint accepts a range at fine granularity and any timeframe works.
 4. **What's intentionally omitted** — API capabilities not being implemented, and why. Highest-value section for catching scope creep.
 5. **Authentication** — Auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
 6. **OOB dashboards** — A **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
@@ -114,9 +121,12 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 
 ### Data streams
 
-- `batterySummary` — per-device, current state
-- `batteryHistory` — per-device, time-series
-- `siteAlarms` — per-installation
+| Stream | Scope | Time range? / granularity | `timeframes` |
+| --- | --- | --- | --- |
+| `batterySummary` | per-device, current state | no range param — current snapshot | `false` |
+| `batteryHistory` | per-device, time-series | range, hourly granularity | `true` |
+| `siteAlarms` | per-installation | no range param — current alarms | `false` |
+| `siteBilling` | per-installation | range, daily granularity | `last7days`+ (default `last1hour` 404s) |
 
 ### What's intentionally omitted
 
@@ -279,7 +289,7 @@ Only once the property is confirmed present on a real object may you tell Phase 
 
 Data streams are independent files (`dataStreams/<name>.json` + optional `scripts/<name>.js`), and testing each one floods the main context with large raw response bodies. So **build + test each stream in its own sub-agent, spawned in parallel** — don't write or test them inline here. Read [test-agent.md](references/test-agent.md) for the contract; you do **not** need to read [data-streams.md](references/data-streams.md) yourself — the sub-agents do.
 
-For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all in a single message)**, passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A plus the stream's **build spec** (endpoint, method, scoping, candidate `pathToData`, planned columns + shapes, any `ui` params/timeframes). Each sub-agent writes the stream from the spec, tests it (`objects` → `test --object` for scoped; `test` for global), fixes `pathToData`/script/`metadata` until the shaped rows are correct, and returns a compact PASS/FAIL report.
+For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all in a single message)**, passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A plus the stream's **build spec** (endpoint, method, scoping, candidate `pathToData`, planned columns + shapes, any `ui` params/timeframes, and — for a non-real-time endpoint — the data granularity plus a first-test `--timeframe` hint so the default `last1hour` doesn't 404 against aggregated data; see [test-agent.md](references/test-agent.md)). Each sub-agent writes the stream from the spec, tests it (`objects` → `test --object` for scoped; `test` for global), fixes `pathToData`/script/`metadata` until the shaped rows are correct, and returns a compact PASS/FAIL report.
 
 Collect the reports, then **run the reconciliation pass** before Phase 7 — the same three steps as [Phase 5](#phase-5-import-definitions--import-streams), now across the data-stream reports:
 

@@ -33,13 +33,14 @@ For **build-mode**, also pass the **build spec** distilled from the Phase 2 plan
 - Candidate `pathToData` (where the row array lives in the response).
 - Planned columns with `displayName`, `shape`, and any `role` (label/value/timestamp/sourceId…).
 - Any `ui` parameters, `timeframes` setting, paging mode, and the `matches` selector.
+- The endpoint's **data granularity** (from Phase 1) and, when the stream supports a time range coarser than the default (`timeframes` is an array or `true` at daily/monthly granularity), a **first-test `--timeframe` hint**. `squaredup test` defaults to `last1hour`, which 404s against an endpoint aggregated to daily/monthly (e.g. billing, usage), so tell the sub-agent the timeframe to pass on its first test — e.g. "daily granularity: first test with `--timeframe last7days`". This stops every sub-agent from independently rediscovering the default-timeframe 404. Omit the hint for streams with no time-range control (`timeframes: false`) — there is no timeframe to pass.
 
 The sub-agent owns translating that spec into correct JSON and validating it against the real response — give it intent, not a finished file.
 
 ## The loop the sub-agent runs
 
 1. **(Build-mode only)** Write the stream JSON from the spec — and a `scripts/<name>.js` only if the transformation can't be done declaratively (see the script checklist in `data-streams.md`).
-2. **Test** — non-interactively, always `--json`:
+2. **Test** — non-interactively, always `--json`. If the spec gave a **`--timeframe` hint** (non-real-time endpoint), pass it on the first test so the default `last1hour` doesn't 404 against aggregated data; widen further only if it still returns nothing.
    - **Scoped** → `squaredup objects <stream> --plugin-id <id> --datasource-id <id> --json` to get object ids, then test against **two different objects**: `squaredup test <stream> --object <objId1> ... --json` **and** `squaredup test <stream> --object <objId2> ... --json`. See "The two-object rule for scoped streams" in `testing.md` — a scoped stream that returns rows for one object is **not** proven; it must return *different* results for two different objects (or you must justify why identical results are correct).
    - **Global / import (unscoped)** → `squaredup test <stream> --plugin-id <id> --datasource-id <id> --json`. A single test is sufficient — there is no scope to vary.
 3. **Inspect** — the raw `[Response] Body` under `requests[0]` and the shaped rows under `data` (see "Reading the output" in `testing.md`). Use the `raw → value → formatted` triple to localise faults: wrong `raw` → `pathToData`/script; wrong `value`/`formatted` → column `metadata`/`valueExpression`. For a scoped stream, also **compare the two objects' rows** — confirm the filter actually narrows to the scoped object and isn't matching everything (the `undefined === undefined` / non-existent-property trap, see `testing.md`).
