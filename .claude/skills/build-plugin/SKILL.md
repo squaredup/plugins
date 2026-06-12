@@ -238,6 +238,14 @@ Write `indexDefinitions/default.json` and the unscoped list/import streams it ca
 
 Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
 
+### Reconciliation pass (before proceeding)
+
+Sub-agents run blind to each other, so several can independently rediscover — or contradict each other on — the same API fact. After collecting **all** reports, before moving to Checkpoint B, reconcile them rather than just resolving each report in isolation:
+
+1. **Diff the reports** against each other — line up every report's **"API-level discoveries"** section plus its fixes applied, assumptions, and constraints hit. Look for the same fact appearing in one report but missing from its siblings.
+2. **Propagate every API-level discovery to all sibling streams** that share the endpoint family or scoping — timeframe/granularity limits, payload caps, object property/id names, auth quirks. A constraint one sub-agent hit and fixed almost always applies to its siblings too; apply the same edit to each affected stream and **re-test every stream you changed** (re-spawn a test-mode sub-agent for it — a propagated edit is unproven until tested).
+3. **Resolve conflicting assumptions** before continuing — if two reports name the same object property or id differently (e.g. one filters on `projectId`, another on `rawId`), determine the correct one against the real response and fix every stream that used the wrong one. Do not proceed with an unresolved contradiction.
+
 ---
 
 ## Checkpoint B: Redeploy & run the first import
@@ -257,7 +265,13 @@ Data streams are independent files (`dataStreams/<name>.json` + optional `script
 
 For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all in a single message)**, passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A plus the stream's **build spec** (endpoint, method, scoping, candidate `pathToData`, planned columns + shapes, any `ui` params/timeframes). Each sub-agent writes the stream from the spec, tests it (`objects` → `test --object` for scoped; `test` for global), fixes `pathToData`/script/`metadata` until the shaped rows are correct, and returns a compact PASS/FAIL report.
 
-Collect the reports and resolve anything flagged. `test` sends the **local** stream config against the deployed plugin, so **no redeploy** is needed to test a new or edited stream — only Checkpoints A and B and the final deploy redeploy.
+Collect the reports, then **run the reconciliation pass** before Phase 7 — the same three steps as [Phase 5](#phase-5-import-definitions--import-streams), now across the data-stream reports:
+
+1. **Diff the reports** — line up every report's **"API-level discoveries"** section, fixes applied, assumptions, and constraints hit, and spot any fact present in one report but missing from its siblings.
+2. **Propagate every API-level discovery to all sibling streams** sharing the endpoint family or scoping (timeframe/granularity limits that 404, payload caps that 500, object property/id names, auth quirks), apply the same edit to each affected stream, and **re-test every stream you changed** by re-spawning its build/test sub-agent. This is where a constraint one stream hit — e.g. a daily-granularity endpoint that 404s on `last1hour`, or the ~6MB response cap that 500s on long timeframes — gets its `timeframes` fix applied to **all** sibling streams on that endpoint, not just the one that found it.
+3. **Resolve conflicting assumptions** — if two reports name the same indexed property differently (e.g. `projectId` vs `rawId`), settle it against the real response and fix every stream that filtered on the wrong one, so no stream ships with a scope filter comparing `undefined === undefined`. Don't proceed with an unresolved contradiction.
+
+`test` sends the **local** stream config against the deployed plugin, so **no redeploy** is needed to test a new or edited stream (including the re-tests above) — only Checkpoints A and B and the final deploy redeploy.
 
 ---
 
