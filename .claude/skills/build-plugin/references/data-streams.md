@@ -292,6 +292,17 @@ Works on primitives too — a string, number, or boolean at the path is returned
 "timeframes": ["last24hours", "last7days"]   // limit to specific options
 ```
 
+**Canonical enum values** — these are the only valid entries in a `timeframes` array (and the only values `defaultTimeframe` accepts). Anything else fails validation with an opaque `✖ Invalid input`. Source of truth: `TimeframeEnumValue` in `saas/packages/@squaredup/timeframes`.
+
+```
+last1hour    last12hours   last24hours   last7days   last30days
+thisMonth    thisQuarter   thisYear
+lastMonth    lastQuarter   lastYear
+none
+```
+
+`none` is only valid when `supportsNoneTimeframe` is set (see below).
+
 JSON-only timeframe properties (not settable via the Save as data stream modal):
 
 ```json
@@ -299,6 +310,16 @@ JSON-only timeframe properties (not settable via the Save as data stream modal):
 "defaultTimeframe": "none"         // new tiles default to "None"
 "requiresParameterTimeframe": true // timeframe params always injected even without user selection
 ```
+
+### Response size limit (~6MB)
+
+The Lambda that runs a stream caps its response at ~6MB. Exceeding it surfaces as a `Function.ResponseSizeTooLarge` 500 — not a validation error. Long timeframes are the usual trigger: a wide range × a fine interval returns far more rows than a short one.
+
+Remediation:
+
+- Reduce the `pageSize` so each page (and the accumulated result) stays smaller.
+- Restrict `timeframes` to the ranges the endpoint can actually return within the cap, and set a conservative `defaultTimeframe` so new tiles don't open on the largest range.
+- **Apply the same restriction to every sibling stream on the same endpoint family.** If one stream on an endpoint overflows at `last30days`, its siblings hitting the same (or a heavier) endpoint will too — fixing only the one you happened to test leaves the rest broken.
 
 ---
 
@@ -607,6 +628,7 @@ context.config; // current stream parameters (values set by the user in the tile
 > | ----------------------------- | -------- | --------------------------------------------------- |
 > | `id`                          | `string` | Internal graph node id                              |
 > | `sourceId`                    | `string` | Source-side id (value from `objectMapping.id`)      |
+> | `rawId`                       | `string` | The raw `objectMapping.id` value without the `sourceType~` prefix — usually what scripts want when calling the API for an object |
 > | `name`                        | `string` | Display name (alias of `displayName`)               |
 > | `displayName`                 | `string` | Display name                                        |
 > | `type`                        | `string` | The `sourceType`                                    |

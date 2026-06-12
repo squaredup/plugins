@@ -42,6 +42,7 @@ Defines what gets imported into the SquaredUp graph.
 - `type` maps to the `sourceType` column. Can also be a fixed string: `{ "value": "My Device" }` — use when all rows are the same type.
 - `properties` are extra fields stored on the graph node, accessible in scripts as `object.propName`.
 - Use `{ "targetProp": "sourceProp" }` syntax when the column name differs from the desired property name.
+- **Never map a column into `properties` that is already mapped as `id`, `name`, or `type`.** The id's raw value is always available on every object as `rawId` (`{{object.rawId}}` in templates, `context.objects[N].rawId` in scripts — and as a scalar, unlike user-defined properties, which arrive as arrays), and the name as `name`. Adding e.g. `{ "projectId": "id" }` to `properties` when `"id": "id"` already exists creates a duplicate that has to be re-indexed to take effect and otherwise sits as dead config — use `rawId`/`name` instead.
 - The `sourceType` column value **must** match an entry in `objectTypes` in `metadata.json`.
 - `frequencyMinutes` — controls re-import interval. Defaults to `720` (12 hours).
 
