@@ -1,0 +1,59 @@
+{
+  "name": "previousPeriodPagePerformance",
+  "displayName": "Previous period page performance",
+  "description": "Returns a summary of performance for the previous period of a given timeframe for the selected page",
+  "baseDataSourceName": "httpRequestUnscoped",
+  "config": {
+    "httpMethod": "post",
+    "errorHandling": {
+      "type": "default"
+    },
+    "paging": {
+      "mode": "none"
+    },
+    "expandInnerObjects": true,
+    "getArgs": [],
+    "headers": [],
+    "postBody": {
+      "startDate": "{{new Date(new Date(timeframe.start).getTime() - (new Date(timeframe.end).getTime() - new Date(timeframe.start).getTime()) - 86400000).toISOString().split('T')[0]}}",
+      "endDate": "{{new Date(new Date(timeframe.start).getTime() - 86400000).toISOString().split('T')[0]}}",
+      "dimensions": ["page"],
+      "dimensionFilterGroups": [
+        {
+          "filters": [
+            {
+              "dimension": "page",
+              "operator": "equals",
+              "expression": "{{scope?.[0]?.name}}"
+            }
+          ]
+        }
+      ],
+      "rowLimit": 25000
+    },
+    "postRequestScript": "postRequest/script1.js"
+  },
+  "timeframes": true,
+  "providesPluginDiagnostics": true,
+  "tags": [],
+  "visibility": {
+    "type": "hidden"
+  },
+  "ui": [
+    {
+      "name": "scope",
+      "objectLimit": 1,
+      "label": "Scope",
+      "type": "objects",
+      "matches": {
+        "sourceType": {
+          "type": "equals",
+          "value": "gsc-page"
+        }
+      },
+      "validation": {
+        "required": true
+      }
+    }
+  ]
+}
