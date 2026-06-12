@@ -1,5 +1,5 @@
 var games = data.games || [];
-var teamFilter = context.config.team || '';
+var teamFilter = context.objects[0] ? context.objects[0].name_en : '';
 
 var groupGames = games.filter(function(g) { return g.type === 'group'; });
 
@@ -56,9 +56,8 @@ var rows = Object.keys(standings).map(function(k) {
 });
 
 if (teamFilter) {
-    var filterLower = teamFilter.toLowerCase();
     var matchedTeam = rows.filter(function(r) {
-        return r.team.toLowerCase().indexOf(filterLower) !== -1;
+        return r.team === teamFilter;
     })[0];
     if (matchedTeam) {
         var targetGroup = matchedTeam.group;

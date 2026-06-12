@@ -1,5 +1,5 @@
 var games = data.games || [];
-var team = context.config.team || '';
+var teamName = context.objects[0] ? context.objects[0].name_en : '';
 
 var stageMap = {
     group: 'Group Stage',
@@ -24,15 +24,9 @@ function getTeamName(game, side) {
     return game.away_team_id !== '0' ? game.away_team_name_en : (game.away_team_label || 'TBD');
 }
 
-var filtered = games;
-if (team) {
-    var teamLower = team.toLowerCase();
-    filtered = games.filter(function(g) {
-        var home = (g.home_team_name_en || '').toLowerCase();
-        var away = (g.away_team_name_en || '').toLowerCase();
-        return home.indexOf(teamLower) !== -1 || away.indexOf(teamLower) !== -1;
-    });
-}
+var filtered = games.filter(function(g) {
+    return g.home_team_name_en === teamName || g.away_team_name_en === teamName;
+});
 
 filtered.sort(function(a, b) {
     return parseDate(a.local_date) - parseDate(b.local_date);

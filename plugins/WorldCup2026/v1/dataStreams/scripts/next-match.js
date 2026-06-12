@@ -1,5 +1,5 @@
 var games = data.games || [];
-var teamName = context.objects[0] ? context.objects[0].name : '';
+var teamName = context.objects[0] ? context.objects[0].name_en : '';
 
 var stageMap = {
     group: 'Group Stage',
