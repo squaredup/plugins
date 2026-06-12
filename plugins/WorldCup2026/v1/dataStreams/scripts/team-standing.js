@@ -1,6 +1,23 @@
 var games = data.games || [];
-var teamId = context.objects[0] ? String(context.objects[0].teamId) : '';
+var teamId = context.objects[0] ? String([].concat(context.objects[0].teamId)[0] || '') : '';
 var teamName = context.objects[0] ? [].concat(context.objects[0].teamName)[0] || '' : '';
+var iso2Raw = context.objects[0] ? [].concat(context.objects[0].iso2)[0] || '' : '';
+var group = context.objects[0] ? [].concat(context.objects[0].group)[0] || '' : '';
+
+function flagFromIso2(code) {
+    if (!code) return '';
+    if (code === 'ENG') return '🏴󠁧󠁢󠁥󠁮󠁧󠁿';
+    if (code === 'SCO') return '🏴󠁧󠁢󠁳󠁣󠁴󠁿';
+    if (code.length === 2) {
+        return code.toUpperCase().split('').map(function(c) {
+            return String.fromCodePoint(c.charCodeAt(0) + 127397);
+        }).join('');
+    }
+    return '';
+}
+
+var flag = flagFromIso2(iso2Raw);
+var country = flag ? flag + ' ' + teamName : teamName;
 
 var groupGames = games.filter(function(g) {
     return g.type === 'group' &&
@@ -23,6 +40,7 @@ groupGames.forEach(function(g) {
 });
 
 var pts = (w * 3) + d;
+var gd = gf - ga;
 
 var sourceId = context.objects[0] ? context.objects[0].sourceId : '';
-result = [{ country: teamName, mp: mp, w: w, d: d, l: l, pts: pts, gf: gf, ga: ga, sourceId: sourceId }];
+result = [{ country: country, group: group, mp: mp, w: w, d: d, l: l, pts: pts, gf: gf, ga: ga, gd: gd, sourceId: sourceId }];

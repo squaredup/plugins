@@ -1,13 +1,29 @@
 var games = data.games || [];
 var teamFilter = context.objects[0] ? [].concat(context.objects[0].teamName)[0] || '' : '';
 
+var FLAG = {
+    'Algeria': '🇩🇿', 'Argentina': '🇦🇷', 'Australia': '🇦🇺', 'Austria': '🇦🇹',
+    'Belgium': '🇧🇪', 'Bosnia and Herzegovina': '🇧🇦', 'Brazil': '🇧🇷',
+    'Canada': '🇨🇦', 'Cape Verde': '🇨🇻', 'Colombia': '🇨🇴', 'Croatia': '🇭🇷',
+    'Curaçao': '🇨🇼', 'Czech Republic': '🇨🇿', 'Democratic Republic of the Congo': '🇨🇩',
+    'Ecuador': '🇪🇨', 'Egypt': '🇪🇬', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'France': '🇫🇷',
+    'Germany': '🇩🇪', 'Ghana': '🇬🇭', 'Haiti': '🇭🇹', 'Iran': '🇮🇷', 'Iraq': '🇮🇶',
+    'Ivory Coast': '🇨🇮', 'Japan': '🇯🇵', 'Jordan': '🇯🇴', 'Mexico': '🇲🇽',
+    'Morocco': '🇲🇦', 'Netherlands': '🇳🇱', 'New Zealand': '🇳🇿', 'Norway': '🇳🇴',
+    'Panama': '🇵🇦', 'Paraguay': '🇵🇾', 'Portugal': '🇵🇹', 'Qatar': '🇶🇦',
+    'Saudi Arabia': '🇸🇦', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Senegal': '🇸🇳',
+    'South Africa': '🇿🇦', 'South Korea': '🇰🇷', 'Spain': '🇪🇸', 'Sweden': '🇸🇪',
+    'Switzerland': '🇨🇭', 'Tunisia': '🇹🇳', 'Turkey': '🇹🇷',
+    'United States': '🇺🇸', 'Uruguay': '🇺🇾', 'Uzbekistan': '🇺🇿'
+};
+
 var groupGames = games.filter(function(g) { return g.type === 'group'; });
 
 var standings = {};
 
 function ensureTeam(name, group) {
     if (!standings[name]) {
-        standings[name] = { team: name, group: group, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
+        standings[name] = { group: group, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
     }
 }
 
@@ -22,27 +38,24 @@ groupGames.forEach(function(g) {
     var home = standings[g.home_team_name_en];
     var away = standings[g.away_team_name_en];
 
-    home.mp++;
-    away.mp++;
-    home.gf += homeScore;
-    home.ga += awayScore;
-    away.gf += awayScore;
-    away.ga += homeScore;
+    home.mp++; away.mp++;
+    home.gf += homeScore; home.ga += awayScore;
+    away.gf += awayScore; away.ga += homeScore;
 
     if (homeScore > awayScore) {
         home.w++; home.pts += 3; away.l++;
     } else if (awayScore > homeScore) {
         away.w++; away.pts += 3; home.l++;
     } else {
-        home.d++; home.pts += 1; away.d++; away.pts += 1;
+        home.d++; home.pts++; away.d++; away.pts++;
     }
 });
 
 var rows = Object.keys(standings).map(function(k) {
     var s = standings[k];
-    var gd = s.gf - s.ga;
+    var flag = FLAG[k] || '';
     return {
-        team: s.team,
+        team: flag ? flag + ' ' + k : k,
         group: s.group,
         mp: s.mp,
         w: s.w,
@@ -50,19 +63,14 @@ var rows = Object.keys(standings).map(function(k) {
         l: s.l,
         gf: s.gf,
         ga: s.ga,
-        gd: gd,
+        gd: s.gf - s.ga,
         pts: s.pts
     };
 });
 
-if (teamFilter) {
-    var matchedTeam = rows.filter(function(r) {
-        return r.team === teamFilter;
-    })[0];
-    if (matchedTeam) {
-        var targetGroup = matchedTeam.group;
-        rows = rows.filter(function(r) { return r.group === targetGroup; });
-    }
+if (teamFilter && standings[teamFilter]) {
+    var targetGroup = standings[teamFilter].group;
+    rows = rows.filter(function(r) { return r.group === targetGroup; });
 }
 
 rows.sort(function(a, b) {
