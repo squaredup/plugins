@@ -13,14 +13,14 @@ This is the **main agent's** testing reference. It covers the two sequential gat
 
 You are in a non-TTY shell, so the CLI's interactive pickers (object, config, data-stream selection) block. **Always pass `--json`** and supply ids explicitly via flags.
 
-> ⚠️ **Don't merge stderr into stdout when parsing `--json`.** The JSON payload goes to **stdout**; the progress spinner goes to **stderr**. Piping with `2>&1` merges the spinner into the JSON stream and the parse fails. Pipe stdout only, or redirect stderr away (`2>$null` in PowerShell). On Windows there is no `/tmp`; use `$env:TEMP` for scratch files.
+> ⚠️ **Pass `--silent` and don't merge stderr into stdout when parsing `--json`.** The JSON payload goes to **stdout**; the progress spinner goes to **stderr**. `--silent` suppresses the spinner entirely, so pair it with `--json` on every call to make output capture safe by construction. Even so, never merge stderr into stdout with `2>&1` — a real error line would still corrupt the JSON stream. Pipe stdout only. On Windows there is no `/tmp`; use `$env:TEMP` for scratch files.
 
 ## Checkpoint A: capture the ids once, then probe auth
 
 Once the user has authenticated the config, grab **both** ids and hold onto them for the rest of the session:
 
 ```bash
-squaredup datasources --json   # → { "pluginId": "plugin-...", "datasources": [ { "id": "config-...", "displayName": "..." } ] }
+squaredup datasources --json --silent   # → { "pluginId": "plugin-...", "datasources": [ { "id": "config-...", "displayName": "..." } ] }
 ```
 
 Pass `--plugin-id <id> --datasource-id <id>` on **every** subsequent `test`/`objects` call and **into every sub-agent prompt** (Phases 5–6). If omitted, the CLI re-resolves both on each invocation — two round-trips per call that add up fast across the per-stream loops. (`--datasource-id` alone does **not** skip the plugin lookup — pass both.)
@@ -28,7 +28,7 @@ Pass `--plugin-id <id> --datasource-id <id>` on **every** subsequent `test`/`obj
 Then probe auth with the configValidation backing stream, repeating until it returns without an auth error:
 
 ```bash
-squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json
+squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json --silent
 ```
 
 ## Checkpoint B: trigger & poll the import
@@ -37,16 +37,16 @@ After redeploying the import steps, drive the import via the CLI yourself (no UI
 
 ```bash
 # 1. Trigger a re-index; capture the `since` poll anchor it emits
-squaredup index --datasource-id <id> --json
+squaredup index --datasource-id <id> --json --silent
 #    → { "datasourceId": "config-...", "triggered": true, "alreadyRunning": false, "since": 1717000000000 }
 
 # 2. Poll until done, passing that `since` so it pins to the run you just triggered
-squaredup index-status --datasource-id <id> --since 1717000000000 --json
+squaredup index-status --datasource-id <id> --since 1717000000000 --json --silent
 #    → { ..., "done": false, "status": "inProgress", "succeeded": null }  # keep polling
 #    → { ..., "done": true,  "status": "succeeded",   "succeeded": true, "steps": [ ... ] }  # objects indexed
 
 # 3. Confirm objects now exist — pass an inline scope (no scoped stream exists yet; import streams have no `matches` to resolve)
-squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json   # → non-empty "objects"
+squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json --silent   # → non-empty "objects"
 ```
 
 Notes:
@@ -66,7 +66,7 @@ So **any** change to `indexDefinitions/*.json` or an import stream after this im
 
 1. **First check the change is even needed.** A value already covered by `id`/`name`/`type` is on every object for free (`rawId` as a scalar, `name`, `type`) — don't add a duplicate `properties` mapping to reach it (see [index-defs.md](index-defs.md)). Only re-index for a property that genuinely isn't already available.
 2. **Redeploy** the edited definition/stream (invoke `deploy-plugin`).
-3. **Re-index** — `squaredup index --datasource-id <id> --json`, capture the new `since`.
+3. **Re-index** — `squaredup index --datasource-id <id> --json --silent`, capture the new `since`.
 4. **Poll** `index-status` until `done: true, succeeded: true`.
 5. **Confirm the change itself landed, not just that the import succeeded.** A typo'd source column imports cleanly and silently drops the property, so import success proves nothing about the mapping. Re-run the step-3 `objects --matches` confirm and inspect a returned object for the new property (or test a scoped stream that reads `{{object.<newProp>}}` and see it resolve to a real value). Only then is it safe to tell a sub-agent the property exists.
 
