@@ -12,6 +12,8 @@ metadata:
 
 **Announce at start:** "I'm using the build-plugin skill."
 
+> **The `references/` files are canonical — don't browse other plugins for patterns.** Everything you need to author a plugin (structure, config, streams, dashboards) is in `references/`. Do **not** open *other* plugins in the repo to copy how they did something: it burns context, and shipped plugins frequently predate current guidance, so they teach the wrong pattern (see e.g. the script caveat in [data-streams.md](references/data-streams.md)). Reading the plugin you're **currently building or updating** is expected; browsing siblings for "how did they do it" is not.
+
 ---
 
 ## Prerequisites
@@ -162,13 +164,17 @@ If the user picks anything other than approve (including "Other"), revise the pl
 
 ## Phase 3: Scaffold Files
 
-**Icon:** Find the official brand/product logo (SVG or PNG). Never auto-generate a generic icon — ask the user to supply one if you can't find an official logo.
+**Icon — delegate to a write-capable sub-agent.** Finding the official logo means browsing vendor sites and image search, and the SVG/PNG markup itself is large — all of which floods the main context if done inline. Spawn **one general-purpose, write-capable sub-agent** for the icon (**not** an `Explore` agent — those are read-only and can't write the file). Give it this prompt:
 
-**Post-process SVG icons if needed.** SquaredUp shows icons on dark/white backgrounds. Fix if the SVG lacks a background or is not square:
+- **Find** the official brand/product logo (SVG preferred, PNG acceptable). Never auto-generate a generic icon.
+- **Post-process the SVG if needed** — SquaredUp shows icons on dark/white backgrounds. Fix if the SVG lacks a background or is not square:
+    1. Set `width="512" height="512" viewBox="0 0 512 512"`
+    2. Insert `<rect width="512" height="512" fill="BRAND_COLOR"/>` as the first child
+    3. Wrap paths in `<g transform="translate(X, Y) scale(S)">` for ~10% padding: `S = min(409.6/w, 409.6/h)`, `X = (512−w*S)/2`, `Y = (512−h*S)/2`
+- **Write** the finished icon to `<plugin>/v1/icon.svg`.
+- **Return only** the file path, the source URL the logo came from, and a one-line licence/attribution note. **Never return the SVG or PNG markup itself** — the file on disk is all that's needed, and the markup is pure context bloat.
 
-1. Set `width="512" height="512" viewBox="0 0 512 512"`
-2. Insert `<rect width="512" height="512" fill="BRAND_COLOR"/>` as the first child
-3. Wrap paths in `<g transform="translate(X, Y) scale(S)">` for ~10% padding: `S = min(409.6/w, 409.6/h)`, `X = (512−w*S)/2`, `Y = (512−h*S)/2`
+If the sub-agent reports it couldn't find an official logo, ask the user to supply one.
 
 **File structure:**
 
@@ -236,7 +242,7 @@ The shell can't be tested until it's deployed and a config is authenticated agai
     - Region: `squaredup status` prints `Region: <region>`. Build the host — `us` → `app.squaredup.com`, `dev` → `master.dev.app.squaredup.com` any other region → `<region>.app.squaredup.com` (e.g. `eu` → `eu.app.squaredup.com`).
     - Send them to `https://<host>/settings/plugins?addPluginId=<id>` and ask them to authenticate it. **Pause and wait for them to confirm.**
 3. **Capture the datasource id** — you already have the `pluginId` from step 1. The datasource only exists once the user authenticates, so run `squaredup datasources --json` now to grab the datasource `id`. Reuse both as `--plugin-id <id> --datasource-id <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and datasource lookups each call. **Pass both ids into every testing sub-agent prompt** spawned in Phases 5 and 6 (see [test-agent.md](references/test-agent.md)).
-4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json` and confirm it returns without an auth error. Repeat until clean.
+4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --diagnostic Status --json --silent` and confirm the returned `Status` is a 2xx. `--diagnostic Status` filters the response to just the HTTP-status diagnostic (a one-line JSON array), so the probe never dumps the full `currentUser` diagnostics into the main context. A non-2xx status — or a request error (printed to stderr, exit code 1) or a missing `Status` diagnostic — means auth isn't right yet; **only then** drop `--diagnostic Status` to inspect the full response. Repeat until the status is 2xx.
 
 Do not proceed to Phase 5 until auth is confirmed. See [checkpoints.md](references/checkpoints.md) — the main agent never reads [testing.md](references/testing.md); that is the sub-agents' per-stream testing guide.
 

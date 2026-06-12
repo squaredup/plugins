@@ -25,11 +25,14 @@ squaredup datasources --json --silent   # → { "pluginId": "plugin-...", "datas
 
 Pass `--plugin-id <id> --datasource-id <id>` on **every** subsequent `test`/`objects` call and **into every sub-agent prompt** (Phases 5–6). If omitted, the CLI re-resolves both on each invocation — two round-trips per call that add up fast across the per-stream loops. (`--datasource-id` alone does **not** skip the plugin lookup — pass both.)
 
-Then probe auth with the configValidation backing stream, repeating until it returns without an auth error:
+Then probe auth with the configValidation backing stream. Ask for **just the HTTP status**, not the full diagnostics — `--diagnostic Status` filters to the one diagnostic, and combined with `--json` it emits a compact one-line array instead of the multi-KB `currentUser` dump:
 
 ```bash
-squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --json --silent
+squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --diagnostic Status --json --silent
+#   → [ { "requestId": "...", "name": "Status", "controlType": "code", "value": "200" } ]
 ```
+
+A 2xx `value` means auth is good. A non-2xx status — or a request error (surfaced on stderr with a non-zero exit) or a missing `Status` diagnostic (the CLI exits non-zero and lists the available diagnostics) — means the config isn't authenticated yet. **Only then** drop `--diagnostic Status` to inspect the full response. Repeat until the status is 2xx.
 
 ## Checkpoint B: trigger & poll the import
 
