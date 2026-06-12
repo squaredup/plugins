@@ -23,12 +23,12 @@ Your prompt includes `--plugin-id <id>` and `--datasource-id <id>` (captured by 
 
 ```bash
 # Global / unscoped stream (matches "none" or absent) — no object needed, one test
-squaredup test <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json
+squaredup test <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json --silent
 
 # Scoped stream — get object ids, then test against TWO DIFFERENT objects (see "The two-object rule" below)
-squaredup objects <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json   # → { "objects": [ { "id": "...", "name": "..." }, ... ], "truncated": false }
-squaredup test <stream> --object <objectId1> --plugin-id <pluginId> --datasource-id <datasourceId> --json
-squaredup test <stream> --object <objectId2> --plugin-id <pluginId> --datasource-id <datasourceId> --json
+squaredup objects <stream> --plugin-id <pluginId> --datasource-id <datasourceId> --json --silent   # → { "objects": [ { "id": "...", "name": "..." }, ... ], "truncated": false }
+squaredup test <stream> --object <objectId1> --plugin-id <pluginId> --datasource-id <datasourceId> --json --silent
+squaredup test <stream> --object <objectId2> --plugin-id <pluginId> --datasource-id <datasourceId> --json --silent
 ```
 
 All these commands resolve the plugin from `metadata.json` in the current folder (or a path argument). Run them from the versioned plugin directory, e.g. `my-plugin/v1/`.
@@ -38,6 +38,7 @@ All these commands resolve the plugin from `metadata.json` in the current folder
 | Flag | Applies to | Purpose |
 | --- | --- | --- |
 | `--json` | all | Machine-readable output; disables interactive prompts. Always use it. |
+| `--silent` | all | Suppress **all** non-error output, including the progress spinner that otherwise lands on stderr. Always pass it alongside `--json` so naive output capture (`... \| jq`, `... \| ConvertFrom-Json`) is safe by construction — there is no spinner line left to corrupt the parse. |
 | `--datasource-id <id>` | `test`, `objects` | Target a specific datasource (plugin config). Always pass the id from your prompt — it skips a datasource lookup on every call, and is strictly required when more than one datasource exists (otherwise the picker blocks in this non-TTY shell). |
 | `--plugin-id <id>` | all | Target a deployed plugin by id instead of by name. Always pass the id from your prompt — it skips the `listPlugins` lookup the CLI would otherwise do on every call to resolve the plugin name. |
 | `--object <id>` | `test` | Scope a scoped stream to an object (node) id from `squaredup objects`. |
@@ -54,7 +55,7 @@ The `objects <stream>` form resolves the named data stream file's `matches` — 
 
 `squaredup test --json` returns the test endpoint's full response. Two top-level properties matter — `requests` (the raw API exchange) and `data` (the shaped result). (`completedAt` / `validForSeconds` are timestamps you can ignore.)
 
-> ⚠️ **Don't merge stderr into stdout when parsing `--json`.** The JSON payload goes to **stdout**; the progress spinner (`- Running diagnostics for "..."`) goes to **stderr**. Piping with `2>&1` (e.g. `squaredup test ... --json 2>&1 | jq`) merges that spinner line into the JSON stream and the parse fails on line 1. Pipe stdout only — `squaredup test ... --json | jq` — or redirect stderr away (`2>$null` in PowerShell). Also: on Windows there is no `/tmp`; use `$env:TEMP` if you need a scratch file.
+> ⚠️ **Pass `--silent` and don't merge stderr into stdout when parsing `--json`.** The JSON payload goes to **stdout**; the progress spinner (`- Running diagnostics for "..."`) goes to **stderr**. `--silent` suppresses that spinner entirely, so `squaredup test ... --json --silent | jq` (or `| ConvertFrom-Json`) is safe by construction — always pass it. Even with `--silent`, never merge stderr into stdout with `2>&1`: a real error line would still corrupt the JSON stream. Pipe stdout only. Also: on Windows there is no `/tmp`; use `$env:TEMP` if you need a scratch file.
 
 ### `requests` — the plugin diagnostics (raw API exchange)
 
@@ -89,8 +90,8 @@ The `raw → value → formatted` triple is your shaping debugger: if `raw` is c
 
 ### Zooming in
 
-- `squaredup test <stream> --data-only --json` → emits **only** the `data` object (shaped rows + column metadata). The fast path when you only need to check shaping.
-- `squaredup test <stream> --diagnostic <name> --json` → emits **only** the named plugin diagnostic (e.g. `--diagnostic Body`) and **omits `data`**. Don't conclude shaping is broken from a `--diagnostic` run — use a plain `--json` or `--data-only` run to see shaped rows.
+- `squaredup test <stream> --data-only --json --silent` → emits **only** the `data` object (shaped rows + column metadata). The fast path when you only need to check shaping.
+- `squaredup test <stream> --diagnostic <name> --json --silent` → emits **only** the named plugin diagnostic (e.g. `--diagnostic Body`) and **omits `data`**. Don't conclude shaping is broken from a `--diagnostic` run — use a plain `--json` or `--data-only` run to see shaped rows.
 
 ## The two-object rule for scoped streams
 
@@ -102,8 +103,8 @@ Filtering on a **non-existent object property** (the `rawId` / wrong-field-name 
 
 **The rule:**
 
-1. Run `squaredup objects <stream> …` and pick **two different** object ids (prefer two you'd expect to hold different data).
-2. `squaredup test <stream> --object <id1> …` **and** `--object <id2> …`.
+1. Run `squaredup objects <stream> … --json --silent` and pick **two different** object ids (prefer two you'd expect to hold different data).
+2. `squaredup test <stream> --object <id1> … --json --silent` **and** `--object <id2> … --json --silent`.
 3. **Compare the shaped `data` rows from the two runs:**
    - **Results differ** → the scope is doing its job → **PASS** (assuming shaping is also correct).
    - **Results identical** → **FAIL by default.** Treat it as an unscoped filter (the `undefined === undefined` / non-existent-property trap) until proven otherwise. It only passes if you can state an explicit, plausible reason the two objects genuinely share the value (e.g. both genuinely roll up to one shared billing account) — and that reason goes **in the report**.
