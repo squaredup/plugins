@@ -26,6 +26,10 @@ Always include:
 - The stream `name` and its file path (e.g. `dataStreams/batterySummary.json`), run from the versioned plugin dir (e.g. `my-plugin/v1/`).
 - Whether the stream is **scoped** (needs an object) or **global/unscoped** (no object).
 - Which references to read: **`references/testing.md` always**; plus **`references/data-streams.md`** (build-mode data streams) or **`references/index-defs.md`** (import streams) for the authoring/debugging detail.
+- **Shell-tool guidance for the platform you are running on.** Tell the sub-agent which shell tool to run the CLI through and to **never mix shell dialects in one invocation** — repeated sub-agent failures came from PowerShell syntax sent to the Bash tool (`$null: ambiguous redirect`, `Test-Path`/`Get-Content` not found, `Select-String: command not found`). State the platform explicitly and give the matching rule:
+    - **On Windows** (this workspace) — prefer the **PowerShell tool** for CLI calls and use PowerShell syntax (`2>$null`, `Test-Path`, `Get-Content`, `Select-String`, `$env:TEMP`). If you use the **Bash tool** instead, use POSIX syntax only (`2>/dev/null`, `test -f`, `cat`, `grep`, `$TMPDIR`) — **do not** put PowerShell cmdlets or `$null` redirects into a Bash command, and don't put Bash redirects into PowerShell.
+    - **On macOS / Linux** — use the **Bash tool** with POSIX syntax throughout.
+  Either way, `--json --silent` plus stdout-only piping (no `2>&1`) is what keeps the captured output parseable — the shell choice only governs *how* you redirect and inspect, not whether you need those flags.
 
 For **build-mode**, also pass the **build spec** distilled from the Phase 2 plan and Phase 1 API exploration:
 
@@ -41,12 +45,12 @@ The sub-agent owns translating that spec into correct JSON and validating it aga
 
 1. **(Build-mode only)** Write the stream JSON from the spec — and a `scripts/<name>.js` only if the transformation can't be done declaratively (see the script checklist in `data-streams.md`).
 2. **Test** — non-interactively, always `--json`. If the spec gave a **`--timeframe` hint** (non-real-time endpoint), pass it on the first test so the default `last1hour` doesn't 404 against aggregated data; widen further only if it still returns nothing.
-   - **Scoped** → `squaredup objects <stream> --plugin-id <id> --datasource-id <id> --json` to get object ids, then test against **two different objects**: `squaredup test <stream> --object <objId1> ... --json` **and** `squaredup test <stream> --object <objId2> ... --json`. See "The two-object rule for scoped streams" in `testing.md` — a scoped stream that returns rows for one object is **not** proven; it must return *different* results for two different objects (or you must justify why identical results are correct).
-   - **Global / import (unscoped)** → `squaredup test <stream> --plugin-id <id> --datasource-id <id> --json`. A single test is sufficient — there is no scope to vary.
+   - **Scoped** → `squaredup objects <stream> --plugin-id <id> --datasource-id <id> --json --silent` to get object ids, then test against **two different objects**: `squaredup test <stream> --object <objId1> ... --json --silent` **and** `squaredup test <stream> --object <objId2> ... --json --silent`. See "The two-object rule for scoped streams" in `testing.md` — a scoped stream that returns rows for one object is **not** proven; it must return *different* results for two different objects (or you must justify why identical results are correct).
+   - **Global / import (unscoped)** → `squaredup test <stream> --plugin-id <id> --datasource-id <id> --json --silent`. A single test is sufficient — there is no scope to vary.
 3. **Inspect** — the raw `[Response] Body` under `requests[0]` and the shaped rows under `data` (see "Reading the output" in `testing.md`). Use the `raw → value → formatted` triple to localise faults: wrong `raw` → `pathToData`/script; wrong `value`/`formatted` → column `metadata`/`valueExpression`. For a scoped stream, also **compare the two objects' rows** — confirm the filter actually narrows to the scoped object and isn't matching everything (the `undefined === undefined` / non-existent-property trap, see `testing.md`).
 4. **Fix and re-test** until correct. **No redeploy** — `test` sends the local stream config against the deployed, authenticated plugin.
 
-Non-TTY discipline (full detail in `testing.md`): always `--json`, supply ids via flags, and **never** merge stderr into stdout (`2>&1`) when parsing — the progress spinner goes to stderr and corrupts the JSON.
+Non-TTY discipline (full detail in `testing.md`): always pass **both `--json` and `--silent`** (`--silent` suppresses the stderr progress spinner so captured output is pure JSON), supply ids via flags, and **never** merge stderr into stdout (`2>&1`) when parsing — even with `--silent` a real error line on stderr would still corrupt the JSON.
 
 ## Return format — keep it compact
 
