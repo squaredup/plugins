@@ -35,7 +35,7 @@ if (upcoming.length === 0) {
     result = [{ date: 'No upcoming matches', home_away: '', opponent: '', stage: '', group: '', sourceId: sourceId }];
 } else {
     var next = upcoming[0];
-    var isHome = next.home_team_name_en === teamName;
+    var isHome = next.home_team_id === teamId;
     var opponent = isHome ? next.away_team_name_en : next.home_team_name_en;
     if (!opponent || opponent === 'undefined') {
         opponent = isHome ? (next.away_team_label || 'TBD') : (next.home_team_label || 'TBD');

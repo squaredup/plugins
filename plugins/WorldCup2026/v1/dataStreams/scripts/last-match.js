@@ -32,7 +32,7 @@ if (played.length === 0) {
     result = [{ date: 'No matches played yet', home_away: '', opponent: '', score: '', result: '', stage: '', sourceId: sourceId }];
 } else {
     var last = played[0];
-    var isHome = last.home_team_name_en === teamName;
+    var isHome = last.home_team_id === teamId;
     var opponent = isHome ? last.away_team_name_en : last.home_team_name_en;
     var myScore = parseInt(isHome ? last.home_score : last.away_score, 10);
     var oppScore = parseInt(isHome ? last.away_score : last.home_score, 10);
