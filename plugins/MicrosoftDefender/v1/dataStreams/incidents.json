@@ -1,0 +1,221 @@
+{
+    "name": "incidents",
+    "displayName": "Incidents",
+    "description": "Returns a list of incident objects that Microsoft Defender created to track attacks in an organization",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "errorHandling": {
+            "type": "default"
+        },
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": {
+                    "value": "none",
+                    "label": "None"
+                }
+            },
+            "in": {
+                "realm": {
+                    "value": "payload",
+                    "label": "Body"
+                },
+                "path": "@odata.nextLink"
+            }
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "incidents",
+        "pathToData": "value",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ status && status.length > 0 ? \"(status eq \" + status.map((m) => { return `'${m}'` }).join(\" or status eq \") + \") and \" : \"\" }}{{ severity && severity.length > 0 ? \"(severity eq \" + severity.map((m) => { return `'${m}'` }).join(\" or severity eq \") + \") and \" : \"\" }}{{timeframe.enum !== \"none\" ? timeframeCol + \" ge \" + timeframe.start + \" and \" + timeframeCol + \" le \" + timeframe.end : \"1 eq 1\"}}"
+            }
+        ],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Incident name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "id",
+            "displayName": "Incident id",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "priorityScore",
+            "displayName": "Priority score",
+            "shape": "number"
+        },
+        {
+            "name": "customTags",
+            "displayName": "Tags",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "lastUpdateDateTime",
+            "displayName": "Last update time",
+            "shape": "date",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "assignedTo",
+            "displayName": "Assigned to",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "classification",
+            "displayName": "Classification",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "determination",
+            "displayName": "Determination",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "createdDateTime",
+            "displayName": "Creation time",
+            "shape": "date",
+            "role": "label"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear"
+    ],
+    "supportsNoneTimeframe": true,
+    "providesPluginDiagnostics": true,
+    "manualConfigApply": true,
+    "tags": [],
+    "ui": [
+        {
+            "name": "severity",
+            "label": "Severity",
+            "type": "autocomplete",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "low",
+                        "label": "Low"
+                    },
+                    {
+                        "value": "medium",
+                        "label": "Medium"
+                    },
+                    {
+                        "value": "high",
+                        "label": "High"
+                    },
+                    {
+                        "value": "unknown",
+                        "label": "Unknown"
+                    },
+                    {
+                        "value": "unknownFutureValue",
+                        "label": "Unknown Future Value"
+                    },
+                    {
+                        "value": "new",
+                        "label": "New"
+                    },
+                    {
+                        "value": "informational",
+                        "label": "Informational"
+                    }
+                ]
+            },
+            "isClearable": true
+        },
+        {
+            "name": "status",
+            "label": "Status",
+            "type": "autocomplete",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "active",
+                        "label": "Active"
+                    },
+                    {
+                        "value": "resolved",
+                        "label": "Resolved"
+                    },
+                    {
+                        "value": "inProgress",
+                        "label": "In Progress"
+                    },
+                    {
+                        "value": "redirected",
+                        "label": "Redirected"
+                    },
+                    {
+                        "value": "unknownFutureValue",
+                        "label": "Unknown Future Value"
+                    },
+                    {
+                        "value": "awaitingAction",
+                        "label": "Awaiting Action"
+                    }
+                ]
+            },
+            "isClearable": true
+        },
+        {
+            "tileEditorStep": ["Timeframe"],
+            "isMulti": false,
+            "help": "Select the column to apply the timeframe",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "createdDateTime",
+                        "label": "Creation Time"
+                    },
+                    {
+                        "value": "lastUpdateDateTime",
+                        "label": "Last Update Time"
+                    }
+                ]
+            },
+            "defaultValue": "createdDateTime",
+            "name": "timeframeCol",
+            "label": "Timeframe Column",
+            "type": "autocomplete",
+            "isClearable": false
+        }
+    ]
+}
