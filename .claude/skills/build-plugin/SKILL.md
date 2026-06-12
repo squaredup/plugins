@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.7"
+    version: "0.0.8"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -61,7 +61,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
 - [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
-- [ ] **Phase 9** — Final validate and deploy → invoke the `deploy-plugin` skill
+- [ ] **Phase 9** — Final validate and deploy → invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
 
 ---
 
@@ -246,6 +246,8 @@ Sub-agents run blind to each other, so several can independently rediscover — 
 2. **Propagate every API-level discovery to all sibling streams** that share the endpoint family or scoping — timeframe/granularity limits, payload caps, object property/id names, auth quirks. A constraint one sub-agent hit and fixed almost always applies to its siblings too; apply the same edit to each affected stream and **re-test every stream you changed** (re-spawn a test-mode sub-agent for it — a propagated edit is unproven until tested).
 3. **Resolve conflicting assumptions** before continuing — if two reports name the same object property or id differently (e.g. one filters on `projectId`, another on `rawId`), determine the correct one against the real response and fix every stream that used the wrong one. Do not proceed with an unresolved contradiction.
 
+If reconciliation edits an `indexDefinitions/*.json` mapping or an import stream, that edit only changes what a **future** import produces — see the re-indexing rule under [Checkpoint B](#re-indexing-rule--a-post-import-definition-change-invalidates-the-imported-objects). Here in Phase 5 the import hasn't run yet, so the edit will be picked up by the Checkpoint B import naturally; no extra re-index is needed.
+
 ---
 
 ## Checkpoint B: Redeploy & run the first import
@@ -256,6 +258,20 @@ Scoped data streams can't be tested until objects exist, which means the import 
 2. **Trigger** — `squaredup index --datasource-id <id> --json`. This re-indexes the datasource and returns immediately with a `since` anchor; capture it. (If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.)
 3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [checkpoints.md](references/checkpoints.md).
 4. **Confirm** — check objects landed with an **inline scope**: `squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json` should return a non-empty list. `<Object Type>` is a `sourceType` from the `objectTypes` you defined in `metadata.json` / `indexDefinitions/default.json`. Use `--matches` here, **not** `objects <stream>`: that form resolves a data stream file's `matches`, but no scoped data stream exists yet (those come in Phase 6) and the import streams written so far have no `matches` to resolve. For the same reason, pass **inline** JSON — `--matches @<importStream>.json` won't work, as an import stream's `matches` is `none`/absent.
+
+### ⚠️ Re-indexing rule — a post-import definition change invalidates the imported objects
+
+The objects now in the graph were imported under the **current** `indexDefinitions/*.json` and import streams. **Any edit to `indexDefinitions/*.json` or an import stream after this import has run does not reach the existing objects** — they keep the shape they were imported with. A new mapped property you add now is absent on every already-imported object until the datasource is re-imported.
+
+So before you **rely** on such a change — spawning Phase 6 sub-agents that reference a new property, building dashboards on it, or shipping a stream that scopes on it — you must **repeat the Checkpoint B cycle**, in this order:
+
+1. **Check the change is actually needed first.** If the value is already covered by the `id`/`name`/`type` mappings it is on every object for free — `rawId` (scalar), `name`, `type` — so don't add a duplicate `properties` entry just to reach it (see the duplicate-property rule in [index-defs.md](references/index-defs.md)). Only proceed when the property genuinely isn't already available.
+2. **Redeploy** — invoke `deploy-plugin` so the edited definition/stream ships.
+3. **Re-index** — `squaredup index --datasource-id <id> --json`, capturing the new `since`.
+4. **Poll** — `squaredup index-status --datasource-id <id> --since <since> --json` until `done: true, succeeded: true`.
+5. **Confirm the change itself landed — not merely that the import succeeded.** Verify the specific edit is present on a re-imported object: for a new mapped property, run the Confirm command above and inspect a returned object's properties for the new field (or test a scoped stream that reads `{{object.<newProp>}}` and see it resolve to a real value, not `undefined`). Import success alone does not prove the property mapped — a typo'd source column imports cleanly and silently omits the property.
+
+Only once the property is confirmed present on a real object may you tell Phase 6 sub-agents it exists. Skipping this is the root cause of the shipped `undefined === undefined` scope bug — see [testing.md](references/testing.md), "The two-object rule".
 
 ---
 
@@ -270,6 +286,8 @@ Collect the reports, then **run the reconciliation pass** before Phase 7 — the
 1. **Diff the reports** — line up every report's **"API-level discoveries"** section, fixes applied, assumptions, and constraints hit, and spot any fact present in one report but missing from its siblings.
 2. **Propagate every API-level discovery to all sibling streams** sharing the endpoint family or scoping (timeframe/granularity limits that 404, payload caps that 500, object property/id names, auth quirks), apply the same edit to each affected stream, and **re-test every stream you changed** by re-spawning its build/test sub-agent. This is where a constraint one stream hit — e.g. a daily-granularity endpoint that 404s on `last1hour`, or the ~6MB response cap that 500s on long timeframes — gets its `timeframes` fix applied to **all** sibling streams on that endpoint, not just the one that found it.
 3. **Resolve conflicting assumptions** — if two reports name the same indexed property differently (e.g. `projectId` vs `rawId`), settle it against the real response and fix every stream that filtered on the wrong one, so no stream ships with a scope filter comparing `undefined === undefined`. Don't proceed with an unresolved contradiction.
+
+If resolving a contradiction means **adding or renaming a mapped property** in `indexDefinitions/*.json` (rather than just fixing a stream to use a property that already exists), the imported objects predate that change and don't carry it. Before re-spawning sub-agents that rely on it, **re-run the Checkpoint B cycle** (redeploy → `squaredup index` → poll → confirm the property is present on a re-imported object) per the [re-indexing rule](#re-indexing-rule--a-post-import-definition-change-invalidates-the-imported-objects). Don't tell a sub-agent a property exists on the strength of an unimported definition edit.
 
 `test` sends the **local** stream config against the deployed plugin, so **no redeploy** is needed to test a new or edited stream (including the re-tests above) — only Checkpoints A and B and the final deploy redeploy.
 
@@ -297,3 +315,12 @@ Write `custom_types.json` — for this and other reusable patterns (built-in pro
 ## Phase 9: Final validate & deploy
 
 Invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
+
+**Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the rule above), the deployed plugin's objects still match the **old** definition — the live tenant won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger one more import so the deployed objects match the shipped definition:
+
+```bash
+squaredup index --datasource-id <id> --json
+squaredup index-status --datasource-id <id> --since <since> --json   # poll until done: true, succeeded: true
+```
+
+Skip this only if no import definition or import stream has changed since the last import. Don't leave the tenant waiting on the scheduled import for a change you just shipped.

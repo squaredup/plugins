@@ -57,3 +57,17 @@ Notes:
 - `--since` is **exclusive** (`scheduledStart > since`): always pass the `since` from `index` so `done` can't latch on a stale previous run.
 - If `index` reports `alreadyRunning: true`, it adopted the in-flight run — poll with the `since` it returned. Imports can take several minutes (object import allows up to ~10 min); use a generous overall timeout.
 - The `--matches` confirm in step 3 must be **inline JSON** — `--matches @<importStream>.json` only resolves a real scope, and an import stream's `matches` is `none`/absent. Likewise `objects <stream>` needs a scoped stream, which doesn't exist until Phase 6.
+
+## A post-import definition change invalidates the imported objects
+
+The objects this import created carry the shape defined by the `indexDefinitions/*.json` and import streams **as they were when the import ran**. Editing either afterwards does **not** retroactively change the objects already in the graph — a newly mapped property is absent on every existing object until the datasource is re-imported. This is the trap behind the shipped `undefined === undefined` scope bug: a property was added to `objectMapping.properties` *after* the import, sub-agents were told it existed, and they filtered on a field that was `undefined` on every object.
+
+So **any** change to `indexDefinitions/*.json` or an import stream after this import has run means you must **repeat this whole Checkpoint B cycle before relying on the change** — before spawning sub-agents that reference a new property or building anything that scopes on it:
+
+1. **First check the change is even needed.** A value already covered by `id`/`name`/`type` is on every object for free (`rawId` as a scalar, `name`, `type`) — don't add a duplicate `properties` mapping to reach it (see [index-defs.md](index-defs.md)). Only re-index for a property that genuinely isn't already available.
+2. **Redeploy** the edited definition/stream (invoke `deploy-plugin`).
+3. **Re-index** — `squaredup index --datasource-id <id> --json`, capture the new `since`.
+4. **Poll** `index-status` until `done: true, succeeded: true`.
+5. **Confirm the change itself landed, not just that the import succeeded.** A typo'd source column imports cleanly and silently drops the property, so import success proves nothing about the mapping. Re-run the step-3 `objects --matches` confirm and inspect a returned object for the new property (or test a scoped stream that reads `{{object.<newProp>}}` and see it resolve to a real value). Only then is it safe to tell a sub-agent the property exists.
+
+**Phase 9 corollary.** If import definitions or import streams changed since the last successful import, the **deployed** tenant's objects are also stale — they won't gain the new shape until the next scheduled import (up to `frequencyMinutes`, default 720 = 12h). After the final deploy, trigger one more `index` + poll so the live objects match the shipped definition rather than waiting on the schedule.
