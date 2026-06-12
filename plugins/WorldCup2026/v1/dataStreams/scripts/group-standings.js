@@ -1,22 +1,6 @@
 var games = data.games || [];
 var teamFilter = context.objects[0] ? [].concat(context.objects[0].teamName)[0] || '' : '';
 
-var FLAG = {
-    'Algeria': '🇩🇿', 'Argentina': '🇦🇷', 'Australia': '🇦🇺', 'Austria': '🇦🇹',
-    'Belgium': '🇧🇪', 'Bosnia and Herzegovina': '🇧🇦', 'Brazil': '🇧🇷',
-    'Canada': '🇨🇦', 'Cape Verde': '🇨🇻', 'Colombia': '🇨🇴', 'Croatia': '🇭🇷',
-    'Curaçao': '🇨🇼', 'Czech Republic': '🇨🇿', 'Democratic Republic of the Congo': '🇨🇩',
-    'Ecuador': '🇪🇨', 'Egypt': '🇪🇬', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'France': '🇫🇷',
-    'Germany': '🇩🇪', 'Ghana': '🇬🇭', 'Haiti': '🇭🇹', 'Iran': '🇮🇷', 'Iraq': '🇮🇶',
-    'Ivory Coast': '🇨🇮', 'Japan': '🇯🇵', 'Jordan': '🇯🇴', 'Mexico': '🇲🇽',
-    'Morocco': '🇲🇦', 'Netherlands': '🇳🇱', 'New Zealand': '🇳🇿', 'Norway': '🇳🇴',
-    'Panama': '🇵🇦', 'Paraguay': '🇵🇾', 'Portugal': '🇵🇹', 'Qatar': '🇶🇦',
-    'Saudi Arabia': '🇸🇦', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Senegal': '🇸🇳',
-    'South Africa': '🇿🇦', 'South Korea': '🇰🇷', 'Spain': '🇪🇸', 'Sweden': '🇸🇪',
-    'Switzerland': '🇨🇭', 'Tunisia': '🇹🇳', 'Turkey': '🇹🇷',
-    'United States': '🇺🇸', 'Uruguay': '🇺🇾', 'Uzbekistan': '🇺🇿'
-};
-
 var groupGames = games.filter(function(g) { return g.type === 'group'; });
 
 var standings = {};
@@ -53,9 +37,8 @@ groupGames.forEach(function(g) {
 
 var rows = Object.keys(standings).map(function(k) {
     var s = standings[k];
-    var flag = FLAG[k] || '';
     return {
-        team: flag ? flag + ' ' + k : k,
+        team: k,
         group: s.group,
         mp: s.mp,
         w: s.w,
