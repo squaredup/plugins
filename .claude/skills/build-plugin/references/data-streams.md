@@ -292,7 +292,7 @@ Works on primitives too — a string, number, or boolean at the path is returned
 "timeframes": ["last24hours", "last7days"]   // limit to specific options
 ```
 
-**Canonical enum values** — these are the only valid entries in a `timeframes` array (and the only values `defaultTimeframe` accepts). Anything else fails validation with an opaque `✖ Invalid input`. Source of truth: `TimeframeEnumValue` in `saas/packages/@squaredup/timeframes`.
+**Canonical enum values** — these are the only valid entries in a `timeframes` array (and the only values `defaultTimeframe` accepts). Anything else fails validation with an opaque `✖ Invalid input`.
 
 ```
 last1hour    last12hours   last24hours   last7days   last30days
@@ -622,19 +622,19 @@ context.config; // current stream parameters (values set by the user in the tile
 >
 > Common failure mode: `(arr || []).includes(scalar)` silently returns nothing because the script is comparing array-to-string.
 >
-> **Always-scalar fields** — these come from the entity envelope, not the indexed property bag, and don't need unwrapping. Source: `saas/packages/@squaredup/graph/src/mapNodeToExpressionObject.ts`.
+> **Always-scalar fields** — these come from the entity envelope, not the indexed property bag, and don't need unwrapping.
 >
-> | Field on `context.objects[N]` | Type     | What it is                                          |
-> | ----------------------------- | -------- | --------------------------------------------------- |
-> | `id`                          | `string` | Internal graph node id                              |
-> | `sourceId`                    | `string` | Source-side id (value from `objectMapping.id`)      |
+> | Field on `context.objects[N]` | Type     | What it is                                                                                                                       |
+> | ----------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+> | `id`                          | `string` | Internal graph node id                                                                                                           |
+> | `sourceId`                    | `string` | Source-side id (value from `objectMapping.id`)                                                                                   |
 > | `rawId`                       | `string` | The raw `objectMapping.id` value without the `sourceType~` prefix — usually what scripts want when calling the API for an object |
-> | `name`                        | `string` | Display name (alias of `displayName`)               |
-> | `displayName`                 | `string` | Display name                                        |
-> | `type`                        | `string` | The `sourceType`                                    |
-> | `tenant`                      | `string` | Tenant id                                           |
-> | `configId`                    | `string` | Plugin config instance id                           |
-> | `workspaceId`                 | `string` | Workspace id (absent on workspace nodes themselves) |
+> | `name`                        | `string` | Display name (alias of `displayName`)                                                                                            |
+> | `displayName`                 | `string` | Display name                                                                                                                     |
+> | `type`                        | `string` | The `sourceType`                                                                                                                 |
+> | `tenant`                      | `string` | Tenant id                                                                                                                        |
+> | `configId`                    | `string` | Plugin config instance id                                                                                                        |
+> | `workspaceId`                 | `string` | Workspace id (absent on workspace nodes themselves)                                                                              |
 >
 > Everything else — anything you added via `objectMapping.properties` in `indexDefinitions/` — needs the defensive unwrap above.
 
