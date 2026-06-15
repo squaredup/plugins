@@ -8,12 +8,15 @@
 - [Advanced inputs](#advanced-inputs): key-value, expression, json, code, script
 - [Layout](#layout): markdown, fieldGroup
 - [OAuth2](#oauth2): oAuth2
+- [Data-stream parameters](#data-stream-parameters): objects
 
 ---
 
 ## Overview
 
 Defines the config form shown when a user adds the plugin. One entry per config field.
+
+> **Two different forms, one field catalogue.** This file documents the **plugin config form** (`ui.json`, shown once when the plugin is added). A **data stream** has its own `ui` array — the **tile-editor parameters** shown when a user adds that stream to a dashboard — and it reuses the same field types below. Some types are only meaningful as a data-stream parameter, not as plugin config: the [`objects`](#data-stream-parameters) filter references Data Mesh graph objects, which only exist at tile time. See [data-streams.md](data-streams.md#one-stream-per-shape).
 
 **Common properties** on all field types:
 
@@ -248,3 +251,25 @@ Add `"displayAs": "fieldGroupToggle"` to make the group collapsible:
 ```json
 { "type": "oAuth2", "name": "oauth2", "label": "Sign in" }
 ```
+
+---
+
+## Data-stream parameters
+
+These types appear in a **data stream's** `ui` array (the tile-editor parameter form), **not** in the plugin's `ui.json`.
+
+**`objects`** — an object picker that lets the tile filter the stream to selected Data Mesh objects. Its own `matches` constrains which object types are selectable (same operators as a stream's [`matches`](data-streams.md#matches)):
+
+```json
+{
+    "type": "objects",
+    "name": "project",
+    "label": "Project (optional)",
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Vercel Project"] } },
+    "validation": { "required": false }
+}
+```
+
+- The selected objects arrive in the stream's [post-request script](data-streams.md#post-request-scripts) as `context.objects[]` — read `context.objects[0].rawId` (unwrap if it's an array) to filter. Treat **empty** as "no filter" so the stream still serves the account-wide case.
+- **Required vs optional.** `required: true` forces a selection — use only for a stream that is *always* per-object. Leave it **optional** when one stream should serve both account-wide (nothing selected) and per-object (something selected) use — the recommended shape for a consolidated stream.
+- **Auto-scope on drilldown.** A dashboard binds its variable into this field via `dataStream.dataSourceConfig.<name>` so the stream scopes to the perspective object automatically — see [oob-content.md](oob-content.md#auto-scoping-a-stream-via-its-objects-filter). This, plus an optional filter, is what lets a single stream replace separate account and per-object streams (see [data-streams.md](data-streams.md#one-stream-per-shape)).
