@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.8"
+    version: "0.0.9"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -271,7 +271,7 @@ If reconciliation edits an `indexDefinitions/*.json` mapping or an import stream
 Scoped data streams can't be tested until objects exist, which means the import steps must be live and an import must have run. The CLI triggers and tracks the import for you, so **drive it yourself — don't ask the user to run it in the UI.**
 
 1. **Redeploy** — invoke `deploy-plugin` again so the new import steps ship. The import definitions only take effect once this redeploy lands, so the import must run _after_ it.
-2. **Trigger** — `squaredup index --datasource-id <id> --json`. This re-indexes the datasource and returns immediately with a `since` anchor; capture it. (If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.)
+2. **Trigger** — `squaredup index --datasource-id <id> --no-wait --json`. `--no-wait` returns immediately with a `since` anchor (capture it) instead of blocking until the import finishes — you poll for completion in the next step. (Plain `squaredup index` now waits and prints progress itself, which can outlast an agent command timeout on a long import; `--no-wait` is the orchestration path.) If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.
 3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [checkpoints.md](references/checkpoints.md).
 4. **Confirm** — check objects landed with an **inline scope**: `squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json` should return a non-empty list. `<Object Type>` is a `sourceType` from the `objectTypes` you defined in `metadata.json` / `indexDefinitions/default.json`. Use `--matches` here, **not** `objects <stream>`: that form resolves a data stream file's `matches`, but no scoped data stream exists yet (those come in Phase 6) and the import streams written so far have no `matches` to resolve. For the same reason, pass **inline** JSON — `--matches @<importStream>.json` won't work, as an import stream's `matches` is `none`/absent.
 
@@ -283,7 +283,7 @@ So before you **rely** on such a change — spawning Phase 6 sub-agents that ref
 
 1. **Check the change is actually needed first.** If the value is already covered by the `id`/`name`/`type` mappings it is on every object for free — `rawId` (scalar), `name`, `type` — so don't add a duplicate `properties` entry just to reach it (see the duplicate-property rule in [index-defs.md](references/index-defs.md)). Only proceed when the property genuinely isn't already available.
 2. **Redeploy** — invoke `deploy-plugin` so the edited definition/stream ships.
-3. **Re-index** — `squaredup index --datasource-id <id> --json`, capturing the new `since`.
+3. **Re-index** — `squaredup index --datasource-id <id> --no-wait --json`, capturing the new `since`.
 4. **Poll** — `squaredup index-status --datasource-id <id> --since <since> --json` until `done: true, succeeded: true`.
 5. **Confirm the change itself landed — not merely that the import succeeded.** Verify the specific edit is present on a re-imported object: for a new mapped property, run the Confirm command above and inspect a returned object's properties for the new field (or test a scoped stream that reads `{{object.<newProp>}}` and see it resolve to a real value, not `undefined`). Import success alone does not prove the property mapped — a typo'd source column imports cleanly and silently omits the property.
 
@@ -335,7 +335,7 @@ Invoke the `deploy-plugin` skill for the final validate, version bump, and deplo
 **Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the rule above), the deployed plugin's objects still match the **old** definition — the live tenant won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger one more import so the deployed objects match the shipped definition:
 
 ```bash
-squaredup index --datasource-id <id> --json
+squaredup index --datasource-id <id> --no-wait --json
 squaredup index-status --datasource-id <id> --since <since> --json   # poll until done: true, succeeded: true
 ```
 

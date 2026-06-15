@@ -39,8 +39,8 @@ A 2xx `value` means auth is good. A non-2xx status — or a request error (surfa
 After redeploying the import steps, drive the import via the CLI yourself (no UI, no user pause):
 
 ```bash
-# 1. Trigger a re-index; capture the `since` poll anchor it emits
-squaredup index --datasource-id <id> --json --silent
+# 1. Trigger a re-index; --no-wait returns the `since` poll anchor immediately instead of blocking until done
+squaredup index --datasource-id <id> --no-wait --json --silent
 #    → { "datasourceId": "config-...", "triggered": true, "alreadyRunning": false, "since": 1717000000000 }
 
 # 2. Poll until done, passing that `since` so it pins to the run you just triggered
@@ -69,7 +69,7 @@ So **any** change to `indexDefinitions/*.json` or an import stream after this im
 
 1. **First check the change is even needed.** A value already covered by `id`/`name`/`type` is on every object for free (`rawId` as a scalar, `name`, `type`) — don't add a duplicate `properties` mapping to reach it (see [index-defs.md](index-defs.md)). Only re-index for a property that genuinely isn't already available.
 2. **Redeploy** the edited definition/stream (invoke `deploy-plugin`).
-3. **Re-index** — `squaredup index --datasource-id <id> --json --silent`, capture the new `since`.
+3. **Re-index** — `squaredup index --datasource-id <id> --no-wait --json --silent`, capture the new `since`.
 4. **Poll** `index-status` until `done: true, succeeded: true`.
 5. **Confirm the change itself landed, not just that the import succeeded.** A typo'd source column imports cleanly and silently drops the property, so import success proves nothing about the mapping. Re-run the step-3 `objects --matches` confirm and inspect a returned object for the new property (or test a scoped stream that reads `{{object.<newProp>}}` and see it resolve to a real value). Only then is it safe to tell a sub-agent the property exists.
 
