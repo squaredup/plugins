@@ -1,0 +1,646 @@
+{
+    "name": "Page Overview",
+    "schemaVersion": "1.5",
+    "dashboard": {
+        "_type": "layout/grid",
+        "contents": [
+            {
+                "static": false,
+                "w": 5,
+                "moved": false,
+                "h": 1,
+                "x": 0,
+                "y": 0,
+                "i": "6a80af30-0353-4b51-afb5-cd4a8f2f9fc8",
+                "z": 0,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "name": "pagePerformance",
+                        "dataSourceConfig": {
+                            "scope": {
+                                "variable": "{{variables.[Google Search Console Page]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Google Search Console Pages]}}"
+                            }
+                        },
+                        "id": "{{dataStreams.pagePerformanceSummary}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Page summary",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Clicks",
+                                    "Impressions",
+                                    "CTR",
+                                    "Position"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "CTR": 193,
+                                        "Impressions": 168,
+                                        "Page": 175
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "Page"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "moved": false,
+                "w": 5,
+                "h": 1,
+                "x": 0,
+                "i": "7bfbf121-4b54-4e05-b0c6-b49976fbe0fe",
+                "y": 1,
+                "z": 0,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Google Search Console Page]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "previousPeriodPagePerformance",
+                                            "dataSourceConfig": {
+                                                "scope": {
+                                                    "variable": "{{variables.[Google Search Console Page]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[Google Search Console Pages]}}"
+                                                }
+                                            },
+                                            "id": "{{dataStreams.previousPeriodPagePerformance}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                },
+                                {
+                                    "config": {
+                                        "_type": "tile/data-stream",
+                                        "variables": [
+                                            "{{variables.[Google Search Console Page]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "pagePerformance",
+                                            "dataSourceConfig": {
+                                                "scope": {
+                                                    "variable": "{{variables.[Google Search Console Page]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[Google Search Console Pages]}}"
+                                                }
+                                            },
+                                            "id": "{{dataStreams.pagePerformanceSummary}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset2"
+                                }
+                            ],
+                            "sql": "WITH previous_period AS (\r\n  SELECT\r\n    COALESCE(SUM(Clicks), 0) AS Clicks,\r\n    COALESCE(SUM(Impressions), 0) AS Impressions,\r\n    COALESCE(SUM(Clicks) / NULLIF(SUM(Impressions), 0) * 100, 0) AS CTR,\r\n    AVG(Position) AS Position\r\n  FROM dataset1\r\n),\r\n\r\ncurrent_period AS (\r\n  SELECT\r\n    COALESCE(SUM(Clicks), 0) AS Clicks,\r\n    COALESCE(SUM(Impressions), 0) AS Impressions,\r\n    COALESCE(SUM(Clicks) / NULLIF(SUM(Impressions), 0) * 100, 0) AS CTR,\r\n    AVG(Position) AS Position\r\n  FROM dataset2\r\n)\r\n\r\nSELECT\r\n  CASE\r\n    WHEN previous_period.Clicks = 0 THEN 0\r\n    ELSE ROUND(((current_period.Clicks - previous_period.Clicks) / previous_period.Clicks) * 100, 2)\r\n  END AS \"Clicks Change %\",\r\n\r\n  CASE\r\n    WHEN previous_period.Impressions = 0 THEN 0\r\n    ELSE ROUND(((current_period.Impressions - previous_period.Impressions) / previous_period.Impressions) * 100, 2)\r\n  END AS \"Impressions Change %\",\r\n\r\n  CASE\r\n    WHEN previous_period.CTR = 0 THEN 0\r\n    ELSE ROUND(((current_period.CTR - previous_period.CTR) / previous_period.CTR) * 100, 2)\r\n  END AS \"CTR Change %\",\r\n\r\n  CASE\r\n    WHEN previous_period.Position IS NULL OR current_period.Position IS NULL THEN 0\r\n    ELSE ROUND(previous_period.Position - current_period.Position, 1)\r\n  END AS \"Position Change\"\r\n\r\nFROM previous_period\r\nCROSS JOIN current_period"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "scope": {
+                        "query": "g.V().has('id', within(ids_MI6UfjAoqy17Fe9Ug6ST))",
+                        "bindings": {
+                            "ids_MI6UfjAoqy17Fe9Ug6ST": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        },
+                        "queryDetail": {
+                            "ids": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        }
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Organic search performance",
+                    "baseTile": "data-stream-base-tile",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Clicks Change %",
+                                    "Impressions Change %",
+                                    "CTR Change %",
+                                    "Position Change"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "Position Change": 135,
+                                        "Impressions Change %": 177,
+                                        "CTR Change %": 122,
+                                        "Clicks Change %": 135
+                                    }
+                                },
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 5,
+                "moved": false,
+                "h": 2,
+                "x": 0,
+                "y": 2,
+                "i": "9665d5a3-74fd-484d-992c-64d2e34ad365",
+                "z": 0,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Google Search Console Page]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "previousPeriodQueriesByPage",
+                                            "dataSourceConfig": {
+                                                "scope": {
+                                                    "variable": "{{variables.[Google Search Console Page]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[Google Search Console Pages]}}"
+                                                }
+                                            },
+                                            "id": "{{dataStreams.previousPeriodQueriesByPage}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                },
+                                {
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Google Search Console Page]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "queriesByPage",
+                                            "dataSourceConfig": {
+                                                "scope": {
+                                                    "variable": "{{variables.[Google Search Console Page]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[Google Search Console Pages]}}"
+                                                }
+                                            },
+                                            "id": "{{dataStreams.queriesByPage}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset2"
+                                }
+                            ],
+                            "sql": "SELECT\r\n  c.Query,\r\n  ROUND(p.Position - c.Position, 1) AS PositionChange,\r\n  c.Position AS CurrentPosition,\r\n  p.Position AS PreviousPosition,\r\n  c.Clicks,\r\n  c.Impressions\r\nFROM dataset1 c\r\nINNER JOIN dataset2 p\r\n  ON c.Query = p.Query\r\nWHERE\r\n  c.Impressions > 0\r\n  OR p.Impressions > 0\r\nORDER BY PositionChange DESC\r\nLIMIT 10"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "scope": {
+                        "query": "g.V().has('id', within(ids_d0XpnAS5M7Up3bmNCZUB))",
+                        "bindings": {
+                            "ids_d0XpnAS5M7Up3bmNCZUB": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        },
+                        "queryDetail": {
+                            "ids": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        }
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Biggest Ranking Changes",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Query",
+                                    "PositionChange",
+                                    "CurrentPosition",
+                                    "PreviousPosition"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "Impressions": 112,
+                                        "Previous Pos": 98,
+                                        "PreviousPosition": 98,
+                                        "PositionImprovement": 173,
+                                        "Query": 105,
+                                        "CurrentPosition": 97,
+                                        "PositionChange": 101,
+                                        "Current Pos": 92
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "Clicks",
+                                    "Impressions"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 2,
+                "x": 0,
+                "y": 4,
+                "i": "6b7519f4-4f66-4ac5-9dab-1c8ff03aaa44",
+                "z": 0,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Google Search Console Page]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "pageDistribution",
+                                            "dataSourceConfig": {
+                                                "scope": {
+                                                    "variable": "{{variables.[Google Search Console Page]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[Google Search Console Pages]}}"
+                                                }
+                                            },
+                                            "id": "{{dataStreams.pageDistribution}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT\r\n  Bucket,\r\n  COUNT(*) AS Queries\r\nFROM dataset1\r\nGROUP BY Bucket\r\nORDER BY\r\nCASE Bucket\r\n  WHEN '1-3' THEN 1\r\n  WHEN '4-10' THEN 2\r\n  WHEN '11-20' THEN 3\r\n  WHEN '21-50' THEN 4\r\n  ELSE 5\r\nEND"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "scope": {
+                        "query": "g.V().has('id', within(ids_x17OQVG9BsPtxhZAiSKq))",
+                        "bindings": {
+                            "ids_x17OQVG9BsPtxhZAiSKq": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        },
+                        "queryDetail": {
+                            "ids": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        }
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Ranking distribution",
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "color": {
+                                    "type": "default"
+                                },
+                                "xAxisGroup": "none",
+                                "showLegend": false,
+                                "range": {
+                                    "type": "auto"
+                                },
+                                "showGrid": true,
+                                "grouping": false,
+                                "displayMode": "actual",
+                                "xAxisData": "Bucket",
+                                "showTotals": false,
+                                "yAxisLabel": "Queries",
+                                "horizontalLayout": "horizontal",
+                                "showValue": false,
+                                "yAxisData": [
+                                    "Queries"
+                                ],
+                                "showYAxisLabel": true,
+                                "xAxisLabel": "Position range",
+                                "legendPosition": "bottom",
+                                "showXAxisLabel": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 5,
+                "moved": false,
+                "h": 2,
+                "x": 9,
+                "y": 4,
+                "i": "1af01875-5df5-4d30-ae42-f5c7ab1b841e",
+                "z": 0,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Google Search Console Page]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "queriesByPage",
+                                            "dataSourceConfig": {
+                                                "scope": {
+                                                    "variable": "{{variables.[Google Search Console Page]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[Google Search Console Pages]}}"
+                                                }
+                                            },
+                                            "id": "{{dataStreams.queriesByPage}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT *\r\nFROM dataset1\r\nWHERE Impressions >= 10\r\nAND CTR < 2\r\nORDER BY Impressions DESC"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "scope": {
+                        "query": "g.V().has('id', within(ids_ld2AmVYZkZ4TEH5rBCXD))",
+                        "bindings": {
+                            "ids_ld2AmVYZkZ4TEH5rBCXD": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        },
+                        "queryDetail": {
+                            "ids": [
+                                "node-1dwkxV4HX7tME4WtZkj2r04TirpbysXMf3ej9-a1txyPzIR6b4Z1ctJ0Ks"
+                            ]
+                        }
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Query opportunities",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "Impressions": 74,
+                                        "Query": 144,
+                                        "Clicks": 67,
+                                        "Position": 86
+                                    }
+                                },
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 5,
+                "moved": false,
+                "h": 2,
+                "x": 4,
+                "y": 4,
+                "i": "54de8574-a118-47ba-8bb9-b78ac2fd4cfd",
+                "z": 0,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "name": "queriesByPage",
+                        "dataSourceConfig": {
+                            "scope": {
+                                "variable": "{{variables.[Google Search Console Page]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Google Search Console Pages]}}"
+                            }
+                        },
+                        "id": "{{dataStreams.queriesByPage}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "Position",
+                                    "desc"
+                                ],
+                                [
+                                    "Impressions",
+                                    "desc"
+                                ]
+                            ]
+                        },
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Top queries",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Query",
+                                    "Clicks",
+                                    "Impressions",
+                                    "CTR",
+                                    "Position"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "CTR": 74,
+                                        "Impressions": 83,
+                                        "Query": 142,
+                                        "Clicks": 93,
+                                        "Position": 81
+                                    }
+                                },
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "x": 5,
+                "h": 2,
+                "i": "b2061d65-1500-4ec4-b9ea-296cf9cf4a97",
+                "y": 0,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "name": "pagePerformanceOverTime",
+                        "dataSourceConfig": {
+                            "scope": {
+                                "variable": "{{variables.[Google Search Console Page]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Google Search Console Pages]}}"
+                            }
+                        },
+                        "id": "{{dataStreams.pagePerformanceOverTime}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Page performance over time",
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "yAxisLabel": "Number",
+                                "xAxisColumn": "Date",
+                                "showLegend": true,
+                                "seriesColumn": "none",
+                                "xAxisLabel": "Date",
+                                "legendPosition": "right",
+                                "yAxisColumn": [
+                                    "Clicks",
+                                    "Impressions",
+                                    "CTR"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "w": 9
+            },
+            {
+                "x": 5,
+                "h": 2,
+                "i": "52de2c7b-195d-41cf-97e8-a27997e9b501",
+                "y": 2,
+                "config": {
+                    "variables": [
+                        "{{variables.[Google Search Console Page]}}"
+                    ],
+                    "dataStream": {
+                        "name": "pagePerformanceOverTime",
+                        "dataSourceConfig": {
+                            "scope": {
+                                "variable": "{{variables.[Google Search Console Page]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Google Search Console Pages]}}"
+                            }
+                        },
+                        "id": "{{dataStreams.pagePerformanceOverTime}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Ranking over time",
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "seriesColumn": "none",
+                                "yAxisLabel": "Position",
+                                "xAxisLabel": "Date",
+                                "xAxisColumn": "Date",
+                                "yAxisColumn": [
+                                    "Position"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "w": 9
+            }
+        ],
+        "version": 593,
+        "columns": 14
+    },
+    "variables": [
+        "{{variables.[Google Search Console Page]}}"
+    ],
+    "timeframe": "last30days"
+}
