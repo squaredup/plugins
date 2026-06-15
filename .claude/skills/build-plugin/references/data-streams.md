@@ -2,6 +2,7 @@
 
 ## Contents
 
+- [One stream per shape (consolidate near-duplicates)](#one-stream-per-shape)
 - [baseDataSourceName — request modes](#basedatasourcename)
 - [Stream-level properties](#stream-level-properties)
 - [Visibility](#visibility)
@@ -18,6 +19,117 @@
 - [defaultShaping](#defaultshaping)
 - [metadata — column definitions](#metadata-column-definitions)
 - [Post-request scripts](#post-request-scripts) — [Wiring a script](#wiring-a-script-to-a-stream), [When to use](#default-no-script), [Globals](#available-globals), [Non-JSON responses](#parsing-non-json-responses)
+
+---
+
+## One stream per shape
+
+A data stream encodes a transformation that is correct for **every** dashboard — parsing the response, excluding non-billable rows, scoping to an object. How those rows are then *grouped*, *aggregated*, *bucketed by time*, or *sorted* is **presentation**, and the tile does it natively. Do not bake a presentation choice into its own stream.
+
+**The consolidate/split test.** Before authoring a second stream on an endpoint you already cover, ask what actually differs:
+
+| If the only difference is… | Verdict | The tile already does this via… |
+| --- | --- | --- |
+| **Grouping key** (by project / by service / …) | **Consolidate** | tile `group.by` |
+| **Aggregation** (sum / mean / count / min / max) | **Consolidate** | tile `group.aggregate` |
+| **Time granularity of a timeline** (daily / monthly) | **Consolidate** | the `byHour`/`byDay`/`byMonth`/`byQuarter`/`byYear` groupers on a `date`-shaped column |
+| **Object scope** (account-wide vs one object) | **Consolidate** | an optional `objects` filter bound to a dashboard variable (see below) |
+| **A different endpoint / API call** | **Split** | — different data, not a different view |
+| **A different object type** | **Split** | — different `matches` |
+| **A granularity the API can't return** | **Split** | a tile can bucket *coarser* than the rows, never *finer* |
+
+So: same rows, different view → **one** configurable stream. Different underlying data → split.
+
+### Anti-pattern: five "Cost by X" streams
+
+The shipped Vercel v1 plugin has five cost streams — `costByProject`, `costByService`, `costDailyTimeline`, `projectCosts`, `projectCostTimeline`. All five issue the **identical** request to `/v1/billing/charges` (same `getArgs`), and each `postRequestScript` does the same thing: parse the NDJSON, filter to `ChargeCategory === 'Usage'`, then group-and-sum by a different key (project / service / day) — two of them additionally filtering to a scoped project. They differ **only** by group key and scope, which is exactly the "consolidate" column above.
+
+**One stream replaces all five.** A single `cost` stream returns one row per finest-grained charge:
+
+```jsonc
+// dataStreams/cost.json — returns raw-ish rows; the dashboard shapes them
+{
+    "name": "cost",
+    "displayName": "Cost",
+    "description": "Vercel usage cost, one row per charge",
+    "tags": ["Cost", "Billing"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/billing/charges",
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.start}}" },
+            { "key": "to", "value": "{{timeframe.end}}" },
+            { "key": "teamId", "value": "{{teamId}}" }
+        ],
+        "postRequestScript": "cost.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Vercel Project"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "date", "displayName": "Date", "shape": "date", "role": "timestamp" },
+        { "name": "projectName", "displayName": "Project", "shape": "string", "role": "label" },
+        { "name": "serviceName", "displayName": "Service", "shape": "string", "role": "label" },
+        { "name": "serviceCategory", "displayName": "Category", "shape": "string" },
+        { "name": "totalCost", "displayName": "Cost ($)", "shape": ["number", { "decimalPlaces": 2 }], "role": "value" },
+        { "name": "projectId", "displayName": "Project ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}
+```
+
+The dashboard then reproduces every original stream as a tile shaping:
+
+- **Cost by Project** → group by `projectName`, aggregate `sum`.
+- **Cost by Service** → group by `serviceName`, aggregate `sum`.
+- **Daily timeline** → bucket `date` `byDay`, aggregate `sum` (use `byMonth` for a monthly view — no extra stream).
+- **Per-project drilldown** → bind the project perspective's dashboard variable into the `objects` filter (see [oob-content.md](oob-content.md)); the same tiles now show that project only.
+
+### What the script keeps vs drops
+
+The boundary is: a transformation true for **every** dashboard stays in the stream; a transformation that is **one way of looking** at the data moves to metadata or the tile.
+
+| Stays in `cost.js` (correctness / format / scope) | Moves out (presentation) |
+| --- | --- |
+| Parse NDJSON (`response.body` → records) | Grouping / summing → tile `group` |
+| Filter to `ChargeCategory === 'Usage'` (exclude credits, taxes) | Time bucketing → tile `byDay` grouper |
+| If `context.objects?.length`, filter to that project | `Math.round(x * 100) / 100` → metadata `decimalPlaces: 2` |
+| Return one row per charge | `.sort(...)` → [defaultShaping](#defaultshaping) or the tile |
+
+```javascript
+// cost.js — parse + correctness-filter + optional scope only; NO grouping/rounding/sorting
+const records = response.body
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => JSON.parse(l))
+    .filter((r) => r.ChargeCategory === 'Usage');
+
+// Optional object filter: empty → account-wide; a project selected/bound → that project only
+const rawId = context.objects?.[0]?.rawId;
+const projectId = Array.isArray(rawId) ? rawId[0] : rawId;
+const scoped = projectId ? records.filter((r) => r.Tags?.ProjectId === projectId) : records;
+
+result = scoped.map((r) => ({
+    date: r.ChargePeriodStart,
+    projectId: (r.Tags && r.Tags.ProjectId) || 'unknown',
+    projectName: (r.Tags && r.Tags.ProjectName) || (r.Tags && r.Tags.ProjectId) || 'unknown',
+    serviceName: r.ServiceName,
+    serviceCategory: r.ServiceCategory || '',
+    totalCost: r.BilledCost || 0
+}));
+```
+
+> **Out-of-the-box dashboards don't suffer.** You still ship the same ready-made tiles — each one is a `cost` tile with its `group`/bucket and (for drilldown) its `objects` binding pre-configured in `defaultContent`. The five views survive as five tiles backed by one stream, not five streams.
+
+The optional `objects` filter (`"type": "objects"`) is a **data-stream parameter**, documented in [ui.md](ui.md); binding a dashboard variable into it for auto-scope-on-drilldown is in [oob-content.md](oob-content.md).
 
 ---
 
