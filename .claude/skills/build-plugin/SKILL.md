@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.9"
+    version: "0.0.10"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -95,7 +95,7 @@ This phase produces a written plan and a user-approval gate before any files are
     - A **summary/current state** stream (`"timeframes": false`, returns current values)
     - A **history/metrics** stream (supports timeframes, returns time-series rows)
     - Any **cross-object** streams scoped to a parent (e.g. alarms for an installation)
-    - **Prefer configurable streams** over hardcoded ones — use a UI parameter rather than multiple streams for the same endpoint with different values.
+    - **One stream per data shape, not per view — shaping is the tile's job.** Before planning a second stream on the same endpoint, apply the consolidate/split test: if the streams would differ only in how the **same rows** are *grouped*, *aggregated*, *time-bucketed*, or *scoped to an object*, that's all tile-side shaping — plan **one** configurable stream, not several. Split only when the **underlying data differs**: a different endpoint, a different object type, or a granularity the API can't return. A single stream serves both account-wide and per-object drilldown via an **optional `objects` filter** bound to a dashboard variable — you don't need a separate scoped stream. (Five near-identical "Cost by X" streams on one billing endpoint is the canonical anti-pattern.) See the consolidation section in [data-streams.md](references/data-streams.md).
     - **Supported timeframes** — state each stream's `timeframes` value, derived from the endpoint's **time-range control** and **data granularity** recorded in Phase 1:
         - `false` when the endpoint exposes no time-range parameter — the user can't choose a range (returns a fixed snapshot or current values regardless).
         - An **array** when the endpoint accepts a range but aggregates coarsely: don't leave the default `true`, because a daily-granularity endpoint can't serve `last1hour`. Restrict `timeframes` to the smallest window the granularity supports and up (e.g. daily → `last7days`+).
