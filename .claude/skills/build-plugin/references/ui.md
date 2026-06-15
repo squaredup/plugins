@@ -14,7 +14,7 @@
 
 ## Overview
 
-Defines the config form shown when a user adds the plugin. One entry per config field.
+`ui.json` defines the config form shown when a user adds the **plugin** — one entry per field.
 
 > **Two different forms, one field catalogue.** This file documents the **plugin config form** (`ui.json`, shown once when the plugin is added). A **data stream** has its own `ui` array — the **tile-editor parameters** shown when a user adds that stream to a dashboard — and it reuses the same field types below. Some types are only meaningful as a data-stream parameter, not as plugin config: the [`objects`](#data-stream-parameters) filter references Data Mesh graph objects, which only exist at tile time. See [data-streams.md](data-streams.md#one-stream-per-shape).
 
