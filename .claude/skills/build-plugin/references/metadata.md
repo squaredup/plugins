@@ -18,7 +18,7 @@
     "description": "One sentence, max 300 chars.",
     "category": "Monitoring",
     "type": "hybrid",
-    "schemaVersion": "2.0",
+    "schemaVersion": "2.1",
     "importNotSupported": false,
     "restrictedToPlatforms": [],
     "keywords": ["keyword1", "keyword2"],
@@ -51,7 +51,7 @@
 - `name`: lowercase kebab-case (e.g. `my-plugin`). Folder uses PascalCase (e.g. `MyPlugin`) — these are separate things.
 - `author.type`: `"community"` for external contributors, `"labs"` for SquaredUp Labs plugins.
 - `type`: always `"hybrid"` for Web API plugins. Options: `"hybrid"` (cloud or on-prem agent), `"cloud"`, `"onprem"`.
-- `schemaVersion`: always `"2.0"`.
+- `schemaVersion`: always `"2.1"`.
 - `category`: `"Monitoring"`, `"Database"`, `"Security"`, `"Network"`, `"Infrastructure"`, `"Cloud Platforms"`, `"APM"`, `"CI/CD Tools"`, `"Alert Management"`, `"Issue Tracking"`, `"Collaboration"`, `"Service Management"`, `"Analytics"`, `"CRM"`, `"Version Control"`, `"CDN"`, `"Utility"`, `"Fun"`. New categories can be added if no existing one fits closely enough.
 - `links` and `keywords` must be added manually — not populated by the export modal.
 - `documentation` link must point to in-repo `docs/README.md` (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`). Do not link to the vendor's own docs.
