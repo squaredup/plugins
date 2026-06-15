@@ -117,6 +117,34 @@ Single `.dash.json` files reference as `"type": "dashboard"`. Folders map to sub
 
 ---
 
+## Auto-scoping a stream via its `objects` filter
+
+The tile-level `"scope"` block above is for streams that are **natively scoped** through their `matches`. A stream that is unscoped at the definition level (`"matches": "none"`) but exposes an optional `objects` parameter — the consolidation pattern in [data-streams.md](data-streams.md#one-stream-per-shape) — auto-scopes on a perspective a different way: **bind the dashboard variable into the parameter** under `dataStream.dataSourceConfig`.
+
+The key under `dataSourceConfig` is the `name` of the stream's `objects` field. Given a stream with `"ui": [{ "type": "objects", "name": "project", ... }]`, the per-object perspective dashboard binds:
+
+```json
+"dataStream": {
+    "name": "cost",
+    "id": "{{dataStreams.cost}}",
+    "pluginConfigId": "{{configId}}",
+    "dataSourceConfig": {
+        "project": {
+            "variable": "{{variables.[Vercel Project]}}",
+            "workspace": "{{workspaceId}}",
+            "scope": "{{scopes.[Vercel Projects]}}"
+        }
+    }
+}
+```
+
+- **Per-object dashboard** (drilldown / perspective) → bind the variable as above; the stream returns rows for that object only.
+- **Account-wide dashboard** → simply **omit** `dataSourceConfig.project`; the optional filter is empty and the stream returns everything.
+
+This is what lets **one** stream back both the account overview and the per-object drilldown — you do not need a separate `matches`-scoped stream for the drilldown. For the stream/field side of this, see [ui.md](ui.md) (`objects` field type) and [data-streams.md](data-streams.md#one-stream-per-shape).
+
+---
+
 ## Dashboard rules
 
 - **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI — "MyPlugin / Overview" is correct; "MyPlugin / MyPlugin Overview" is redundant.
