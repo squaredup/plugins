@@ -9,7 +9,7 @@ Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in 
 - **Deployments** — deployment volume, success/failure rates, and history over time, account-wide or drilled down per project. (Deployments are *not* indexed as objects, because they change too frequently — they are available as data streams instead.)
 - **Team & activity** — team membership roster and recent account activity (events).
 - **Cost** — a cost/usage overview derived from Vercel billing data (daily granularity).
-- **Firewall / security** — per-project [Vercel Firewall (WAF)](https://vercel.com/docs/vercel-firewall) posture: whether the firewall is enabled, which managed protections (OWASP-style CRS categories, bot protection, AI bots) are active and their action, plus active attack anomalies over time. Available as data streams on the **Project** perspective.
+- **Firewall / security** — per-project [Vercel Firewall (WAF)](https://vercel.com/docs/vercel-firewall) event activity: counts of firewall events broken down by action (e.g. allow / deny / challenge) over time. Available as data streams on the **Project** perspective's **Security** section.
 
 The plugin ships with three out-of-the-box dashboards: an account **Overview**, a **Project** perspective (which includes a **Security** section), and a **Domain** perspective.
 
@@ -52,6 +52,6 @@ Deployments, teams, members, activity events, and cost data are provided as **da
 - **No real-time analytics or metrics via REST.** Vercel does **not** expose Web Analytics (pageviews/visitors), Speed Insights (Core Web Vitals), or real-time Observability metrics (edge requests, function invocations, bandwidth) through its public REST API. Operational usage is available only as **daily billed quantities** via the cost stream — not real-time, per-request telemetry.
 - **Cost data is daily granularity** and the billing endpoint returns very large datasets, so the cost stream is restricted to the **Last 24 hours** and **Last 7 days** timeframes.
 - **Team members and cost require a Team** and a token with adequate role/plan. On personal/Hobby accounts these streams may be empty.
-- **Firewall streams only return data for projects with a configured firewall.** The Vercel Firewall config endpoint returns a 404 (not an empty result) for any project that has never configured a firewall, so the firewall posture and managed-rules tiles render only for projects where the WAF has been set up; for other projects the tile shows no data. The attack-anomalies stream returns an empty result (not an error) when there is no active attack.
+- **Firewall events only appear for projects with the WAF configured.** The Firewall events stream returns rows only for projects that have the Vercel Firewall set up and that recorded events within the selected timeframe; a project with no firewall activity in that window shows an empty result (not an error).
 - **One connection = one scope.** Each configured plugin instance monitors either your personal account or a single team. To monitor multiple teams, add the plugin once per team.
 - **Rate limits.** Vercel enforces per-action rate limits (HTTP 429). Very large accounts may occasionally see throttling during imports.
