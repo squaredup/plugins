@@ -198,5 +198,3 @@ Import streams are ordinary data stream files in `dataStreams/` — they need `n
 ```
 
 ---
-
-> **This file is self-contained.** Authoring import streams does **not** require `data-streams.md` — that is the Phase 6 authoring guide read by sub-agents only, and pulling it into the main context wastes ~8K tokens.

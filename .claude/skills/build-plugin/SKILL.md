@@ -103,7 +103,8 @@ This phase produces a written plan and a user-approval gate before any files are
 4. **What's intentionally omitted** — API capabilities not being implemented, and why. Highest-value section for catching scope creep.
 5. **Authentication** — Auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
 6. **OOB dashboards** — A **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
-7. **sourceId format** — Use the raw API ID wherever possible.
+7. **Monitors** — Propose a tile health monitor **only** where the data has a clear binary health signal: a count of unhealthy / failed / non-compliant / disabled items (e.g. agents with the firewall off). For each, give the **signal**, the **condition** (e.g. `> 0`), and the **severity** — `error` for a broken / unprotected / failed state (a security or availability risk), `warning` for degraded-but-still-functioning. Favour the **overview** dashboard's account-wide KPI tiles; add one to a perspective only for a clear per-object signal. **All monitors ship disabled** (authored under `monitorOld`), so installing the plugin never auto-alerts — the user opts in per tile. Keep them few; if there's no clean health signal, say **"None planned"** — over-monitoring is the anti-pattern.
+8. **sourceId format** — Use the raw API ID wherever possible.
 
 ### Plan format
 
@@ -141,6 +142,12 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 ### OOB dashboards
 
 - Overview, Installation perspective, Device perspective
+
+### Monitors
+
+- Overview "Active Alarms" count → `error` when `> 0` (from `siteAlarms`)
+- None on the Device perspective — no clean binary health signal
+- All ship disabled under `monitorOld`; users opt in per tile
 
 ### sourceId format
 
@@ -318,7 +325,8 @@ Pass in the prompt:
 - The versioned plugin dir, plus the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A.
 - The planned dashboards from Phase 2 (top-level summary + one perspective per object type) and the object types.
 - The data stream names to build tiles from — the sub-agent reads the stream files itself for columns and parameters.
-- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
+- The planned **monitors** from Phase 2 (target tile / health signal, condition, severity) — author them **under `monitorOld`** (disabled, opt-in) per the Monitors section of `oob-content.md`. If the plan listed none, add none.
+- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards incl. any planned monitors) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, monitors authored, validation result, any assumptions or follow-ups.
 
 Resolve anything the report flags before Phase 8.
 

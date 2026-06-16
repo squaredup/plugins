@@ -7,8 +7,11 @@
 - [scopes.json](#scopesjson)
 - [manifest.json](#manifestjson)
 - [Dashboard layout](#dashboard-layout)
+- [Auto-scoping a stream](#auto-scoping-a-stream-via-its-objects-filter)
+- [Shaping in the tile: group, filter, sort](#shaping-in-the-tile-group-filter-sort)
 - [Dashboard rules](#dashboard-rules)
-- [Visualisation types](#visualisation-types): table, line graph, bar chart, scalar, donut, blocks, gauge, embed
+- [Visualisation types](#visualisation-types): table, line graph, bar chart, scalar, donut, blocks, gauge, text & image tiles
+- [Monitors (opt-in thresholds)](#monitors-opt-in-thresholds)
 - [Templating tokens](#templating-tokens)
 
 ---
@@ -71,7 +74,7 @@ Single `.dash.json` files reference as `"type": "dashboard"`. Folders map to sub
 ```json
 {
     "name": "My Dashboard",
-    "schemaVersion": "1.4",
+    "schemaVersion": "1.5",
     "timeframe": "last24hours",
     "variables": ["{{variables.[Installation]}}"],
     "dashboard": {
@@ -139,9 +142,107 @@ The key under `dataSourceConfig` is the `name` of the stream's `objects` field. 
 ```
 
 - **Per-object dashboard** (drilldown / perspective) → bind the variable as above; the stream returns rows for that object only.
-- **Account-wide dashboard** → simply **omit** `dataSourceConfig.project`; the optional filter is empty and the stream returns everything.
+- **Account-wide dashboard** → **omit** `dataSourceConfig.project`; the optional filter is empty and the stream returns everything. ⚠️ Verify the account-wide tile actually renders after deploy: the picker resolver throws `Cannot use 'in' operator to search for 'nodeIds' in null` when it receives a _null_ selection (seen in test mode when the `--ui` flag is omitted — see [testing.md](testing.md#testing-a-consolidated-stream-optional-objects-param)). If an omitted binding hits that on a live tile, supply an explicit empty selection instead of omitting the key.
 
 This is what lets **one** stream back both the account overview and the per-object drilldown — you do not need a separate `matches`-scoped stream for the drilldown. For the stream/field side of this, see [ui.md](ui.md) (`objects` field type) and [data-streams.md](data-streams.md#one-stream-per-shape).
+
+---
+
+## Shaping in the tile: `group`, `filter`, `sort`
+
+A data stream returns **one fixed row shape**. How those rows are grouped, aggregated, time-bucketed, filtered, or sorted **for a specific tile is the tile's job** — set these under `dataStream`, alongside `name`/`id`. This is what lets one stream back many tiles; for _why_ shaping belongs here and not in a second stream, see [data-streams.md](data-streams.md#one-stream-per-shape). The three properties run in a fixed order:
+
+**`filter` → `group` → `sort`.**
+
+> ⚠️ **`group` renames the columns it outputs, and the pre-group columns do not survive.** `filter` matches the stream's **own (pre-group)** column names — but `sort` and **every `visualisation` field** (`value`, `labelColumn`, `xAxisColumn`, `yAxisColumn`, …) must reference the **post-group** names below. A tile that renders blank after deploy almost always has a viz field still pointing at a pre-group column name.
+
+| Shaping you configure                                        | Output column name         |
+| ------------------------------------------------------------ | -------------------------- |
+| group-by `status` (default `uniqueValues` grouper)           | `status_uniqueValues`      |
+| time-bucket `date` with `byDay`                              | `date_byDay`               |
+| aggregate `count`                                            | `count`                    |
+| aggregate `sum`/`mean`/`min`/`max`/`median`/`mode` of `cost` | `cost_sum`, `cost_mean`, … |
+| aggregate `distinctCount` of `userId`                        | `userId_distinctCount`     |
+
+### `group` — aggregate and time-bucket rows
+
+```json
+"dataStream": {
+    "id": "{{dataStreams.[devices]}}",
+    "name": "devices",
+    "pluginConfigId": "{{configId}}",
+    "group": {
+        "by": [["status", "uniqueValues"]],
+        "aggregate": [{ "type": "count" }]
+    }
+}
+```
+
+- **`by: []`** (empty) with an `aggregate` collapses the whole stream to **one row** — the scalar-KPI pattern (total count, average age, …).
+- **`by`** is a list of `[column, grouper]` pairs — **always nest**, even for one column. Groupers:
+
+| Grouper                                         | Use on        | Groups rows by           |
+| ----------------------------------------------- | ------------- | ------------------------ |
+| `uniqueValues` (default)                        | any column    | exact value              |
+| `byHour` `byDay` `byMonth` `byQuarter` `byYear` | a date column | the start of that period |
+
+- **`aggregate`** is a list of `{ "type": <aggregator>, "names": [<column>] }`. `count` takes no `names`; every other aggregator takes exactly one column:
+
+| Aggregator                               | Produces                                              |
+| ---------------------------------------- | ----------------------------------------------------- |
+| `count`                                  | row count → column `count`                            |
+| `sum` `mean` `min` `max` `median` `mode` | over one numeric column → `<col>_<type>`              |
+| `distinctCount`                          | distinct values of one column → `<col>_distinctCount` |
+
+> ⚠️ **Multi-column grouping must be nested.** `"by": ["status", "team"]` is read as _one_ column `status` with grouper `team`, and throws `No shape grouper named team`. To group by several columns: `"by": [["status", "uniqueValues"], ["team", "uniqueValues"]]`.
+
+### `filter` — keep a subset of rows
+
+Applied **before** grouping, so its columns are the stream's own:
+
+```json
+"filter": {
+    "multiOperation": "and",
+    "filters": [
+        { "column": "firewall_status", "operation": "notequals", "value": "Enabled" }
+    ]
+}
+```
+
+`multiOperation` (`and`/`or`) combines the `filters`. **`value` is always a string** — `"0"`, `"true"`, `"7"`.
+
+| Operation                                     | Extra fields                 | Notes                                                     |
+| --------------------------------------------- | ---------------------------- | --------------------------------------------------------- |
+| `equals` `notequals` `contains` `notcontains` | `value`                      | string match                                              |
+| `greaterthan` `lessthan`                      | `value`                      | numeric comparison                                        |
+| `empty` `notempty`                            | —                            | column blank / not blank                                  |
+| `datebefore` `dateafter`                      | —                            | before/after the dashboard timeframe                      |
+| `datewithinnext` `datewithinlast`             | `value`, `unit`              | `unit`: `minutes`/`hours`/`days`/`weeks`/`months`/`years` |
+| `datemorethan`                                | `value`, `unit`, `tenseUnit` | `tenseUnit`: `before`/`after`                             |
+
+### `sort` — order rows (and take top-N)
+
+Applied **after** grouping, so it references **post-group** names:
+
+```json
+"sort": { "by": [["count", "desc"]], "top": 10 }
+```
+
+`by` is a list of `[column, "asc" | "desc"]`; `top` (optional) keeps only the first N rows (e.g. a top-10 bar chart). On an ungrouped tile, sort by the raw stream column names.
+
+### Recipes
+
+Common tiles, with the **exact** column names the visualisation must reference:
+
+| Tile                          | `dataStream` shaping                                                                                                       | visualisation references                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Scalar — count all rows       | `"group":{"by":[],"aggregate":[{"type":"count"}]}`                                                                         | `value: "count"`                                             |
+| Scalar — count a subset       | `"filter":{…}` + `"group":{"by":[],"aggregate":[{"type":"count"}]}`                                                        | `value: "count"`                                             |
+| Scalar — total of a metric    | `"group":{"by":[],"aggregate":[{"type":"sum","names":["cost"]}]}`                                                          | `value: "cost_sum"`                                          |
+| Donut — breakdown by category | `"group":{"by":[["status","uniqueValues"]],"aggregate":[{"type":"count"}]}`                                                | `labelColumn: "status_uniqueValues"`, `valueColumn: "count"` |
+| Bar — top 10 by category      | as above + `"sort":{"by":[["count","desc"]],"top":10}`                                                                     | `xAxisData: "status_uniqueValues"`, `yAxisData: ["count"]`   |
+| Line — metric over time       | `"group":{"by":[["date","byDay"]],"aggregate":[{"type":"sum","names":["cost"]}]}` + `"sort":{"by":[["date_byDay","asc"]]}` | `xAxisColumn: "date_byDay"`, `yAxisColumn: ["cost_sum"]`     |
+| Table — filtered + sorted     | `"filter":{…}` + `"sort":{"by":[["lastSeen","desc"]]}` (no `group`)                                                        | raw stream column names                                      |
 
 ---
 
@@ -150,7 +251,7 @@ This is what lets **one** stream back both the account overview and the per-obje
 - **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI — "MyPlugin / Overview" is correct; "MyPlugin / MyPlugin Overview" is redundant.
 - **Give each dashboard a distinct name.** Perspective tabs sit next to each other — identical names are indistinguishable.
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.
-- Omit `"timeframe"` on tiles to inherit the dashboard timeframe — do not hardcode it on individual tiles.
+- **A tile's `"timeframe"` is driven by its data stream, not by style.** If the tile's stream is **timeframe-independent** (`"timeframes": false` — a current-state / snapshot stream that ignores any range), set `"timeframe": "none"` on the tile. If the stream **supports timeframes**, **omit** `timeframe` so the tile tracks the dashboard's timeframe — setting `"none"` here pins the tile and stops it following the dashboard. (This is why most summary tiles, built on snapshot streams, carry `"none"`.)
 - All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate with `node ".claude/skills/build-plugin/scripts/gen-uuids.js" [N]`. Never invent patterned UUIDs.
 
 **Grid layout:**
@@ -163,6 +264,10 @@ This is what lets **one** stream back both the account overview and the per-obje
 ---
 
 ## Visualisation types
+
+> The types below are **`visualisation.type` values inside a `tile/data-stream` tile** — they sit at `config.visualisation = { "type": "<one below>", "config": { "<type>": { … } } }` (see [Dashboard layout](#dashboard-layout)). Text and image tiles are **not** data-stream visualisations — they are their own tile `_type`; see [Text and image tiles](#text-and-image-tiles) at the end.
+>
+> Column references below (`value`, `labelColumn`, `xAxisColumn`, `yAxisColumn`, …) name the stream's own columns. If the tile **groups or aggregates**, reference the **post-group** names instead — see [Shaping in the tile](#shaping-in-the-tile-group-filter-sort).
 
 ### Table
 
@@ -244,9 +349,7 @@ Single value/KPI:
         "data-stream-scalar": {
             "value": "columnName",
             "comparisonColumn": "none",
-            "label": "Custom Label",
-            "manualSize": 50,
-            "formatted": false
+            "label": "Custom Label"
         }
     }
 }
@@ -320,18 +423,84 @@ Use `"stateColumn": "none"` when data has no state — blocks render without hea
 
 `value` options: `{ "type": "arr", "columns": ["col"] }`, `{ "type": "count" }`, `{ "type": "sum", "columns": ["col"] }`, `{ "type": "mean", "columns": ["col"] }`.
 
-### Embed
+### Text and image tiles
 
-Image or iframe:
+These are **not** data-stream visualisations — they're standalone tiles with no `dataStream`, `scope`, or `activePluginConfigIds`. The tile type is set by the **tile's own `_type`** (`tile/text` or `tile/image`), and the content lives under `visualisation.config` — note there is **no `visualisation.type`**, and the inner `config` is **not** keyed by the type name (unlike the data-stream tiles above). Each block below is the tile's `config`; it drops into a grid `contents` item in place of the `tile/data-stream` config shown in [Dashboard layout](#dashboard-layout). Use a text tile for section headings / annotations and an image tile for a logo or static image.
+
+**Text tile** — a heading or caption:
 
 ```json
 {
-    "type": "tile/embed",
-    "config": {
-        "tile/embed": { "src": "https://example.com/embed", "title": "" }
+    "_type": "tile/text",
+    "title": "",
+    "description": "",
+    "visualisation": {
+        "config": {
+            "content": "Top Genre Breakdown",
+            "fontSize": 16,
+            "align": "center",
+            "autoSize": true
+        }
     }
 }
 ```
+
+**Image tile** — a static image by URL:
+
+```json
+{
+    "_type": "tile/image",
+    "title": "",
+    "description": "",
+    "visualisation": {
+        "config": { "src": "https://example.com/logo.png", "title": "" }
+    }
+}
+```
+
+> An iframe/embed tile also exists (`tile/iframe`), but it is essentially unused in OOB content — prefer a data-stream tile or the tiles above.
+
+---
+
+## Monitors (opt-in thresholds)
+
+A **monitor** re-evaluates a tile's data on a schedule and sets a health state (`error` / `warning` / `success`) on the tile — which surfaces in the dashboard and the workspace's health, and can drive notifications. This is the mechanism behind a "N firewalls disabled → red tile" health KPI.
+
+> ⚠️ **Ship monitors disabled, under `monitorOld` — never `monitor`.** The product only evaluates the `monitor` field; `monitorOld` is the "configured-but-off" slot (turning monitoring on for the tile in-product promotes `monitorOld` → `monitor`). Authoring under `monitorOld` means the monitor arrives **pre-built but switched off**, so adding the plugin does **not** start firing alerts at the user unprompted — they opt in per tile when ready. A monitor under `monitor` would be live the instant the plugin is installed, which is hostile default behaviour for a community plugin. So: build the threshold, then put it in `monitorOld`.
+
+**Use them sparingly.** Each monitor re-queries on its `frequency`, so they have a real cost. Only attach one to a tile with a clear, binary health signal — a count of unhealthy / non-compliant / failed items — and keep them few; don't put one on every tile.
+
+The opt-in threshold pattern (count of bad things `> 0` → `error`) pairs naturally with a scalar **count** tile:
+
+```json
+"monitorOld": {
+    "_type": "simple",
+    "monitorType": "threshold",
+    "aggregation": "count",
+    "groupBy": "__group_by_none__",
+    "frequency": 15,
+    "tileRollsUp": true,
+    "condition": {
+        "columns": [],
+        "logic": { "if": [{ ">": [{ "var": "count" }, 0] }, "error"] }
+    }
+}
+```
+
+This block sits inside the tile's `config`, alongside `dataStream` / `visualisation`. Field by field:
+
+| Field                | Meaning                                                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `_type`              | `"simple"` — a monitor built from the UI controls, as opposed to a hand-written script.                                                            |
+| `monitorType`        | `"threshold"` — compare an aggregated value against a number.                                                                                       |
+| `aggregation`        | How to reduce the rows before testing — `"count"` exposes the row count as the `count` variable used in `logic`.                                    |
+| `groupBy`            | `"__group_by_none__"` — evaluate the whole result as one state (no per-group states).                                                               |
+| `frequency`          | Minutes between evaluations. `15` is typical; raise it for expensive queries.                                                                       |
+| `tileRollsUp`        | `true` — this tile's state contributes to the dashboard / workspace health rollup.                                                                 |
+| `condition.columns`  | Columns the condition references; `[]` when the test is purely on the aggregation.                                                                  |
+| `condition.logic`    | jsonLogic. `if` is `[<comparison>, <state>]`: when the comparison is true the tile takes `<state>`. `{ "var": "count" }` reads the `count` aggregation; operators are `>`, `<`, `>=`, `<=`, `==`, `!=`. |
+
+For tiered states, extend the `if` array with a second condition/state pair, **most-severe first** (the first true condition wins) — e.g. `[{ ">": [{ "var": "count" }, 10] }, "error", { ">": [{ "var": "count" }, 0] }, "warning"]`.
 
 ---
 
