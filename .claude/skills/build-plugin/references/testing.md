@@ -9,7 +9,7 @@ Test data streams against a **deployed, authenticated** plugin so you see exactl
 `squaredup test` sends your **local** data stream config to the test endpoint and runs it against a deployed plugin's **authenticated config**. Two consequences:
 
 - You do **not** redeploy to test a new or edited stream — only the deploy in Checkpoint A, the redeploy in Checkpoint B (to ship import steps), and the final deploy need one.
-- Testing needs prerequisites in place: a deployed+authenticated config (Checkpoint A) for any stream, **and imported objects** (Checkpoint B) for *scoped* streams.
+- Testing needs prerequisites in place: a deployed+authenticated config (Checkpoint A) for any stream, **and imported objects** (Checkpoint B) for _scoped_ streams.
 
 ## Always run non-interactively
 
@@ -35,19 +35,32 @@ All these commands resolve the plugin from `metadata.json` in the current folder
 
 ### Useful flags (shared by `test` / `objects` / `datasources`)
 
-| Flag | Applies to | Purpose |
-| --- | --- | --- |
-| `--json` | all | Machine-readable output; disables interactive prompts. Always use it. |
-| `--silent` | all | Suppress **all** non-error output, including the progress spinner that otherwise lands on stderr. Always pass it alongside `--json` so naive output capture (`... \| jq`, `... \| ConvertFrom-Json`) is safe by construction — there is no spinner line left to corrupt the parse. |
-| `--datasource-id <id>` | `test`, `objects` | Target a specific datasource (plugin config). Always pass the id from your prompt — it skips a datasource lookup on every call, and is strictly required when more than one datasource exists (otherwise the picker blocks in this non-TTY shell). |
-| `--plugin-id <id>` | all | Target a deployed plugin by id instead of by name. Always pass the id from your prompt — it skips the `listPlugins` lookup the CLI would otherwise do on every call to resolve the plugin name. |
-| `--object <id>` | `test` | Scope a scoped stream to an object (node) id from `squaredup objects`. |
-| `--matches <json>` | `objects` | Resolve a scope inline instead of from a stream file — pass a `{"sourceType":...}` object. The way to check "did my objects index?" at Checkpoint B, before any scoped stream exists. Mutually exclusive with a stream name. The `@file` form only resolves a real scope — pointing it at an import/global stream (whose `matches` is `none`/absent) finds nothing, so pass inline JSON at Checkpoint B. |
-| `--suffix <s>` | all | Match a plugin deployed with `deploy --suffix <s>`. |
-| `--timeframe <enum>` | `test` | Timeframe to send, e.g. `last1hour`, `last24hours` (default `last1hour`). |
-| `--ui name=value` | `test` | Supply a value for a parameterised stream's UI field (repeatable), e.g. `--ui metric=cpu`. |
-| `--diagnostic <name>` | `test` | Print only the named plugin diagnostic (e.g. `--diagnostic Body`) and exit. **Omits the shaped `data`** — use a plain `--json` or `--data-only` run to see shaped rows. |
-| `--data-only` | `test` | Print only the shaped data stream response (`data`), skipping the plugin diagnostics. The mirror of `--diagnostic`; the two can't be combined. |
+| Flag                   | Applies to        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--json`               | all               | Machine-readable output; disables interactive prompts. Always use it.                                                                                                                                                                                                                                                                                                                                    |
+| `--silent`             | all               | Suppress **all** non-error output, including the progress spinner that otherwise lands on stderr. Always pass it alongside `--json` so naive output capture (`... \| jq`, `... \| ConvertFrom-Json`) is safe by construction — there is no spinner line left to corrupt the parse.                                                                                                                       |
+| `--datasource-id <id>` | `test`, `objects` | Target a specific datasource (plugin config). Always pass the id from your prompt — it skips a datasource lookup on every call, and is strictly required when more than one datasource exists (otherwise the picker blocks in this non-TTY shell).                                                                                                                                                       |
+| `--plugin-id <id>`     | all               | Target a deployed plugin by id instead of by name. Always pass the id from your prompt — it skips the `listPlugins` lookup the CLI would otherwise do on every call to resolve the plugin name.                                                                                                                                                                                                          |
+| `--object <id>`        | `test`            | Scope a scoped stream to an object (node) id from `squaredup objects`.                                                                                                                                                                                                                                                                                                                                   |
+| `--matches <json>`     | `objects`         | Resolve a scope inline instead of from a stream file — pass a `{"sourceType":...}` object. The way to check "did my objects index?" at Checkpoint B, before any scoped stream exists. Mutually exclusive with a stream name. The `@file` form only resolves a real scope — pointing it at an import/global stream (whose `matches` is `none`/absent) finds nothing, so pass inline JSON at Checkpoint B. |
+| `--suffix <s>`         | all               | Match a plugin deployed with `deploy --suffix <s>`.                                                                                                                                                                                                                                                                                                                                                      |
+| `--timeframe <enum>`   | `test`            | Timeframe to send, e.g. `last1hour`, `last24hours` (default `last1hour`).                                                                                                                                                                                                                                                                                                                                |
+| `--ui name=value`      | `test`            | Supply a value for a stream's `ui` fields (repeatable), e.g. `--ui metric=cpu`. For an **`objects`-picker** param, pass node id(s) under the field's `name`, comma-separated for multiple: `--ui project=node-abc,node-def`. This is **different from `--object`** — `--object` fills the scope (`context.objects`); `--ui <name>=<ids>` fills the parameter (`context.config.<name>`).                  |
+| `--diagnostic <name>`  | `test`            | Print only the named plugin diagnostic (e.g. `--diagnostic Body`) and exit. **Omits the shaped `data`** — use a plain `--json` or `--data-only` run to see shaped rows.                                                                                                                                                                                                                                  |
+| `--data-only`          | `test`            | Print only the shaped data stream response (`data`), skipping the plugin diagnostics. The mirror of `--diagnostic`; the two can't be combined.                                                                                                                                                                                                                                                           |
+
+### Testing a consolidated stream (optional `objects` param)
+
+A stream that is unscoped (`matches: "none"`) but exposes an optional `objects` param — the [consolidation pattern](data-streams.md#one-stream-per-shape) — must be tested in **both** modes, because each exercises a different code path:
+
+```bash
+# Account-wide: pass the param EMPTY (not omitted) — returns all rows
+squaredup test cost --ui project= --timeframe last7days --plugin-id <id> --datasource-id <id> --json --silent
+# Scoped: pass node id(s) under the field name — returns only those object(s)' rows
+squaredup test cost --ui project=node-abc,node-def --timeframe last7days --plugin-id <id> --datasource-id <id> --json --silent
+```
+
+Confirm the scoped run returns **only** the selected objects' rows (and that two ids return both), and the account-wide run returns rows across all objects.
 
 The `objects <stream>` form resolves the named data stream file's `matches` — so it needs a **scoped** stream. It errors if the stream is **not** scoped (it has no objects), and exits 0 with `{"objects":[]}` when the stream is scoped but nothing is imported yet — an empty list means the import hasn't populated objects yet — report that back to the main agent (which owns the Checkpoint B import loop, see [checkpoints.md](checkpoints.md)) rather than triggering an import yourself. When no scoped stream exists yet, use `--matches '{"sourceType":...}'` to resolve a scope inline instead — see the flags table above.
 
@@ -95,9 +108,9 @@ The `raw → value → formatted` triple is your shaping debugger: if `raw` is c
 
 ## The two-object rule for scoped streams
 
-> **A scoped stream that "returns rows" is not proven.** It only passes when tested against **two different objects** *and* the two results differ — or you give an explicit, plausible reason why identical results are legitimately expected.
+> **A scoped stream that "returns rows" is not proven.** It only passes when tested against **two different objects** _and_ the two results differ — or you give an explicit, plausible reason why identical results are legitimately expected.
 
-A scoped stream is meant to narrow data to the one object it's scoped to. The dangerous failure mode is a filter that *looks* like it scopes but actually matches everything — so every object gets the same (often account-level) data, and the per-object tile is silently wrong for every object but one. Real example: a script filter `Tags.ProjectId === projectId` where **both sides were `undefined`** (the object had no such property and the stream passed no such input). The comparison `undefined === undefined` is `true`, so it matched untagged account-level rows, returned one plausible row, and shipped — every project's Cost History tile then showed the same account-level total.
+A scoped stream is meant to narrow data to the one object it's scoped to. The dangerous failure mode is a filter that _looks_ like it scopes but actually matches everything — so every object gets the same (often account-level) data, and the per-object tile is silently wrong for every object but one. Real example: a script filter `Tags.ProjectId === projectId` where **both sides were `undefined`** (the object had no such property and the stream passed no such input). The comparison `undefined === undefined` is `true`, so it matched untagged account-level rows, returned one plausible row, and shipped — every project's Cost History tile then showed the same account-level total.
 
 Filtering on a **non-existent object property** (the `rawId` / wrong-field-name trap) is the same bug: the field resolves to `undefined`, the comparison degenerates, and the filter matches the wrong set. A single test hides it because the one row looks fine. **Testing two objects exposes it: their results come back identical when they should differ → FAIL.**
 
@@ -106,8 +119,8 @@ Filtering on a **non-existent object property** (the `rawId` / wrong-field-name 
 1. Run `squaredup objects <stream> … --json --silent` and pick **two different** object ids (prefer two you'd expect to hold different data).
 2. `squaredup test <stream> --object <id1> … --json --silent` **and** `--object <id2> … --json --silent`.
 3. **Compare the shaped `data` rows from the two runs:**
-   - **Results differ** → the scope is doing its job → **PASS** (assuming shaping is also correct).
-   - **Results identical** → **FAIL by default.** Treat it as an unscoped filter (the `undefined === undefined` / non-existent-property trap) until proven otherwise. It only passes if you can state an explicit, plausible reason the two objects genuinely share the value (e.g. both genuinely roll up to one shared billing account) — and that reason goes **in the report**.
+    - **Results differ** → the scope is doing its job → **PASS** (assuming shaping is also correct).
+    - **Results identical** → **FAIL by default.** Treat it as an unscoped filter (the `undefined === undefined` / non-existent-property trap) until proven otherwise. It only passes if you can state an explicit, plausible reason the two objects genuinely share the value (e.g. both genuinely roll up to one shared billing account) — and that reason goes **in the report**.
 4. Also sanity-check that the `[Request] URL` / filter actually references the object's id or a property the object really has — confirm the field name exists in the object, not just that a row came back.
 
 **Unscoped / global / import streams keep the existing single-test pass** — there is no scope to vary, so one test that returns the expected shaped rows is sufficient.
@@ -122,4 +135,3 @@ For each data stream:
 2. Test it, passing the `--plugin-id <id> --datasource-id <id>` from your prompt. **Scoped** → `objects` to get ids, then `test --object` against **two different objects** and compare (see "The two-object rule for scoped streams" above). **Global / unscoped** → a single `test`.
 3. Inspect the output — the raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`. If the raw payload, shaped rows, or column types are wrong, fix `pathToData` / the script / `metadata` and go back to step 2. For a scoped stream, also confirm the two objects' results differ (or are justifiably identical) — identical-without-justification means the filter isn't scoping and is a **FAIL**.
 4. Only move to the next stream once it returns correct data. No redeploy required.
-
