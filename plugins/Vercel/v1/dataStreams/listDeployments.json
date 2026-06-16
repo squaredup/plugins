@@ -1,0 +1,51 @@
+{
+    "name": "deployments",
+    "displayName": "Deployments",
+    "description": "Vercel deployments across the account or a selected project, one row per deployment. Backs deployment health and history tiles",
+    "tags": ["Deployments"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v7/deployments",
+        "postRequestScript": "deployments.js",
+        "getArgs": [
+            { "key": "since", "value": "{{timeframe.unixStart * 1000}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": { "realm": "payload", "path": "pagination.next" },
+            "out": { "realm": "queryArg", "path": "until" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": {
+                "sourceType": { "type": "equals", "value": "Vercel Project" }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "uid",
+            "displayName": "ID",
+            "role": "value"
+        },
+        {
+            "name": "label",
+            "displayName": "Label",
+            "role": "label",
+            "valueExpression": "{{$['status']}}"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": true
+}

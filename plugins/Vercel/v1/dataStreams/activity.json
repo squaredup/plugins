@@ -1,0 +1,36 @@
+{
+    "name": "activity",
+    "displayName": "Activity",
+    "description": "Vercel account or team activity feed, one row per audit-style event. Backs activity and audit log tiles",
+    "tags": ["Activity"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v3/events",
+        "pathToData": "events",
+        "expandInnerObjects": true,
+        "getArgs": [
+            { "key": "since", "value": "{{timeframe.start}}" },
+            { "key": "until", "value": "{{timeframe.end}}" },
+            { "key": "limit", "value": "100" }
+        ],
+        "paging": { "mode": "none" }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "role": "id", "visible": false },
+        { "name": "type", "displayName": "Type" },
+        { "name": "text", "displayName": "Summary", "role": "label" },
+        {
+            "name": "actor",
+            "displayName": "Actor",
+            "computed": true,
+            "valueExpression": "{{ $['user.username'] || $['user.email'] || $['userId'] }}"
+        },
+        { "name": "user.username", "displayName": "User", "visible": false },
+        { "name": "user.email", "displayName": "Email", "visible": false },
+        { "name": "userId", "displayName": "User ID", "visible": false },
+        { "name": "createdAt", "displayName": "Created", "shape": "date", "role": "timestamp" }
+    ],
+    "timeframes": true
+}
