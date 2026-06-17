@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.10"
+    version: "0.0.11"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -164,7 +164,12 @@ If the user picks anything other than approve (including "Other"), revise the pl
 
 **Icon — delegate to a write-capable sub-agent.** Finding the official logo means browsing vendor sites and image search, and the SVG/PNG markup itself is large — all of which floods the main context if done inline. Spawn **one general-purpose, write-capable sub-agent** for the icon (**not** an `Explore` agent — those are read-only and can't write the file). This work is mechanical — fetching a logo and applying rote SVG transforms — so spawn it with `model: "haiku"` to save tokens; the quality of the icon doesn't depend on a frontier model. Give it this prompt:
 
-- **Find** the official brand/product logo (SVG preferred, PNG acceptable). Never auto-generate a generic icon.
+- **Find** the official brand/product logo (SVG preferred, PNG acceptable). Never auto-generate a generic icon. Search these sources, roughly in order:
+    1. **Simple Icons** (`simpleicons.org`, raw SVGs at `https://cdn.simpleicons.org/<slug>` or the `simple-icons` GitHub repo) — clean single-path brand SVGs; also lists each brand's official hex colour, handy for the background `<rect>`.
+    2. **The vendor's own brand/press kit** — try `/brand`, `/press`, `/media`, `/about/brand-assets`, `/newsroom`; these carry the canonical, correctly-coloured logo and the licence terms.
+    3. **Wikimedia Commons / Wikipedia** — the infobox logo is usually an SVG with a clear licence note.
+    4. **VectorLogoZone** (`vectorlogo.zone`) or **WorldVectorLogo** as a fallback for SVGs.
+    5. **Last resort:** the vendor's `favicon.svg`/high-res favicon, or the GitHub org avatar — flag it as low-quality in your return note so the user can replace it.
 - **Post-process the SVG if needed** — SquaredUp shows icons on dark/white backgrounds. Fix if the SVG lacks a background or is not square:
     1. Set `width="512" height="512" viewBox="0 0 512 512"`
     2. Insert `<rect width="512" height="512" fill="BRAND_COLOR"/>` as the first child
