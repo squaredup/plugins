@@ -1,0 +1,81 @@
+{
+    "name": "changeHistory",
+    "displayName": "Change History",
+    "description": "Transaction history for a Sanity dataset — every content change with timestamp, author, and affected document count",
+    "tags": ["Sanity"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Sanity Project"
+        }
+    },
+    "config": {
+        "baseUrl": "https://{{object.rawId}}.api.sanity.io/{{dataSource.apiVersion}}/",
+        "httpMethod": "get",
+        "paging": {
+            "mode": "none"
+        },
+        "endpointPath": "data/history/{{dataset}}/transactions",
+        "getArgs": [
+            { "key": "excludeContent", "value": "true" },
+            { "key": "reverse", "value": "true" },
+            { "key": "limit", "value": "100" },
+            { "key": "fromTime", "value": "{{timeframe.start}}" },
+            { "key": "toTime", "value": "{{timeframe.end}}" }
+        ],
+        "headers": [
+            {
+                "key": "Authorization",
+                "value": "Bearer {{ ((dataSource.projects || []).find(p => p.key === object.rawId) || {}).value }}"
+            }
+        ],
+        "postRequestScript": "changeHistory.js"
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "dataset",
+            "label": "Dataset",
+            "defaultValue": "production",
+            "validation": { "required": true },
+            "help": "The dataset to read change history from (e.g. production)."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "transactionId",
+            "displayName": "Transaction ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "author",
+            "displayName": "Author",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "documentCount",
+            "displayName": "Documents Changed",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear"
+    ]
+}

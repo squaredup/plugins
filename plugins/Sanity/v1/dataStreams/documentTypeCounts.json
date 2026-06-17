@@ -1,0 +1,60 @@
+{
+    "name": "documentTypeCounts",
+    "displayName": "Document Type Counts",
+    "description": "Count of published documents per type in a Sanity dataset",
+    "tags": ["Sanity"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Sanity Project"
+        }
+    },
+    "config": {
+        "baseUrl": "https://{{object.rawId}}.api.sanity.io/{{dataSource.apiVersion}}/",
+        "httpMethod": "get",
+        "paging": {
+            "mode": "none"
+        },
+        "endpointPath": "data/query/{{dataset}}",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "*[!(_id in path(\"drafts.**\"))]._type"
+            }
+        ],
+        "headers": [
+            {
+                "key": "Authorization",
+                "value": "Bearer {{ ((dataSource.projects || []).find(p => p.key === object.rawId) || {}).value }}"
+            }
+        ],
+        "postRequestScript": "documentTypeCounts.js"
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "dataset",
+            "label": "Dataset",
+            "defaultValue": "production",
+            "validation": { "required": true },
+            "help": "The dataset to analyse (e.g. production)."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "documentType",
+            "displayName": "Document Type",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "count",
+            "displayName": "Count",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": false,
+    "manualConfigApply": true
+}

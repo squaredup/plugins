@@ -1,0 +1,72 @@
+{
+    "name": "customQuery",
+    "displayName": "Custom GROQ Query",
+    "description": "Run an arbitrary GROQ query against a Sanity dataset",
+    "tags": ["Sanity"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Sanity Project"
+        }
+    },
+    "config": {
+        "baseUrl": "https://{{object.rawId}}.api.sanity.io/{{dataSource.apiVersion}}/",
+        "httpMethod": "get",
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "data/query/{{dataset}}",
+        "pathToData": "result",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query}}"
+            },
+            {
+                "key": "perspective",
+                "value": "{{perspective}}"
+            }
+        ],
+        "headers": [
+            {
+                "key": "Authorization",
+                "value": "Bearer {{ ((dataSource.projects || []).find(p => p.key === object.rawId) || {}).value }}"
+            }
+        ]
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "dataset",
+            "label": "Dataset",
+            "defaultValue": "production",
+            "validation": { "required": true },
+            "help": "The dataset to query."
+        },
+        {
+            "type": "code",
+            "name": "query",
+            "language": "groq",
+            "label": "GROQ query",
+            "defaultValue": "*[0...20]{_id, _type, _updatedAt}",
+            "validation": { "required": true },
+            "help": "See [GROQ query cheat sheet](https://www.sanity.io/docs/content-lake/query-cheat-sheet) for patterns"
+        },
+        {
+            "type": "switch",
+            "name": "perspective",
+            "label": "Perspective",
+            "defaultValue": "published",
+            "options": [
+                { "value": "published", "label": "Published" },
+                { "value": "drafts", "label": "Drafts" },
+                { "value": "raw", "label": "Raw" }
+            ]
+        }
+    ],
+    "metadata": [{ "pattern": ".*" }],
+    "timeframes": false,
+    "manualConfigApply": true
+}
