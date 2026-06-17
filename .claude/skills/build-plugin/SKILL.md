@@ -12,8 +12,6 @@ metadata:
 
 **Announce at start:** "I'm using the build-plugin skill."
 
-> **The `references/` files are canonical — don't browse other plugins for patterns.** Everything you need to author a plugin (structure, config, streams, dashboards) is in `references/`. Do **not** open *other* plugins in the repo to copy how they did something: it burns context, and shipped plugins frequently predate current guidance, so they teach the wrong pattern (see e.g. the script caveat in [data-streams.md](references/data-streams.md)). Reading the plugin you're **currently building or updating** is expected; browsing siblings for "how did they do it" is not.
-
 ---
 
 ## Prerequisites
@@ -77,7 +75,7 @@ Before writing a single file, understand the API. **Use `AskUserQuestion` to ask
 4. **Find the data endpoints** — These power data streams. For each, record:
     - **Scoping** — scoped to a single object, multiple objects, or global (no object context).
     - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter)? If it returns a fixed snapshot / current values with no way to ask for a range, the stream's `timeframes` will be `false` (the user can't pick a range).
-    - **Data granularity** — when the endpoint *does* accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read this off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range). Granularity drives the stream's `timeframes` array in Phase 2 — an endpoint aggregated to daily (e.g. billing) returns nothing for the default `last1hour` timeframe, so capturing it here prevents first-test 404s in Phase 6.
+    - **Data granularity** — when the endpoint _does_ accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read this off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range). Granularity drives the stream's `timeframes` array in Phase 2 — an endpoint aggregated to daily (e.g. billing) returns nothing for the default `last1hour` timeframe, so capturing it here prevents first-test 404s in Phase 6.
 5. **Understand pagination** — Cursor/next-token, or offset/limit? Separate concern from response transformation.
 6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth? Determine from the docs.
 
@@ -95,7 +93,7 @@ This phase produces a written plan and a user-approval gate before any files are
     - A **summary/current state** stream (`"timeframes": false`, returns current values)
     - A **history/metrics** stream (supports timeframes, returns time-series rows)
     - Any **cross-object** streams scoped to a parent (e.g. alarms for an installation)
-    - **One stream per data shape, not per view — shaping is the tile's job.** Before planning a second stream on the same endpoint, apply the consolidate/split test: if the streams would differ only in how the **same rows** are *grouped*, *aggregated*, *time-bucketed*, or *scoped to an object*, that's all tile-side shaping — plan **one** configurable stream, not several. Split only when the **underlying data differs**: a different endpoint, a different object type, or a granularity the API can't return. A single stream serves both account-wide and per-object drilldown via an **optional `objects` filter** bound to a dashboard variable — you don't need a separate scoped stream. (Five near-identical "Cost by X" streams on one billing endpoint is the canonical anti-pattern.) See the consolidation section in [data-streams.md](references/data-streams.md).
+    - **One stream per data shape, not per view — shaping is the tile's job.** Before planning a second stream on the same endpoint, apply the consolidate/split test: if the streams would differ only in how the **same rows** are _grouped_, _aggregated_, _time-bucketed_, or _scoped to an object_, that's all tile-side shaping — plan **one** configurable stream, not several. Split only when the **underlying data differs**: a different endpoint, a different object type, or a granularity the API can't return. A single stream serves both account-wide and per-object drilldown via an **optional `objects` filter** bound to a dashboard variable — you don't need a separate scoped stream. (Five near-identical "Cost by X" streams on one billing endpoint is the canonical anti-pattern.) See the consolidation section in [data-streams.md](references/data-streams.md).
     - **Supported timeframes** — state each stream's `timeframes` value, derived from the endpoint's **time-range control** and **data granularity** recorded in Phase 1:
         - `false` when the endpoint exposes no time-range parameter — the user can't choose a range (returns a fixed snapshot or current values regardless).
         - An **array** when the endpoint accepts a range but aggregates coarsely: don't leave the default `true`, because a daily-granularity endpoint can't serve `last1hour`. Restrict `timeframes` to the smallest window the granularity supports and up (e.g. daily → `last7days`+).
@@ -103,8 +101,7 @@ This phase produces a written plan and a user-approval gate before any files are
 4. **What's intentionally omitted** — API capabilities not being implemented, and why. Highest-value section for catching scope creep.
 5. **Authentication** — Auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
 6. **OOB dashboards** — A **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
-7. **Monitors** — Propose a tile health monitor **only** where the data has a clear binary health signal: a count of unhealthy / failed / non-compliant / disabled items (e.g. agents with the firewall off). For each, give the **signal**, the **condition** (e.g. `> 0`), and the **severity** — `error` for a broken / unprotected / failed state (a security or availability risk), `warning` for degraded-but-still-functioning. Favour the **overview** dashboard's account-wide KPI tiles; add one to a perspective only for a clear per-object signal. **All monitors ship disabled** (authored under `monitorOld`), so installing the plugin never auto-alerts — the user opts in per tile. Keep them few; if there's no clean health signal, say **"None planned"** — over-monitoring is the anti-pattern.
-8. **sourceId format** — Use the raw API ID wherever possible.
+7. **sourceId format** — Use the raw API ID wherever possible.
 
 ### Plan format
 
@@ -124,12 +121,12 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 
 ### Data streams
 
-| Stream | Scope | Time range? / granularity | `timeframes` |
-| --- | --- | --- | --- |
-| `batterySummary` | per-device, current state | no range param — current snapshot | `false` |
-| `batteryHistory` | per-device, time-series | range, hourly granularity | `true` |
-| `siteAlarms` | per-installation | no range param — current alarms | `false` |
-| `siteBilling` | per-installation | range, daily granularity | `last7days`+ (default `last1hour` 404s) |
+| Stream           | Scope                     | Time range? / granularity         | `timeframes`                            |
+| ---------------- | ------------------------- | --------------------------------- | --------------------------------------- |
+| `batterySummary` | per-device, current state | no range param — current snapshot | `false`                                 |
+| `batteryHistory` | per-device, time-series   | range, hourly granularity         | `true`                                  |
+| `siteAlarms`     | per-installation          | no range param — current alarms   | `false`                                 |
+| `siteBilling`    | per-installation          | range, daily granularity          | `last7days`+ (default `last1hour` 404s) |
 
 ### What's intentionally omitted
 
@@ -142,12 +139,6 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 ### OOB dashboards
 
 - Overview, Installation perspective, Device perspective
-
-### Monitors
-
-- Overview "Active Alarms" count → `error` when `> 0` (from `siteAlarms`)
-- None on the Device perspective — no clean binary health signal
-- All ship disabled under `monitorOld`; users opt in per tile
 
 ### sourceId format
 
@@ -325,8 +316,7 @@ Pass in the prompt:
 - The versioned plugin dir, plus the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A.
 - The planned dashboards from Phase 2 (top-level summary + one perspective per object type) and the object types.
 - The data stream names to build tiles from — the sub-agent reads the stream files itself for columns and parameters.
-- The planned **monitors** from Phase 2 (target tile / health signal, condition, severity) — author them **under `monitorOld`** (disabled, opt-in) per the Monitors section of `oob-content.md`. If the plan listed none, add none.
-- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards incl. any planned monitors) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, monitors authored, validation result, any assumptions or follow-ups.
+- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
 
 Resolve anything the report flags before Phase 8.
 

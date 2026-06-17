@@ -11,7 +11,6 @@
 - [Shaping in the tile: group, filter, sort](#shaping-in-the-tile-group-filter-sort)
 - [Dashboard rules](#dashboard-rules)
 - [Visualisation types](#visualisation-types): table, line graph, bar chart, scalar, donut, blocks, gauge, text & image tiles
-- [Monitors (opt-in thresholds)](#monitors-opt-in-thresholds)
 - [Templating tokens](#templating-tokens)
 
 ---
@@ -459,48 +458,6 @@ These are **not** data-stream visualisations — they're standalone tiles with n
 ```
 
 > An iframe/embed tile also exists (`tile/iframe`), but it is essentially unused in OOB content — prefer a data-stream tile or the tiles above.
-
----
-
-## Monitors (opt-in thresholds)
-
-A **monitor** re-evaluates a tile's data on a schedule and sets a health state (`error` / `warning` / `success`) on the tile — which surfaces in the dashboard and the workspace's health, and can drive notifications. This is the mechanism behind a "N firewalls disabled → red tile" health KPI.
-
-> ⚠️ **Ship monitors disabled, under `monitorOld` — never `monitor`.** The product only evaluates the `monitor` field; `monitorOld` is the "configured-but-off" slot (turning monitoring on for the tile in-product promotes `monitorOld` → `monitor`). Authoring under `monitorOld` means the monitor arrives **pre-built but switched off**, so adding the plugin does **not** start firing alerts at the user unprompted — they opt in per tile when ready. A monitor under `monitor` would be live the instant the plugin is installed, which is hostile default behaviour for a community plugin. So: build the threshold, then put it in `monitorOld`.
-
-**Use them sparingly.** Each monitor re-queries on its `frequency`, so they have a real cost. Only attach one to a tile with a clear, binary health signal — a count of unhealthy / non-compliant / failed items — and keep them few; don't put one on every tile.
-
-The opt-in threshold pattern (count of bad things `> 0` → `error`) pairs naturally with a scalar **count** tile:
-
-```json
-"monitorOld": {
-    "_type": "simple",
-    "monitorType": "threshold",
-    "aggregation": "count",
-    "groupBy": "__group_by_none__",
-    "frequency": 15,
-    "tileRollsUp": true,
-    "condition": {
-        "columns": [],
-        "logic": { "if": [{ ">": [{ "var": "count" }, 0] }, "error"] }
-    }
-}
-```
-
-This block sits inside the tile's `config`, alongside `dataStream` / `visualisation`. Field by field:
-
-| Field                | Meaning                                                                                                                                            |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `_type`              | `"simple"` — a monitor built from the UI controls, as opposed to a hand-written script.                                                            |
-| `monitorType`        | `"threshold"` — compare an aggregated value against a number.                                                                                       |
-| `aggregation`        | How to reduce the rows before testing — `"count"` exposes the row count as the `count` variable used in `logic`.                                    |
-| `groupBy`            | `"__group_by_none__"` — evaluate the whole result as one state (no per-group states).                                                               |
-| `frequency`          | Minutes between evaluations. `15` is typical; raise it for expensive queries.                                                                       |
-| `tileRollsUp`        | `true` — this tile's state contributes to the dashboard / workspace health rollup.                                                                 |
-| `condition.columns`  | Columns the condition references; `[]` when the test is purely on the aggregation.                                                                  |
-| `condition.logic`    | jsonLogic. `if` is `[<comparison>, <state>]`: when the comparison is true the tile takes `<state>`. `{ "var": "count" }` reads the `count` aggregation; operators are `>`, `<`, `>=`, `<=`, `==`, `!=`. |
-
-For tiered states, extend the `if` array with a second condition/state pair, **most-severe first** (the first true condition wins) — e.g. `[{ ">": [{ "var": "count" }, 10] }, "error", { ">": [{ "var": "count" }, 0] }, "warning"]`.
 
 ---
 
