@@ -1,7 +1,5 @@
 # OOB Default Content Reference
 
-> **Audience: the Phase 7 sub-agent.** OOB content is authored by a single build-mode sub-agent (see SKILL.md Phase 7); the main agent passes the dashboard plan in the prompt and never reads this file.
-
 ## Contents
 
 - [scopes.json](#scopesjson)
@@ -247,6 +245,7 @@ Common tiles, with the **exact** column names the visualisation must reference:
 
 ## Dashboard rules
 
+- **When unsure what makes a good dashboard, copy a shipped one.** The `plugins/` directory is full of mature OOB content — find a plugin whose data shape resembles yours and read its `.dash.json` files to see how real dashboards order tiles, mix visualisations, and lay out the grid. Lead with a summary row of scalar/KPI tiles, then breakdowns (donut/bar) and detail (tables/line graphs) below.
 - **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI — "MyPlugin / Overview" is correct; "MyPlugin / MyPlugin Overview" is redundant.
 - **Give each dashboard a distinct name.** Perspective tabs sit next to each other — identical names are indistinguishable.
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.

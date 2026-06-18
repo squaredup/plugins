@@ -112,12 +112,12 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 
 ### Data streams
 
-| Stream           | Scope                     | Time range? / granularity         | `timeframes`                            |
-| ---------------- | ------------------------- | --------------------------------- | --------------------------------------- |
-| `batterySummary` | per-device, current state | no range param — current snapshot | `false`                                 |
-| `batteryHistory` | per-device, time-series   | range, hourly granularity         | `true`                                  |
-| `siteAlarms`     | per-installation          | no range param — current alarms   | `false`                                 |
-| `siteBilling`    | per-installation          | range, daily granularity          | `last7days`+                            |
+| Stream           | Scope                     | Time range? / granularity         | `timeframes` |
+| ---------------- | ------------------------- | --------------------------------- | ------------ |
+| `batterySummary` | per-device, current state | no range param — current snapshot | `false`      |
+| `batteryHistory` | per-device, time-series   | range, hourly granularity         | `true`       |
+| `siteAlarms`     | per-installation          | no range param — current alarms   | `false`      |
+| `siteBilling`    | per-installation          | range, daily granularity          | `last7days`+ |
 
 ### What's intentionally omitted
 
@@ -153,7 +153,7 @@ If the user picks anything other than approve (including "Other"), revise the pl
 
 ## Phase 3: Scaffold Files
 
-**Icon — delegate to a write-capable sub-agent.** Finding the official logo means browsing vendor sites and image search, and the SVG/PNG markup itself is large — all of which floods the main context if done inline. Spawn **one general-purpose, write-capable sub-agent** for the icon (**not** an `Explore` agent — those are read-only and can't write the file). This work is mechanical — fetching a logo and applying rote SVG transforms — so spawn it with `model: "haiku"` to save tokens; the quality of the icon doesn't depend on a frontier model. Give it this prompt:
+**Icon — delegate to a write-capable sub-agent.** Finding the official logo means browsing vendor sites and image search, and the SVG/PNG markup itself is large — all of which floods the main context if done inline. Spawn **one general-purpose, write-capable sub-agent** for the icon (**not** an `Explore` agent — those are read-only and can't write the file). This work is mechanical — fetching a logo and applying rote SVG transforms — so spawn it with `model: "sonnet"` to save tokens; the quality of the icon doesn't depend on a frontier model. Give it this prompt:
 
 - **Find** the official brand/product logo (SVG preferred, PNG acceptable). Never auto-generate a generic icon. Search these sources, roughly in order:
     1. **Simple Icons** (`simpleicons.org`, raw SVGs at `https://cdn.simpleicons.org/<slug>` or the `simple-icons` GitHub repo) — clean single-path brand SVGs; also lists each brand's official hex colour, handy for the background `<rect>`.
@@ -220,7 +220,7 @@ Write as if the user has never seen the API. They're reading it inside SquaredUp
 
 ## Phase 4: Plugin identity, auth & config validation (the shell)
 
-Write `metadata.json`, `ui.json`, and — for any authenticated API — `configValidation.json` plus its backing data stream. Read [metadata.md](references/metadata.md) and [ui.md](references/ui.md); for the validation step pattern read [common-patterns.md](references/common-patterns.md).
+Write `metadata.json`, `ui.json`, and — for any authenticated API — `configValidation.json` plus its backing data stream [data-streams.md](references/data-streams.md). Read [metadata.md](references/metadata.md) and [ui.md](references/ui.md); for the validation step pattern read [common-patterns.md](references/common-patterns.md).
 
 This is the deployable **shell**: just enough to deploy, add to a tenant, and authenticate. The configValidation backing stream is a single **unscoped** call to a lightweight endpoint (e.g. `/me`) — it both validates the user's config on setup and serves as the auth probe in Checkpoint A. Don't write data streams or import definitions yet.
 
@@ -244,7 +244,7 @@ Do not proceed to Phase 5 until auth is confirmed. See [checkpoints.md](referenc
 
 ## Phase 5: Import definitions & import streams
 
-Write `indexDefinitions/default.json` and the unscoped list/import streams it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md) — it is **self-contained** for import-stream authoring (script checklist, paging modes, wiring). Do **not** read [data-streams.md](references/data-streams.md) for this or any later phase: it is the large Phase 6 authoring guide and only the testing sub-agents read it.
+Write `indexDefinitions/default.json` [index-defs.md](references/index-defs.md) and the unscoped list/import streams [data-streams.md](references/data-streams.md) it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent.
 
 Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring — Sonnet handles it well and is cheaper than the inherited Opus), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
 

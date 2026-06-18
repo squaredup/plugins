@@ -630,7 +630,7 @@ Use `valueExpression` or `formatExpression` to transform per-row data without a 
 
 > ⚠️ **Don't use `computed: true` just to rename a column.** A `computed` entry whose entire expression is `{{ $['otherField'] }}` is redundant — declare `otherField` directly in metadata and use `displayName` to rename it. Only use `computed: true` when the column doesn't exist in the response at all and must be synthesised (e.g. a constant `sourceType`, or a value derived from two or more other columns).
 
-**`valueExpression`** — computes the column's **actual value**. Sorts, aggregations, shape inference, and downstream tile features all see the result.
+**`valueExpression`** — computes the column's **actual value**. Sorts, aggregations, shape inference, and downstream tile features all see the result. Uses js evals, so supports most js methods.
 
 With `"computed": true`, the column doesn't have to exist in the response — empty rows are materialized and the expression fills them. Use this to derive a new column from other columns:
 
