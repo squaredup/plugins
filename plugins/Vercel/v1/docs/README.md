@@ -1,26 +1,24 @@
-# Vercel
+## What this plugin monitors
 
 Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in SquaredUp. This plugin connects to the Vercel REST API to import your projects and domains as objects you can scope dashboards to, and provides data streams for deployment health and history, domain verification and expiry, team membership and activity, and a billing-based cost overview.
 
-## What this plugin monitors
-
 - **Projects** — your Vercel projects, including framework, git repository, and latest production deployment status. Imported as objects.
 - **Domains** — custom domains, including verification status, expiry/renewal dates, and configuration health. Imported as objects.
-- **Deployments** — deployment volume, success/failure rates, and history over time, account-wide or drilled down per project. (Deployments are *not* indexed as objects, because they change too frequently — they are available as data streams instead.)
+- **Deployments** — deployment volume, success/failure rates, and history over time, account-wide or drilled down per project. (Deployments are _not_ indexed as objects, because they change too frequently — they are available as data streams instead.)
 - **Team & activity** — team membership roster and recent account activity (events).
 - **Cost** — a cost/usage overview derived from Vercel billing data (daily granularity).
 - **Firewall / security** — per-project [Vercel Firewall (WAF)](https://vercel.com/docs/vercel-firewall) event activity: counts of firewall events broken down by action (e.g. allow / deny / challenge) over time. Available as data streams on the **Project** perspective's **Security** section.
 
 The plugin ships with three out-of-the-box dashboards: an account **Overview**, a **Project** perspective (which includes a **Security** section), and a **Domain** perspective.
 
-## Prerequisites — getting a Vercel Access Token
+## Prerequisites
 
 1. Sign in to Vercel and open **Account Settings → Tokens** (<https://vercel.com/account/tokens>).
 2. Click **Create Token**.
 3. Give it a name (e.g. `SquaredUp`).
 4. **Scope** — choose the scope the token can access:
-   - To monitor a **Team**, set the scope to that team and note the team's ID or slug (see the `Team ID` field below).
-   - To monitor your **personal account**, scope it to your personal account.
+    - To monitor a **Team**, set the scope to that team and note the team's ID or slug (see the `Team ID` field below).
+    - To monitor your **personal account**, scope it to your personal account.
 5. **Expiration** — choose an expiration (or no expiration). If the token expires, the plugin's data streams will stop returning data until you supply a new token.
 6. Click **Create** and copy the token value immediately — Vercel only shows it once.
 
@@ -32,10 +30,10 @@ If you are monitoring a Team, open **Team Settings → General** in Vercel; the 
 
 ## Configuration fields
 
-| Field | Required | Description | Where to find it |
-| --- | --- | --- | --- |
-| **API Token** | Yes | The Vercel Access Token used to authenticate. Sent as a bearer token on every request. | Account Settings → Tokens (see above). |
-| **Team ID** | No | The Team ID or slug to monitor. Leave blank to monitor your personal account. When set, all requests are scoped to this team. | Team Settings → General (`team_…`), or the slug in your Vercel URL. |
+| Field         | Required | Description                                                                                                                   | Where to find it                                                    |
+| ------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **API Token** | Yes      | The Vercel Access Token used to authenticate. Sent as a bearer token on every request.                                        | Account Settings → Tokens (see above).                              |
+| **Team ID**   | No       | The Team ID or slug to monitor. Leave blank to monitor your personal account. When set, all requests are scoped to this team. | Team Settings → General (`team_…`), or the slug in your Vercel URL. |
 
 ## What gets indexed
 
