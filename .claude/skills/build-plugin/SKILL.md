@@ -63,10 +63,10 @@ Before writing a single file, understand and explore the API. **Use `AskUserQues
 1. **Find the docs** — Gather URLs or spec files from the user, then fetch and read them.
 2. **Identify the object model** — What are the core entities? (e.g. installations, devices, sites). These become the **indexed objects** in SquaredUp — available for drilldown, search, scoping dashboards, and use as variables.
 3. **Find the list endpoints** — Used to import objects. Prefer fetching **50–250 records per page** across multiple requests — SquaredUp has a per-page timeout but supports as many paged requests as needed.
-4. **Find the data endpoints** — These power data streams. For each, record:
+4. **Find the data endpoints** — These power data streams. For each, record three things; Phase 2 turns the last two into the stream's `timeframes`:
     - **Scoping** — scoped to a single object, multiple objects, or global (no object context).
-    - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter)? If it returns a fixed snapshot / current values with no way to ask for a range, the stream's `timeframes` will be `false` (the user can't pick a range).
-    - **Data granularity** — when the endpoint _does_ accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read this off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range). Granularity drives the stream's `timeframes` array in Phase 2 — an endpoint aggregated to daily (e.g. billing) returns nothing for the default `last1hour` timeframe, so capturing it here prevents first-test 404s in Phase 6.
+    - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter), or only return a fixed snapshot / current values?
+    - **Data granularity** — when the endpoint _does_ accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read it off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range).
 5. **Understand pagination** — Cursor/next-token, or offset/limit? Separate concern from response transformation.
 6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth? Determine from the docs.
 
@@ -117,7 +117,7 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 | `batterySummary` | per-device, current state | no range param — current snapshot | `false`                                 |
 | `batteryHistory` | per-device, time-series   | range, hourly granularity         | `true`                                  |
 | `siteAlarms`     | per-installation          | no range param — current alarms   | `false`                                 |
-| `siteBilling`    | per-installation          | range, daily granularity          | `last7days`+ (default `last1hour` 404s) |
+| `siteBilling`    | per-installation          | range, daily granularity          | `last7days`+                            |
 
 ### What's intentionally omitted
 
