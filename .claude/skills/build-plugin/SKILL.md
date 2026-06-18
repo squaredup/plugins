@@ -37,15 +37,6 @@ If the user has already volunteered the answer earlier in the conversation or yo
 
 ---
 
-## When to Use
-
-- Building a new plugin for an HTTP/REST API
-- Adding data streams or dashboards to an existing plugin
-- Any request to integrate a service, "pull data from", or "monitor" a service in SquaredUp
-- Adding a new data source or integration to a SquaredUp workspace
-
----
-
 ## Checklist
 
 Create a TaskCreate task for each phase. The flow deploys early and tests as it builds, so deploy/authenticate/test checkpoints are interleaved between the writing phases:
@@ -257,15 +248,15 @@ Write `indexDefinitions/default.json` and the unscoped list/import streams it ca
 
 Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring — Sonnet handles it well and is cheaper than the inherited Opus), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
 
-### Reconciliation pass (before proceeding)
+### The reconciliation pass
 
-Sub-agents run blind to each other, so several can independently rediscover — or contradict each other on — the same API fact. After collecting **all** reports, before moving to Checkpoint B, reconcile them rather than just resolving each report in isolation:
+Sub-agents run blind to each other, so several can independently rediscover — or contradict each other on — the same API fact. After collecting **all** reports, reconcile them rather than resolving each in isolation:
 
-1. **Diff the reports** against each other — line up every report's **"API-level discoveries"** section plus its fixes applied, assumptions, and constraints hit. Look for the same fact appearing in one report but missing from its siblings.
-2. **Propagate every API-level discovery to all sibling streams** that share the endpoint family or scoping — timeframe/granularity limits, payload caps, object property/id names, auth quirks. A constraint one sub-agent hit and fixed almost always applies to its siblings too; apply the same edit to each affected stream and **re-test every stream you changed** (re-spawn a test-mode sub-agent for it — a propagated edit is unproven until tested).
-3. **Resolve conflicting assumptions** before continuing — if two reports name the same object property or id differently (e.g. one filters on `projectId`, another on `rawId`), determine the correct one against the real response and fix every stream that used the wrong one. Do not proceed with an unresolved contradiction.
+1. **Diff the reports** against each other — line up every report's **"API-level discoveries"** section plus its fixes applied, assumptions, and constraints hit. Look for a fact present in one report but missing from its siblings.
+2. **Propagate every API-level discovery to all sibling streams** that share the endpoint family or scoping — timeframe/granularity limits that 404, payload caps that 500, object property/id names, auth quirks. A constraint one sub-agent hit and fixed almost always applies to its siblings too; apply the same edit to each affected stream and **re-test every stream you changed** (re-spawn its sub-agent — a propagated edit is unproven until tested).
+3. **Resolve conflicting assumptions** before continuing — if two reports name the same object property or id differently (e.g. one filters on `projectId`, another on `rawId`), determine the correct one against the real response and fix every stream that used the wrong one, so none ships with a scope filter comparing `undefined === undefined`. Do not proceed with an unresolved contradiction.
 
-If reconciliation edits an `indexDefinitions/*.json` mapping or an import stream, that edit only changes what a **future** import produces — see the re-indexing rule under [Checkpoint B](#re-indexing-rule--a-post-import-definition-change-invalidates-the-imported-objects). Here in Phase 5 the import hasn't run yet, so the edit will be picked up by the Checkpoint B import naturally; no extra re-index is needed.
+Run this pass at the end of both Phase 5 and Phase 6. If reconciliation edits an `indexDefinitions/*.json` mapping or an import stream, that edit only changes what a **future** import produces. Here in Phase 5 the import hasn't run yet, so the Checkpoint B import picks it up naturally — no extra re-index needed.
 
 ---
 
@@ -300,13 +291,9 @@ Data streams are independent files (`dataStreams/<name>.json` + optional `script
 
 For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all in a single message)** with `model: "sonnet"` (Sonnet is capable enough for the write-test-fix loop on a single stream), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A plus the stream's **build spec** (endpoint, method, scoping, candidate `pathToData`, planned columns + shapes, any `ui` params/timeframes, and — for a non-real-time endpoint — the data granularity plus a first-test `--timeframe` hint so the default `last1hour` doesn't 404 against aggregated data; see [test-agent.md](references/test-agent.md)). Each sub-agent writes the stream from the spec, tests it (`objects` → `test --object` for scoped; `test` for global), fixes `pathToData`/script/`metadata` until the shaped rows are correct, and returns a compact PASS/FAIL report.
 
-Collect the reports, then **run the reconciliation pass** before Phase 7 — the same three steps as [Phase 5](#phase-5-import-definitions--import-streams), now across the data-stream reports:
+Collect the reports, then **run [the reconciliation pass](#the-reconciliation-pass)** before Phase 7 — now across the data-stream reports. This is where a constraint one stream hit — a daily-granularity endpoint that 404s on `last1hour`, the ~6MB response cap that 500s on long timeframes — gets its `timeframes` fix propagated to **all** sibling streams on that endpoint, not just the one that found it.
 
-1. **Diff the reports** — line up every report's **"API-level discoveries"** section, fixes applied, assumptions, and constraints hit, and spot any fact present in one report but missing from its siblings.
-2. **Propagate every API-level discovery to all sibling streams** sharing the endpoint family or scoping (timeframe/granularity limits that 404, payload caps that 500, object property/id names, auth quirks), apply the same edit to each affected stream, and **re-test every stream you changed** by re-spawning its build/test sub-agent. This is where a constraint one stream hit — e.g. a daily-granularity endpoint that 404s on `last1hour`, or the ~6MB response cap that 500s on long timeframes — gets its `timeframes` fix applied to **all** sibling streams on that endpoint, not just the one that found it.
-3. **Resolve conflicting assumptions** — if two reports name the same indexed property differently (e.g. `projectId` vs `rawId`), settle it against the real response and fix every stream that filtered on the wrong one, so no stream ships with a scope filter comparing `undefined === undefined`. Don't proceed with an unresolved contradiction.
-
-If resolving a contradiction means **adding or renaming a mapped property** in `indexDefinitions/*.json` (rather than just fixing a stream to use a property that already exists), the imported objects predate that change and don't carry it. Before re-spawning sub-agents that rely on it, **re-run the Checkpoint B cycle** (redeploy → `squaredup index` → poll → confirm the property is present on a re-imported object) per the [re-indexing rule](#re-indexing-rule--a-post-import-definition-change-invalidates-the-imported-objects). Don't tell a sub-agent a property exists on the strength of an unimported definition edit.
+If resolving a contradiction means **adding or renaming a mapped property** in `indexDefinitions/*.json` (rather than fixing a stream to use a property that already exists), the imported objects predate that change and don't carry it. Before re-spawning sub-agents that rely on it, **re-run the Checkpoint B cycle** per the [re-indexing rule](#re-indexing-rule--a-post-import-definition-change-invalidates-the-imported-objects). Don't tell a sub-agent a property exists on the strength of an unimported definition edit.
 
 `test` sends the **local** stream config against the deployed plugin, so **no redeploy** is needed to test a new or edited stream (including the re-tests above) — only Checkpoints A and B and the final deploy redeploy.
 
@@ -335,11 +322,4 @@ Write `custom_types.json` — for this and other reusable patterns (built-in pro
 
 Invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
 
-**Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the rule above), the deployed plugin's objects still match the **old** definition — the live tenant won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger one more import so the deployed objects match the shipped definition:
-
-```bash
-squaredup index --datasource-id <id> --no-wait --json
-squaredup index-status --datasource-id <id> --since <since> --json   # poll until done: true, succeeded: true
-```
-
-Skip this only if no import definition or import stream has changed since the last import. Don't leave the tenant waiting on the scheduled import for a change you just shipped.
+**Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the [re-indexing rule](#re-indexing-rule--a-post-import-definition-change-invalidates-the-imported-objects)), the deployed plugin's objects still match the **old** definition — the live tenant won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger + poll one more import (the [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) trigger/wait steps) so the deployed objects match the shipped definition. Skip only if no import definition or import stream has changed since the last import.
