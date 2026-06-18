@@ -1,8 +1,6 @@
-# Algolia
+## What this plugin monitors
 
 Monitor your [Algolia](https://www.algolia.com/) search application from SquaredUp. This plugin imports your Algolia **indices** as objects and provides dashboards covering index size and growth, search volume, and search quality (no-result rate, top searches).
-
-## What this plugin monitors
 
 - **Indices** — every index in your Algolia application is imported as an object, with its record count, data/file size, last build time and pending-task count.
 - **Search analytics** (per index) — search volume over time, the no-results rate, your most popular searches, and the searches that returned no results.
@@ -17,27 +15,27 @@ You need two values from the Algolia dashboard: your **Application ID** and an *
 2. Go to **Settings → API Keys** (or **Account → API Keys**).
 3. Copy your **Application ID** (shown at the top of the API Keys page — a short string like `LIxxxxxxxx`).
 4. For the API key, use your **Admin API Key**, **or** (recommended) create a dedicated key with only the permissions this plugin needs. Click **All API keys → New API Key** and grant these ACLs:
-   - `listIndexes` — to import your indices
-   - `settings` — to read index configuration
-   - `analytics` — to read Search Analytics
-   - Leave **Indices** set to *all* (or restrict to the indices you want to monitor).
+    - `listIndexes` — to import your indices
+    - `settings` — to read index configuration
+    - `analytics` — to read Search Analytics
+    - Leave **Indices** set to _all_ (or restrict to the indices you want to monitor).
 
-   A read-only **Search-Only API Key** is **not** sufficient — it lacks `listIndexes` and `analytics`.
+    A read-only **Search-Only API Key** is **not** sufficient — it lacks `listIndexes` and `analytics`.
 
 > **Tip:** Using a scoped custom key rather than your Admin key follows least-privilege best practice and means the key can be rotated without affecting other integrations.
 
 ## Configuration fields
 
-| Field | Required | What it is / where to find it |
-| --- | --- | --- |
-| **Application ID** | Yes | Your Algolia Application ID, from **Settings → API Keys** in the Algolia dashboard. Also forms your API host (`https://<ApplicationID>.algolia.net`). |
-| **API Key** | Yes | An Admin key, or a custom key with the `listIndexes`, `settings` and `analytics` ACLs (see above). Stored encrypted. |
+| Field                | Required            | What it is / where to find it                                                                                                                                                                             |
+| -------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Application ID**   | Yes                 | Your Algolia Application ID, from **Settings → API Keys** in the Algolia dashboard. Also forms your API host (`https://<ApplicationID>.algolia.net`).                                                     |
+| **API Key**          | Yes                 | An Admin key, or a custom key with the `listIndexes`, `settings` and `analytics` ACLs (see above). Stored encrypted.                                                                                      |
 | **Analytics region** | No (default **US**) | The region your Algolia app's analytics data is stored in. Choose **EU** only if your application was created in Algolia's EU (Germany) region — otherwise analytics tiles will be empty. Defaults to US. |
 
 ## What gets indexed
 
-| Object type | Represents | Key properties |
-| --- | --- | --- |
+| Object type       | Represents                                | Key properties                                                                                                                                       |
+| ----------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Algolia Index** | A single search index in your application | Records (entries), data size, file size, last build time (s), number of pending tasks, pending-task flag, last updated, primary index (for replicas) |
 
 Each index's object ID is its index name, which is unique within an application.
