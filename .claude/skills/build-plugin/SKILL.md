@@ -67,7 +67,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 
 ## Phase 1: Explore the API
 
-Before writing a single file, understand the API. **Use `AskUserQuestion` to ask for API documentation URLs, OpenAPI/Swagger specs, Postman collections, or any other reference material.** You can also search online, but verify you're looking at docs for the exact product/version the user wants.
+Before writing a single file, understand and explore the API. **Use `AskUserQuestion` to ask for API documentation URLs, OpenAPI/Swagger specs, Postman collections, or any other reference material.** You can also search online, but verify you're looking at docs for the exact product/version the user wants.
 
 1. **Find the docs** — Gather URLs or spec files from the user, then fetch and read them.
 2. **Identify the object model** — What are the core entities? (e.g. installations, devices, sites). These become the **indexed objects** in SquaredUp — available for drilldown, search, scoping dashboards, and use as variables.
@@ -148,7 +148,7 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 
 ### Approval gate
 
-**When to fire:** when `metadata.json` doesn't exist yet in the plugin folder, OR when the planned `objectTypes` differs from the current `metadata.json`. Otherwise skip — incremental work that doesn't introduce new entities doesn't need the gate.
+**When to fire:** when `metadata.json` doesn't exist yet in the plugin folder, OR when the planned work adds anything new — different `objectTypes`, a new data stream, or a new dashboard. Otherwise skip — incremental work that doesn't introduce new entities, streams, or dashboards doesn't need the gate.
 
 **How:** post the plan, then call `AskUserQuestion` **in the same turn** with three options:
 
