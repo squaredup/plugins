@@ -61,9 +61,9 @@ Notes:
 - If `index` reports `alreadyRunning: true`, it adopted the in-flight run — poll with the `since` it returned. Imports can take several minutes (object import allows up to ~10 min); use a generous overall timeout.
 - The `--matches` confirm in step 3 must be **inline JSON** — `--matches @<importStream>.json` only resolves a real scope, and an import stream's `matches` is `none`/absent. Likewise `objects <stream>` needs a scoped stream, which doesn't exist until Phase 6.
 
-## A post-import definition change invalidates the imported objects
+## Imported objects are frozen at import time — re-index to refresh them
 
-The objects this import created carry the shape defined by the `indexDefinitions/*.json` and import streams **as they were when the import ran**. Editing either afterwards does **not** retroactively change the objects already in the graph — a newly mapped property is absent on every existing object until the datasource is re-imported. This is the trap behind the shipped `undefined === undefined` scope bug: a property was added to `objectMapping.properties` *after* the import, sub-agents were told it existed, and they filtered on a field that was `undefined` on every object.
+The objects this import created carry the shape defined by the `indexDefinitions/*.json` and import streams **as they were when the import ran**. Editing either afterwards does **not** retroactively change the objects already in the graph — every existing object stays **stale**, and a newly mapped property is absent on it until the datasource is re-imported. This is the trap behind the shipped `undefined === undefined` scope bug: a property was added to `objectMapping.properties` *after* the import, sub-agents were told it existed, and they filtered on a field that was `undefined` on every object.
 
 So **any** change to `indexDefinitions/*.json` or an import stream after this import has run means you must **repeat this whole Checkpoint B cycle before relying on the change** — before spawning sub-agents that reference a new property or building anything that scopes on it:
 
