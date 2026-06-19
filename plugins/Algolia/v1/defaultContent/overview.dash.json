@@ -1,12 +1,12 @@
 {
     "name": "Overview",
     "schemaVersion": "1.5",
-    "timeframe": "last24hours",
+    "timeframe": "last7days",
     "variables": [],
     "dashboard": {
         "_type": "layout/grid",
+        "version": 50,
         "columns": 4,
-        "version": 1,
         "contents": [
             {
                 "i": "66e90a23-50f4-4e6b-b6b1-b8036378e1f7",
@@ -83,38 +83,44 @@
                 }
             },
             {
-                "i": "a6b32024-6bee-4b5c-9b64-40baea590938",
+                "i": "c3f45e29-63aa-4d33-a4b8-1eab017dacf6",
                 "x": 2,
                 "y": 0,
-                "w": 1,
-                "h": 2,
+                "w": 2,
+                "h": 3,
                 "moved": false,
                 "static": false,
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Total Data Size",
+                    "title": "Search Count",
                     "description": "",
-                    "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.[indexes]}}",
-                        "name": "indexes",
-                        "pluginConfigId": "{{configId}}",
+                        "id": "{{dataStreams.[searchCount]}}",
+                        "name": "searchCount",
                         "group": {
-                            "by": [],
+                            "by": [["index", "uniqueValues"]],
                             "aggregate": [
-                                { "type": "sum", "names": ["dataSize"] }
+                                { "type": "sum", "names": ["count"] }
                             ]
                         }
                     },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).or(__.has(\"sourceType\", \"Index\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
                     "visualisation": {
-                        "type": "data-stream-scalar",
+                        "type": "data-stream-donut-chart",
                         "config": {
-                            "data-stream-scalar": {
-                                "value": "dataSize_sum",
-                                "comparisonColumn": "none",
-                                "label": "Total Data Size"
+                            "data-stream-donut-chart": {
+                                "valueColumn": "count_sum",
+                                "labelColumn": "index_uniqueValues",
+                                "legendMode": "inline",
+                                "legendPosition": "auto",
+                                "showValuesAsPercentage": false,
+                                "hideCenterValue": false
                             }
                         }
                     }
@@ -125,7 +131,7 @@
                 "x": 0,
                 "y": 2,
                 "w": 2,
-                "h": 4,
+                "h": 3,
                 "moved": false,
                 "static": false,
                 "z": 0,
@@ -146,8 +152,8 @@
                             ]
                         },
                         "sort": {
-                            "by": [["entries_sum", "desc"]],
-                            "top": 10
+                            "top": 10,
+                            "by": [["entries_sum", "desc"]]
                         }
                     },
                     "visualisation": {
@@ -166,10 +172,114 @@
                                 "showGrid": true,
                                 "horizontalLayout": "vertical",
                                 "displayMode": "actual",
-                                "showTotals": false,
+                                "showTotals": true,
                                 "showValue": false,
                                 "grouping": false,
-                                "range": { "type": "auto" }
+                                "range": { "type": "auto" },
+                                "color": { "type": "default" }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "86409b9b-56a0-445b-b9d4-072c08567094",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top 10 Searches",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[topSearches]}}",
+                        "name": "topSearches",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "search",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [["search", "uniqueValues"]],
+                            "aggregate": [
+                                { "type": "sum", "names": ["count"] }
+                            ]
+                        },
+                        "sort": {
+                            "top": 10,
+                            "by": [["count_sum", "desc"]]
+                        }
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).or(__.has(\"sourceType\", \"Index\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": ["search_uniqueValues", "count_sum"],
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d8077738-aec5-49f0-bd1b-cf7cb8823ebe",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Search Volume",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[searchCount]}}",
+                        "name": "searchCount",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "count",
+                                    "operation": "greaterthan",
+                                    "value": "0"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", within(\"{{configId}}\")).or(__.has(\"sourceType\", \"Index\")).limit(500)",
+                        "bindings": {},
+                        "queryDetail": {}
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date",
+                                "yAxisColumn": ["count"],
+                                "seriesColumn": "index",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "dataPoints": false,
+                                "showTrendLine": false,
+                                "cumulative": false
                             }
                         }
                     }
@@ -178,9 +288,9 @@
             {
                 "i": "55b48169-658b-44ca-85a3-3329fc59aa56",
                 "x": 2,
-                "y": 2,
+                "y": 6,
                 "w": 2,
-                "h": 4,
+                "h": 2,
                 "moved": false,
                 "static": false,
                 "z": 0,
