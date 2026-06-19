@@ -1,14 +1,10 @@
 // /v7/deployments returns { deployments: [...], pagination: {...} }.
 // One row per deployment. Optional `project` objects-picker (stream ui name
 // "project") arrives at context.config.project as an array (multi-select), each
-// rawId a single-element array. Empty/absent => account-wide, no filter.
 const deployments = (data && data.deployments) || [];
 
-const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const selected = (context.config && context.config.project) || [];
-const projectIds = new Set(
-    selected.map((o) => unwrap(o.rawId)).filter(Boolean),
-);
+const projectIds = new Set(selected.map((o) => o.rawId).filter(Boolean));
 
 // Token paging walks `until` from pagination.next back to the `since` floor, so
 // the first page starts at "now". For a historical timeframe (e.g. lastMonth)
