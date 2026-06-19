@@ -1,6 +1,7 @@
 ---
 name: migrate-dashboard
 description: Migrate an exported platform dashboard JSON to plugin format. Use when the user pastes a dashboard JSON to convert, says "migrate this dashboard", or wants to add an exported dashboard to a plugin as default content.
+model: sonnet
 metadata:
     author: SquaredUp
     version: "0.0.1"
@@ -49,6 +50,7 @@ Pass `scopes.json` when the dashboard has tiles with `config.variables` or `conf
 If `scopes.json` has multiple entries, read it first and determine which scope applies. It may be obvious from the dashboard content (e.g. tile titles referencing "Agent" or "Organization"), but if not, ask the user before running the script. Pass the chosen scope via `--scope-name "Scope Name"`. Run once per scope if the dashboard mixes tiles from multiple scopes.
 
 Verify the output — check that:
+
 - No `config-*` IDs remain (all → `{{configId}}`)
 - No `space-*` IDs remain (all → `{{workspaceId}}`)
 - All `config.dataStream.id` values are `{{dataStreams.[name]}}` form
