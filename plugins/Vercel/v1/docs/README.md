@@ -1,15 +1,12 @@
 ## What this plugin monitors
 
-Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in SquaredUp. This plugin connects to the Vercel REST API to import your projects and domains as objects you can scope dashboards to, and provides data streams for deployment health and history, domain verification and expiry, team membership and activity, and a billing-based cost overview.
+Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in SquaredUp. This plugin connects to the Vercel REST API to import your projects and domains as objects you can scope dashboards to, and provides data streams for deployment health and history, domain verification and expiry, team membership and activity.
 
 - **Projects** — your Vercel projects, including framework, git repository, and latest production deployment status. Imported as objects.
 - **Domains** — custom domains, including verification status, expiry/renewal dates, and configuration health. Imported as objects.
 - **Deployments** — deployment volume, success/failure rates, and history over time, account-wide or drilled down per project. (Deployments are _not_ indexed as objects, because they change too frequently — they are available as data streams instead.)
 - **Team & activity** — team membership roster and recent account activity (events).
-- **Cost** — a cost/usage overview derived from Vercel billing data (daily granularity).
 - **Firewall / security** — per-project [Vercel Firewall (WAF)](https://vercel.com/docs/vercel-firewall) event activity: counts of firewall events broken down by action (e.g. allow / deny / challenge) over time. Available as data streams on the **Project** perspective's **Security** section.
-
-The plugin ships with three out-of-the-box dashboards: an account **Overview**, a **Project** perspective (which includes a **Security** section), and a **Domain** perspective.
 
 ## Prerequisites
 
@@ -17,23 +14,18 @@ The plugin ships with three out-of-the-box dashboards: an account **Overview**, 
 2. Click **Create Token**.
 3. Give it a name (e.g. `SquaredUp`).
 4. **Scope** — choose the scope the token can access:
-    - To monitor a **Team**, set the scope to that team and note the team's ID or slug (see the `Team ID` field below).
+    - To monitor a **Team**, set the scope to that team.
     - To monitor your **personal account**, scope it to your personal account.
 5. **Expiration** — choose an expiration (or no expiration). If the token expires, the plugin's data streams will stop returning data until you supply a new token.
 6. Click **Create** and copy the token value immediately — Vercel only shows it once.
 
-For the **cost overview** and **team members** streams, the token must belong to a Team and carry a role with billing/member visibility (Owner, Member, Developer, Security, or Billing). On personal/Hobby accounts these streams may return no data.
-
-### Finding your Team ID
-
-If you are monitoring a Team, open **Team Settings → General** in Vercel; the **Team ID** (format `team_xxxxxxxx`) is shown there. Enter that value in the `Team ID` field. (Leave the field blank to monitor your personal account instead.)
+For the **team members** streams, the token must belong to a Team and carry a role with billing/member visibility (Owner, Member, Developer, Security, or Billing). On personal/Hobby accounts these streams may return no data.
 
 ## Configuration fields
 
-| Field         | Required | Description                                                                                                                   | Where to find it                                                    |
-| ------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **API Token** | Yes      | The Vercel Access Token used to authenticate. Sent as a bearer token on every request.                                        | Account Settings → Tokens (see above).                              |
-| **Team ID**   | No       | The Team ID or slug to monitor. Leave blank to monitor your personal account. When set, all requests are scoped to this team. | Team Settings → General (`team_…`), or the slug in your Vercel URL. |
+| Field         | Required | Description                                                                            | Where to find it                       |
+| ------------- | -------- | -------------------------------------------------------------------------------------- | -------------------------------------- |
+| **API Token** | Yes      | The Vercel Access Token used to authenticate. Sent as a bearer token on every request. | Account Settings → Tokens (see above). |
 
 ## What gets indexed
 
@@ -41,6 +33,7 @@ The plugin imports two object types into the SquaredUp graph:
 
 - **Vercel Project** — one object per project in the configured account/team. Carries the project name, framework, git repository link, and identifiers.
 - **Vercel Domain** — one object per custom domain. Carries the domain name, verification status, and expiry information.
+- **Vercel Team** - one object per team in the configured account. Will be one or zero, as tokens can only be scoped to one team.
 
 Deployments, teams, members, activity events, and cost data are provided as **data streams** (not indexed objects) — query them on dashboards and scope deployment streams to a project.
 
@@ -48,7 +41,6 @@ Deployments, teams, members, activity events, and cost data are provided as **da
 
 - **Deployments are not indexed.** They are available only as data streams, because deployment volume and churn make them unsuitable as long-lived graph objects.
 - **No real-time analytics or metrics via REST.** Vercel does **not** expose Web Analytics (pageviews/visitors), Speed Insights (Core Web Vitals), or real-time Observability metrics (edge requests, function invocations, bandwidth) through its public REST API. Operational usage is available only as **daily billed quantities** via the cost stream — not real-time, per-request telemetry.
-- **Cost data is daily granularity** and the billing endpoint returns very large datasets, so the cost stream is restricted to the **Last 24 hours** and **Last 7 days** timeframes.
 - **Team members and cost require a Team** and a token with adequate role/plan. On personal/Hobby accounts these streams may be empty.
 - **Firewall events only appear for projects with the WAF configured.** The Firewall events stream returns rows only for projects that have the Vercel Firewall set up and that recorded events within the selected timeframe; a project with no firewall activity in that window shows an empty result (not an error).
 - **One connection = one scope.** Each configured plugin instance monitors either your personal account or a single team. To monitor multiple teams, add the plugin once per team.
