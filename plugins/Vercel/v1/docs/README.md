@@ -33,7 +33,7 @@ The plugin imports two object types into the SquaredUp graph:
 
 - **Vercel Project** — one object per project in the configured account/team. Carries the project name, framework, git repository link, and identifiers.
 - **Vercel Domain** — one object per custom domain. Carries the domain name, verification status, and expiry information.
-- **Vercel Team** - one object per team in the configured account. Will be one or zero, as tokens can only be scoped to one team.
+- **Vercel Team** - one object per team in the configured account, that the token has access to.
 
 Deployments, teams, members, activity events, and cost data are provided as **data streams** (not indexed objects) — query them on dashboards and scope deployment streams to a project.
 
