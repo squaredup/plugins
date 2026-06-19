@@ -25,7 +25,7 @@ For the **team members** streams, the token must belong to a Team and carry a ro
 
 | Field         | Required | Description                                                                            | Where to find it                       |
 | ------------- | -------- | -------------------------------------------------------------------------------------- | -------------------------------------- |
-| **API Token** | Yes      | The Vercel Access Token used to authenticate. Sent as a bearer token on every request. | Account Settings → Tokens (see above). |
+| **API token** | Yes      | The Vercel Access Token used to authenticate. Sent as a bearer token on every request. | Account Settings → Tokens (see above). |
 
 ## What gets indexed
 
