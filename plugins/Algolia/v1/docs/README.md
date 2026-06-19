@@ -5,7 +5,7 @@ Monitor your [Algolia](https://www.algolia.com/) search application from Squared
 - **Indices** — every index in your Algolia application is imported as an object, with its record count, data/file size, last build time and pending-task count.
 - **Search analytics** (per index) — search volume over time, the no-results rate, your most popular searches, and the searches that returned no results.
 
-Out of the box you get an **Overview** dashboard (totals and top indices across the whole application) and an **Algolia Index** perspective (per-index size, search volume, and search-quality tiles).
+Out of the box you get an **Overview** dashboard (totals and top indices across the whole application) and an **Index** perspective (per-index size, search volume, and search-quality tiles).
 
 ## Prerequisites — getting your credentials
 
