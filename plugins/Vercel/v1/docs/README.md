@@ -29,19 +29,19 @@ For the **team members** streams, the token must belong to a Team and carry a ro
 
 ## What gets indexed
 
-The plugin imports two object types into the SquaredUp graph:
+The plugin imports three object types into the SquaredUp graph:
 
 - **Vercel Project** — one object per project in the configured account/team. Carries the project name, framework, git repository link, and identifiers.
 - **Vercel Domain** — one object per custom domain. Carries the domain name, verification status, and expiry information.
 - **Vercel Team** - one object per team in the configured account, that the token has access to.
 
-Deployments, teams, members, activity events, and cost data are provided as **data streams** (not indexed objects) — query them on dashboards and scope deployment streams to a project.
+Deployments, teams, members, and activity events are provided as **data streams** (not indexed objects) — query them on dashboards and scope deployment streams to a project.
 
 ## Known limitations
 
 - **Deployments are not indexed.** They are available only as data streams, because deployment volume and churn make them unsuitable as long-lived graph objects.
-- **No real-time analytics or metrics via REST.** Vercel does **not** expose Web Analytics (pageviews/visitors), Speed Insights (Core Web Vitals), or real-time Observability metrics (edge requests, function invocations, bandwidth) through its public REST API. Operational usage is available only as **daily billed quantities** via the cost stream — not real-time, per-request telemetry.
-- **Team members and cost require a Team** and a token with adequate role/plan. On personal/Hobby accounts these streams may be empty.
+- **No real-time analytics or metrics via REST.** Vercel does **not** expose Web Analytics (pageviews/visitors), Speed Insights (Core Web Vitals), or real-time Observability metrics (edge requests, function invocations, bandwidth) through its public REST API.
+- **Team members require a Team** and a token with adequate role/plan. On personal/Hobby accounts these streams may be empty.
 - **Firewall events only appear for projects with the WAF configured.** The Firewall events stream returns rows only for projects that have the Vercel Firewall set up and that recorded events within the selected timeframe; a project with no firewall activity in that window shows an empty result (not an error).
 - **One connection = one scope.** Each configured plugin instance monitors either your personal account or a single team. To monitor multiple teams, add the plugin once per team.
 - **Rate limits.** Vercel enforces per-action rate limits (HTTP 429). Very large accounts may occasionally see throttling during imports.
