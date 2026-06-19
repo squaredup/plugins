@@ -34,9 +34,9 @@ You need two values from the Algolia dashboard: your **Application ID** and an *
 
 ## What gets indexed
 
-| Object type       | Represents                                | Key properties                                                                                                                                       |
-| ----------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Algolia Index** | A single search index in your application | Records (entries), data size, file size, last build time (s), number of pending tasks, pending-task flag, last updated, primary index (for replicas) |
+| Object type | Represents                                | Key properties                                                                                                                                       |
+| ----------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Index**   | A single search index in your application | Records (entries), data size, file size, last build time (s), number of pending tasks, pending-task flag, last updated, primary index (for replicas) |
 
 Each index's object ID is its index name, which is unique within an application.
 
