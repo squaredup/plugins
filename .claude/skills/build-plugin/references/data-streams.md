@@ -109,11 +109,23 @@ A shipped plugin has five cost streams — `costByProject`, `costByService`, `co
         },
     ],
     "metadata": [
-        { "name": "date", "displayName": "Date", "shape": "date", "role": "timestamp" },
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp",
+        },
         {
             "name": "totalCost",
             "displayName": "Cost ($)",
-            "shape": ["currency", { "decimalPlaces": 2, "code": "usd", "thousandsSeparator": true }],
+            "shape": [
+                "currency",
+                {
+                    "decimalPlaces": 2,
+                    "code": "usd",
+                    "thousandsSeparator": true,
+                },
+            ],
             "role": "value",
         },
         // plus label/string columns projectName, serviceName, serviceCategory,
@@ -238,7 +250,10 @@ result = scoped.map((r) => ({
 
 - `name` — internal identifier; derived by camelCasing the display name (e.g. `"CPU Usage"` → `cpuUsage`). **Renaming is a breaking change.**
 - `displayName` — shown in the UI.
-- `description` — one sentence, no full stop at end.
+- `description` — one sentence, no full stop at end. Describe what data the stream returns, not how it gets consumed.
+
+    > ⚠️ Never mention dashboards, tiles, or import — every stream ends up in a dashboard somewhere, so saying so adds no information. This includes rephrasings like "used for import", "used by the X tile", "powers the X dashboard", "for monitoring X".
+
 - `tags` — required; title case (e.g. `"Battery"`, `"Energy"`). Keep to a small, meaningful set.
 
 ---
