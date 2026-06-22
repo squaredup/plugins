@@ -18,7 +18,7 @@ metadata:
 
 This skill **tests every data stream against a live, authenticated plugin** in your tenant before relying on it — testing is not optional. That requires the `squaredup` CLI logged in and a tenant you can authenticate the plugin in. Confirm both **before Phase 1**:
 
-1. Run `squaredup status`. If it reports you are not logged in, ask the user to run `! squaredup login` in this session (interactive; regions: `us`, `eu`, `dev`), then re-check. Login/region mechanics live in the `deploy-plugin` skill.
+1. Run `squaredup status --json`. If it exits non-zero, the user is not logged in — ask them to run `! squaredup login` in this session, then re-run `squaredup status --json`. Capture the JSON output (`{ tenantName, region }`) — you'll need `region` in Checkpoint A. Login/region mechanics live in the `deploy-plugin` skill.
 2. Confirm the user has a SquaredUp tenant where they can add and authenticate the plugin.
 
 Checkpoint B drives the import with `squaredup index` / `index-status`, so a current `squaredup` CLI is assumed.
@@ -233,7 +233,7 @@ The shell can't be tested until it's deployed and a config is authenticated agai
 1. **Deploy** — invoke the `deploy-plugin` skill to validate and deploy the shell. Deploy with `squaredup deploy --json --force`; the JSON output includes the deployed `pluginId` — **capture it here** rather than looking it up later.
 2. **Authenticate** — give the user a direct link to the plugin's setup page so they can add it to their tenant and authenticate:
     - Plugin id: take the `pluginId` from the `deploy --json` output in step 1. (No need to run `squaredup list` — the deploy already returned it.)
-    - Region: `squaredup status` prints `Region: <region>`. Build the host — `us` → `app.squaredup.com`, `dev` → `master.dev.app.squaredup.com` any other region → `<region>.app.squaredup.com` (e.g. `eu` → `eu.app.squaredup.com`).
+    - Region: take `region` from the `squaredup status --json` output captured during Prerequisites. Build the host — `us` → `app.squaredup.com`, `dev` → `master.dev.app.squaredup.com`, any other region → `<region>.app.squaredup.com` (e.g. `eu` → `eu.app.squaredup.com`).
     - Send them to `https://<host>/settings/plugins?addPluginId=<id>` and ask them to authenticate it. **Pause and wait for them to confirm.**
 3. **Capture the datasource id** — you already have the `pluginId` from step 1. The datasource only exists once the user authenticates, so run `squaredup datasources --json` now to grab the datasource `id`. Reuse both as `--plugin-id <id> --datasource-id <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and datasource lookups each call. **Pass both ids into every testing sub-agent prompt** spawned in Phases 5 and 6 (see [test-agent.md](references/test-agent.md)).
 4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --diagnostic Status --json --silent` and confirm the returned `Status` is a 2xx. `--diagnostic Status` filters the response to just the HTTP-status diagnostic (a one-line JSON array), so the probe never dumps the full `currentUser` diagnostics into the main context. A non-2xx status — or a request error (printed to stderr, exit code 1) or a missing `Status` diagnostic — means auth isn't right yet; **only then** drop `--diagnostic Status` to inspect the full response. Repeat until the status is 2xx.
