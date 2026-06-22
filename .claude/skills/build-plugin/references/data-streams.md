@@ -109,48 +109,15 @@ A shipped plugin has five cost streams — `costByProject`, `costByService`, `co
         },
     ],
     "metadata": [
-        {
-            "name": "date",
-            "displayName": "Date",
-            "shape": "date",
-            "role": "timestamp",
-        },
-        {
-            "name": "projectName",
-            "displayName": "Project",
-            "shape": "string",
-            "role": "label",
-        },
-        {
-            "name": "serviceName",
-            "displayName": "Service",
-            "shape": "string",
-            "role": "label",
-        },
-        {
-            "name": "serviceCategory",
-            "displayName": "Category",
-            "shape": "string",
-        },
+        { "name": "date", "displayName": "Date", "shape": "date", "role": "timestamp" },
         {
             "name": "totalCost",
             "displayName": "Cost ($)",
-            "shape": [
-                "currency",
-                {
-                    "decimalPlaces": 2,
-                    "code": "usd",
-                    "thousandsSeparator": true,
-                },
-            ],
+            "shape": ["currency", { "decimalPlaces": 2, "code": "usd", "thousandsSeparator": true }],
             "role": "value",
         },
-        {
-            "name": "projectId",
-            "displayName": "Project ID",
-            "shape": "string",
-            "visible": false,
-        },
+        // plus label/string columns projectName, serviceName, serviceCategory,
+        // and projectId (visible: false) — ordinary metadata, see the metadata section
     ],
     "timeframes": ["last24hours", "last7days", "last30days"],
 }
