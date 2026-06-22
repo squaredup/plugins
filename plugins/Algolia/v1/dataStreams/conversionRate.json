@@ -1,24 +1,34 @@
 {
-    "name": "noResultRate",
-    "displayName": "No-Result Rate",
-    "description": "Daily proportion of searches returning no results for an index",
+    "name": "conversionRate",
+    "displayName": "Conversion Rate",
+    "description": "Retrieves the conversion rate (CR) for all your searches with at least one conversion event",
     "tags": ["Analytics"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "get",
-        "endpointPath": "/2/searches/noResultRate",
+        "endpointPath": "/2/conversions/conversionRate",
         "getArgs": [
             { "key": "index", "value": "{{object.rawId}}" },
             {
                 "key": "startDate",
                 "value": "{{timeframeUtc.start.split('T')[0]}}"
             },
-            { "key": "endDate", "value": "{{timeframeUtc.end.split('T')[0]}}" }
+            {
+                "key": "endDate",
+                "value": "{{timeframeUtc.end.split('T')[0]}}"
+            }
         ],
-        "postRequestScript": "datesAddIndex.js"
+        "postRequestScript": "datesAddIndex.js",
+        "paging": { "mode": "none" }
     },
     "matches": { "sourceType": { "type": "equals", "value": "Index" } },
     "metadata": [
+        {
+            "name": "index",
+            "displayName": "Index",
+            "shape": "string",
+            "role": "id"
+        },
         {
             "name": "date",
             "displayName": "Date",
@@ -27,18 +37,18 @@
         },
         {
             "name": "rate",
-            "displayName": "No-result rate",
+            "displayName": "Conversion Rate",
             "shape": ["percent", { "asZeroToOne": true, "decimalPlaces": 0 }],
             "role": "value"
         },
         {
-            "name": "count",
-            "displayName": "Searches",
+            "name": "conversionCount",
+            "displayName": "Conversion Count",
             "shape": ["number", { "decimalPlaces": 0 }]
         },
         {
-            "name": "noResultCount",
-            "displayName": "No-result searches",
+            "name": "trackedSearchCount",
+            "displayName": "Tracked Search Count",
             "shape": ["number", { "decimalPlaces": 0 }]
         }
     ],
