@@ -220,7 +220,7 @@ Write as if the user has never seen the API. They're reading it inside SquaredUp
 
 ## Phase 4: Plugin identity, auth & config validation (the shell)
 
-Write `metadata.json`, `ui.json`, and — for any authenticated API — `configValidation.json` plus its backing data stream [data-streams.md](references/data-streams.md). Read [metadata.md](references/metadata.md) and [ui.md](references/ui.md); for the validation step pattern read [common-patterns.md](references/common-patterns.md).
+Write `metadata.json`, `ui.json`, and — for any authenticated API — `configValidation.json` plus its backing data stream. Read [metadata.md](references/metadata.md), [data-streams.md](references/data-streams.md) and [ui.md](references/ui.md); for the validation step pattern read [common-patterns.md](references/common-patterns.md).
 
 This is the deployable **shell**: just enough to deploy, add to a tenant, and authenticate. The configValidation backing stream is a single **unscoped** call to a lightweight endpoint (e.g. `/me`) — it both validates the user's config on setup and serves as the auth probe in Checkpoint A. Don't write data streams or import definitions yet.
 
@@ -244,7 +244,7 @@ Do not proceed to Phase 5 until auth is confirmed. See [checkpoints.md](referenc
 
 ## Phase 5: Import definitions & import streams
 
-Write `indexDefinitions/default.json` [index-defs.md](references/index-defs.md) and the unscoped list/import streams [data-streams.md](references/data-streams.md) it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent.
+Write `indexDefinitions/default.json` and the unscoped list/import streams it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md) and [data-streams.md](references/data-streams.md).
 
 Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring — Sonnet handles it well and is cheaper than the inherited Opus), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
 
@@ -281,7 +281,7 @@ Only once the change is confirmed present on a real object may you tell Phase 6 
 
 ## Phase 6: Data streams
 
-Data streams are independent files (`dataStreams/<name>.json` + optional `scripts/<name>.js`), and testing each one floods the main context with large raw response bodies. So **build + test each stream in its own sub-agent, spawned in parallel** — don't write or test them inline here. Read [test-agent.md](references/test-agent.md) for the contract; you do **not** need to read [data-streams.md](references/data-streams.md) yourself — the sub-agents do.
+Data streams are independent files (`dataStreams/<name>.json` + optional `scripts/<name>.js`), and testing each one floods the main context with large raw response bodies. So **build + test each stream in its own sub-agent, spawned in parallel** — don't write or test them inline here. Read [test-agent.md](references/test-agent.md) for the contract; and [data-streams.md](references/data-streams.md) for guidance on writing a data stream.
 
 For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all in a single message)** with `model: "sonnet"` (Sonnet is capable enough for the write-test-fix loop on a single stream), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A plus the stream's **build spec** (endpoint, method, scoping, candidate `pathToData`, planned columns + shapes, any `ui` params/timeframes, and — for a non-real-time endpoint — the data granularity plus a first-test `--timeframe` hint so the default `last1hour` doesn't 404 against aggregated data; see [test-agent.md](references/test-agent.md)). Each sub-agent writes the stream from the spec, tests it (`objects` → `test --object` for scoped; `test` for global), fixes `pathToData`/script/`metadata` until the shaped rows are correct, and returns a compact PASS/FAIL report.
 

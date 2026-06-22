@@ -60,7 +60,7 @@ Import streams are ordinary data stream files in `dataStreams/` — they need `n
 ```
 
 - Do not prefix import data streams with import i.e. importFilms, unless there is a clear need, name them after the api used
-- Avoid using a `config.postRequestScript` to reshape data unless needed, you can use a metadata column `valueExpression` to coerce numeric string or a real number or derive a column.
+- Avoid using a `config.postRequestScript` to reshape data unless needed, you can use a metadata column `valueExpression` to coerce a numeric string, id or a real number (`"valueExpression": "{{ $['url'].split('/').filter(Boolean).pop() }}"`) or derive a column.
 - `config.expandInnerObjects` can be used to reach a nested field.
 
 ---
