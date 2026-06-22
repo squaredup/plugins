@@ -162,16 +162,7 @@ Choosing between them: use **`radio`** when each option reads best on its own li
 }
 ```
 
-**`toggle`** — boolean toggle:
-
-```json
-{
-    "type": "toggle",
-    "name": "advancedMode",
-    "label": "Advanced Mode",
-    "defaultValue": false
-}
-```
+**`toggle`** — boolean, same shape as `checkbox` with `"type": "toggle"` (renders as a switch).
 
 **`radio`** — radio button group:
 
@@ -187,33 +178,9 @@ Choosing between them: use **`radio`** when each option reads best on its own li
 }
 ```
 
-**`switch`** — segmented button group (like radio, different visual style):
+**`switch`** — same `options` shape as `radio`, with `"type": "switch"`.
 
-```json
-{
-    "type": "switch",
-    "name": "view",
-    "label": "View",
-    "options": [
-        { "value": "table", "label": "Table" },
-        { "value": "chart", "label": "Chart" }
-    ]
-}
-```
-
-**`choiceChips`** — chip-style selection (supports `isMulti: true`):
-
-```json
-{
-    "type": "choiceChips",
-    "name": "tags",
-    "label": "Tags",
-    "options": [
-        { "value": "a", "label": "Option A" },
-        { "value": "b", "label": "Option B" }
-    ]
-}
-```
+**`choiceChips`** — same `options` shape as `radio`, with `"type": "choiceChips"`; add `"isMulti": true` for multi-select.
 
 **`autocomplete`** — searchable dropdown; fixed list or data stream–driven; supports `allowCustomValues`, `isMulti`, `isClearable`:
 
