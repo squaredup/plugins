@@ -125,13 +125,4 @@ Filtering on a **non-existent object property** (the `rawId` / wrong-field-name 
 
 **Unscoped / global / import streams keep the existing single-test pass** — there is no scope to vary, so one test that returns the expected shaped rows is sufficient.
 
-The report must record **both object ids** and a **one-line comparison** of their results (see the return format in [test-agent.md](test-agent.md)).
-
-## The per-stream loop (Phase 6)
-
-For each data stream:
-
-1. Write the stream JSON (and script, if needed).
-2. Test it, passing the `--plugin-id <id> --datasource-id <id>` from your prompt. **Scoped** → `objects` to get ids, then `test --object` against **two different objects** and compare (see "The two-object rule for scoped streams" above). **Global / unscoped** → a single `test`.
-3. Inspect the output — the raw `[Response] Body` under `requests[0]`, and the shaped rows under `data`. If the raw payload, shaped rows, or column types are wrong, fix `pathToData` / the script / `metadata` and go back to step 2. For a scoped stream, also confirm the two objects' results differ (or are justifiably identical) — identical-without-justification means the filter isn't scoping and is a **FAIL**.
-4. Only move to the next stream once it returns correct data. No redeploy required.
+The report must record **both object ids** and a **one-line comparison** of their results (see the return format in [test-agent.md](test-agent.md)). The full write → test → inspect → fix sequence the sub-agent runs lives in [test-agent.md](test-agent.md#the-loop-the-sub-agent-runs); the sections above are the reference each step reaches into.
