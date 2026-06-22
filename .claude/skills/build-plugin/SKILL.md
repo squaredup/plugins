@@ -246,7 +246,7 @@ Do not proceed to Phase 5 until auth is confirmed. See [checkpoints.md](referenc
 
 Write `indexDefinitions/default.json` and the unscoped list/import streams it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md) and [data-streams.md](references/data-streams.md).
 
-Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring — Sonnet handles it well and is cheaper than the inherited Opus), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
+Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
 
 ### The reconciliation pass
 
@@ -293,7 +293,7 @@ If resolving a contradiction means **adding or renaming a mapped property** in `
 
 ## Phase 7: OOB default content — build in a sub-agent
 
-Dashboards are large JSON files and authoring them inline floods the main context. Spawn **one** build-mode sub-agent for all of Phase 7 — a single agent, not one per dashboard, because the dashboards share `manifest.json` and `scopes.json`. The main agent does **not** read [oob-content.md](references/oob-content.md) — the sub-agent does.
+Dashboards are large JSON files and authoring them inline floods the main context. Spawn **one** build-mode sub-agent for all of Phase 7 — a single agent, not one per dashboard, because the dashboards share `manifest.json` and `scopes.json`.
 
 Pass in the prompt:
 

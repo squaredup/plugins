@@ -15,7 +15,7 @@
 
 ## Overview
 
-This defines the form fields that can be shown to a user when they either add a **plugin** or configure a data stream.
+This defines the form fields that can be shown to a user when they either add a **plugin** or configure a **data stream**.
 
 The **plugin** defines this within a `ui.json` file.
 
@@ -33,7 +33,7 @@ A **data stream** has its own `ui` array — the **tile-editor parameters** show
 
 **`tileEditorStep`** — controls which tile editor step the field appears in. Defaults to `["Parameters"]`. Set to `["Timeframe"]` to place on the Timeframe step.
 
-**Field values in `pluginConfig`** — each field's value is stored under its `name`. Most store a scalar, but a few store structured shapes worth knowing when you read them back in the handler:
+**Field value shapes** — each field's value is stored under its `name`. Most store a scalar, but a few store structured shapes worth knowing when you read them back in the handler:
 
 - `autocomplete` → an **array of `{ value }` objects**, even when single-select — not a bare string
 - `key-value` → an **array of `{ key, value }` objects**
@@ -62,7 +62,12 @@ A **data stream** has its own `ui` array — the **tile-editor parameters** show
 **Disabling a field** — `disabled` greys a field out rather than hiding it. Unlike `visible`, it's a common property that works on **any field directly** (no `fieldGroup` wrapper), and takes the same match-spec form or a plain boolean:
 
 ```json
-{ "type": "text", "name": "region", "label": "Region", "disabled": { "useDefaults": "yes" } }
+{
+    "type": "text",
+    "name": "region",
+    "label": "Region",
+    "disabled": { "useDefaults": "yes" }
+}
 ```
 
 **`ignoreCertificateErrors`** — add to any plugin that may connect to on-prem instances with self-signed certificates:
@@ -107,7 +112,10 @@ The `validation` object accepts [react-hook-form](https://react-hook-form.com/do
     "name": "serverUrl",
     "label": "Server URL",
     "validation": {
-        "pattern": { "value": "^https://[^\\s]+$", "message": "Enter a valid https URL" }
+        "pattern": {
+            "value": "^https://[^\\s]+$",
+            "message": "Enter a valid https URL"
+        }
     }
 }
 ```
@@ -225,7 +233,11 @@ Choosing between them: use **`radio`** when each option reads best on its own li
     "label": "Headers",
     "verb": ":",
     "displayName": "header",
-    "keyInput": { "title": "Header name", "placeholder": "MyHeader", "validation": { "required": true } },
+    "keyInput": {
+        "title": "Header name",
+        "placeholder": "MyHeader",
+        "validation": { "required": true }
+    },
     "valueInput": { "title": "Header value", "placeholder": "123" }
 }
 ```
@@ -282,19 +294,19 @@ Choosing between them: use **`radio`** when each option reads best on its own li
 **`displayAs`** controls how the group renders:
 
 - `"fieldGroupToggle"` — a collapsible/switchable group:
-  ```json
-  { "type": "fieldGroup", "name": "advanced", "label": "Advanced Options", "displayAs": "fieldGroupToggle",
-    "fields": [ ...field definitions... ] }
-  ```
+    ```json
+    { "type": "fieldGroup", "name": "advanced", "label": "Advanced Options", "displayAs": "fieldGroupToggle",
+      "fields": [ ...field definitions... ] }
+    ```
 - `"row"` — lays the child fields out side by side; a child may set `columnWidth` (an `fr` unit) to control its relative width.
 - `"inlineFields"` — like `row`, but child labels are hidden (e.g. an HTTP method and path on one line).
 - `"tabs"` / `"tab"` — a tabbed layout. A `"tabs"` group's `fields` **must** be child `fieldGroup`s each with `"displayAs": "tab"`, or it won't render:
-  ```json
-  { "type": "fieldGroup", "name": "config", "displayAs": "tabs", "visible": true, "fields": [
-      { "type": "fieldGroup", "displayAs": "tab", "label": "Basics",     "fields": [ ...field definitions... ] },
-      { "type": "fieldGroup", "displayAs": "tab", "label": "Parameters", "fields": [ ...field definitions... ] }
-  ]}
-  ```
+    ```json
+    { "type": "fieldGroup", "name": "config", "displayAs": "tabs", "visible": true, "fields": [
+        { "type": "fieldGroup", "displayAs": "tab", "label": "Basics",     "fields": [ ...field definitions... ] },
+        { "type": "fieldGroup", "displayAs": "tab", "label": "Parameters", "fields": [ ...field definitions... ] }
+    ]}
+    ```
 
 ---
 
