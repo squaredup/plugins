@@ -46,7 +46,7 @@ The sub-agent owns translating that spec into correct JSON and validating it aga
 3. **Inspect** — the raw `[Response] Body` under `requests[0]` and the shaped rows under `data` (see "Reading the output" in `testing.md`). Use the `raw → value → formatted` triple to localise faults: wrong `raw` → `pathToData`/script; wrong `value`/`formatted` → column `metadata`/`valueExpression`. For a scoped stream, also **compare the two objects' rows** — confirm the filter actually narrows to the scoped object and isn't matching everything (the `undefined === undefined` / non-existent-property trap, see `testing.md`).
 4. **Fix and re-test** until correct. **No redeploy** — `test` sends the local stream config against the deployed, authenticated plugin.
 
-Non-TTY discipline (full detail in `testing.md`): always pass **both `--json` and `--silent`** (`--silent` suppresses the stderr progress spinner so captured output is pure JSON), supply ids via flags, and **never** merge stderr into stdout (`2>&1`) when parsing — even with `--silent` a real error line on stderr would still corrupt the JSON.
+Non-TTY discipline: pass `--json --silent` and the ids on every call, and **never** merge stderr into stdout (`2>&1`) when parsing — full rule in `testing.md`.
 
 ## Return format — keep it compact
 
