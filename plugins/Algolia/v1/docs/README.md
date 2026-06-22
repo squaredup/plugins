@@ -20,7 +20,7 @@ You need two values from the Algolia dashboard: your **Application ID** and an *
     - `analytics` — to read Search Analytics
     - Leave **Indices** set to _all_ (or restrict to the indices you want to monitor).
 
-    A read-only **Search-Only API Key** is **not** sufficient — it lacks `listIndexes` and `analytics`.
+    A read-only **Search-Only API Key** is **not** sufficient — it lacks `listIndexes` ,`settings` and `analytics`.
 
 > **Tip:** Using a scoped custom key rather than your Admin key follows least-privilege best practice and means the key can be rotated without affecting other integrations.
 
@@ -29,7 +29,7 @@ You need two values from the Algolia dashboard: your **Application ID** and an *
 | Field                | Required            | What it is / where to find it                                                                                                                                                                             |
 | -------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Application ID**   | Yes                 | Your Algolia Application ID, from **Settings → API Keys** in the Algolia dashboard. Also forms your API host (`https://<ApplicationID>.algolia.net`).                                                     |
-| **API Key**          | Yes                 | An Admin key, or a custom key with the `listIndexes`, `settings` and `analytics` ACLs (see above). Stored encrypted.                                                                                      |
+| **API key**          | Yes                 | An Admin key, or a custom key with the `listIndexes`, `settings` and `analytics` ACLs (see above). Stored encrypted.                                                                                      |
 | **Analytics region** | No (default **US**) | The region your Algolia app's analytics data is stored in. Choose **EU** only if your application was created in Algolia's EU (Germany) region — otherwise analytics tiles will be empty. Defaults to US. |
 
 ## What gets indexed
