@@ -1,5 +1,5 @@
 ---
-name: migrate-dashboard
+name: convert-dashboard
 description: Migrate an exported platform dashboard JSON to plugin format. Use when the user pastes a dashboard JSON to convert, says "migrate this dashboard", or wants to add an exported dashboard to a plugin as default content.
 model: sonnet
 metadata:
@@ -7,11 +7,11 @@ metadata:
     version: "0.0.1"
 ---
 
-# Migrate Dashboard to Plugin Format
+# Convert Dashboard to Plugin Format
 
 Convert a platform-exported dashboard JSON to plugin format by normalizing hardcoded IDs to template variables, then saving as plugin default content.
 
-**Announce at start:** "I'm using the migrate-dashboard skill."
+**Announce at start:** "I'm using the convert-dashboard skill."
 
 ---
 
