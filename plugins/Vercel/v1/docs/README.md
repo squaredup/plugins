@@ -35,7 +35,7 @@ The plugin imports three object types into the SquaredUp graph:
 - **Vercel Domain** — one object per custom domain. Carries the domain name, verification status, and expiry information.
 - **Vercel Team** - one object per team in the configured account, that the token has access to.
 
-Deployments, teams, members, and activity events are provided as **data streams** (not indexed objects) — query them on dashboards and scope deployment streams to a project.
+Deployments, members, and activity events are provided as **data streams** (not indexed objects) — query them on dashboards and scope deployment streams to a project.
 
 ## Known limitations
 
