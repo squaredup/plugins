@@ -271,11 +271,9 @@ Scoped data streams can't be tested until objects exist, which means the import 
 
 ### ⚠️ Re-indexing rule — a definition change leaves imported objects stale
 
-The objects now in the graph are a snapshot **frozen at import time**: any edit to `indexDefinitions/*.json` or an import stream after this import has run does **not** reach them — every existing object stays **stale**, carrying its old shape, until the datasource is re-imported. A property you map now is absent on every already-imported object until then.
+The objects now in the graph are **frozen at import time**: any later edit to `indexDefinitions/*.json` or an import stream leaves every existing object **stale** until the datasource is re-imported — a property you map now is absent on every already-imported object.
 
-So before you **rely** on such a change — spawning Phase 6 sub-agents that reference a new property, building dashboards on it, or shipping a stream that scopes on it — first check the change is even needed (a value already covered by the `id`/`name`/`type` mappings is on every object for free as `rawId`/`name`/`type` — don't add a duplicate `properties` entry to reach it; see [index-defs.md](references/index-defs.md)), then **re-run the full Checkpoint B cycle**: redeploy, re-index, poll, and **confirm the change itself landed**, not merely that the import succeeded. The step-by-step lives in [checkpoints.md](references/checkpoints.md).
-
-Only once the change is confirmed present on a real object may you tell Phase 6 sub-agents it exists. Skipping this is the root cause of the shipped `undefined === undefined` scope bug — see [testing.md](references/testing.md), "The two-object rule".
+So before you **rely** on such a change — spawning Phase 6 sub-agents that reference a new property, building dashboards on it, or shipping a stream that scopes on it — **re-run the full Checkpoint B cycle and confirm the change itself landed**, not merely that the import succeeded. Only then may you tell Phase 6 sub-agents the property exists. The procedure — including checking the change is even needed before re-indexing — lives in [checkpoints.md](references/checkpoints.md). Skipping it is the root cause of the shipped `undefined === undefined` scope bug — see [testing.md](references/testing.md), "The two-object rule".
 
 ---
 
@@ -287,7 +285,7 @@ For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all 
 
 Collect the reports, then **run [the reconciliation pass](#the-reconciliation-pass)** before Phase 7 — now across the data-stream reports. This is where a constraint one stream hit — a daily-granularity endpoint that 404s on `last1hour`, the ~6MB response cap that 500s on long timeframes — gets its `timeframes` fix propagated to **all** sibling streams on that endpoint, not just the one that found it.
 
-If resolving a contradiction means **adding or renaming a mapped property** in `indexDefinitions/*.json` (rather than fixing a stream to use a property that already exists), the imported objects are now **stale** — they predate that change. Before re-spawning sub-agents that rely on it, **re-run the Checkpoint B cycle** per the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale). Don't tell a sub-agent a property exists on the strength of an unimported definition edit.
+If resolving a contradiction means **adding or renaming a mapped property** in `indexDefinitions/*.json` (not just fixing a stream to use one that already exists), the imported objects are now stale — apply the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale) before re-spawning sub-agents that rely on the change.
 
 `test` sends the **local** stream config against the deployed plugin, so **no redeploy** is needed to test a new or edited stream (including the re-tests above) — only Checkpoints A and B and the final deploy redeploy.
 

@@ -73,4 +73,4 @@ So **any** change to `indexDefinitions/*.json` or an import stream after this im
 4. **Poll** `index-status` until `done: true, succeeded: true`.
 5. **Confirm the change itself landed, not just that the import succeeded.** A typo'd source column imports cleanly and silently drops the property, so import success proves nothing about the mapping. Re-run the step-3 `objects --matches` confirm and inspect a returned object for the new property (or test a scoped stream that reads `{{object.<newProp>}}` and see it resolve to a real value). Only then is it safe to tell a sub-agent the property exists.
 
-**Phase 9 corollary.** If import definitions or import streams changed since the last successful import, the **deployed** tenant's objects are also stale — they won't gain the new shape until the next scheduled import (up to `frequencyMinutes`, default 720 = 12h). After the final deploy, trigger one more `index` + poll so the live objects match the shipped definition rather than waiting on the schedule.
+The same staleness applies to the **deployed** tenant after the final deploy — see Phase 9's conditional final re-index in SKILL.md.
