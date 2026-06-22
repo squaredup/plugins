@@ -53,8 +53,9 @@ Verify the output — check that:
 
 - No `config-*` IDs remain (all → `{{configId}}`)
 - No `space-*` IDs remain (all → `{{workspaceId}}`)
-- All `config.dataStream.id` values are `{{dataStreams.[name]}}` form
+- All `config.dataStream.id` values are `{{dataStreams.[name]}}` form, **except** the global built-in `datastream-properties`, which is left as-is
 - All `config.activePluginConfigIds` are `["{{configId}}"]`
+- `dashboard.version` is reset to `1` (the script forces this regardless of the pasted-in version)
 - `config.scopes[]` entries with `ids_defaultScopeIds` bindings are removed
 - Perspective tiles: `config.variables`, `config.scope.variable`, `config.scope.scope` are templatized
 

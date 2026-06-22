@@ -67,7 +67,10 @@ function normalizeTile(tile) {
 
   // Templatize dataStream
   if (config.dataStream) {
-    if (config.dataStream.name) {
+    // Leave global built-in data streams (e.g. datastream-properties) untouched —
+    // their id is not plugin-specific, so it stays as-is.
+    const isGlobalDataStream = config.dataStream.id === 'datastream-properties';
+    if (config.dataStream.name && !isGlobalDataStream) {
       config.dataStream.id = `{{dataStreams.[${config.dataStream.name}]}}`;
     }
     if (config.dataStream.pluginConfigId) {
@@ -110,6 +113,9 @@ function globalReplace(obj) {
 
 const normalized = globalReplace({
   ...dashboard,
+  // Always start plugin default content at version 1, regardless of the
+  // version the dashboard had in the platform.
+  version: 1,
   contents: (dashboard.contents || []).map(normalizeTile),
 });
 
