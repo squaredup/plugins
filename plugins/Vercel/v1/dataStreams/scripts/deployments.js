@@ -3,9 +3,6 @@
 // "project") arrives at context.config.project as an array (multi-select), each
 const deployments = (data && data.deployments) || [];
 
-const selected = (context.config && context.config.project) || [];
-const projectIds = new Set(selected.map((o) => o.rawId).filter(Boolean));
-
 // Token paging walks `until` from pagination.next back to the `since` floor, so
 // the first page starts at "now". For a historical timeframe (e.g. lastMonth)
 // that over-fetches rows newer than the window end — bound the top here.
@@ -14,9 +11,7 @@ const tf = context.timeframe || {};
 const untilMs = tf.unixEnd ? tf.unixEnd * 1000 : null;
 
 const scoped = deployments.filter(
-    (d) =>
-        (!projectIds.size || projectIds.has(d.projectId)) &&
-        (untilMs === null || d.created <= untilMs),
+    (d) => untilMs === null || d.created <= untilMs,
 );
 
 result = scoped.map((d) => ({
