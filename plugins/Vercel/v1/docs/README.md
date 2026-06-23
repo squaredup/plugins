@@ -1,14 +1,8 @@
-## What this plugin monitors
+# Vercel plugin
 
 Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in SquaredUp. This plugin connects to the Vercel REST API to import your projects and domains as objects you can scope dashboards to, and provides data streams for deployment health and history, domain verification and expiry, team membership and activity.
 
-- **Projects** — your Vercel projects, including framework, git repository, and latest production deployment status. Imported as objects.
-- **Domains** — custom domains, including verification status, expiry/renewal dates, and configuration health. Imported as objects.
-- **Deployments** — deployment volume, success/failure rates, and history over time, account-wide or drilled down per project. (Deployments are _not_ indexed as objects, because they change too frequently — they are available as data streams instead.)
-- **Team & activity** — team membership roster and recent account activity (events).
-- **Firewall / security** — per-project [Vercel Firewall (WAF)](https://vercel.com/docs/vercel-firewall) event activity: counts of firewall events broken down by action (e.g. allow / deny / challenge) over time. Available as data streams on the **Project** perspective's **Security** section.
-
-## Prerequisites
+## Before you start
 
 1. Sign in to Vercel and open **Account Settings → Tokens** (<https://vercel.com/account/tokens>).
 2. Click **Create Token**.
@@ -21,11 +15,21 @@ Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in 
 
 For the **team members** streams, the token must belong to a Team and carry a role with billing/member visibility (Owner, Member, Developer, Security, or Billing). On personal/Hobby accounts these streams may return no data.
 
+Paste this token in the **API token** field.
+
 ## Configuration fields
 
 | Field         | Required | Description                                                                            | Where to find it                       |
 | ------------- | -------- | -------------------------------------------------------------------------------------- | -------------------------------------- |
 | **API token** | Yes      | The Vercel Access Token used to authenticate. Sent as a bearer token on every request. | Account Settings → Tokens (see above). |
+
+## What is monitored
+
+- **Projects** — your Vercel projects, including framework, git repository, and latest production deployment status. Imported as objects.
+- **Domains** — custom domains, including verification status, expiry/renewal dates, and configuration health. Imported as objects.
+- **Deployments** — deployment volume, success/failure rates, and history over time, account-wide or drilled down per project. (Deployments are _not_ indexed as objects, because they change too frequently — they are available as data streams instead.)
+- **Team & activity** — team membership roster and recent account activity (events).
+- **Firewall / security** — per-project [Vercel Firewall (WAF)](https://vercel.com/docs/vercel-firewall) event activity: counts of firewall events broken down by action (e.g. allow / deny / challenge) over time. Available as data streams on the **Project** perspective's **Security** section.
 
 ## What gets indexed
 
