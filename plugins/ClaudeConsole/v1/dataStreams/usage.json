@@ -1,7 +1,7 @@
 {
     "name": "usage",
     "displayName": "Token Usage",
-    "description": "Organization token usage over time, one row per time bucket and optional group",
+    "description": "Organization token usage over time",
     "tags": ["Usage", "Tokens"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
@@ -26,19 +26,15 @@
             },
             {
                 "key": "group_by[]",
-                "value": "{{ groupBy || null }}"
-            },
-            {
-                "key": "workspace_ids[]",
-                "value": "{{ (workspace && workspace.length) ? (Array.isArray(workspace[0].rawId) ? workspace[0].rawId[0] : workspace[0].rawId) : null }}"
+                "value": "{{ ['workspace_id', 'api_key_id', 'model'] }}"
             },
             {
                 "key": "api_key_ids[]",
-                "value": "{{ (apiKeyFilter && apiKeyFilter.length) ? (Array.isArray(apiKeyFilter[0].rawId) ? apiKeyFilter[0].rawId[0] : apiKeyFilter[0].rawId) : null }}"
+                "value": "{{ apiKeyFilter?.map(a => a.rawId) || null }}"
             },
             {
                 "key": "account_ids[]",
-                "value": "{{ (member && member.length) ? (Array.isArray(member[0].rawId) ? member[0].rawId[0] : member[0].rawId) : null }}"
+                "value": "{{ member?.map(a => a.rawId) || null }}"
             }
         ],
         "paging": {
@@ -48,33 +44,6 @@
     },
     "matches": "none",
     "ui": [
-        {
-            "type": "choiceChips",
-            "name": "groupBy",
-            "label": "Group by",
-            "options": [
-                {
-                    "value": "model",
-                    "label": "Model"
-                },
-                {
-                    "value": "workspace_id",
-                    "label": "Workspace"
-                },
-                {
-                    "value": "api_key_id",
-                    "label": "API Key"
-                },
-                {
-                    "value": "service_tier",
-                    "label": "Service Tier"
-                },
-                {
-                    "value": "context_window",
-                    "label": "Context Window"
-                }
-            ]
-        },
         {
             "type": "objects",
             "name": "workspace",

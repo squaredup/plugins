@@ -6,7 +6,7 @@ const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 // Build set of selected workspace rawIds (empty → account-wide, no filter)
 const selected = (context.config && context.config.workspace) || [];
 const workspaceIds = new Set(
-    selected.map((o) => unwrap(o.rawId)).filter(Boolean)
+    selected.map((o) => unwrap(o.rawId)).filter(Boolean),
 );
 
 // Flatten buckets × results into one row per combination
@@ -18,14 +18,14 @@ let rows = (data.data || []).flatMap((bucket) =>
         // cost/token matches Claude's published per-model list prices exactly only in cents.
         amount: Number(r.amount) / 100,
         currency: r.currency,
-        workspace_id: r.workspace_id,
+        workspace_id: r.workspace_id ?? "default",
         description: r.description,
         model: r.model,
         token_type: r.token_type,
         cost_type: r.cost_type,
         service_tier: r.service_tier,
         context_window: r.context_window,
-    }))
+    })),
 );
 
 // Apply optional workspace scope filter
@@ -34,3 +34,4 @@ if (workspaceIds.size) {
 }
 
 result = rows;
+
