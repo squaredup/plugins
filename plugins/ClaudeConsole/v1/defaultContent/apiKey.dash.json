@@ -1,0 +1,99 @@
+{
+    "name": "API Key",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": ["{{variables.[Claude API Key]}}"],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "b1fb62c0-436b-4a5f-a09b-a341354bc6d4",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Claude API Keys]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Claude API Key]}}"
+                    },
+                    "variables": ["{{variables.[Claude API Key]}}"],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": ["name", "sourceId", "sourceType"],
+                                "hiddenColumns": ["id", "links", "type", "label"]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9f6cee89-ed40-4dce-8e19-da4da8147afb",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Token usage",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "variables": ["{{variables.[Claude API Key]}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.usage}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": "model",
+                            "apiKeyFilter": {
+                                "scope": "{{scopes.[Claude API Keys]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Claude API Key]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [["start", "byDay"], ["model", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["total_tokens"] }]
+                        },
+                        "sort": { "by": [["start_byDay", "asc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "start_byDay",
+                                "yAxisColumn": ["total_tokens_sum"],
+                                "seriesColumn": "model_uniqueValues",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "Tokens",
+                                "showYAxisLabel": true,
+                                "showTrendLine": false
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

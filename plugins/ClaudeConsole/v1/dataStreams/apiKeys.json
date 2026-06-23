@@ -1,0 +1,104 @@
+{
+    "name": "apiKeys",
+    "displayName": "API Keys",
+    "description": "API keys in your Claude Console organization, with status, key hint, creator, and owning workspace",
+    "tags": ["API Keys"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/organizations/api_keys",
+        "getArgs": [
+            {
+                "key": "limit",
+                "value": "1000"
+            },
+            {
+                "key": "workspace_id",
+                "value": "{{ (workspace && workspace.length) ? (Array.isArray(workspace[0].rawId) ? workspace[0].rawId[0] : workspace[0].rawId) : null }}"
+            },
+            {
+                "key": "created_by_user_id",
+                "value": "{{ (createdBy && createdBy.length) ? (Array.isArray(createdBy[0].rawId) ? createdBy[0].rawId[0] : createdBy[0].rawId) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "workspace",
+            "label": "Workspace (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Claude Workspace"]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "createdBy",
+            "label": "Created by (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["Claude Member"] }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "API Key ID",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["active"],
+                        "unknown": ["expired", "archived", "inactive"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "workspace_id",
+            "displayName": "Workspace ID",
+            "shape": "string"
+        },
+        {
+            "name": "partial_key_hint",
+            "displayName": "Key Hint",
+            "shape": "string"
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "expires_at",
+            "displayName": "Expires",
+            "shape": "date"
+        },
+        {
+            "name": "created_by.id",
+            "displayName": "Created By",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

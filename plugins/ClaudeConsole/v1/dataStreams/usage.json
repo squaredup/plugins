@@ -1,0 +1,230 @@
+{
+    "name": "usage",
+    "displayName": "Token Usage",
+    "description": "Organization token usage over time, one row per time bucket and optional group",
+    "tags": ["Usage", "Tokens"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/organizations/usage_report/messages",
+        "getArgs": [
+            {
+                "key": "starting_at",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "ending_at",
+                "value": "{{timeframe.end}}"
+            },
+            {
+                "key": "bucket_width",
+                "value": "{{ timeframe.enum === 'last1hour' ? '1m' : (timeframe.enum === 'last12hours' || timeframe.enum === 'last24hours') ? '1h' : '1d' }}"
+            },
+            {
+                "key": "limit",
+                "value": "{{ timeframe.enum === 'last1hour' ? '60' : timeframe.enum === 'last12hours' ? '12' : timeframe.enum === 'last24hours' ? '24' : '31' }}"
+            },
+            {
+                "key": "group_by[]",
+                "value": "{{ groupBy || null }}"
+            },
+            {
+                "key": "workspace_ids[]",
+                "value": "{{ (workspace && workspace.length) ? (Array.isArray(workspace[0].rawId) ? workspace[0].rawId[0] : workspace[0].rawId) : null }}"
+            },
+            {
+                "key": "api_key_ids[]",
+                "value": "{{ (apiKeyFilter && apiKeyFilter.length) ? (Array.isArray(apiKeyFilter[0].rawId) ? apiKeyFilter[0].rawId[0] : apiKeyFilter[0].rawId) : null }}"
+            },
+            {
+                "key": "account_ids[]",
+                "value": "{{ (member && member.length) ? (Array.isArray(member[0].rawId) ? member[0].rawId[0] : member[0].rawId) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "usage.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "groupBy",
+            "label": "Group by",
+            "options": [
+                {
+                    "value": "model",
+                    "label": "Model"
+                },
+                {
+                    "value": "workspace_id",
+                    "label": "Workspace"
+                },
+                {
+                    "value": "api_key_id",
+                    "label": "API Key"
+                },
+                {
+                    "value": "service_tier",
+                    "label": "Service Tier"
+                },
+                {
+                    "value": "context_window",
+                    "label": "Context Window"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "workspace",
+            "label": "Workspace (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Claude Workspace"]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "apiKeyFilter",
+            "label": "API Key (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Claude API Key"]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "member",
+            "label": "Member (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Claude Member"]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "start",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "total_tokens",
+            "displayName": "Total Tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "uncached_input_tokens",
+            "displayName": "Uncached Input Tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "cache_read_input_tokens",
+            "displayName": "Cache Read Tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "cache_creation_5m",
+            "displayName": "Cache Creation (5m)",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "cache_creation_1h",
+            "displayName": "Cache Creation (1h)",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "output_tokens",
+            "displayName": "Output Tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "web_search_requests",
+            "displayName": "Web Search Requests",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "workspace_id",
+            "displayName": "Workspace ID",
+            "shape": "string"
+        },
+        {
+            "name": "api_key_id",
+            "displayName": "API Key ID",
+            "shape": "string"
+        },
+        {
+            "name": "service_tier",
+            "displayName": "Service Tier",
+            "shape": "string"
+        },
+        {
+            "name": "context_window",
+            "displayName": "Context Window",
+            "shape": "string"
+        },
+        {
+            "name": "account_id",
+            "displayName": "Account ID",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}
