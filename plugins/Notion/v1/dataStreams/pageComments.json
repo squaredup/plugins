@@ -1,0 +1,42 @@
+{
+    "name": "pageComments",
+    "displayName": "Page Comments",
+    "description": "Comments and discussion threads on a single Notion page",
+    "tags": ["Comments"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "comments",
+        "getArgs": [
+            { "key": "block_id", "value": "{{object.rawId}}" }
+        ],
+        "postRequestScript": "pageComments.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "100" },
+            "in": { "realm": "payload", "path": "next_cursor" },
+            "out": { "realm": "queryArg", "path": "start_cursor" }
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "result = response.status === 403 ? 'Notion did not grant the Read comments capability. Enable \"Read comments\" on your Notion integration, then reconnect the plugin in SquaredUp.' : ((data && data.message) || ('Notion comments API returned status ' + response.status));"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Notion Page"] }
+    },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "createdTime", "displayName": "Created", "shape": "date" },
+        { "name": "text", "displayName": "Comment", "shape": "string", "role": "label" },
+        { "name": "createdById", "displayName": "Created By ID", "shape": "string", "visible": false },
+        {
+            "name": "author",
+            "displayName": "Author",
+            "sourceId": "createdById",
+            "sourceType": "Notion User",
+            "objectPropertyPath": "name"
+        }
+    ],
+    "timeframes": false
+}
