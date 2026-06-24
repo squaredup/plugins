@@ -11,7 +11,7 @@ Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in 
     - To monitor a **Team**, set the scope to that team.
     - To monitor your **personal account**, scope it to your personal account.
 5. **Expiration** — choose an expiration (or no expiration). If the token expires, the plugin's data streams will stop returning data until you supply a new token.
-6. Click **Create** and copy the token value immediately — Vercel only shows it once.
+6. Click **Create** and copy the token value then paste it into the **API token** field.
 
 For the **team members** streams, the token must belong to a Team and carry a role with billing/member visibility (Owner, Member, Developer, Security, or Billing). On personal/Hobby accounts these streams may return no data.
 
