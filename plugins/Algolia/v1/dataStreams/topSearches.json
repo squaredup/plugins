@@ -1,0 +1,51 @@
+{
+    "name": "topSearches",
+    "displayName": "Top Searches",
+    "description": "Most frequent search queries for an index over the selected timeframe",
+    "tags": ["Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/2/searches",
+        "getArgs": [
+            { "key": "index", "value": "{{object.rawId}}" },
+            {
+                "key": "startDate",
+                "value": "{{timeframeUtc.start.split('T')[0]}}"
+            },
+            {
+                "key": "endDate",
+                "value": "{{timeframeUtc.end.split('T')[0]}}"
+            },
+            { "key": "limit", "value": "50" }
+        ],
+        "postRequestScript": "searchAddIndex.js",
+        "paging": { "mode": "none" }
+    },
+    "matches": { "sourceType": { "type": "equals", "value": "Index" } },
+    "metadata": [
+        {
+            "name": "index",
+            "displayName": "Index",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "search",
+            "displayName": "Search",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "count",
+            "displayName": "Count",
+            "shape": ["number", { "decimalPlaces": 0 }]
+        },
+        {
+            "name": "nbHits",
+            "displayName": "Results",
+            "shape": ["number", { "decimalPlaces": 0 }]
+        }
+    ],
+    "timeframes": true
+}
