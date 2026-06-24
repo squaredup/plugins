@@ -1,9 +1,9 @@
 const rows = data.rows ?? [];
 
-result = rows.map(row => ({
+result = rows.map((row) => ({
     Device: row.keys?.[0],
     Clicks: row.clicks,
     Impressions: row.impressions,
-    CTR: Number((row.ctr * 100).toFixed(2)),
-    Position: Number(row.position.toFixed(2))
+    CTR: row.ctr,
+    Position: row.position,
 }));
