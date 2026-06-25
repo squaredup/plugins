@@ -28,6 +28,7 @@ Pass `--plugin-id <id> --datasource-id <id>` on **every** subsequent `test`/`obj
 Then probe auth with the configValidation backing stream. Ask for **just the HTTP status**, not the full diagnostics — `--diagnostic Status` filters to the one diagnostic, and combined with `--json` it emits a compact one-line array instead of the multi-KB `currentUser` dump:
 
 ```bash
+# <validationStream> is the configValidation backing stream name (e.g. 'currentUser' from Phase 4)
 squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --diagnostic Status --json --silent
 #   → [ { "requestId": "...", "name": "Status", "controlType": "code", "value": "200" } ]
 ```
