@@ -60,7 +60,7 @@ The `cost` example below does exactly this: its optional `groupBy` `choiceChips`
 
 ### Anti-pattern: five "Cost by X" streams
 
-A shipped plugin has five cost streams — `costByProject`, `costByService`, `costDailyTimeline`, `projectCosts`, `projectCostTimeline`. All five issue the **identical** request to `/v1/billing/charges` (same `getArgs`), and each `postRequestScript` does the same thing: parse the NDJSON, filter to `ChargeCategory === 'Usage'`, then group-and-sum by a different key (project / service / day) — two of them additionally filtering to a scoped project. They differ **only** by group key and scope, which is exactly the "consolidate" column above.
+A shipped plugin has five cost streams — `costByProject`, `costByService`, `costDailyTimeline`, `projectCosts`, `projectCostTimeline`. All five issue the **identical** request to `/v1/billing/charges` (same `getArgs`), and each `postRequestScript` does the same thing: parse the NDJSON, filter to `ChargeCategory === 'Usage'`, then group-and-sum by a different key (project / service / day) — two of them additionally filtering to a scoped project. They differ **only** by group key and scope, which is the "consolidate" column above.
 
 **One stream replaces all five.** A single `cost` stream returns one row per finest-grained charge:
 
