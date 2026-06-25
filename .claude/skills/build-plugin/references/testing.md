@@ -95,6 +95,12 @@ The rows SquaredUp returns to the client **after** applying `pathToData`, the po
 
 The `raw → value → formatted` triple is your shaping debugger: if `raw` is correct but `value`/`formatted` are wrong, the column's `metadata`/`valueExpression` is off; if `raw` itself is wrong, `pathToData` or the script is off.
 
+Example cell (a shaped currency value):
+
+```json
+{ "raw": "1234.567", "value": 1234.57, "formatted": "$1,234.57" }
+```
+
 `data` is **absent** when shaping produced nothing (e.g. the request errored). `test` sets a non-zero exit code when any request errored — inspect the error and the `[Response] Body`, fix the stream, and re-test.
 
 ### Zooming in
