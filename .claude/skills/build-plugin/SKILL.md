@@ -18,7 +18,7 @@ metadata:
 
 This skill **tests every data stream against a live, authenticated plugin** in your tenant before relying on it — testing is not optional. That requires the `squaredup` CLI logged in and a tenant you can authenticate the plugin in. Confirm both **before Phase 1**:
 
-1. Run `squaredup status --json`. If it exits non-zero, the user is not logged in — ask them to run `! squaredup login` in this session, then re-run `squaredup status --json`. Capture the JSON output (`{ tenantName, region }`) — you'll need `region` in Checkpoint A. Login/region mechanics live in the `deploy-plugin` skill.
+1. Run `squaredup status --json`. If the command isn't found, install the CLI first: `npm i -g @squaredup/cli`. If it exits non-zero, the user is not logged in — ask them to run `! squaredup login` in this session, then re-run `squaredup status --json`. Capture the JSON output (`{ tenantName, region }`) — you'll need `region` in Checkpoint A. Login/region mechanics live in the `deploy-plugin` skill.
 2. Confirm the user has a SquaredUp tenant where they can add and authenticate the plugin.
 
 Checkpoint B drives the import with `squaredup index` / `index-status`, so a current `squaredup` CLI is assumed.
