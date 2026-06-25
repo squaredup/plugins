@@ -64,7 +64,13 @@ Run `squaredup deploy --json --force`. On success it prints a single JSON object
 - `pluginId` — the deployed plugin's id, populated whether the deploy **created** or **updated** the plugin. Capture it instead of running a separate `squaredup list` to look the id up.
 - `pluginIds` — every deployed id; usually one, but two for a hybrid (cloud + on-prem) plugin, with the primary (cloud) plugin first.
 - `--force` is required in `--json` mode to overwrite an existing plugin — the JSON path is non-interactive and won't prompt. Without it, deploying over an existing plugin fails cleanly (stderr + non-zero exit).
-- On validation failure, `--json` emits the same `ValidationResult` shape as `validate --json` instead of the deploy result, so one parser handles both.
+- On validation failure, `--json` emits the same `ValidationResult` shape as `validate --json` instead of the deploy result, so one parser handles both:
+
+```json
+{ "valid": false, "validation": { "errors": [ { "path": "...", "message": "..." } ] } }
+```
+
+Downstream callers (e.g. Checkpoint A) should check the `valid` field to distinguish a successful deploy result from a validation failure before attempting to extract `pluginId`.
 
 ---
 
