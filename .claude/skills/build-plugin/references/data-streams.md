@@ -797,7 +797,7 @@ context.config; // current stream parameters (values set by the user in the tile
 > | **`objects` parameter** | `context.config.<name>` (the field's own `name`, e.g. `context.config.project`) | a tile-editor `objects` picker, or a dashboard variable bound via `dataSourceConfig.<name>` | array of object envelopes (multi-select), each `rawId` a single-element array |
 >
 > A **consolidated** stream (`matches: "none"` + an optional `objects` param — see [One stream per shape](#one-stream-per-shape)) reads `context.config.<name>`, **not** `context.objects` (which is empty for it). Confusing the two means the filter silently never matches and the stream returns account-wide rows even when an object is selected.
-
+>
 > ⚠️ **Properties you added via `objectMapping.properties` arrive on `context.objects[N]` as arrays.** The graph stores user-defined indexed properties as multi-valued, and the script context preserves that shape — so a scalar like `url` shows up as `["https://..."]`. Templates (`{{object.url}}`) auto-unwrap single-element arrays; the script context does not. Unwrap before comparing:
 >
 > ```javascript
