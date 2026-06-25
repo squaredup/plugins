@@ -42,3 +42,37 @@ Plugins are key components of SquaredUp. Each plugin defines how connect to and 
 ## How do I build my own plugin?
 > [!NOTE]
 > If you're interested in joining our private preview, please contact support@squaredup.com.
+
+### Building with Claude Code (build-plugin skill)
+
+If you have access to [Claude Code](https://claude.ai/code), the `build-plugin` skill can guide you through building a plugin from scratch — from exploring the API all the way to a deployed, tested plugin with dashboards.
+
+**What it does**
+
+The skill walks you through the full process in structured phases:
+
+1. Explores the target API and plans the plugin structure with you
+2. Scaffolds all the required files
+3. Deploys a working version of your plugin early, then pauses for you to authenticate it (OAuth, API key, or whatever the service uses)
+4. Tests imports and indexes objects so real data is flowing before the plugin is finished
+5. Builds and tests each data stream against live data as it goes
+6. Authors out-of-the-box dashboards
+
+**Prerequisites**
+
+- [Claude Code](https://claude.ai/code) installed
+- The `squaredup` CLI installed and logged in (`npm i -g @squaredup/cli`, then `squaredup login`)
+- A SquaredUp tenant where you can add and authenticate the plugin
+
+**How to use it**
+
+Open Claude Code in this repository and type:
+
+```
+/build-plugin
+```
+
+Claude will ask for the API you want to integrate and guide you from there.
+
+> [!TIP]
+> **Keeping the skill up to date** — the skill lives in this repository and improves over time. To get the latest version, open a terminal in this folder and run `git pull origin main` before starting a new plugin build.
