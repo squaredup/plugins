@@ -14,17 +14,22 @@ Out-of-the-box dashboards give you a workspace **Overview** plus a **perspective
 
 This plugin connects using **OAuth 2.0**, so you need a Notion **public integration** to obtain a Client ID and Client Secret.
 
-1. Go to [Notion → My integrations](https://www.notion.so/my-integrations) and click **New integration**.
+1. Go to [Notion → My integrations](https://www.notion.so/my-integrations) and click **New connection**.
 2. Give it a name (e.g. *SquaredUp*) and associate it with the workspace you want to monitor.
-3. On the integration's **Configuration** tab, set the integration type to **Public**. Fill in the required company/organisation details (name, website, etc.) — Notion requires these for a public integration.
-4. Under **Redirect URIs**, add the SquaredUp redirect URI for your region — copy the one that matches your tenant:
+3. Select OAuth as the Authentication method
+4. If required, select a specific workspace.
+5. Under **Redirect URIs**, add the SquaredUp redirect URI for your region — copy the one that matches your tenant:
    - **US:** `https://app.squaredup.com/settings/pluginsoauth2`
    - **EU:** `https://eu.app.squaredup.com/settings/pluginsoauth2`
-5. Under **Capabilities**, leave the default read capabilities enabled (the plugin only reads content). If you want to use the **Page Comments** data stream, also enable the **Read comments** capability — it is not on by default, and without it comment requests return a 403.
-6. From the **Configuration** tab, copy the **OAuth client ID** and **OAuth client secret** — you'll paste these into SquaredUp.
-7. **Share content with the integration.** Notion only returns content that has been explicitly shared with the integration. In each page or database you want monitored, open the **•••** menu → **Connections** → **Connect to** → select your integration. Sharing a parent page shares its children too.
+6. Click Create connection
+7. Under **Capabilities**, uncheck 'Update content' and 'Insert content' - only read permissions are required. If you want to use the **Page Comments** data stream, also enable the **Read comments** capability.
+8. Click Save connection
+6. Under 'OAuth connection', copy the **Client ID** and **Client secret** — you'll paste these into SquaredUp.
 
 When you add the plugin in SquaredUp, paste the Client ID and Client Secret, then click **Sign in with Notion** and approve access to the pages/databases you selected.
+
+### Share content with the integration
+Notion only returns content that has been explicitly shared with the integration. In each page or database you want monitored, open the **•••** menu → **Connections** → **Connect to** → select your integration. Sharing a parent page shares its children too.
 
 ## Configuration fields
 
