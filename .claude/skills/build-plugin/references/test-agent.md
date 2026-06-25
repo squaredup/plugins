@@ -29,7 +29,7 @@ Always include:
 
 For **build-mode**, also pass the **build spec** distilled from the Phase 2 plan and Phase 1 API exploration:
 
-- Endpoint path + HTTP method, and scoping → `baseDataSourceName` (`httpRequestScopedSingle` / `httpRequestScoped` / `httpRequestUnscoped`).
+- Endpoint path + HTTP method, and scoping → `baseDataSourceName`: single-object → `httpRequestScopedSingle`, multi-object → `httpRequestScoped`, unscoped/global → `httpRequestUnscoped`.
 - Candidate `pathToData` (where the row array lives in the response).
 - Planned columns with `displayName`, `shape`, and any `role` (label/value/timestamp/sourceId…).
 - Any `ui` parameters, `timeframes` setting, paging mode, and the `matches` selector.
