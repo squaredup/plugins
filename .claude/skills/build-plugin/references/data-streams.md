@@ -471,7 +471,7 @@ Works on primitives too — a string, number, or boolean at the path is returned
 
 **Canonical enum values** — these are the only valid entries in a `timeframes` array (and the only values `defaultTimeframe` accepts). Anything else fails validation with an opaque `✖ Invalid input`.
 
-```
+```text
 last1hour    last12hours   last24hours   last7days   last30days
 thisMonth    thisQuarter   thisYear
 lastMonth    lastQuarter   lastYear
