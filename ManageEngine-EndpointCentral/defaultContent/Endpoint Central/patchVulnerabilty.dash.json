@@ -1,0 +1,654 @@
+{
+    "name": "Patch Vulnerabilty",
+    "schemaVersion": "1.5",
+    "dashboard": {
+        "_type": "layout/grid",
+        "contents": [
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 4,
+                "x": 0,
+                "y": 0,
+                "i": "074d61fc-5f5c-45d8-9353-1bb4d68a272a",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "endpointCentralAllSystems",
+                                            "id": "{{dataStreams.endpointCentralAllSystems}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT \r\n    CASE\r\n        WHEN computer_live_status = 1 THEN 'Live'\r\n        ELSE 'Down'\r\n    END AS State,\r\n    resource_name AS system_name,\r\n    Owner AS Owner,\r\n    agent_last_contact_time AS 'Last Contact',\r\n    critical_patch_count AS 'Critical',\r\n    important_patch_count AS 'Important'\r\nFROM dataset1\r\nWHERE resource_health_status = 3\r\nORDER BY resource_name"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "date",
+                                    {
+                                        "timeZone": "Etc/UTC"
+                                    }
+                                ],
+                                "name": "Last Contact"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "1+ Critical or 2+ Important severity patches missing",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Highly Vulnerable Systems",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "State",
+                                    "system_name",
+                                    "Owner",
+                                    "Last Contact",
+                                    "Critical",
+                                    "Important"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "critical_patch_count": 94
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "computer_state[Expanded].rawState"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 4,
+                "x": 2,
+                "y": 0,
+                "i": "91ff7fda-ac3f-465c-b2a9-6663462c23d1",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "api/1.4/patch/allsystems",
+                                                "headers": [],
+                                                "pathToData": "message_response.allsystems",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT \r\n    CASE\r\n        WHEN computer_live_status = 1 THEN 'Live'\r\n        ELSE 'Down'\r\n    END AS State,\r\n    resource_name AS system_name,\r\n    Owner,\r\n    critical_patch_count AS 'Critical',\r\n    important_patch_count AS 'Important'\r\nFROM dataset1\r\nWHERE resource_health_status IS NULL\r\nORDER BY resource_name\r\n\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "state",
+                                    {
+                                        "map": {
+                                            "warning": [],
+                                            "unmonitored": [],
+                                            "error": [
+                                                "Down"
+                                            ],
+                                            "success": [
+                                                "Live"
+                                            ],
+                                            "unknown": []
+                                        }
+                                    }
+                                ],
+                                "name": "computer_state"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "Likely need agent reinstalling",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Unknown Vulnerability Systems",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "State",
+                                    "system_name",
+                                    "owner",
+                                    "Critical",
+                                    "Important"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "critical_patch_count": 94
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "computer_state[Expanded].rawState"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 4,
+                "x": 1,
+                "y": 0,
+                "i": "a4badb3c-9f73-4bf8-af56-608fc01c2141",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "api/1.4/patch/allsystems",
+                                                "headers": [],
+                                                "pathToData": "message_response.allsystems",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "\r\nSELECT \r\n    CASE\r\n        WHEN computer_live_status = 1 THEN 'Live'\r\n        ELSE 'Down'\r\n    END AS State,\r\n    resource_name AS system_name,\r\n    Owner,\r\n    moderate_patch_count AS 'Moderate',\r\n    low_patch_count AS 'Low'\r\nFROM dataset1\r\nWHERE resource_health_status = 2\r\nORDER BY resource_name\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "state",
+                                    {
+                                        "map": {
+                                            "warning": [],
+                                            "unmonitored": [],
+                                            "error": [
+                                                "Down"
+                                            ],
+                                            "success": [
+                                                "Live"
+                                            ],
+                                            "unknown": []
+                                        }
+                                    }
+                                ],
+                                "name": "computer_state"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "3+ Moderate or 4+ Low severity patches missing",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Moderately Vulnerable Systems",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "owner": 307,
+                                        "critical_patch_count": 94,
+                                        "Critical": 74,
+                                        "Important": 94
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "computer_state[Expanded].rawState"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 6,
+                "x": 1,
+                "y": 4,
+                "i": "aa8c74f3-270d-47e2-bd95-41088cc97d6c",
+                "z": 0,
+                "config": {
+                    "timeframe": "last24hours",
+                    "dataStream": {
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "agent_last_contact_time",
+                                    "tenseUnit": "before",
+                                    "unit": "days",
+                                    "operation": "datemorethan",
+                                    "value": "14"
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "agent_logged_on_users",
+                                "displayName": "Logged On Users"
+                            },
+                            {
+                                "shape": [
+                                    "date",
+                                    {
+                                        "timeZone": "Etc/UTC"
+                                    }
+                                ],
+                                "name": "last_patched_time"
+                            },
+                            {
+                                "shape": [
+                                    "date",
+                                    {
+                                        "timeZone": "Etc/UTC"
+                                    }
+                                ],
+                                "name": "agent_last_contact_time",
+                                "displayName": "Last Contact"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "name": "configurableHttpRequestV2",
+                        "dataSourceConfig": {
+                            "endpointPath": "api/1.4/patch/allsystems",
+                            "pathToData": "message_response.allsystems",
+                            "headers": [],
+                            "paging": {
+                                "mode": "none"
+                            },
+                            "httpMethod": "get",
+                            "getArgs": []
+                        },
+                        "id": "{{dataStreams.configurableHttpRequestV2}}",
+                        "sort": {},
+                        "group": {
+                            "by": [],
+                            "aggregate": []
+                        }
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Systems Offline for 15+ Days",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "resource_name": 152,
+                                        "agent_logged_on_users": 208,
+                                        "agent_last_contact_time": 146
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "total_driver_patches",
+                                    "resource_health_status",
+                                    "missing_bios_patches",
+                                    "os_language",
+                                    "branchmemberresourcerel.resource_id",
+                                    "branch_office_id",
+                                    "last_patched_time",
+                                    "os_platform_name",
+                                    "resource_id_string",
+                                    "pmreshealthstatus.resource_id",
+                                    "customerinfo.customer_id",
+                                    "installed_tp_patches",
+                                    "installed_ms_patches",
+                                    "important_patch_count",
+                                    "service_pack",
+                                    "resourcetorebootdetails.resource_id",
+                                    "pmresourcepatchcount.resource_id",
+                                    "resourcetorebootdetails.reboot_req_status",
+                                    "os_language_abbr",
+                                    "resourcedeploymentstatus.resource_id",
+                                    "scan_remarks",
+                                    "os_platform",
+                                    "agent_last_ds_contact_time",
+                                    "missing_driver_patches",
+                                    "total_ms_patches",
+                                    "osflavor_id",
+                                    "search_tag",
+                                    "status_label",
+                                    "owner_email_id",
+                                    "missing_ms_patches",
+                                    "last_action_initiated_on",
+                                    "missing_tp_patches",
+                                    "low_patch_count",
+                                    "patchmgmtosinfo.resource_id",
+                                    "last_successful_scan",
+                                    "computer_status_update_time",
+                                    "branch_office_name",
+                                    "total_tp_patches",
+                                    "description",
+                                    "critical_patch_count",
+                                    "installed_bios_patches",
+                                    "domain_netbios_name",
+                                    "total_bios_patches",
+                                    "fqdn_name",
+                                    "installed_driver_patches",
+                                    "mac_address",
+                                    "resource.resource_id",
+                                    "shutdown_status_update_time",
+                                    "moderate_patch_count",
+                                    "scan_status",
+                                    "managedcomputer.friendly_name",
+                                    "timezone_offset",
+                                    "oslanguage.languageid",
+                                    "last_sync_time",
+                                    "deployment_status",
+                                    "oslanguage.i18n",
+                                    "ip_address",
+                                    "shutdown_status",
+                                    "agent_last_bootup_time",
+                                    "resource_id",
+                                    "os_name",
+                                    "location",
+                                    "computer_live_status",
+                                    "customer_name",
+                                    "last_scan_time",
+                                    "customer_id",
+                                    "remarks",
+                                    "last_operation",
+                                    "status_image",
+                                    "agent_logged_on_users"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 4,
+                "x": 0,
+                "y": 4,
+                "i": "e7af8d6c-ced5-4e82-8382-32a0365fdb5c",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "api/1.4/patch/allsystems",
+                                                "headers": [],
+                                                "pathToData": "message_response.allsystems",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT \r\n    CASE\r\n        WHEN computer_live_status = 1 THEN 'Live'\r\n        ELSE 'Down'\r\n    END AS State,\r\n    resource_name AS system_name,\r\n    Owner,\r\n    critical_patch_count AS 'Critical',\r\n    important_patch_count AS 'Important'\r\nFROM dataset1\r\nORDER BY resource_name\r\n\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "state",
+                                    {
+                                        "map": {
+                                            "warning": [],
+                                            "unmonitored": [],
+                                            "error": [
+                                                "Down"
+                                            ],
+                                            "success": [
+                                                "Live"
+                                            ],
+                                            "unknown": []
+                                        }
+                                    }
+                                ],
+                                "name": "computer_state"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Deployment Failed",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "State",
+                                    "system_name",
+                                    "owner",
+                                    "Critical",
+                                    "Important"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "owner": 90,
+                                        "critical_patch_count": 94
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "computer_state[Expanded].rawState"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 6,
+                "x": 2,
+                "y": 4,
+                "i": "f740d8e0-3153-4ade-b08f-ab4752c5b667",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "api/1.4/patch/allsystems",
+                                                "headers": [],
+                                                "pathToData": "message_response.allsystems",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT \r\n    CASE\r\n        WHEN computer_live_status = 1 THEN 'Live'\r\n        ELSE 'Down'\r\n    END AS State,\r\n    resource_name AS system_name,\r\n    Owner,\r\n    critical_patch_count AS 'Critical',\r\n    important_patch_count AS 'Important'\r\nFROM dataset1\r\nORDER BY resource_name\r\n\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "state",
+                                    {
+                                        "map": {
+                                            "warning": [],
+                                            "unmonitored": [],
+                                            "error": [
+                                                "Down"
+                                            ],
+                                            "success": [
+                                                "Live"
+                                            ],
+                                            "unknown": []
+                                        }
+                                    }
+                                ],
+                                "name": "computer_state"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "Number of machines that require a reboot following patching",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Healthy Systems",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "State",
+                                    "system_name",
+                                    "owner",
+                                    "Critical",
+                                    "Important"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "critical_patch_count": 94
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "computer_state[Expanded].rawState"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "version": 128,
+        "columns": 3
+    }
+}
