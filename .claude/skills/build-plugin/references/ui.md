@@ -294,13 +294,16 @@ Choosing between them: use **`radio`** when each option reads best on its own li
 **`displayAs`** controls how the group renders:
 
 - `"fieldGroupToggle"` — a collapsible/switchable group:
+
     ```json
     { "type": "fieldGroup", "name": "advanced", "label": "Advanced Options", "displayAs": "fieldGroupToggle",
       "fields": [ ...field definitions... ] }
     ```
+
 - `"row"` — lays the child fields out side by side; a child may set `columnWidth` (an `fr` unit) to control its relative width.
 - `"inlineFields"` — like `row`, but child labels are hidden (e.g. an HTTP method and path on one line).
 - `"tabs"` / `"tab"` — a tabbed layout. A `"tabs"` group's `fields` **must** be child `fieldGroup`s each with `"displayAs": "tab"`, or it won't render:
+
     ```json
     { "type": "fieldGroup", "name": "config", "displayAs": "tabs", "visible": true, "fields": [
         { "type": "fieldGroup", "displayAs": "tab", "label": "Basics",     "fields": [ ...field definitions... ] },
