@@ -1,0 +1,75 @@
+{
+    "name": "previousPeriodQueriesByPage",
+    "displayName": "Previous period queries by page",
+    "description": "Returns queries for the previous period of a given timeframe for the selected page",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "default"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "getArgs": [],
+        "headers": [],
+        "postBody": {
+            "startDate": "{{new Date(new Date(timeframe.start).getTime() - (new Date(timeframe.end).getTime() - new Date(timeframe.start).getTime()) - 86400000).toISOString().split('T')[0]}}",
+            "endDate": "{{new Date(new Date(timeframe.start).getTime() - 86400000).toISOString().split('T')[0]}}",
+            "dimensions": ["query"],
+            "dimensionFilterGroups": [
+                {
+                    "filters": [
+                        {
+                            "dimension": "page",
+                            "operator": "equals",
+                            "expression": "{{scope?.[0]?.name}}"
+                        }
+                    ]
+                }
+            ],
+            "rowLimit": 2500
+        },
+        "postRequestScript": "postRequest/previousPeriodQueriesByPage.js"
+    },
+    "metadata": [
+        {
+            "shape": [
+                "percent",
+                {
+                    "thousandsSeparator": true,
+                    "decimalPlaces": 2,
+                    "asZeroToOne": true
+                }
+            ],
+            "name": "CTR"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true,
+    "providesPluginDiagnostics": true,
+    "tags": ["SEO", "Analytics"],
+    "visibility": {
+        "type": "hidden"
+    },
+    "ui": [
+        {
+            "name": "scope",
+            "objectLimit": 1,
+            "label": "Scope",
+            "type": "objects",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "page"
+                }
+            },
+            "validation": {
+                "required": true
+            }
+        }
+    ]
+}

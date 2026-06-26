@@ -1,0 +1,385 @@
+{
+    "name": "Site Overview",
+    "schemaVersion": "1.5",
+    "dashboard": {
+        "_type": "layout/grid",
+        "contents": [
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 3,
+                "x": 8,
+                "y": 0,
+                "i": "abbfb7ce-6d8e-4347-9190-6274b9e5233d",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "name": "topQueries",
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "number",
+                                    {
+                                        "thousandsSeparator": true
+                                    }
+                                ],
+                                "name": "Position"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "{{dataStreams.queries}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Top Queries",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Query",
+                                    "Impressions",
+                                    "Clicks",
+                                    "CTR",
+                                    "Position"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "Query": 192,
+                                        "Impressions": 69,
+                                        "Position": 82
+                                    }
+                                },
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 3,
+                "moved": false,
+                "h": 1,
+                "x": 0,
+                "y": 0,
+                "i": "874f5aad-220b-4e7f-8c62-376d969d2b8f",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "name": "siteSummary",
+                        "id": "{{dataStreams.sitePerformanceSummary}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Site Summary",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Impressions",
+                                    "Clicks",
+                                    "CTR",
+                                    "Position"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "CTR": 69,
+                                        "Clicks": 83,
+                                        "Impressions": 109
+                                    }
+                                },
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 5,
+                "moved": false,
+                "h": 1,
+                "x": 3,
+                "y": 0,
+                "i": "03c9a833-b7aa-46a4-a811-6b7fb8f3754d",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "previousPeriodPerformanceOverTime",
+                                            "id": "{{dataStreams.previousPeriodPerformanceOverTime}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "sitePerformanceOverTime",
+                                            "id": "{{dataStreams.sitePerformanceOverTime}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset2"
+                                }
+                            ],
+                            "sql": "WITH current_period AS ( SELECT COALESCE(SUM(Clicks), 0) AS Clicks, COALESCE(SUM(Impressions), 0) AS Impressions, CASE WHEN COALESCE(SUM(Impressions), 0) = 0 THEN 0 ELSE SUM(Clicks) / SUM(Impressions) * 100 END AS CTR, AVG(Position) AS Position FROM dataset2 ), previous_period AS ( SELECT COALESCE(SUM(Clicks), 0) AS Clicks, COALESCE(SUM(Impressions), 0) AS Impressions, CASE WHEN COALESCE(SUM(Impressions), 0) = 0 THEN 0 ELSE SUM(Clicks) / SUM(Impressions) * 100 END AS CTR, AVG(Position) AS Position FROM dataset1 ) SELECT CASE WHEN previous_period.Clicks = 0 THEN 0 ELSE ROUND(((current_period.Clicks - previous_period.Clicks) / previous_period.Clicks) * 100, 2) END AS \"Clicks Change %\", CASE WHEN previous_period.Impressions = 0 THEN 0 ELSE ROUND(((current_period.Impressions - previous_period.Impressions) / previous_period.Impressions) * 100, 2) END AS \"Impressions Change %\", CASE WHEN previous_period.CTR = 0 THEN 0 ELSE ROUND(((current_period.CTR - previous_period.CTR) / previous_period.CTR) * 100, 2) END AS \"CTR Change %\", CASE WHEN previous_period.Position IS NULL OR current_period.Position IS NULL THEN 0 ELSE ROUND(previous_period.Position - current_period.Position, 2) END AS \"Position Change\" FROM current_period CROSS JOIN previous_period"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Period Performance Change",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Clicks Change %",
+                                    "Impressions Change %",
+                                    "CTR Change %",
+                                    "Position Change"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "Position Improvement": 137,
+                                        "Impressions Change %": 167,
+                                        "CTR Change %": 143,
+                                        "Clicks Change %": 165
+                                    }
+                                },
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 8,
+                "moved": false,
+                "h": 3,
+                "x": 0,
+                "y": 1,
+                "i": "55e0fd89-3712-4533-8550-022658189aa0",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "name": "sitePerformanceOverTime",
+                        "id": "{{dataStreams.sitePerformanceOverTime}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Site Performance Over Time",
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "showLegend": true,
+                                "seriesColumn": "none",
+                                "legendPosition": "bottom",
+                                "xAxisColumn": "Date",
+                                "yAxisColumn": [
+                                    "CTR",
+                                    "Clicks",
+                                    "Impressions",
+                                    "Position"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 3,
+                "x": 8,
+                "y": 3,
+                "i": "8ff8253a-29a0-4fa5-b7e1-13f6d2551951",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "name": "topPages",
+                        "id": "{{dataStreams.pages}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Top Pages",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Page",
+                                    "Clicks",
+                                    "Impressions",
+                                    "CTR",
+                                    "Position"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "Position": 85,
+                                        "Impressions": 110,
+                                        "Page": 130
+                                    }
+                                },
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 2,
+                "x": 4,
+                "y": 4,
+                "i": "c8648379-8e3c-4341-af14-6930f75ba24f",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "name": "countryBreakdown",
+                        "id": "{{dataStreams.countryBreakdown}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "Clicks",
+                                    "desc"
+                                ],
+                                [
+                                    "Impressions",
+                                    "desc"
+                                ]
+                            ]
+                        },
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Country Breakdown",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "Country",
+                                    "Clicks",
+                                    "Impressions",
+                                    "CTR",
+                                    "Position"
+                                ],
+                                "hiddenColumns": []
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 2,
+                "x": 0,
+                "y": 4,
+                "i": "be8d0a39-4442-48c1-a8e7-0b3af34845eb",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "name": "deviceBreakdown",
+                        "id": "{{dataStreams.deviceBreakdown}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Device Breakdown",
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "color": {
+                                    "type": "default"
+                                },
+                                "xAxisGroup": "none",
+                                "showLegend": true,
+                                "range": {
+                                    "type": "auto"
+                                },
+                                "showGrid": true,
+                                "grouping": false,
+                                "displayMode": "actual",
+                                "xAxisData": "Device",
+                                "showTotals": false,
+                                "yAxisLabel": "",
+                                "horizontalLayout": "horizontal",
+                                "showValue": false,
+                                "yAxisData": [
+                                    "Clicks",
+                                    "Impressions",
+                                    "Position",
+                                    "CTR"
+                                ],
+                                "showYAxisLabel": true,
+                                "xAxisLabel": "",
+                                "legendPosition": "bottom",
+                                "showXAxisLabel": true
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "version": 266,
+        "columns": 12
+    },
+    "timeframe": "last30days"
+}
