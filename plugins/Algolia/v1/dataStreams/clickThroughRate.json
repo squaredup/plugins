@@ -1,0 +1,56 @@
+{
+    "name": "clickThroughRate",
+    "displayName": "Click-through Rate",
+    "description": "Retrieves the click-through rate (CTR) for all your searches with at least one click event",
+    "tags": ["Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/2/clicks/clickThroughRate",
+        "getArgs": [
+            { "key": "index", "value": "{{object.rawId}}" },
+            {
+                "key": "startDate",
+                "value": "{{timeframeUtc.start.split('T')[0]}}"
+            },
+            {
+                "key": "endDate",
+                "value": "{{timeframeUtc.end.split('T')[0]}}"
+            }
+        ],
+        "postRequestScript": "datesAddIndex.js",
+        "paging": { "mode": "none" }
+    },
+    "matches": { "sourceType": { "type": "equals", "value": "Index" } },
+    "metadata": [
+        {
+            "name": "index",
+            "displayName": "Index",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "rate",
+            "displayName": "Click-through Rate",
+            "shape": ["percent", { "asZeroToOne": true, "decimalPlaces": 0 }],
+            "role": "value"
+        },
+        {
+            "name": "clickCount",
+            "displayName": "Click Count",
+            "shape": ["number", { "decimalPlaces": 0 }]
+        },
+        {
+            "name": "trackedSearchCount",
+            "displayName": "Tracked Search Count",
+            "shape": ["number", { "decimalPlaces": 0 }]
+        }
+    ],
+    "timeframes": true
+}

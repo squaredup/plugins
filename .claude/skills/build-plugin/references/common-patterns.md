@@ -51,7 +51,7 @@ SquaredUp includes a built-in `datastream-properties` stream that automatically 
 
 ## Config validation steps
 
-`configValidation.json` is optional but strongly preferred. Use a **lightweight endpoint** (e.g. `/me`, `/user`). No extra flag needed in `metadata.json` — the presence of the file is sufficient.
+`configValidation.json` is **required for authenticated APIs** (any plugin whose config carries a credential) and recommended otherwise. Use a **lightweight endpoint** (e.g. `/me`, `/user`) as the `Authenticate` step's backing data stream — that same unscoped stream doubles as the auth probe during the build (`squaredup test <stream> --json` in Checkpoint A, see [checkpoints.md](checkpoints.md)). No extra flag needed in `metadata.json` — the presence of the file is sufficient.
 
 ```json
 {
