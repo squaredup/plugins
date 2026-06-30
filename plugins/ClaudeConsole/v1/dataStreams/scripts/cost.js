@@ -12,19 +12,14 @@ const workspaceIds = new Set(
 // Flatten buckets × results into one row per combination
 let rows = (data.data || []).flatMap((bucket) =>
     (bucket.results || []).map((r) => ({
+        ...r,
         date: bucket.starting_at,
         // API returns `amount` in lowest currency units (cents) as a decimal string,
         // e.g. "300" cents = $3.00 — divide by 100 to get USD. Verified empirically:
         // cost/token matches Claude's published per-model list prices exactly only in cents.
         amount: Number(r.amount) / 100,
-        currency: r.currency,
         workspace_id: r.workspace_id ?? "default",
         description: r.description,
-        model: r.model,
-        token_type: r.token_type,
-        cost_type: r.cost_type,
-        service_tier: r.service_tier,
-        context_window: r.context_window,
     })),
 );
 
