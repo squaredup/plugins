@@ -37,7 +37,6 @@ let rows = (data.data || []).flatMap(function (bucket) {
             api_key_id: r.api_key_id || null,
             service_tier: r.service_tier || null,
             context_window: r.context_window || null,
-            account_id: r.account_id || null,
         };
     });
 });
