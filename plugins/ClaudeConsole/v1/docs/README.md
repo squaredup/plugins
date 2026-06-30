@@ -41,11 +41,11 @@ The out-of-the-box dashboards include an account-wide **Overview** plus a perspe
 
 ## What gets indexed
 
-| Object type          | API source                         | Represents                                                                                                      |
-| -------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Claude Workspace** | `GET /v1/organizations/workspaces` | A workspace in your organization — the container for API keys and the primary cost/usage attribution dimension. |
-| **Claude API Key**   | `GET /v1/organizations/api_keys`   | An API key, including its status, partially-redacted hint, creating user, and owning workspace.                 |
-| **Claude Member**    | `GET /v1/organizations/users`      | An organization member, including email, name, and organization role.                                           |
+| Object type   | API source                         | Represents                                                                                                      |
+| ------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Workspace** | `GET /v1/organizations/workspaces` | A workspace in your organization — the container for API keys and the primary cost/usage attribution dimension. |
+| **API Key**   | `GET /v1/organizations/api_keys`   | An API key, including its status, partially-redacted hint, creating user, and owning workspace.                 |
+| **Member**    | `GET /v1/organizations/users`      | An organization member, including email, name, and organization role.                                           |
 
 **Relationships:** each API Key links to its owning Workspace and to the Member who created it.
 
