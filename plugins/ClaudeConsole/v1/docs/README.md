@@ -54,7 +54,6 @@ The out-of-the-box dashboards include an account-wide **Overview** plus a perspe
 - **Admin/organization access required** — see [Setup](#setup). Individual accounts and Enterprise/claude.ai organizations are not supported.
 - **Cost is daily-granularity only.** The Cost API only returns daily (`1d`) buckets, so cost dashboards are limited to ranges up to ~31 days (last 7 days, last 30 days, this month, last month). Quarter/year ranges are not offered.
 - **Usage time granularity is capped by the API.** The Usage API limits a single response to 31 daily, 168 hourly, or 1440 minute buckets, so usage timeframes are limited to ranges up to ~31 days. The bucket width is chosen automatically from the selected timeframe.
-- **Default-workspace attribution.** Usage and cost incurred against the _default_ workspace (and Console/Workbench usage with no API key) are reported by the API with a `null` workspace/API-key — they appear as unattributed rather than under a named workspace object.
 - **Priority Tier costs** are billed differently and are not included in the Cost API; track Priority Tier through token usage instead.
 - **Data freshness** — usage and cost data typically appears within ~5 minutes of an API request completing.
 - **Large organizations (>1000 objects).** Workspaces, API keys, and members are each imported up to 1000 per type; organizations with more than 1000 of any one type have the remainder omitted.
