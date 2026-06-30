@@ -1,19 +1,18 @@
-# Claude Console
+# Before you start
 
-Monitor your organization's **Claude Console** (Anthropic) usage, spend, and administrative resources in SquaredUp using the [Anthropic Admin API](https://platform.claude.com/docs/en/api/administration-api) and [Usage & Cost API](https://platform.claude.com/docs/en/api/usage-cost-api).
+Monitor your [Claude Console](https://platform.claude.com/) (Anthropic developer platform) organization's token usage, cost, workspaces, API keys, and members in SquaredUp, via the [Admin API](https://platform.claude.com/docs/en/api/administration-api) and [Usage & Cost API](https://platform.claude.com/docs/en/api/usage-cost-api).
 
-This plugin imports your workspaces, API keys, and organization members into the SquaredUp graph, and provides data streams for token usage and cost — broken down by model, workspace, API key, member, and service tier, over time.
+> ⚠️ This plugin targets the **Claude Console** Admin API, using read-only endpoints.
+> Claude **Enterprise** (claude.ai) organizations use a different Analytics API and key type, which this plugin does not support.
+> Claude **Free**, **Pro**, **Max** & **Teams** cannot be monitored using this plugin.
 
-## Prerequisites — getting an Admin API key
+## Setup
 
-> ⚠️ **The Admin API is unavailable for individual accounts.** You need an Anthropic **organization** (Console → Settings → Organization) and the **admin**, **owner**, or **primary owner** role.
+You will need an **Admin API key** for your Claude Console organization.
 
-1. Sign in to the [Claude Console](https://console.anthropic.com/).
-2. Go to **Settings → Admin keys** (see [Create an Admin API key](https://platform.claude.com/docs/en/manage-claude/admin-api-keys)).
-3. Create a new Admin API key. It will start with **`sk-ant-admin…`** — this is different from a standard API key (`sk-ant-api…`) and a standard key will **not** work.
-4. Copy the key somewhere safe; you will paste it into SquaredUp during setup.
-
-> **Note:** This plugin targets the **Claude Console (Claude Platform)** Admin API. Claude **Enterprise** (claude.ai) organizations use a different Analytics API and key type, which this plugin does not support. The programmatic Usage & Cost API is also not currently available on Claude Platform on AWS.
+1. Sign in to the [Claude Console](https://platform.claude.com/).
+2. [Create a new Admin API key](https://platform.claude.com/settings/admin-keys). It will start with **`sk-ant-admin…`** — this is different from a standard API key (`sk-ant-api…`), and a standard key will **not** work.
+3. Copy the key and paste it into the **Admin API key** field.
 
 ## Configuration fields
 
@@ -31,6 +30,15 @@ On save, the plugin validates the key by calling `GET /v1/organizations/me`. If 
 
 The out-of-the-box dashboards include an account-wide **Overview** plus a perspective for each **Workspace**, **API Key**, and **Member**.
 
+## Data streams
+
+- **Token Usage** — Organization token usage over time, grouped by model, workspace, API key, member, service tier, or context window.
+- **Cost** — Organization spend in USD over time, with one row per workspace / model / token-type bucket per day.
+- **Workspaces** — Workspaces in your Claude Console organization.
+- **API Keys** — API keys in your organization, including status, redacted hint, creator, and owning workspace.
+- **Members** — Organization members, with email, name, and role.
+- **Organization** — Your Claude Console organization id, name, and type.
+
 ## What gets indexed
 
 | Object type          | API source                         | Represents                                                                                                      |
@@ -43,11 +51,11 @@ The out-of-the-box dashboards include an account-wide **Overview** plus a perspe
 
 ## Known limitations
 
-- **Admin/organization access required** — see Prerequisites. Individual accounts and Enterprise/claude.ai organizations are not supported.
+- **Admin/organization access required** — see [Setup](#setup). Individual accounts and Enterprise/claude.ai organizations are not supported.
 - **Cost is daily-granularity only.** The Cost API only returns daily (`1d`) buckets, so cost dashboards are limited to ranges up to ~31 days (last 7 days, last 30 days, this month, last month). Quarter/year ranges are not offered.
 - **Usage time granularity is capped by the API.** The Usage API limits a single response to 31 daily, 168 hourly, or 1440 minute buckets, so usage timeframes are limited to ranges up to ~31 days. The bucket width is chosen automatically from the selected timeframe.
 - **Default-workspace attribution.** Usage and cost incurred against the _default_ workspace (and Console/Workbench usage with no API key) are reported by the API with a `null` workspace/API-key — they appear as unattributed rather than under a named workspace object.
 - **Priority Tier costs** are billed differently and are not included in the Cost API; track Priority Tier through token usage instead.
 - **Data freshness** — usage and cost data typically appears within ~5 minutes of an API request completing.
-- **Large organizations (>1000 objects).** Workspaces, API keys, and members are imported up to 1000 of each per type; organizations with more than 1000 of any one type would have the remainder omitted.
+- **Large organizations (>1000 objects).** Workspaces, API keys, and members are each imported up to 1000 per type; organizations with more than 1000 of any one type have the remainder omitted.
 - **Read-only.** This plugin only reads data; it does not create, modify, or delete any Anthropic resources.
