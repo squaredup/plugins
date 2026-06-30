@@ -1,0 +1,103 @@
+{
+    "name": "cost",
+    "displayName": "Cost",
+    "description": "Organization spend in USD over time, one row per workspace/model/token-type bucket per day",
+    "tags": ["Cost", "Billing"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/organizations/cost_report",
+        "getArgs": [
+            {
+                "key": "starting_at",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "ending_at",
+                "value": "{{timeframe.end}}"
+            },
+            {
+                "key": "bucket_width",
+                "value": "1d"
+            },
+            {
+                "key": "group_by[]",
+                "value": "workspace_id"
+            },
+            {
+                "key": "group_by[]",
+                "value": "description"
+            },
+            {
+                "key": "limit",
+                "value": "31"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "cost.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "workspace",
+            "label": "Workspace (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Workspace"]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "amount",
+            "displayName": "Cost ($)",
+            "shape": [
+                "currency",
+                {
+                    "code": "{{column.currency}}",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "workspace_id",
+            "displayName": "Workspace ID",
+            "shape": "string"
+        },
+        {
+            "name": "workspaceName",
+            "displayName": "Workspace",
+            "sourceId": "workspace_id",
+            "sourceType": "Workspace",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "currency",
+            "displayName": "Currency",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": ["last7days", "last30days", "thisMonth", "lastMonth"]
+}

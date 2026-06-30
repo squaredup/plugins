@@ -1,0 +1,164 @@
+{
+    "name": "Member",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": ["{{variables.[Member]}}"],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "61835d71-5aa3-4700-a3f8-763c0377212e",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Members]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Member]}}"
+                    },
+                    "variables": ["{{variables.[Member]}}"],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": [
+                                    "name",
+                                    "sourceId",
+                                    "sourceType"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "links",
+                                    "type",
+                                    "label"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1c2d8cbf-0d72-4458-b603-600746125408",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Account Usage",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "variables": ["{{variables.[Member]}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.usage}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": "model",
+                            "member": {
+                                "scope": "{{scopes.[Members]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Member]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [
+                                ["start", "byDay"],
+                                ["model", "uniqueValues"]
+                            ],
+                            "aggregate": [
+                                { "type": "sum", "names": ["total_tokens"] }
+                            ]
+                        },
+                        "sort": { "by": [["start_byDay", "asc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "start_byDay",
+                                "yAxisColumn": ["total_tokens_sum"],
+                                "seriesColumn": "model_uniqueValues",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "Tokens",
+                                "showYAxisLabel": true,
+                                "showTrendLine": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "834eb786-b31d-4de2-9c76-20324e0c954a",
+                "x": 0,
+                "y": 3,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "API Keys Created By This Member",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "variables": ["{{variables.[Member]}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.apiKeys}}",
+                        "name": "apiKeys",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "createdBy": {
+                                "scope": "{{scopes.[Members]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Member]}}"
+                            }
+                        },
+                        "sort": { "by": [["created_at", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "name",
+                                    "status",
+                                    "workspace_id",
+                                    "partial_key_hint",
+                                    "created_at"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "expires_at",
+                                    "created_by.id"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
