@@ -19,7 +19,7 @@ This plugin imports your workspaces, API keys, and organization members into the
 
 | Field             | What it is                                                                                        | Where to find it                                                      | Required |
 | ----------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------- |
-| **Admin API Key** | Your organization's Admin API key, used to authenticate every request via the `x-api-key` header. | Claude Console → Settings → Admin keys (starts with `sk-ant-admin…`). | Yes      |
+| **Admin API key** | Your organization's Admin API key, used to authenticate every request via the `x-api-key` header. | Claude Console → Settings → Admin keys (starts with `sk-ant-admin…`). | Yes      |
 
 On save, the plugin validates the key by calling `GET /v1/organizations/me`. If the key is invalid, not an admin key, or belongs to an individual account, setup will fail with an authentication error.
 

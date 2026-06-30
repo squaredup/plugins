@@ -4,4 +4,4 @@ const defaultWorkspace = {
     name: "Default",
 };
 
-result = [...data.data, defaultWorkspace];
+result = [...(Array.isArray(data?.data) ? data.data : []), defaultWorkspace];
