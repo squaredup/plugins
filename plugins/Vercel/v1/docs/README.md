@@ -1,8 +1,4 @@
-# Vercel plugin
-
-Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in SquaredUp. This plugin connects to the Vercel REST API to import your projects and domains as objects you can scope dashboards to, and provides data streams for deployment health and history, domain verification and expiry, team membership and activity.
-
-## Before you start
+## Setup
 
 1. Sign in to Vercel and open **Account Settings → Tokens** (<https://vercel.com/account/tokens>).
 2. Click **Create Token**.
@@ -11,11 +7,10 @@ Monitor your [Vercel](https://vercel.com) projects, deployments, and domains in 
     - To monitor a **Team**, set the scope to that team.
     - To monitor your **personal account**, scope it to your personal account.
 5. **Expiration** — choose an expiration (or no expiration). If the token expires, the plugin's data streams will stop returning data until you supply a new token.
-6. Click **Create** and copy the token value then paste it into the **API token** field.
+6. Click **Create** and copy the token value
+7. Paste this token into the **API token** field.
 
 For the **team members** streams, the token must belong to a Team and carry a role with billing/member visibility (Owner, Member, Developer, Security, or Billing). On personal/Hobby accounts these streams may return no data.
-
-Paste this token in the **API token** field.
 
 ## Configuration fields
 
@@ -24,6 +19,8 @@ Paste this token in the **API token** field.
 | **API token** | Yes      | The Vercel Access Token used to authenticate. Sent as a bearer token on every request. | Account Settings → Tokens (see above). |
 
 ## What is monitored
+
+Monitors your [Vercel](https://vercel.com) projects, deployments, and domains in SquaredUp. This plugin connects to the Vercel REST API to import your projects and domains as objects you can scope dashboards to, and provides data streams for deployment health and history, domain verification and expiry, team membership and activity.
 
 - **Projects** — your Vercel projects, including framework, git repository, and latest production deployment status. Imported as objects.
 - **Domains** — custom domains, including verification status, expiry/renewal dates, and configuration health. Imported as objects.
