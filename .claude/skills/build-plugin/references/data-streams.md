@@ -453,6 +453,8 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 }
 ```
 
+> For a `payload`/`payloadArraySize` path (`in`, `rowCountIn`), use `"."` to mean "the response body itself is the array" — unlike [`pathToData`](#pathtodata), where a root-level array means omitting the field entirely, an empty/omitted `path` here is not equivalent to `"."`.
+
 `realm` options: `"queryArg"`, `"header"`, `"body"` (POST only), `"payload"`, `"payloadArraySize"`.
 `offset.mode`: `"page"` (increments 1,2,3…) or `"row"` (increments by page size).
 
