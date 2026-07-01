@@ -151,3 +151,44 @@ OAuth URLs and scopes support `{{fieldName}}` expressions — useful when the au
 "oauth2AuthUrl": "https://{{accountId}}.example.com/oauth/authorize",
 "oauth2Scope": "read {{role ? 'role:' + role : ''}}"
 ```
+
+**JWT Bearer** (HMAC — `HS256`/`HS384`/`HS512`; distinct from the static "Bearer token" pattern above — this signs a fresh JWT and attaches it to every request):
+
+```json
+"authMode": "jwtBearer",
+"jwtAlgorithm": "HS256",
+"jwtSecret": "{{jwtSecret}}",
+"jwtPayload": {
+    "iss": "my-integration",
+    "sub": "{{accountId}}",
+    "iat": "{{Math.floor(Date.now() / 1000) - 60}}",
+    "exp": "{{Math.floor(Date.now() / 1000) + 600}}"
+}
+```
+
+**JWT Bearer** (asymmetric — `RS256`/`RS384`/`RS512`, `PS256`/`PS384`/`PS512`, `ES256`/`ES384`/`ES512`):
+
+```json
+"authMode": "jwtBearer",
+"jwtAlgorithm": "RS256",
+"jwtPrivateKey": "{{jwtPrivateKey}}",
+"jwtPayload": {
+    "iss": "my-integration",
+    "iat": "{{Math.floor(Date.now() / 1000) - 60}}",
+    "exp": "{{Math.floor(Date.now() / 1000) + 600}}"
+}
+```
+
+Set exactly one of `jwtSecret` (HMAC algorithms) or `jwtPrivateKey` — a PEM-encoded private key — for every other algorithm; never both. There's no caching/refresh step to configure — unlike OAuth2, a fresh JWT is signed on every request.
+
+**Advanced JWT options:**
+
+```json
+"jwtTokenLocation": "queryParam",     // "header" (default) or "queryParam"
+"jwtQueryParamName": "token",         // required when jwtTokenLocation is "queryParam" — the query param the JWT is sent as
+"jwtSecretIsBase64": true,            // set when jwtSecret is base64-encoded rather than plain text
+"jwtHeaderPrefix": "Bearer ",         // text prepended to the token when sent as a header; defaults to "Bearer " (include the trailing space if overriding)
+"jwtHeaders": { "kid": "my-key-id" }  // extra claims merged into the JWT's own header (not the HTTP request header), e.g. a key ID
+```
+
+`jwtPayload` and `jwtHeaders` are plain JSON objects; any string value can itself be a `{{ ... }}` expression, evaluated fresh on every request — this is how `iat`/`exp` stay current without any extra logic.
