@@ -418,6 +418,15 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 
 > ⚠️ Whatever value `in` extracts (`payload`, `header`, or `webLink`) is used as the **complete URL for the next request** — it is not appended to `baseUrl`/`endpointPath`. The API must return a fully-qualified URL; a relative path will break pagination.
 
+`pageSize` is optional on every mode — omit it (or set `"pageSize": { "realm": "none" }`) when the API has no separate page-size parameter, e.g. a `nextUrl` response whose URL already encodes the page size:
+
+```json
+"paging": {
+    "mode": "nextUrl",
+    "in": { "realm": "payload", "path": "pageDetails.nextPageUrl" }
+}
+```
+
 **Token** — API returns a cursor/token to send with the next request:
 
 ```json
