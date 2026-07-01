@@ -5,6 +5,7 @@
 const members = (data && data.data) || [];
 
 result = members.map((user) => ({
+    ...user,
     name: user.profile && user.profile.displayName,
     email: user.profile && user.profile.email,
     roles: (user.memberships || [])
@@ -13,3 +14,4 @@ result = members.map((user) => ({
     sanityUserId: user.sanityUserId,
     imageUrl: user.profile && user.profile.imageUrl,
 }));
+
