@@ -1,0 +1,63 @@
+{
+    "name": "disputeActivity",
+    "displayName": "Dispute Activity",
+    "description": "Chargebacks against charges, including reason, status, and evidence deadline",
+    "tags": ["Billing", "Finance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "disputes",
+        "getArgs": [
+            { "key": "created[gte]", "value": "{{timeframe.unixStart}}" },
+            { "key": "created[lte]", "value": "{{timeframe.unixEnd}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "data.99.id" },
+            "out": { "realm": "queryArg", "path": "starting_after" }
+        },
+        "pathToData": "data",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id" },
+        {
+            "name": "amount",
+            "displayName": "Amount (minor units)",
+            "shape": ["number", { "thousandsSeparator": true }],
+            "role": "value"
+        },
+        { "name": "currency", "displayName": "Currency", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["won", "warning_closed"],
+                        "warning": [
+                            "warning_needs_response",
+                            "warning_under_review",
+                            "needs_response",
+                            "under_review"
+                        ],
+                        "error": ["lost"]
+                    }
+                }
+            ]
+        },
+        { "name": "reason", "displayName": "Reason", "shape": "string", "role": "label" },
+        { "name": "charge", "displayName": "Charge", "shape": "string" },
+        { "name": "payment_intent", "displayName": "Payment Intent", "shape": "string" },
+        {
+            "name": "evidence_details.due_by",
+            "displayName": "Evidence Due By",
+            "shape": "date"
+        },
+        { "name": "created", "displayName": "Created", "shape": "date", "role": "timestamp" }
+    ],
+    "timeframes": true
+}

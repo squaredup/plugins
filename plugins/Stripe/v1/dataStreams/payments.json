@@ -1,0 +1,74 @@
+{
+    "name": "payments",
+    "displayName": "Payments",
+    "description": "Payment attempts, including pending and failed ones, optionally scoped to a customer",
+    "tags": ["Billing", "Finance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "payment_intents",
+        "getArgs": [
+            { "key": "created[gte]", "value": "{{timeframe.unixStart}}" },
+            { "key": "created[lte]", "value": "{{timeframe.unixEnd}}" },
+            {
+                "key": "customer",
+                "value": "{{ customer?.map(o => o.rawId)[0] || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "data.99.id" },
+            "out": { "realm": "queryArg", "path": "starting_after" }
+        },
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Stripe Customer"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id" },
+        {
+            "name": "amount",
+            "displayName": "Amount (minor units)",
+            "shape": ["number", { "thousandsSeparator": true }],
+            "role": "value"
+        },
+        { "name": "currency", "displayName": "Currency", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["succeeded"],
+                        "warning": [
+                            "processing",
+                            "requires_action",
+                            "requires_capture",
+                            "requires_confirmation",
+                            "requires_payment_method"
+                        ],
+                        "error": ["canceled"]
+                    }
+                }
+            ]
+        },
+        { "name": "customer", "displayName": "Customer ID", "shape": "string" },
+        { "name": "created", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "description"
+        }
+    ],
+    "timeframes": true
+}

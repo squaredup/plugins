@@ -1,0 +1,57 @@
+{
+    "name": "payoutActivity",
+    "displayName": "Payout Activity",
+    "description": "Transfers of funds from the Stripe balance to the account's bank account or debit card",
+    "tags": ["Billing", "Finance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "payouts",
+        "getArgs": [
+            { "key": "created[gte]", "value": "{{timeframe.unixStart}}" },
+            { "key": "created[lte]", "value": "{{timeframe.unixEnd}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "data.99.id" },
+            "out": { "realm": "queryArg", "path": "starting_after" }
+        },
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id" },
+        {
+            "name": "amount",
+            "displayName": "Amount (minor units)",
+            "shape": ["number", { "thousandsSeparator": true }],
+            "role": "value"
+        },
+        { "name": "currency", "displayName": "Currency", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["paid"],
+                        "warning": ["pending", "in_transit"],
+                        "error": ["failed", "canceled"]
+                    }
+                }
+            ]
+        },
+        { "name": "arrival_date", "displayName": "Arrival Date", "shape": "date" },
+        { "name": "method", "displayName": "Method", "shape": "string" },
+        { "name": "created", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "description"
+        }
+    ],
+    "timeframes": true
+}

@@ -1,0 +1,40 @@
+{
+    "name": "customers",
+    "displayName": "Customers",
+    "description": "Stripe customers",
+    "tags": ["Billing"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "customers",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "data.99.id" },
+            "out": { "realm": "queryArg", "path": "starting_after" }
+        },
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "visibility": { "type": "hidden" },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string" },
+        { "name": "name", "displayName": "Name (raw)", "shape": "string", "visible": false },
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "computed": true,
+            "valueExpression": "{{ typeof $['name'] === 'string' && $['name'] ? $['name'] : (typeof $['email'] === 'string' && $['email'] ? $['email'] : $['id']) }}"
+        },
+        { "name": "email", "displayName": "Email", "shape": "string" },
+        { "name": "created", "displayName": "Created", "shape": "date" },
+        { "name": "currency", "displayName": "Currency", "shape": "string" },
+        {
+            "name": "balance",
+            "displayName": "Balance (minor units)",
+            "shape": ["number", { "thousandsSeparator": true }]
+        },
+        { "name": "delinquent", "displayName": "Delinquent", "shape": "boolean" }
+    ],
+    "timeframes": false
+}

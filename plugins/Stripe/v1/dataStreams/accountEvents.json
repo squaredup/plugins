@@ -1,0 +1,33 @@
+{
+    "name": "accountEvents",
+    "displayName": "Account Events",
+    "description": "Change feed of account activity, such as payment failures, disputes, and subscription updates. Stripe retains events for 30 days",
+    "tags": ["Events", "Activity"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "events",
+        "getArgs": [
+            { "key": "created[gte]", "value": "{{timeframe.unixStart}}" },
+            { "key": "created[lte]", "value": "{{timeframe.unixEnd}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "data.99.id" },
+            "out": { "realm": "queryArg", "path": "starting_after" }
+        },
+        "pathToData": "data",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id" },
+        { "name": "type", "displayName": "Type", "shape": "string", "role": "label" },
+        { "name": "created", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        { "name": "livemode", "displayName": "Live Mode", "shape": "boolean" },
+        { "name": "data.object.id", "displayName": "Object ID", "shape": "string" },
+        { "name": "data.object.object", "displayName": "Object Type", "shape": "string" }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days"]
+}

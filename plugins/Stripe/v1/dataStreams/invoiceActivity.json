@@ -1,0 +1,82 @@
+{
+    "name": "invoiceActivity",
+    "displayName": "Invoice Activity",
+    "description": "One-off and subscription-cycle invoices, including amounts due, paid, and remaining",
+    "tags": ["Billing", "Finance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "invoices",
+        "getArgs": [
+            { "key": "created[gte]", "value": "{{timeframe.unixStart}}" },
+            { "key": "created[lte]", "value": "{{timeframe.unixEnd}}" },
+            { "key": "customer", "value": "{{ customer?.map(o => o.rawId)[0] || null }}" },
+            { "key": "subscription", "value": "{{ subscription?.map(o => o.rawId)[0] || null }}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "data.99.id" },
+            "out": { "realm": "queryArg", "path": "starting_after" }
+        },
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["Stripe Customer"] }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "subscription",
+            "label": "Subscription (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["Stripe Subscription"] }
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id" },
+        { "name": "customer", "displayName": "Customer", "shape": "string" },
+        { "name": "subscription", "displayName": "Subscription", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["paid"],
+                        "warning": ["open", "draft"],
+                        "error": ["uncollectible", "void"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "amount_due",
+            "displayName": "Amount Due (minor units)",
+            "shape": ["number", { "thousandsSeparator": true }],
+            "role": "value"
+        },
+        {
+            "name": "amount_paid",
+            "displayName": "Amount Paid (minor units)",
+            "shape": ["number", { "thousandsSeparator": true }]
+        },
+        {
+            "name": "amount_remaining",
+            "displayName": "Amount Remaining (minor units)",
+            "shape": ["number", { "thousandsSeparator": true }]
+        },
+        { "name": "currency", "displayName": "Currency", "shape": "string" },
+        { "name": "created", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        { "name": "due_date", "displayName": "Due Date", "shape": "date" }
+    ],
+    "timeframes": true
+}
