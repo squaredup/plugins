@@ -360,6 +360,8 @@ In OOB dashboard tiles, set the stream parameter in the tile's `dataStream` conf
 }
 ```
 
+> ⚠️ **`postBody` must be a JSON object, not a string, if [`paging`](#pagination) uses `realm: "body"`.** The server writes the page-size/cursor/offset value into the body with a path-based `set` that only runs against an object — against a string `postBody` it silently does nothing, and the request goes out without the paging value, with no error.
+
 ---
 
 ## expandInnerObjects
