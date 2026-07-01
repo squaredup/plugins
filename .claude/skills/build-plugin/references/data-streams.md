@@ -402,6 +402,20 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 }
 ```
 
+**Next-URL via `Link` header** — API returns pagination links in a standard HTTP `Link` header (RFC 8288) instead of the body, e.g. GitHub, Checkly:
+
+```json
+"paging": {
+    "mode": "nextUrl",
+    "pageSize": { "realm": "queryArg", "path": "per_page", "value": "100" },
+    "in": { "realm": "webLink", "path": "next" }
+}
+```
+
+> ⚠️ For `realm: "webLink"`, `path` is the link's **rel name** (`next`, `prev`, `last`, `first`), not a JSON path — the server parses the `Link` header and looks up that rel. This differs from every other realm, where `path` is a dot-notation path or header name.
+
+> ⚠️ Whatever value `in` extracts (`payload`, `header`, or `webLink`) is used as the **complete URL for the next request** — it is not appended to `baseUrl`/`endpointPath`. The API must return a fully-qualified URL; a relative path will break pagination.
+
 **Token** — API returns a cursor/token to send with the next request:
 
 ```json
