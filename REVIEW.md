@@ -70,6 +70,7 @@ When suggesting changes:
 - Dashboard names - Use title case
 - Tile names - Use title case
 - IDs - All `id` fields must be GUIDs (e.g. `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"`), not arbitrary strings.
+- Tiles on a dashboard should NOT use deprecated streams - these are any streams set to { visibility: { type: 'deprecated' }}
 
 ### Out-of-the-box dashboard manifest (defaultContent/\*\*/manifest.json)
 
