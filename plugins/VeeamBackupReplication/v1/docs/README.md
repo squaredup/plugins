@@ -26,7 +26,7 @@ The plugin authenticates with the **username and password** of a VBR account (OA
 
 | Field | Required | Description |
 |---|---|---|
-| **Server URL** | Yes | The bare root of your VBR server — scheme, host and REST API port only, e.g. `https://vbr01.contoso.com:9419`. **Do not** add a path such as `/api/v1` or a trailing slash; the plugin appends those itself. |
+| **Server URL** | Yes | The bare root of your VBR server — scheme, host and REST API port only, e.g. `https://vbr01.contoso.com:9419`. **Do not** add a path such as `/api/v1`; the plugin appends it. |
 | **Username** | Yes | A VBR account with at least the Veeam Backup Viewer role. Domain accounts use `DOMAIN\user`. |
 | **Password** | Yes | The password for the account above. |
 | **REST API version** | Yes | The `x-api-version` revision sent on every request. Pick the revision matching your server — see [Choosing the REST API version](#choosing-the-rest-api-version). Defaults to `1.3-rev1`. |
@@ -54,8 +54,6 @@ Every request carries an `x-api-version` header. **Choose the highest revision y
 |---|---|---|
 | **Veeam Repository** | A backup repository | repository type, description, host, path |
 | **Veeam Job** | A backup job | job type, description |
-
-Objects are re‑imported automatically (every 12 hours by default), and are indexed from the job‑ and repository‑*state* endpoints so the same identity powers both the object list and its live status. Use them to scope dashboards, drill down, and search across SquaredUp. In any table, the **Name** column links straight to the matching object.
 
 ## Data streams
 
