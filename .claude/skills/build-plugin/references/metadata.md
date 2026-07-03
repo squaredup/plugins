@@ -185,6 +185,7 @@ Set exactly one of `jwtSecret` (HMAC algorithms) or `jwtPrivateKey` — a PEM-en
 
 ```json
 "jwtTokenLocation": "queryParam",     // "header" (default) or "queryParam"
+// Prefer "header"; query params can leak the token via logs/referrers.
 "jwtQueryParamName": "token",         // required when jwtTokenLocation is "queryParam" — the query param the JWT is sent as
 "jwtSecretIsBase64": true,            // set when jwtSecret is base64-encoded rather than plain text
 "jwtHeaderPrefix": "Bearer ",         // text prepended to the token when sent as a header; defaults to "Bearer " (include the trailing space if overriding)
