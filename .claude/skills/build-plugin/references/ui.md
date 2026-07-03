@@ -135,7 +135,7 @@ The `validation` object accepts [react-hook-form](https://react-hook-form.com/do
 }
 ```
 
-**`password`** — masked text; **use for any API key, token, secret, or password field** — including a JWT signing secret or private key (see [JWT Bearer](metadata.md#auth-patterns) in metadata.md):
+**`password`** — masked text; **use for any API key, token, secret, or password field**
 
 ```json
 { "type": "password", "name": "apiKey", "label": "API Key" }
