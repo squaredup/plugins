@@ -1,0 +1,31 @@
+{
+    "name": "playerWarshipsSummary",
+    "displayName": "Player Warships Summary",
+    "description": "Current World of Warships statistics for the selected players",
+    "tags": ["Player", "Ship"],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api.worldofwarships.{{dataSource.realm}}/wows/account/info/",
+        "getArgs": [
+            { "key": "account_id", "value": "{{objects.map(o => o.rawId).join(',')}}" },
+            {
+                "key": "fields",
+                "value": "account_id,nickname,last_battle_time,statistics.pvp.battles,statistics.pvp.wins,statistics.pvp.damage_dealt,statistics.pvp.frags,statistics.pvp.xp,statistics.pvp.survived_battles"
+            }
+        ],
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" },
+        "postRequestScript": "playerWarshipsSummary.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Player"] } },
+    "metadata": [
+        { "name": "nickname", "displayName": "Nickname", "shape": "string", "role": "label" },
+        { "name": "battles", "displayName": "Battles", "shape": "number" },
+        { "name": "winRate", "displayName": "Win Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "avgDamage", "displayName": "Avg. Damage", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "survivalRate", "displayName": "Survival Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "frags", "displayName": "Frags", "shape": "number" },
+        { "name": "lastBattle", "displayName": "Last Battle", "shape": "date" }
+    ],
+    "timeframes": false
+}

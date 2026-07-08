@@ -1,0 +1,35 @@
+{
+    "name": "playerSummary",
+    "displayName": "Player Summary",
+    "description": "Current all-time statistics for the selected players",
+    "tags": ["Player"],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api.worldoftanks.{{dataSource.realm}}/wot/account/info/",
+        "getArgs": [
+            { "key": "account_id", "value": "{{objects.map(o => o.rawId).join(',')}}" },
+            {
+                "key": "fields",
+                "value": "account_id,nickname,global_rating,last_battle_time,created_at,clan_id,statistics.all.battles,statistics.all.wins,statistics.all.damage_dealt,statistics.all.xp,statistics.all.survived_battles,statistics.all.frags,statistics.all.spotted"
+            }
+        ],
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" },
+        "postRequestScript": "playerSummary.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Player"] } },
+    "metadata": [
+        { "name": "nickname", "displayName": "Nickname", "shape": "string", "role": "label" },
+        { "name": "battles", "displayName": "Battles", "shape": "number" },
+        { "name": "winRate", "displayName": "Win Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "avgDamage", "displayName": "Avg. Damage", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "avgXp", "displayName": "Avg. XP", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "survivalRate", "displayName": "Survival Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "globalRating", "displayName": "Global Rating", "shape": "number" },
+        { "name": "frags", "displayName": "Frags", "shape": "number" },
+        { "name": "spotted", "displayName": "Spotted", "shape": "number" },
+        { "name": "lastBattle", "displayName": "Last Battle", "shape": "date" },
+        { "name": "clanId", "displayName": "Clan ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}
