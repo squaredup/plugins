@@ -35,7 +35,7 @@ Assign the `PVEAuditor` role to the token at the datacenter level:
 2. Set Path to `/`, Token to `monitoring@pam!squaredup`, Role to `PVEAuditor`.
 3. Check **Propagate**.
 
-**Note on self-signed certificates:** Proxmox uses a self-signed certificate by default. If your Proxmox host uses a self-signed or internal CA certificate, you may need to configure your SquaredUp agent to trust it, or replace the certificate with one from a trusted CA.
+**Note on self-signed certificates:** Proxmox uses a self-signed certificate by default. If your Proxmox host uses a self-signed or internal CA certificate, you may need to configure your SquaredUp agent to trust it, replace the certificate with one from a trusted CA, or enable the **Ignore certificate errors** option below.
 
 ## Configuration fields
 
@@ -44,6 +44,7 @@ Assign the `PVEAuditor` role to the token at the datacenter level:
 | **Host URL** | Full URL to your Proxmox VE host, including port. Example: `https://192.168.1.100:8006` | Yes |
 | **Token ID** | The full API token identifier in the format `USER@REALM!TOKENID`. Example: `monitoring@pam!squaredup` | Yes |
 | **Token Secret** | The UUID secret displayed when the token was created. Example: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` | Yes |
+| **Ignore certificate errors** | Skip TLS certificate validation. Enable if your Proxmox host uses a self-signed certificate you haven't configured your agent to trust. | No |
 
 ## What gets indexed
 
