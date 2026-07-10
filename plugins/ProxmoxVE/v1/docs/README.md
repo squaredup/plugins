@@ -12,8 +12,8 @@ Monitor your Proxmox VE cluster from SquaredUp. This plugin imports nodes, virtu
 **Out-of-the-box dashboards:**
 - **Overview** — cluster-wide resource summary, node health table, VM and container inventory
 - **Node perspective** — per-node CPU, memory, and network metrics
-- **VM perspective** — per-VM CPU, memory, and disk I/O metrics
-- **Container perspective** — per-container CPU, memory, and disk I/O metrics
+- **VM perspective** — per-VM CPU, memory, network, and disk I/O metrics
+- **Container perspective** — per-container CPU, memory, network, and disk I/O metrics
 
 ## Prerequisites
 
