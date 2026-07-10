@@ -11,6 +11,7 @@ result = arr.map((s) => {
         battles,
         winRate: battles ? (wins / battles) * 100 : 0,
         avgDamage: battles ? damageDealt / battles : 0,
-        frags: p.frags || 0
+        frags: p.frags || 0,
+        lastBattle: s.last_battle_time ? new Date(s.last_battle_time * 1000).toISOString() : null
     };
 });
