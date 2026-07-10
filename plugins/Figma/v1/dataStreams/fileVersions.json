@@ -1,0 +1,58 @@
+{
+    "name": "fileVersions",
+    "displayName": "File Versions",
+    "description": "Version history for a specific Figma file",
+    "tags": ["Files", "Version History"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "files/{{fileKey}}/versions",
+        "pathToData": "versions",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "pagination.next_page" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "name": "project",
+            "type": "autocomplete",
+            "label": "Project",
+            "placeholder": "Select a Figma project",
+            "validation": { "required": true, "message": "You must select a project" },
+            "allowCustomValues": false,
+            "isMulti": false,
+            "data": { "source": "dataStream", "dataStreamName": "projectsPicker", "dataSourceConfig": {} }
+        },
+        {
+            "name": "fileKey",
+            "type": "autocomplete",
+            "label": "File",
+            "placeholder": "Select a file",
+            "validation": { "required": true, "message": "You must select a file" },
+            "allowCustomValues": false,
+            "isMulti": false,
+            "data": { "source": "dataStream", "dataStreamName": "filesInProject", "dataSourceConfig": { "endpointPath": { "fieldName": "project", "required": true } } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "created_at", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        { "name": "label", "displayName": "Label", "shape": "string" },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        {
+            "name": "versionName",
+            "displayName": "Version",
+            "computed": true,
+            "valueExpression": "{{ (typeof $['label'] === 'string' && $['label']) || (typeof $['description'] === 'string' && $['description']) || $['created_at'] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        { "name": "user.handle", "displayName": "Created By", "shape": "string" },
+        { "name": "user.id", "visible": false },
+        { "name": "user.img_url", "visible": false }
+    ],
+    "timeframes": false
+}
