@@ -1,0 +1,120 @@
+{
+    "name": "chargeSessions",
+    "displayName": "Charge Sessions",
+    "description": "Completed zappi charging sessions with energy delivered, green energy and duration",
+    "tags": [
+        "Energy",
+        "Charging"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/devices/{{object.rawId}}/charge-sessions",
+        "pathToData": "data",
+        "getArgs": [
+            {
+                "key": "from",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "to",
+                "value": "{{timeframe.end}}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "50"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "pagination.cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "cursor"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "myenergi Zappi"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "chargeStart",
+            "displayName": "Charge Start",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "chargeEnd",
+            "displayName": "Charge End",
+            "shape": "date"
+        },
+        {
+            "name": "plugIn",
+            "displayName": "Plugged In",
+            "shape": "date"
+        },
+        {
+            "name": "plugOut",
+            "displayName": "Unplugged",
+            "shape": "date"
+        },
+        {
+            "name": "totalEnergyKwh",
+            "displayName": "Energy (kWh)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "greenEnergyKwh",
+            "displayName": "Green Energy (kWh)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "chargeDurationMinutes",
+            "displayName": "Duration",
+            "shape": "minutes"
+        },
+        {
+            "name": "authType",
+            "displayName": "Authorisation",
+            "shape": "string"
+        },
+        {
+            "name": "isBusiness",
+            "displayName": "Business Use",
+            "shape": "boolean"
+        },
+        {
+            "name": "id",
+            "displayName": "Session ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}
