@@ -21,8 +21,13 @@ filtered.sort(function(a, b) {
 result = filtered.map(function(m) {
     var score = '-';
     var status = 'Upcoming';
-    if (m.score && m.score.ft) {
-        score = m.score.ft[0] + '-' + m.score.ft[1];
+    if (m.score && (m.score.et || m.score.ft)) {
+        // Prefer the score after extra time; fall back to the 90-minute (ft) score.
+        var base = m.score.et || m.score.ft;
+        score = base[0] + '-' + base[1];
+        if (m.score.p) {
+            score += ' (' + m.score.p[0] + '-' + m.score.p[1] + ' pens)';
+        }
         status = 'Finished';
     }
 
