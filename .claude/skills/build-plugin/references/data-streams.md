@@ -479,6 +479,24 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 "errorHandling": { "type": "script", "script": "result = response.status + ': ' + data.error;" }
 ```
 
+### Script files over inline scripts
+
+For anything beyond a trivial one-liner, don't inline the script in the JSON — reference a file, the same mechanism [`postRequestScript`](#post-request-scripts) uses. Place the file in `dataStreams/scripts/errorHandling/`, named after the stream's `name` field, and set `script` to its path relative to `dataStreams/scripts/` — **the `.js` extension is required** (a bare `.js` path with no newline is what marks the value as a file reference; deploy inlines the file's source, and an unresolvable reference is a validation error).
+
+Stream JSON (`dataStreams/incidents.json`):
+
+```json
+"errorHandling": { "type": "script", "script": "errorHandling/incidents.js" }
+```
+
+Script file (`dataStreams/scripts/errorHandling/incidents.js`) — multi-line source, and `{{ ... }}` expressions work exactly as they do inline:
+
+```javascript
+const apiMsg = data && (data.message || data.error);
+
+result = apiMsg || ('Request failed with HTTP ' + response.status);
+```
+
 ---
 
 ## pathToData
@@ -736,7 +754,7 @@ Scripts run after the HTTP response is received. Input is `data` (parsed JSON bo
 
 ### Wiring a script to a stream
 
-Set `postRequestScript` inside `config` to the script's filename — **the `.js` extension is required**. Name the file after the stream's `name` field and place it in `dataStreams/scripts/`.
+Set `postRequestScript` inside `config` to the script's filename — **the `.js` extension is required**. Name the file after the stream's `name` field and place it in `dataStreams/scripts/`. ([errorHandling scripts](#errorhandling) use the same file-reference mechanism, from the `errorHandling/` sub-folder.)
 
 Stream JSON (`dataStreams/incidents.json`):
 
