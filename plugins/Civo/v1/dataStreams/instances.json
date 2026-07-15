@@ -1,0 +1,41 @@
+{
+    "name": "instances",
+    "displayName": "Instances",
+    "description": "Compute instances in the configured region with status, size and network addresses",
+    "tags": ["Compute"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/instances",
+        "getArgs": [
+            { "key": "region", "value": "{{dataSource.region}}" },
+            { "key": "per_page", "value": "100" }
+        ],
+        "pathToData": "items",
+        "paging": { "mode": "none" }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false, "role": "sourceId" },
+        { "name": "hostname", "displayName": "Hostname", "shape": "string", "role": "label" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": {
+                "success": ["ACTIVE", "active"],
+                "warning": ["BUILDING", "building", "REBUILDING", "RESTORING", "SCALING"],
+                "error": ["SHUTOFF", "shutoff", "FAILED", "failed"]
+            } }]
+        },
+        { "name": "size", "displayName": "Size", "shape": "string" },
+        { "name": "public_ip", "displayName": "Public IP", "shape": "string" },
+        { "name": "private_ip", "displayName": "Private IP", "shape": "string" },
+        { "name": "cpu_cores", "displayName": "CPU cores", "shape": "number" },
+        { "name": "ram_mb", "displayName": "RAM", "shape": "megabytes" },
+        { "name": "disk_gb", "displayName": "Disk", "shape": "gigabytes" },
+        { "name": "network_id", "displayName": "Network ID", "shape": "string", "visible": false },
+        { "sourceId": "id", "sourceType": "Civo Instance", "name": "hostname" },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,36 @@
+{
+    "name": "objectStores",
+    "displayName": "Object Stores",
+    "description": "S3-compatible object store buckets in the configured region with size and status",
+    "tags": ["Storage"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/objectstores",
+        "getArgs": [
+            { "key": "region", "value": "{{dataSource.region}}" },
+            { "key": "per_page", "value": "100" }
+        ],
+        "pathToData": "items",
+        "paging": { "mode": "none" }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false, "role": "sourceId" },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": {
+                "success": ["ready", "active"],
+                "warning": ["creating", "pending"],
+                "error": ["failed"]
+            } }]
+        },
+        { "name": "max_size_gb", "displayName": "Max size", "shape": "gigabytes" },
+        { "name": "objectstore_endpoint", "displayName": "Endpoint", "shape": "string" },
+        { "sourceId": "id", "sourceType": "Civo Object Store", "name": "name" },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

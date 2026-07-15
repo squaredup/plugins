@@ -1,0 +1,34 @@
+{
+    "name": "volumes",
+    "displayName": "Volumes",
+    "description": "Block storage volumes in the configured region with size, status and attachment",
+    "tags": ["Storage"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/volumes",
+        "getArgs": [{ "key": "region", "value": "{{dataSource.region}}" }]
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false, "role": "sourceId" },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": {
+                "success": ["available", "attached"],
+                "warning": ["creating", "attaching", "detaching"],
+                "error": ["failed"]
+            } }]
+        },
+        { "name": "size_gb", "displayName": "Size", "shape": "gigabytes" },
+        { "name": "instance_id", "displayName": "Instance ID", "shape": "string", "visible": false },
+        { "name": "cluster_id", "displayName": "Cluster ID", "shape": "string", "visible": false },
+        { "name": "network_id", "displayName": "Network ID", "shape": "string", "visible": false },
+        { "name": "mountpoint", "displayName": "Mount point", "shape": "string" },
+        { "sourceId": "id", "sourceType": "Civo Volume", "name": "name" },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

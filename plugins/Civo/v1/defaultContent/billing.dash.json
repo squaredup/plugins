@@ -1,0 +1,295 @@
+{
+    "name": "Usage & Billing",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "c3abe473-f7ab-4f42-9a9d-49369add6c6a",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Total Billable Hours",
+                    "description": "Sum of metered usage hours for the selected timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[charges]}}",
+                        "name": "charges",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "sum", "names": ["num_hours"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "num_hours_sum",
+                                "label": "Billable Hours"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f512b48f-1bba-4ab9-a3b6-c3cbce64be85",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Total Estimated Cost",
+                    "description": "Indicative USD cost from Civo public list prices — excludes credits, discounts and bandwidth",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[charges]}}",
+                        "name": "charges",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "sum", "names": ["estimatedCost"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "estimatedCost_sum",
+                                "label": "Est. Cost (USD)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9e3ff1bb-e76a-4daf-8a00-7b1eb3405475",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Usage Hours by Service",
+                    "description": "Billable hours per service code for the selected timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[charges]}}",
+                        "name": "charges",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["code", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["num_hours"] }]
+                        },
+                        "sort": {
+                            "by": [["num_hours_sum", "desc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "code_uniqueValues",
+                                "yAxisData": ["num_hours_sum"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "Service",
+                                "yAxisLabel": "Usage Hours",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "07968bc6-82c6-4af8-b0b3-4851ac969fef",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Usage Hours by Region",
+                    "description": "Billable hours per region for the selected timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[charges]}}",
+                        "name": "charges",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["region", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["num_hours"] }]
+                        },
+                        "sort": {
+                            "by": [["num_hours_sum", "desc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "num_hours_sum",
+                                "labelColumn": "region_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": true,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1957caf5-6c99-4789-8571-ed447c24f88c",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Usage Hours by Service (breakdown)",
+                    "description": "Share of billable hours per service code",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[charges]}}",
+                        "name": "charges",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["code", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["num_hours"] }]
+                        },
+                        "sort": {
+                            "by": [["num_hours_sum", "desc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "num_hours_sum",
+                                "labelColumn": "code_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": true,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2823bef2-24b2-4b1e-9b92-fdd006f45141",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Estimated Cost by Service (indicative)",
+                    "description": "Indicative USD cost per service from Civo public list prices",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[charges]}}",
+                        "name": "charges",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["code", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["estimatedCost"] }]
+                        },
+                        "sort": { "by": [["estimatedCost_sum", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "code_uniqueValues",
+                                "yAxisData": ["estimatedCost_sum"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "Service",
+                                "yAxisLabel": "Est. Cost (USD)",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6bfff0c5-e126-4396-92f1-17d48593a278",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Usage Line Items",
+                    "description": "Per-resource metered usage for the selected timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[charges]}}",
+                        "name": "charges",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [["num_hours", "desc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": ["label", "code", "region", "num_hours", "size_gb", "estimatedCost", "from"],
+                                "hiddenColumns": ["product_id", "to"]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

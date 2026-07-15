@@ -1,0 +1,41 @@
+{
+    "name": "clusters",
+    "displayName": "Clusters",
+    "description": "Managed Kubernetes clusters in the configured region with status, version and node counts",
+    "tags": ["Kubernetes"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/kubernetes/clusters",
+        "getArgs": [
+            { "key": "region", "value": "{{dataSource.region}}" },
+            { "key": "per_page", "value": "100" }
+        ],
+        "pathToData": "items",
+        "paging": { "mode": "none" }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false, "role": "sourceId" },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": {
+                "success": ["ACTIVE", "active"],
+                "warning": ["BUILDING", "building", "INSTANCE-CREATED", "INSTANCES-CREATED", "SCALING"],
+                "error": ["FAILED", "failed"]
+            } }]
+        },
+        { "name": "kubernetes_version", "displayName": "Version", "shape": "string" },
+        { "name": "num_target_nodes", "displayName": "Nodes", "shape": "number" },
+        { "name": "target_nodes_size", "displayName": "Node size", "shape": "string" },
+        { "name": "ready", "displayName": "Ready", "shape": "boolean" },
+        { "name": "created_at", "displayName": "Created", "shape": "date" },
+        { "name": "network_id", "displayName": "Network ID", "shape": "string", "visible": false },
+        { "name": "firewall_id", "displayName": "Firewall ID", "shape": "string", "visible": false },
+        { "sourceId": "id", "sourceType": "Civo Cluster", "name": "name" },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,34 @@
+{
+    "name": "networks",
+    "displayName": "Networks",
+    "description": "VPC networks in the configured region with CIDR, label and status",
+    "tags": ["Network"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/vpc/networks",
+        "getArgs": [{ "key": "region", "value": "{{dataSource.region}}" }]
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false, "role": "sourceId" },
+        { "name": "label", "displayName": "Label", "shape": "string", "role": "label" },
+        { "name": "name", "displayName": "Name", "shape": "string", "visible": false },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": {
+                "success": ["Active", "active"],
+                "warning": ["Building", "building", "pending"],
+                "error": ["failed"]
+            } }]
+        },
+        { "name": "cidr", "displayName": "CIDR", "shape": "string" },
+        { "name": "default", "displayName": "Default", "shape": "boolean" },
+        { "name": "gateway_ipv4", "displayName": "Gateway", "shape": "string", "visible": false },
+        { "name": "free_ip_count", "displayName": "Free IPs", "shape": "number" },
+        { "sourceId": "id", "sourceType": "Civo Network", "name": "label" },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}
