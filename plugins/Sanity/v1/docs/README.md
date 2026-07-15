@@ -4,10 +4,10 @@ Bring your [Sanity](https://www.sanity.io) content into SquaredUp. A single plug
 
 ## What this plugin does
 
-You give the plugin two things: an **admin token** (used to list the projects in your organization) and a set of **per-project API tokens** (used to read each project's datasets, members and content). It then imports:
+You give the plugin two things: an **admin token** (used to look up project details in your organization) and a set of **per-project API tokens** (used to read each project's datasets, members and content). It then imports:
 
-- **Each project** your admin token can see, as a `Project` object.
-- **Each dataset** in the projects you've supplied a token for, as a `Dataset` object you can scope dashboards to and drill into.
+- **Each project you've supplied a token for**, as a `Project` object. Projects without a token are not indexed — they couldn't serve any data, so you can't scope dashboards to them by mistake.
+- **Each dataset** in those projects, as a `Dataset` object you can scope dashboards to and drill into.
 - **Each member** of those projects, as a `Member` object.
 
 From there you get data streams for:
@@ -24,7 +24,7 @@ Sanity uses two API surfaces:
 - **Management** (`api.sanity.io`) — the plugin uses your **admin token** to list projects, and the matching **per-project token** to list each project's datasets and members.
 - **Content** (`<projectId>.api.sanity.io`) — GROQ queries and dataset stats. The plugin uses the **per-project token** matching the project being queried.
 
-This keeps content access least-privilege: each project's token can only read that project. Datasets, members and content tiles work for any project you've added a token for; projects without a token still appear as objects, but only the project itself — no datasets, members or content.
+This keeps content access least-privilege: each project's token can only read that project. Only projects you've added a token for are indexed, so every project you can scope a dashboard to can actually serve data.
 
 ## Prerequisites — getting your credentials
 
@@ -56,11 +56,11 @@ For **each** project you want to query content in:
 
 | Object type | Represents | Example |
 |---|---|---|
-| **Project** | A project your admin token can see | `My Studio` |
+| **Project** | A project you've configured an API token for | `My Studio` |
 | **Dataset** | A dataset in a project you've supplied a token for | `My Studio - production` |
 | **Member** | A user with access to one of those projects | `Jane Doe` |
 
-Dataset and member imports are **optional steps**: projects without a per-project token simply don't contribute datasets or members, and the rest of the import carries on.
+Projects without a per-project token are skipped entirely — add a project's token to bring it (and its datasets and members) into the index on the next import.
 
 ## Out-of-the-box dashboards
 
@@ -71,7 +71,7 @@ Dataset and member imports are **optional steps**: projects without a per-projec
 ## Known limitations
 
 - **No organization-level usage or billing metrics.** Sanity's HTTP API exposes no API-request counts, bandwidth, or billing figures; the **Dataset stats** stream covers per-dataset usage against plan limits.
-- **Content tiles need a per-project token.** Datasets, members, GROQ query and dataset stats only work for projects you've added under **Project API tokens**.
+- **Only projects with a configured token are indexed.** Projects missing from dashboards aren't an error — add the project's ID and API token under **Project API tokens** and re-import. If a configured token is invalid or expired, tiles show an error naming the affected project.
 - **Document type counts can be slow on large datasets.** The out-of-the-box breakdown tile groups every document by `_type` in GROQ; on very large datasets it can be slow — narrow the query to specific types if needed.
 
 ## Useful links
