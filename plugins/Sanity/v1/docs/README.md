@@ -64,7 +64,7 @@ Projects without a per-project token are skipped entirely — add a project's to
 
 ## Out-of-the-box dashboards
 
-- **Overview** — organization-wide summary: project, dataset and document counts, total JSON stored, all projects at a glance, documents by dataset, and how close each dataset is to its plan limits.
+- **Overview** — organization-wide summary: project, dataset and document counts, total JSON stored, every project in the organization with whether its API token is configured, documents by dataset, and how close each dataset is to its plan limits.
 - **Projects** — a per-project drilldown (pick the project via the dashboard variable): project details, its datasets and its members.
 - **Dataset** — a per-dataset drilldown (pick the dataset via the dashboard variable): details, document type breakdown, usage gauges showing how close the dataset is to its plan limits, and a customisable GROQ query tile.
 
