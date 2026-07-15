@@ -9,8 +9,8 @@ Sanity uses two separate credentials: an **admin token**, used only to look up p
 ### Admin API token
 
 1. Sign in to [sanity.io/manage](https://www.sanity.io/manage).
-2. Choose an organization-level or project token with enough access to list the projects you care about. A **personal token** (from an admin account) or an organization token works well.
-3. If creating a project token: open a project → **API → Tokens → Add API token**, and copy the value (shown once).
+2. Use an **organization token** or a **personal token from an admin account** — a project-scoped token cannot list all the projects in your organization.
+3. Create the token under your organization (or account) settings → **API → Tokens → Add API token**, and copy the value (shown once).
 4. Paste this token into the **Admin API token** field.
 
 ### Project API tokens
