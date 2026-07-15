@@ -5,5 +5,6 @@ result = (data || []).map((d) => ({
     datasetId: d.name,
     projectName: object?.name,
     projectId: object?.rawId,
+    uid: `${object?.rawId}-${d.name}`,
+    displayName: `${object?.name} - ${d.name}`,
 }));
-
