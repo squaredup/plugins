@@ -1,0 +1,53 @@
+{
+    "name": "flagEvaluations",
+    "displayName": "Flag Evaluations",
+    "description": "Evaluation volume over time for a feature flag",
+    "tags": [
+        "Feature Flags",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.project}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT toStartOfDay(timestamp) AS day, count() AS evaluations FROM events WHERE event = '$feature_flag_called' AND properties.$feature_flag = '{{object.name}}' AND timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY day ORDER BY day"
+            }
+        },
+        "postRequestScript": "flagEvaluations.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Feature Flag"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "day",
+            "displayName": "Day",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "evaluations",
+            "displayName": "Evaluations",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastQuarter",
+        "lastYear"
+    ]
+}

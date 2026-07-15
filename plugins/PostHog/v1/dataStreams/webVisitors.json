@@ -1,0 +1,57 @@
+{
+    "name": "webVisitors",
+    "displayName": "Web Visitors",
+    "description": "Unique visitors and pageviews per day for a project",
+    "tags": [
+        "Web Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT toStartOfDay(timestamp) AS day, count(DISTINCT person_id) AS visitors, count() AS views FROM events WHERE event = '$pageview' AND timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY day ORDER BY day"
+            }
+        },
+        "postRequestScript": "webVisitors.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "day",
+            "displayName": "Day",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "visitors",
+            "displayName": "Visitors",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "views",
+            "displayName": "Views",
+            "shape": "number"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastQuarter",
+        "lastYear"
+    ]
+}
