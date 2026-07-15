@@ -25,15 +25,27 @@ if (played.length === 0) {
     var last = played[0];
     var isHome = last.team1 === teamName;
     var opponent = isHome ? last.team2 : last.team1;
-    var myScore = isHome ? last.score.ft[0] : last.score.ft[1];
-    var oppScore = isHome ? last.score.ft[1] : last.score.ft[0];
-    var matchResult = myScore > oppScore ? 'Win' : myScore < oppScore ? 'Loss' : 'Draw';
+    // Prefer the score after extra time; fall back to the 90-minute (ft) score.
+    var base = last.score.et || last.score.ft;
+    var myScore = isHome ? base[0] : base[1];
+    var oppScore = isHome ? base[1] : base[0];
+    var score = myScore + '-' + oppScore;
+    var matchResult;
+    if (last.score.p) {
+        // Match went to a penalty shootout — the winner is decided on penalties.
+        var myPens = isHome ? last.score.p[0] : last.score.p[1];
+        var oppPens = isHome ? last.score.p[1] : last.score.p[0];
+        score += ' (' + myPens + '-' + oppPens + ' pens)';
+        matchResult = myPens > oppPens ? 'Win' : 'Loss';
+    } else {
+        matchResult = myScore > oppScore ? 'Win' : myScore < oppScore ? 'Loss' : 'Draw';
+    }
 
     result = [{
         date: last.date,
         home_away: isHome ? 'Home' : 'Away',
         opponent: opponent,
-        score: myScore + '-' + oppScore,
+        score: score,
         result: matchResult,
         stage: last.group ? 'Group Stage' : (knockoutStageMap[last.round] || last.round),
         sourceId: sourceId
