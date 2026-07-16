@@ -38,10 +38,9 @@ Self-hosted PostHog instances are not supported in this version.
 | **PostHog Organization** | A PostHog organization (top-level account / billing entity).           |
 | **PostHog Project**      | A project within an organization — the container for events and flags. |
 | **PostHog Member**       | A person who belongs to an organization, with their role.              |
+| **PostHog Feature Flag** | A feature flag within a project, with its key, description and state.  |
 
-All organizations your API key can access are imported, and their projects and members are imported per-organization (so multi-organization accounts are fully covered).
-
-Feature flags are **not** indexed as objects (a project can have hundreds); they are available as a data stream scoped to a project instead.
+All organizations your API key can access are imported, and their projects, members and feature flags are imported per-organization / per-project (so multi-organization accounts are fully covered).
 
 ## Known limitations
 
