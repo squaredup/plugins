@@ -476,20 +476,14 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" }
 
 // Custom script — access response (.status, .body) and data
-"errorHandling": { "type": "script", "script": "result = response.status + ': ' + data.error;" }
-```
-
-### Script files over inline scripts
-
-For anything beyond a trivial one-liner, don't inline the script in the JSON — reference a file, the same mechanism [`postRequestScript`](#post-request-scripts) uses. Place the file in `dataStreams/scripts/errorHandling/`, named after the stream's `name` field, and set `script` to its path relative to `dataStreams/scripts/` — **the `.js` extension is required** (a bare `.js` path with no newline is what marks the value as a file reference; deploy inlines the file's source, and an unresolvable reference is a validation error).
-
-Stream JSON (`dataStreams/incidents.json`):
-
-```json
 "errorHandling": { "type": "script", "script": "errorHandling/incidents.js" }
 ```
 
-Script file (`dataStreams/scripts/errorHandling/incidents.js`) — multi-line source, and `{{ ... }}` expressions work exactly as they do inline:
+### Script files
+
+Reference the script as a file — the same mechanism [`postRequestScript`](#post-request-scripts) uses. Place the file in `dataStreams/scripts/errorHandling/`, named after the stream's `name` field, and set `script` to its path relative to `dataStreams/scripts/` — **the `.js` extension is required** (a bare `.js` path with no newline is what marks the value as a file reference; deploy inlines the file's source, and an unresolvable reference is a validation error).
+
+Script file (`dataStreams/scripts/errorHandling/incidents.js`) — `{{ ... }}` expressions work in script files too:
 
 ```javascript
 const apiMsg = data && (data.message || data.error);
