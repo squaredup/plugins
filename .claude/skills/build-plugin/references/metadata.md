@@ -4,6 +4,7 @@
 
 - [metadata.json template and field notes](#metadatajson)
 - [Auth patterns](#auth-patterns)
+- [Pre-request scripts (custom auth flows)](#pre-request-scripts-custom-auth-flows)
 
 ---
 
@@ -193,3 +194,69 @@ Set exactly one of `jwtSecret` (HMAC algorithms) or `jwtPrivateKey` — a PEM-en
 ```
 
 `jwtPayload` and `jwtHeaders` are plain JSON objects; any string value can itself be a `{{ ... }}` expression, evaluated fresh on every request — this is how `iat`/`exp` stay current without any extra logic.
+
+---
+
+## Pre-request scripts (custom auth flows)
+
+> Requires WebAPI base plugin **1.8.0+**.
+
+Some APIs have an auth flow no `authMode` above can express — exchanging a long-lived credential for a short-lived access token via an auth endpoint, or signing each request (HMAC canonical-request signatures). For these, set a **pre-request script** in `base.config`: JavaScript that runs immediately before **every** HTTP request the plugin makes (all data streams, including import streams) and can rewrite the request's `url`, `headers`, and `body`.
+
+Exhaust the auth patterns above first — a pre-request script that only sets a static header is just a `headers` entry, and token refresh for OAuth2/JWT Bearer is already automatic.
+
+### Wiring
+
+In `base.config`:
+
+```json
+"scriptingVariables": [
+    { "key": "signedJwt", "value": "{{signedJwt}}" }
+],
+"preRequestScript": "preRequest/my-plugin.js"
+```
+
+- `scriptingVariables` — key/value secrets the script reads as `secrets.<key>`. Values support `{{fieldName}}` expressions referencing `ui.json` fields, same as `headers`. Values are encrypted at rest.
+- `preRequestScript` — a file reference relative to `dataStreams/scripts/`: put the script at `dataStreams/scripts/preRequest/my-plugin.js` (named after the plugin, `.js` extension required); it's inlined into the config at deploy time.
+- `scriptState` — never set this: it's a reserved config property where the platform persists the script's `state`, encrypted.
+
+### Script scope
+
+The script body runs inside an async function — top-level `await` works. `fetch` and `crypto.subtle` are available (for auth calls and HMAC/SHA signing).
+
+| Variable  | Mutable | Notes                                                                                                                                                                                 |
+| --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`     | Yes     | [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) instance of the full endpoint address about to be called                                                                  |
+| `method`  | No      | `"get"` or `"post"`                                                                                                                                                                     |
+| `headers` | Yes     | POJO of request headers — the usual thing a script mutates                                                                                                                              |
+| `body`    | Yes     | Request body (POST only)                                                                                                                                                                |
+| `state`   | Yes     | POJO persisted (encrypted) between requests — cache tokens here with an expiry. It can disappear at any time, so always re-derive when missing or expired, never assume it's populated |
+| `secrets` | No      | Values from `scriptingVariables`, by key                                                                                                                                                |
+| `api`     | No      | `api.report.warning(text)` / `api.report.error(text)`                                                                                                                                   |
+| `context` | No      | `dataSources[0]` (the plugin config, incl. `baseUrl`), `objects`, `timeframe`, `config` (the calling stream's config), `pagingContext`                                                  |
+
+### Example: token exchange with cached state
+
+The user supplies a pre-signed JWT (a `ui.json` field mapped via `scriptingVariables`); the script exchanges it for a short-lived access token and caches it in `state` until expiry:
+
+```javascript
+// dataStreams/scripts/preRequest/my-plugin.js
+const now = Date.now();
+if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= now) {
+    const authUrl = `${context.dataSources[0].baseUrl.replace(/\/*$/, "")}/api/auth/authenticate`;
+    const resp = await fetch(authUrl, {
+        method: "post",
+        headers: { Accept: "application/json", Authorization: `Bearer ${secrets.signedJwt}` },
+    });
+    if (!resp.ok) {
+        api.report.error(`Failed to get token: ${resp.status} - ${resp.statusText}`);
+    }
+    const payload = await resp.json();
+    state = {
+        token: payload.tokens.access.token,
+        // refresh 1 minute early to be safe
+        expiryTime: now + payload.tokens.access.expirySeconds * 1000 - 60000,
+    };
+}
+headers["Authorization"] = `Bearer ${state.token}`;
+```
