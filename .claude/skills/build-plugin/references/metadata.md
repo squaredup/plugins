@@ -199,8 +199,6 @@ Set exactly one of `jwtSecret` (HMAC algorithms) or `jwtPrivateKey` — a PEM-en
 
 ## Pre-request scripts (custom auth flows)
 
-> Requires WebAPI base plugin **1.8.0+**.
-
 Some APIs have an auth flow no `authMode` above can express — exchanging a long-lived credential for a short-lived access token via an auth endpoint, or signing each request (HMAC canonical-request signatures). For these, set a **pre-request script** in `base.config`: JavaScript that runs immediately before **every** HTTP request the plugin makes (all data streams, including import streams) and can rewrite the request's `url`, `headers`, and `body`.
 
 Exhaust the auth patterns above first — a pre-request script that only sets a static header is just a `headers` entry, and token refresh for OAuth2/JWT Bearer is already automatic.
@@ -224,16 +222,16 @@ In `base.config`:
 
 The script body runs inside an async function — top-level `await` works. `fetch` and `crypto.subtle` are available (for auth calls and HMAC/SHA signing).
 
-| Variable  | Mutable | Notes                                                                                                                                                                                 |
+| Variable  | Mutable | Notes                                                                                                                                                                                  |
 | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`     | Yes     | [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) instance of the full endpoint address about to be called                                                                  |
-| `method`  | No      | `"get"` or `"post"`                                                                                                                                                                     |
-| `headers` | Yes     | POJO of request headers — the usual thing a script mutates                                                                                                                              |
-| `body`    | Yes     | Request body (POST only)                                                                                                                                                                |
+| `url`     | Yes     | [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) instance of the full endpoint address about to be called                                                                 |
+| `method`  | No      | `"get"` or `"post"`                                                                                                                                                                    |
+| `headers` | Yes     | POJO of request headers — the usual thing a script mutates                                                                                                                             |
+| `body`    | Yes     | Request body (POST only)                                                                                                                                                               |
 | `state`   | Yes     | POJO persisted (encrypted) between requests — cache tokens here with an expiry. It can disappear at any time, so always re-derive when missing or expired, never assume it's populated |
-| `secrets` | No      | Values from `scriptingVariables`, by key                                                                                                                                                |
-| `api`     | No      | `api.report.warning(text)` / `api.report.error(text)`                                                                                                                                   |
-| `context` | No      | `dataSources[0]` (the plugin config, incl. `baseUrl`), `objects`, `timeframe`, `config` (the calling stream's config), `pagingContext`                                                  |
+| `secrets` | No      | Values from `scriptingVariables`, by key                                                                                                                                               |
+| `api`     | No      | `api.report.warning(text)` / `api.report.error(text)`                                                                                                                                  |
+| `context` | No      | `dataSources[0]` (the plugin config, incl. `baseUrl`), `objects`, `timeframe`, `config` (the calling stream's config), `pagingContext`                                                 |
 
 ### Example: token exchange with cached state
 
@@ -246,10 +244,15 @@ if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= now) {
     const authUrl = `${context.dataSources[0].baseUrl.replace(/\/*$/, "")}/api/auth/authenticate`;
     const resp = await fetch(authUrl, {
         method: "post",
-        headers: { Accept: "application/json", Authorization: `Bearer ${secrets.signedJwt}` },
+        headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${secrets.signedJwt}`,
+        },
     });
     if (!resp.ok) {
-        api.report.error(`Failed to get token: ${resp.status} - ${resp.statusText}`);
+        api.report.error(
+            `Failed to get token: ${resp.status} - ${resp.statusText}`,
+        );
     }
     const payload = await resp.json();
     state = {
