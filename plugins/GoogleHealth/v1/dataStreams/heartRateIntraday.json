@@ -1,0 +1,33 @@
+{
+    "name": "heartRateIntraday",
+    "displayName": "Heart Rate (Intraday)",
+    "description": "Heart rate through the day aggregated into fixed time windows, with average, minimum and maximum beats per minute",
+    "tags": ["Heart Rate", "Health"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "users/me/dataTypes/heart-rate/dataPoints:rollUp",
+        "postBody": {
+            "range": {
+                "startTime": "{{new Date(timeframe.start).toISOString()}}",
+                "endTime": "{{new Date(timeframe.end).toISOString()}}"
+            },
+            "windowSize": "900s"
+        },
+        "paging": {
+            "mode": "token",
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "body", "path": "pageToken" }
+        },
+        "postRequestScript": "heartRateIntraday.js"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": ["date", { "format": "dd MMM HH:mm" }], "role": "timestamp" },
+        { "name": "avgBpm", "displayName": "Avg (bpm)", "shape": ["number", { "decimalPlaces": 0 }], "role": "value" },
+        { "name": "minBpm", "displayName": "Min (bpm)", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "maxBpm", "displayName": "Max (bpm)", "shape": ["number", { "decimalPlaces": 0 }] }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days"],
+    "defaultShaping": { "sort": { "by": [["time", "asc"]] } }
+}

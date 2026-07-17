@@ -1,0 +1,126 @@
+{
+    "name": "dailyHealthMetric",
+    "displayName": "Daily Health Metric",
+    "description": "Daily health summary values for a chosen metric such as resting heart rate, heart rate variability, respiratory rate or oxygen saturation",
+    "tags": [
+        "Heart Rate",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "users/me/dataTypes/{{metric}}/dataPoints",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "{{metric.replace(/-/g,'_')}}.date >= \"{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? timeframe.end : timeframe.start).toISOString().slice(0,10)}}\" AND {{metric.replace(/-/g,'_')}}.date < \"{{new Date(new Date(timeframe.end).getTime()+86400000).toISOString().slice(0,10)}}\""
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "370"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "nextPageToken"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "pageToken"
+            }
+        },
+        "postRequestScript": "dailyHealthMetric.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "daily-resting-heart-rate",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "daily-resting-heart-rate",
+                        "label": "Resting Heart Rate"
+                    },
+                    {
+                        "value": "daily-heart-rate-variability",
+                        "label": "Heart Rate Variability"
+                    },
+                    {
+                        "value": "daily-respiratory-rate",
+                        "label": "Respiratory Rate"
+                    },
+                    {
+                        "value": "daily-oxygen-saturation",
+                        "label": "Oxygen Saturation (SpO2)"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string",
+            "role": "unitLabel"
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear"
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "date",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}
