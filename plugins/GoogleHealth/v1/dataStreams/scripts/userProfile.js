@@ -33,7 +33,7 @@ result = [
         age: num(p.age),
         memberSince: memberSince,
         membershipYears: membershipYears,
-        walkingStrideCm: mmToCm(p.userConfiguredWalkingStrideLengthMm),
+        walkingStrideCm: mmToCm(p.userConfiguredWalkingStrideLengthMm ?? p.autoWalkingStrideLengthMm),
         runningStrideCm: mmToCm(p.userConfiguredRunningStrideLengthMm ?? p.autoRunningStrideLengthMm),
     },
 ];

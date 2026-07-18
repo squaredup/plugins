@@ -27,7 +27,7 @@ result = pts
             time: iv.startTime ? new Date(iv.startTime) : undefined,
             food: n.foodDisplayName || "Food",
             meal: titleCase(n.mealType),
-            calories: n.energy ? Math.round(N(n.energy.kcal)) : undefined,
+            calories: n.energy ? r1(N(n.energy.kcal)) : undefined,
             carbsG: r1(grams(n.totalCarbohydrate) ?? byNutrient.CARBOHYDRATES),
             fatG: r1(grams(n.totalFat)),
             proteinG: r1(byNutrient.PROTEIN),

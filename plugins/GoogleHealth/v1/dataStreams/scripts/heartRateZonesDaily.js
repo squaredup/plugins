@@ -5,7 +5,7 @@ const points = data?.rollupDataPoints || [];
 const durMin = (s) => {
     if (typeof s !== "string") return undefined;
     const n = Number(s.replace(/s$/, ""));
-    return Number.isFinite(n) ? Math.round(n / 60) : undefined;
+    return Number.isFinite(n) ? n / 60 : undefined;
 };
 
 result = points

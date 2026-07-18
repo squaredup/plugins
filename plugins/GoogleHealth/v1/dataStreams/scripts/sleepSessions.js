@@ -27,8 +27,10 @@ result = pts
         const awake = N(sum.minutesAwake);
         const inBed = N(sum.minutesInSleepPeriod);
 
-        // Per-stage minutes from stagesSummary.
+        // Per-stage minutes from stagesSummary. Sessions without stage data
+        // (hasStages false) leave the stage columns blank rather than zero.
         const stage = { DEEP: 0, REM: 0, LIGHT: 0, AWAKE: 0, ASLEEP: 0, RESTLESS: 0 };
+        const hasStages = (sum.stagesSummary || []).length > 0;
         for (const st of sum.stagesSummary || []) {
             const m = N(st.minutes);
             if (st.type in stage && m !== undefined) stage[st.type] += m;
@@ -46,10 +48,10 @@ result = pts
             sleepPct:
                 asleep === undefined ? undefined : Math.round((asleep / 60 / sleepGoal) * 100),
             efficiencyPct: efficiency,
-            deepMin: stage.DEEP || undefined,
-            remMin: stage.REM || undefined,
-            lightMin: stage.LIGHT || undefined,
-            awakeMin: awake ?? (stage.AWAKE || undefined),
+            deepMin: hasStages ? stage.DEEP : undefined,
+            remMin: hasStages ? stage.REM : undefined,
+            lightMin: hasStages ? stage.LIGHT : undefined,
+            awakeMin: awake ?? (hasStages ? stage.AWAKE : undefined),
             inBedMin: inBed,
             startTime: iv.startTime ? new Date(iv.startTime) : undefined,
             endTime: iv.endTime ? new Date(iv.endTime) : undefined,

@@ -110,10 +110,12 @@ if (
     goal !== undefined &&
     new Date(context.timeframe.end).getTime() - new Date(context.timeframe.start).getTime() <= 90000000
 ) {
-    const end = new Date(context.timeframe.end);
+    // Match the request's snapped day (the day containing timeframe.end - 1ms)
+    // so a window ending exactly at midnight doesn't attribute the zero to the next day.
+    const snapshotDay = new Date(new Date(context.timeframe.end).getTime() - 1);
     result = [
         {
-            date: new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate())),
+            date: new Date(Date.UTC(snapshotDay.getUTCFullYear(), snapshotDay.getUTCMonth(), snapshotDay.getUTCDate())),
             value: 0,
             unit: ({steps:"steps",distance:"km",floors:"floors","active-zone-minutes":"min","active-energy-burned":"kcal","hydration-log":"mL"})[metricName] || "",
             metric: metricName,
