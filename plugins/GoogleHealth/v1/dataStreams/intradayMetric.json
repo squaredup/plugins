@@ -12,8 +12,8 @@
         "endpointPath": "users/me/dataTypes/{{metric}}/dataPoints:rollUp",
         "postBody": {
             "range": {
-                "startTime": "{{new Date(timeframe.start).toISOString()}}",
-                "endTime": "{{new Date(timeframe.end).toISOString()}}"
+                "startTime": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(new Date(timeframe.end).getTime()-1).toISOString().slice(0,10) : timeframe.start).toISOString()}}",
+                "endTime": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(new Date(new Date(timeframe.end).getTime()-1).toISOString().slice(0,10)).getTime()+86400000 : timeframe.end).toISOString()}}"
             },
             "windowSize": "{{window || '3600s'}}"
         },
@@ -99,7 +99,7 @@
             "shape": [
                 "date",
                 {
-                    "format": "dd MMM HH:mm"
+                    "format": "HH:mm"
                 }
             ],
             "role": "timestamp"
@@ -145,13 +145,17 @@
             "valueExpression": "{{ $[\"pctOfGoal\"] === undefined || $[\"pctOfGoal\"] === null ? \"unknown\" : $[\"pctOfGoal\"] >= 100 ? \"success\" : $[\"pctOfGoal\"] >= 75 ? \"warning\" : \"error\" }}",
             "shape": "state",
             "visible": false
+        },
+        {
+            "name": "timeLabel",
+            "displayName": "Time",
+            "computed": true,
+            "valueExpression": "{{ new Date($[\"time\"]).toISOString().slice(11,16) }}",
+            "shape": "string",
+            "visible": false
         }
     ],
-    "timeframes": [
-        "last12hours",
-        "last24hours",
-        "last7days"
-    ],
+    "timeframes": true,
     "defaultShaping": {
         "sort": {
             "by": [
