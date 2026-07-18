@@ -17,6 +17,8 @@
 
 5. Select it and click **Enable**
 
+> **Note:** If you cannot see the Google Health API in the library, it can also be enabled by following the steps at <https://developers.google.com/health/setup>
+
 ## Creating OAuth 2.0 Credentials
 
 1. From the [Google Cloud Console](https://console.cloud.google.com/), navigate to **APIs & Services** > **Credentials**
