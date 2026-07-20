@@ -1,0 +1,34 @@
+{
+    "name": "scansForDataSource",
+    "displayName": "Scan Definitions",
+    "description": "Lists the scan definitions configured on a data source, with their last run date, sorted most-recent-first. Used to populate the Scan Name picker on the Scan History stream.",
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "visibility": { "type": "hidden" },
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "scan/datasources/{{object.rawId}}/scans",
+        "getArgs": [
+            { "key": "api-version", "value": "2023-09-01" }
+        ],
+        "pathToData": "value",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "nextLink" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Purview Data Source"] } },
+    "metadata": [
+        { "name": "name", "displayName": "Scan Name", "role": "value", "visible": false },
+        { "name": "lastRunResult.discoveryExecutionDetails.discoveryStartTime", "displayName": "Last Run Started", "shape": "date", "visible": false },
+        {
+            "name": "scanLabel",
+            "displayName": "Scan",
+            "role": "label",
+            "computed": true,
+            "valueExpression": "{{ $['lastRunResult.discoveryExecutionDetails.discoveryStartTime'] ? $['name'] + ' — ' + new Date($['lastRunResult.discoveryExecutionDetails.discoveryStartTime']).toISOString().slice(0, 10) : $['name'] + ' — never run' }}"
+        }
+    ],
+    "timeframes": false,
+    "defaultShaping": { "sort": { "by": [["lastRunResult.discoveryExecutionDetails.discoveryStartTime", "desc"]] } }
+}
