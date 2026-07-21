@@ -252,7 +252,7 @@ Write `indexDefinitions/default.json` and its import streams — these are coupl
 
 Skip this if the Phase 2 plan has no dependent steps — go straight to Checkpoint B.
 
-A dependent step's stream is scoped per-object (like a Phase 6 data stream), so it can't be tested until the objects its `scope.query` needs actually exist in the graph. Build one **dependency depth level at a time**:
+A dependent step's stream is scoped (like a Phase 6 data stream), so it can't be tested until the objects its `scope.query` needs actually exist in the graph. Build one **dependency depth level at a time**:
 
 1. Write that level's step(s) and stream(s) in `indexDefinitions/default.json`.
 2. Test each using the same **scoped** procedure [test-agent.md](references/test-agent.md) already uses in Phase 6 (`squaredup objects` to find a real object of the depended-on type, then `squaredup test <stream> --object <id>`) — those objects come from the level below, already landed by its own Checkpoint B run.
