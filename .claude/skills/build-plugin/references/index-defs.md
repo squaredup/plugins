@@ -30,6 +30,22 @@ Defines what gets imported into the SquaredUp graph.
                     { "deviceType": "dbusServiceType" }
                 ]
             }
+        },
+        {
+            "name": "deviceAlerts",
+            "dataStream": { "name": "deviceAlerts" },
+            "scope": {
+                "query": "g.V().has(\"sourceType\", \"Router\")"
+            },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "uid",
+                "name": "message",
+                "type": { "value": "Device Alert" },
+                "properties": ["severity", "raisedAt", "deviceId"]
+            },
+            "optional": true,
+            "dependsOn": ["devices"]
         }
     ]
 }
@@ -48,6 +64,18 @@ Defines what gets imported into the SquaredUp graph.
 - `frequencyMinutes` — controls re-import interval. Defaults to `720` (12 hours).
 
 The stream called by an import step must return one flat row per object with at least `sourceId`, `name` that are unique.
+
+---
+
+## Scoped, dependent steps
+
+A step can be scoped to objects a *previous* step already imported, instead of calling a global list endpoint. Use this when an object type is only listable in the context of a parent (the API has "list alerts for device X", not "list all alerts") — the `deviceAlerts` step above is one:
+
+- **`scope.query`** — a gremlin query run against the tenant's graph. It selects which already-imported objects this step's `dataStream` runs against. The stream must be a scoped stream (like a Phase 6 data stream, not the unscoped kind root steps use) whose `matches` covers the same `sourceType` the query selects — use `httpRequestScopedSingle` when the API takes one parent at a time (one request per matched object), or `httpRequestScoped` to receive all matched objects in one call via `{{objects}}`; see [data-streams.md](data-streams.md). The value you filter on must be a `sourceType` the dependency actually produces — a fixed `{ "value": ... }` type, or one of the values a dynamic type column resolves to (here, one of the values the `devices` step's `deviceType` type column can return).
+- **`dependsOn`** — names of steps that must finish (succeed or warn) before this one runs, so the objects `scope.query` needs already exist. Omit it (or leave it `[]`) for a root step, which runs immediately. It can list more than one step, and chains can be more than one level deep (`c` depends on `b`, which depends on `a`) — ordering across the whole graph is resolved automatically, so just name whichever step(s) must land first. Names must match real steps and can't form a cycle — both are rejected at deploy time.
+- **`optional`** — when `true`, a failed step is recorded as a `warning` instead of a hard failure, which still counts as a green light for anything depending on it. Set it on a dependent step whose data isn't essential to a successful import, so one failing sub-resource doesn't cancel every step after it.
+
+Building and testing a dependent step needs objects from its dependency to already be in the graph — see SKILL.md Phase 5 for the build/test order.
 
 ---
 
