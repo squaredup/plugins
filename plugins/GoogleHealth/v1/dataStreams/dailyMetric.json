@@ -1,0 +1,151 @@
+{
+    "name": "dailyMetric",
+    "displayName": "Daily Metric",
+    "description": "Daily total for a chosen activity metric such as steps, distance, floors, active zone minutes, active calories or hydration",
+    "tags": [
+        "Activity",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "users/me/dataTypes/{{metric}}/dataPoints:dailyRollUp",
+        "postBody": {
+            "range": {
+                "start": {
+                    "date": {
+                        "year": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCFullYear()}}",
+                        "month": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCMonth()+1}}",
+                        "day": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCDate()}}"
+                    }
+                },
+                "end": {
+                    "date": {
+                        "year": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCFullYear()}}",
+                        "month": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCMonth()+1}}",
+                        "day": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCDate()}}"
+                    }
+                }
+            },
+            "windowSizeDays": 1
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "dailyMetric.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "steps",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "steps",
+                        "label": "Steps"
+                    },
+                    {
+                        "value": "distance",
+                        "label": "Distance (km)"
+                    },
+                    {
+                        "value": "floors",
+                        "label": "Floors"
+                    },
+                    {
+                        "value": "active-zone-minutes",
+                        "label": "Active Zone Minutes"
+                    },
+                    {
+                        "value": "active-energy-burned",
+                        "label": "Active Calories"
+                    },
+                    {
+                        "value": "hydration-log",
+                        "label": "Hydration"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string",
+            "role": "unitLabel"
+        },
+        {
+            "name": "goal",
+            "displayName": "Goal",
+            "shape": "number"
+        },
+        {
+            "name": "pctOfGoal",
+            "displayName": "% of Goal",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "status",
+            "displayName": "Goal Status",
+            "computed": true,
+            "valueExpression": "{{ $[\"pctOfGoal\"] === undefined || $[\"pctOfGoal\"] === null ? \"unknown\" : $[\"pctOfGoal\"] >= 100 ? \"success\" : $[\"pctOfGoal\"] >= 75 ? \"warning\" : \"error\" }}",
+            "shape": "state"
+        },
+        {
+            "name": "goalBand",
+            "displayName": "Goal Progress",
+            "computed": true,
+            "valueExpression": "{{ $[\"pctOfGoal\"] === undefined || $[\"pctOfGoal\"] === null ? \"No goal\" : $[\"pctOfGoal\"] >= 100 ? \"Goal met\" : $[\"pctOfGoal\"] >= 75 ? \"Near goal\" : \"Below goal\" }}",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "date",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}

@@ -1,0 +1,88 @@
+{
+    "name": "macroBreakdown",
+    "displayName": "Macro Breakdown",
+    "description": "Total grams and calorie contribution of each macronutrient (carbohydrate, fat, protein) across the selected period",
+    "tags": [
+        "Nutrition",
+        "Diet"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "users/me/dataTypes/nutrition-log/dataPoints:dailyRollUp",
+        "postBody": {
+            "range": {
+                "start": {
+                    "date": {
+                        "year": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCFullYear()}}",
+                        "month": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCMonth()+1}}",
+                        "day": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCDate()}}"
+                    }
+                },
+                "end": {
+                    "date": {
+                        "year": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCFullYear()}}",
+                        "month": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCMonth()+1}}",
+                        "day": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCDate()}}"
+                    }
+                }
+            },
+            "windowSizeDays": 1
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "macroBreakdown.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "macro",
+            "displayName": "Macronutrient",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "grams",
+            "displayName": "Total (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "calories",
+            "displayName": "Calories",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "percent",
+            "displayName": "% of Calories",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "calories",
+                    "desc"
+                ]
+            ]
+        }
+    }
+}

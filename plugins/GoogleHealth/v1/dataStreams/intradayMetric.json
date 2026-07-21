@@ -1,0 +1,169 @@
+{
+    "name": "intradayMetric",
+    "displayName": "Intraday Metric",
+    "description": "A chosen metric such as steps, distance, calories or heart rate aggregated into intraday time windows across the selected period",
+    "tags": [
+        "Activity",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "users/me/dataTypes/{{metric}}/dataPoints:rollUp",
+        "postBody": {
+            "range": {
+                "startTime": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(new Date(timeframe.end).getTime()-1).toISOString().slice(0,10) : timeframe.start).toISOString()}}",
+                "endTime": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(new Date(new Date(timeframe.end).getTime()-1).toISOString().slice(0,10)).getTime()+86400000 : timeframe.end).toISOString()}}"
+            },
+            "windowSize": "{{window || '3600s'}}"
+        },
+        "paging": {
+            "mode": "token",
+            "in": {
+                "realm": "payload",
+                "path": "nextPageToken"
+            },
+            "out": {
+                "realm": "body",
+                "path": "pageToken"
+            }
+        },
+        "postRequestScript": "intradayMetric.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "steps",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "steps",
+                        "label": "Steps"
+                    },
+                    {
+                        "value": "distance",
+                        "label": "Distance"
+                    },
+                    {
+                        "value": "active-energy-burned",
+                        "label": "Active Calories"
+                    },
+                    {
+                        "value": "floors",
+                        "label": "Floors"
+                    },
+                    {
+                        "value": "active-zone-minutes",
+                        "label": "Active Zone Minutes"
+                    },
+                    {
+                        "value": "heart-rate",
+                        "label": "Heart Rate"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "window",
+            "label": "Interval",
+            "options": [
+                {
+                    "value": "900s",
+                    "label": "15 min"
+                },
+                {
+                    "value": "1800s",
+                    "label": "30 min"
+                },
+                {
+                    "value": "3600s",
+                    "label": "1 hour"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "time",
+            "displayName": "Time",
+            "shape": [
+                "date",
+                {
+                    "format": "HH:mm"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string",
+            "role": "unitLabel"
+        },
+        {
+            "name": "goal",
+            "displayName": "Goal",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "pctOfGoal",
+            "displayName": "% of Goal",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "status",
+            "displayName": "Goal Status",
+            "computed": true,
+            "valueExpression": "{{ $[\"pctOfGoal\"] === undefined || $[\"pctOfGoal\"] === null ? \"unknown\" : $[\"pctOfGoal\"] >= 100 ? \"success\" : $[\"pctOfGoal\"] >= 75 ? \"warning\" : \"error\" }}",
+            "shape": "state",
+            "visible": false
+        },
+        {
+            "name": "timeLabel",
+            "displayName": "Time",
+            "computed": true,
+            "valueExpression": "{{ new Date($[\"time\"]).toISOString().slice(11,16) }}",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "time",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}

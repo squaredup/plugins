@@ -1,0 +1,146 @@
+{
+    "name": "foodLog",
+    "displayName": "Food Log",
+    "description": "Individual logged food entries with meal type, calories and macronutrient breakdown per item",
+    "tags": [
+        "Nutrition",
+        "Diet"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "users/me/dataTypes/nutrition-log/dataPoints",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "nutrition_log.interval.civil_start_time >= \"{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).toISOString().slice(0,10)}}\" AND nutrition_log.interval.civil_start_time < \"{{new Date(new Date(timeframe.end).getTime()+86399999).toISOString().slice(0,10)}}\""
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "200"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "nextPageToken"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "pageToken"
+            }
+        },
+        "postRequestScript": "foodLog.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "time",
+            "displayName": "Logged",
+            "shape": [
+                "date",
+                {
+                    "format": "dd MMM HH:mm"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "food",
+            "displayName": "Food",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "meal",
+            "displayName": "Meal",
+            "shape": "string"
+        },
+        {
+            "name": "calories",
+            "displayName": "Calories",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "carbsG",
+            "displayName": "Carbs (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "fatG",
+            "displayName": "Fat (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "proteinG",
+            "displayName": "Protein (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "sugarG",
+            "displayName": "Sugar (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "fibreG",
+            "displayName": "Fibre (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "mealOrder",
+            "displayName": "Meal Order",
+            "computed": true,
+            "valueExpression": "{{ ({ 'Anytime': 1, 'Before Breakfast': 2, 'Breakfast': 3, 'Before Lunch': 4, 'Lunch': 5, 'Before Dinner': 6, 'Dinner': 7, 'After Dinner': 8, 'Snack': 9 })[$['meal']] || 10 }}",
+            "shape": "number",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "mealOrder",
+                    "asc"
+                ],
+                [
+                    "time",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}
