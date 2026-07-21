@@ -1,0 +1,58 @@
+{
+    "name": "eventVolume",
+    "displayName": "Event Volume",
+    "description": "Event count over time for a project, optionally filtered to a single event name",
+    "tags": [
+        "Events",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT toStartOfHour(timestamp) AS time, count() AS events FROM events WHERE timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') {{event ? \"AND event = '\" + event.split(\"'\").join(\"''\") + \"'\" : ''}} GROUP BY time ORDER BY time"
+            }
+        },
+        "postRequestScript": "eventVolume.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "event",
+            "label": "Event name (optional)",
+            "help": "Filter to a specific event name, e.g. $pageview. Leave blank to count all events."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "time",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "events",
+            "displayName": "Events",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ]
+}

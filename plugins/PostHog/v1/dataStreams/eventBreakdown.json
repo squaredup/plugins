@@ -1,0 +1,55 @@
+{
+    "name": "eventBreakdown",
+    "displayName": "Event Breakdown",
+    "description": "Top events by count within the selected timeframe for a project",
+    "tags": [
+        "Events",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT event AS event_name, count() AS count FROM events WHERE timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY event ORDER BY count DESC LIMIT 25"
+            }
+        },
+        "postRequestScript": "eventBreakdown.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "event_name",
+            "displayName": "Event",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "count",
+            "displayName": "Count",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": true,
+    "defaultTimeframe": "dashboard",
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "count",
+                    "desc"
+                ]
+            ]
+        }
+    }
+}

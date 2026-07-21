@@ -1,0 +1,91 @@
+{
+    "name": "webBreakdown",
+    "displayName": "Web Breakdown",
+    "description": "Unique visitors and pageviews broken down by a chosen dimension for a project",
+    "tags": [
+        "Web Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT properties.{{dimension}} AS dimension, count(DISTINCT person_id) AS visitors, count() AS views FROM events WHERE event = '$pageview' AND timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY dimension ORDER BY visitors DESC LIMIT 50"
+            }
+        },
+        "postRequestScript": "webBreakdown.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "dimension",
+            "label": "Dimension",
+            "defaultValue": "$device_type",
+            "validation": {
+                "required": true
+            },
+            "options": [
+                {
+                    "value": "$device_type",
+                    "label": "Device type"
+                },
+                {
+                    "value": "$browser",
+                    "label": "Browser"
+                },
+                {
+                    "value": "$os",
+                    "label": "OS"
+                },
+                {
+                    "value": "$geoip_country_code",
+                    "label": "Country"
+                },
+                {
+                    "value": "$referring_domain",
+                    "label": "Referrer"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "dimension",
+            "displayName": "Dimension",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "visitors",
+            "displayName": "Visitors",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "views",
+            "displayName": "Views",
+            "shape": "number"
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "visitors",
+                    "desc"
+                ]
+            ]
+        }
+    }
+}

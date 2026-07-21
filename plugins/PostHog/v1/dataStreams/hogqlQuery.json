@@ -1,0 +1,51 @@
+{
+    "name": "hogqlQuery",
+    "displayName": "HogQL Query",
+    "description": "Result rows of an arbitrary user-supplied HogQL query run against a project",
+    "tags": [
+        "HogQL",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "{{query}}",
+                "filters": {
+                    "dateRange": {
+                        "date_from": "{{timeframe.start}}",
+                        "date_to": "{{timeframe.end}}"
+                    }
+                }
+            }
+        },
+        "postRequestScript": "hogqlQuery.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "manualConfigApply": true,
+    "ui": [
+        {
+            "type": "code",
+            "name": "query",
+            "label": "HogQL query",
+            "language": "sql",
+            "help": "A HogQL SELECT query. Optionally include the literal `{filters}` token where you want the tile's timeframe applied, e.g. `SELECT count() FROM events WHERE {filters}`."
+        }
+    ],
+    "metadata": [
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true
+}

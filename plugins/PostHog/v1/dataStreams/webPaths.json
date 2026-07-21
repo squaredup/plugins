@@ -1,0 +1,58 @@
+{
+    "name": "webPaths",
+    "displayName": "Web Paths",
+    "description": "Top pages by visitors and pageviews for a project",
+    "tags": [
+        "Web Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT properties.$pathname AS path, count(DISTINCT person_id) AS visitors, count() AS views FROM events WHERE event = '$pageview' AND timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY path ORDER BY views DESC LIMIT 100"
+            }
+        },
+        "postRequestScript": "webPaths.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "path",
+            "displayName": "Path",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "visitors",
+            "displayName": "Visitors",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "views",
+            "displayName": "Views",
+            "shape": "number"
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "views",
+                    "desc"
+                ]
+            ]
+        }
+    }
+}

@@ -1,0 +1,53 @@
+{
+    "name": "activeUsers",
+    "displayName": "Active Users",
+    "description": "Number of unique active users per day for a project",
+    "tags": [
+        "Users",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT toStartOfDay(timestamp) AS day, count(DISTINCT person_id) AS active_users FROM events WHERE timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY day ORDER BY day"
+            }
+        },
+        "postRequestScript": "activeUsers.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "day",
+            "displayName": "Day",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "active_users",
+            "displayName": "Active Users",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastQuarter",
+        "lastYear"
+    ]
+}
