@@ -1,19 +1,4 @@
-# Proxmox VE Plugin
-
 Monitor your Proxmox VE cluster from SquaredUp. This plugin imports nodes, virtual machines (QEMU/KVM), and LXC containers into the SquaredUp graph and provides dashboards for cluster health, resource utilisation, and per-object metrics.
-
-## What this plugin monitors
-
-**Imported objects:**
-- **Proxmox Node** — physical or virtual cluster member nodes
-- **Proxmox VM** — QEMU/KVM virtual machines
-- **Proxmox Container** — LXC containers
-
-**Out-of-the-box dashboards:**
-- **Overview** — cluster-wide resource summary, node health table, VM and container inventory
-- **Node perspective** — per-node CPU, memory, and network metrics
-- **VM perspective** — per-VM CPU, memory, network, and disk I/O metrics
-- **Container perspective** — per-container CPU, memory, network, and disk I/O metrics
 
 ## Prerequisites
 
@@ -36,6 +21,19 @@ Assign the `PVEAuditor` role to the token at the datacenter level:
 3. Check **Propagate**.
 
 **Note on self-signed certificates:** Proxmox uses a self-signed certificate by default. If your Proxmox host uses a self-signed or internal CA certificate, you may need to configure your SquaredUp agent to trust it, replace the certificate with one from a trusted CA, or enable the **Ignore certificate errors** option below.
+
+## What this plugin monitors
+
+**Imported objects:**
+- **Proxmox Node** — physical or virtual cluster member nodes
+- **Proxmox VM** — QEMU/KVM virtual machines
+- **Proxmox Container** — LXC containers
+
+**Out-of-the-box dashboards:**
+- **Overview** — cluster-wide resource summary, node health table, VM and container inventory
+- **Node perspective** — per-node CPU, memory, and network metrics
+- **VM perspective** — per-VM CPU, memory, network, and disk I/O metrics
+- **Container perspective** — per-container CPU, memory, network, and disk I/O metrics
 
 ## Configuration fields
 
