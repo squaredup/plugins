@@ -188,6 +188,8 @@ my-plugin/
       myStream.json
       scripts/
         myScript.js
+        errorHandling/
+          myStream.js          # errorHandling scripts referenced by path, like postRequestScript
     defaultContent/
       manifest.json
       scopes.json
