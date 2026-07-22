@@ -57,3 +57,4 @@ Add each ID as a chip in the configuration fields below (type the ID and press E
 - **A player may not play every game** — per-game statistics are blank for games a tracked player has never played.
 - **World of Warplanes is semi-deprecated** — Wargaming flags the Warplanes API as deprecated; it still works but has less data and may change.
 - **Rate limits** — the Wargaming API enforces per-application rate limits (typically 10 requests/second, 20 with a mobile app type). Encyclopedia imports (especially World of Warships, fetched page by page) are the heaviest calls; large lists of tracked players/clans may approach these limits.
+- **Additional games**  — the plugin ignores Blitz and Modern Armour. I don't play either of these games so don't have any data to work with.
