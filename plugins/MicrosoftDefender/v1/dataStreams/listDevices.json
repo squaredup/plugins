@@ -13,12 +13,15 @@
     "expandInnerObjects": true,
     "endpointPath": "runHuntingQuery",
     "postBody": {
-      "Query": "DeviceInfo | where isnotempty(DeviceName) | project Timestamp, DeviceId, DeviceName | summarize arg_max(Timestamp, *) by DeviceId"
+      "Query": "DeviceInfo | where isnotempty(DeviceName) and hash(DeviceId, 4) == {{shardIndex}} | project Timestamp, DeviceId, DeviceName | summarize arg_max(Timestamp, *) by DeviceId"
     },
     "pathToData": "results",
     "getArgs": [],
     "headers": []
   },
+  "ui": [
+    { "name": "shardIndex", "label": "Shard Index", "type": "text", "defaultValue": "0" }
+  ],
   "providesPluginDiagnostics": true,
   "manualConfigApply": true,
   "timeframes": false,
