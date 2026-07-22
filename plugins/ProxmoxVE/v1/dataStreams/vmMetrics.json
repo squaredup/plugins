@@ -1,0 +1,34 @@
+{
+    "name": "vmMetrics",
+    "displayName": "VM Metrics",
+    "description": "Historical CPU, memory, and network metrics for a QEMU/KVM virtual machine",
+    "tags": ["VM", "Metrics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/nodes/{{object.node}}/qemu/{{object.rawId}}/rrddata",
+        "getArgs": [
+            {
+                "key": "timeframe",
+                "value": "{{timeframe.enum === 'last1hour' ? 'hour' : timeframe.enum === 'last7days' ? 'week' : timeframe.enum === 'last30days' ? 'month' : 'day'}}"
+            },
+            {
+                "key": "cf",
+                "value": "AVERAGE"
+            }
+        ],
+        "pathToData": "data"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Proxmox VM"] } },
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "timestamp", "role": "timestamp" },
+        { "name": "cpu", "displayName": "CPU Usage", "shape": ["percent", { "asZeroToOne": true }], "role": "value" },
+        { "name": "mem", "displayName": "Memory Used", "shape": "bytes" },
+        { "name": "maxmem", "displayName": "Memory Total", "shape": "bytes" },
+        { "name": "netin", "displayName": "Network In", "shape": "bytespersecondbinary" },
+        { "name": "netout", "displayName": "Network Out", "shape": "bytespersecondbinary" },
+        { "name": "diskread", "displayName": "Disk Read", "shape": "bytespersecondbinary" },
+        { "name": "diskwrite", "displayName": "Disk Write", "shape": "bytespersecondbinary" }
+    ],
+    "timeframes": ["last1hour", "last24hours", "last7days", "last30days"]
+}
