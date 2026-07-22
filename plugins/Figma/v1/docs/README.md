@@ -1,15 +1,16 @@
 # Figma
 
-Bring your Figma team into SquaredUp. This plugin indexes the projects, files, components and styles in a Figma team, and lets you dashboard file summaries, version history and comments.
+Bring your Figma team into SquaredUp. This plugin indexes the projects, components and styles in a Figma team, and lets you dashboard file summaries, version history and comments.
 
 ## What gets indexed
 
 | Object type | Represents |
 | --- | --- |
 | `Figma Project` | A project within the configured Figma team |
-| `Figma File` | A design file within a project |
 | `Figma Component` | A published component in the team's library |
 | `Figma Style` | A published style (fill, text, effect or grid) in the team's library |
+
+Figma files are **not** an indexed object type — Figma's API has no team-wide "list all files" endpoint, only a per-project one, which isn't compatible with how this plugin imports objects. File data (summary, thumbnail, last edited, version history, comments) is still available: as a table on each Project's dashboard, and via a manual project/file picker on the "File Explorer" dashboard and its underlying data streams.
 
 ## Prerequisites
 
