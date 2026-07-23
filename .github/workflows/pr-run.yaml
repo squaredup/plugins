@@ -2,6 +2,16 @@ name: Validate & Deploy Plugins
 
 on:
   pull_request_target:
+  # Lets you run this workflow directly against any branch — pull_request_target always
+  # resolves the workflow file from the PR's base ref, so a PR can never exercise changes
+  # made to this file on its own branch. Test with:
+  #   gh workflow run "Validate & Deploy Plugins" --ref <your-branch>
+  #
+  # Only ever dispatch against a real branch of this repo. Unlike pull_request_target,
+  # workflow_dispatch runs whatever copy of this file lives on the ref you pick — so
+  # dispatching against a PR/fork ref (e.g. refs/pull/89/head) would run that PR's own
+  # version of this workflow, with the real secret in scope.
+  workflow_dispatch:
 
 jobs:
   validate-and-deploy:
@@ -11,7 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          # workflow_dispatch has no pull_request payload — fall back to the dispatched ref.
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - name: Detect modified plugins
@@ -152,7 +163,8 @@ jobs:
           cat $OUT >> $GITHUB_STEP_SUMMARY
 
       - name: Post PR comment
-        if: always()
+        # No PR/issue to comment on for a manual workflow_dispatch run.
+        if: always() && github.event_name == 'pull_request_target'
         uses: actions/github-script@v7
         with:
           script: |
