@@ -1,0 +1,68 @@
+[
+    {
+        "type": "text",
+        "name": "baseUrl",
+        "label": "Tracking Server URL",
+        "placeholder": "https://my-mlflow-server.example.com",
+        "help": "The base URL of your MLflow Tracking Server (self-hosted) or Databricks workspace URL (e.g. `https://adb-1234567890.1.azuredatabricks.net`). Do not include `/api` or a trailing slash — the plugin appends the API path itself.",
+        "validation": { "required": true }
+    },
+    {
+        "type": "radio",
+        "name": "authType",
+        "label": "Authentication",
+        "defaultValue": "none",
+        "help": "**No authentication:** for self-hosted MLflow servers with no auth configured.  \n**Basic auth:** for self-hosted MLflow servers with [MLflow Authentication](https://mlflow.org/docs/latest/auth/index.html) enabled.  \n**Bearer token:** for Databricks-hosted MLflow (a personal access token or OAuth token) or any self-hosted server that authenticates via a bearer token.",
+        "validation": { "required": true },
+        "options": [
+            { "value": "none", "label": "No authentication" },
+            { "value": "basic", "label": "Basic auth (username/password)" },
+            { "value": "bearer", "label": "Bearer token" }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": { "authType": "basic" },
+        "fields": [
+            {
+                "type": "text",
+                "name": "username",
+                "label": "Username",
+                "validation": { "required": true }
+            },
+            {
+                "type": "password",
+                "name": "password",
+                "label": "Password",
+                "validation": { "required": true }
+            }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": { "authType": "bearer" },
+        "fields": [
+            {
+                "type": "password",
+                "name": "token",
+                "label": "Bearer Token",
+                "help": "A Databricks personal access token, Databricks OAuth token, or any bearer token your MLflow server accepts.",
+                "validation": { "required": true }
+            }
+        ]
+    },
+    {
+        "type": "textarea",
+        "name": "experimentIds",
+        "label": "Experiment IDs to track runs for (optional)",
+        "placeholder": "1, 2, 3",
+        "rows": 2,
+        "help": "Comma or newline separated list of MLflow experiment IDs to import runs for. MLflow's run search API requires specific experiment IDs — there is no \"all runs\" endpoint. Leave blank to import runs from the Default experiment (ID `0`) only. Experiment IDs are visible once experiments have been imported (see the Experiments object type)."
+    },
+    {
+        "type": "checkbox",
+        "name": "ignoreCertificateErrors",
+        "label": "Ignore certificate errors",
+        "help": "Enable when connecting to a self-hosted MLflow server with a self-signed certificate."
+    }
+]

@@ -1,0 +1,75 @@
+{
+    "name": "runMetricHistory",
+    "displayName": "Run Metric History",
+    "description": "MLflow metric values logged across every step for a run",
+    "tags": ["MLOps", "Runs", "Metrics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/2.0/mlflow/metrics/get-history",
+        "getArgs": [
+            { "key": "run_id", "value": "{{object.rawId}}" },
+            { "key": "metric_key", "value": "{{metricKey}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "max_results", "value": "1000" },
+            "in": { "realm": "payload", "path": "next_page_token" },
+            "out": { "realm": "queryArg", "path": "page_token" }
+        },
+        "postRequestScript": "runMetricHistory.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["MLflow Run"] } },
+    "ui": [
+        {
+            "name": "metricKey",
+            "label": "Metric Key",
+            "help": "The exact metric key as logged in MLflow, e.g. \"accuracy\", \"loss\" — must match what was logged for the run",
+            "defaultValue": "accuracy",
+            "placeholder": "accuracy",
+            "title": "Metric Key",
+            "type": "text",
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "key",
+            "displayName": "Metric Key",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "step",
+            "displayName": "Step",
+            "shape": ["number", { "decimalPlaces": 0 }]
+        },
+        {
+            "name": "runId",
+            "displayName": "Run ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "runName",
+            "displayName": "Run",
+            "shape": "string",
+            "role": "label"
+        }
+    ],
+    "timeframes": false
+}

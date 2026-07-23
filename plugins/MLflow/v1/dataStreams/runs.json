@@ -1,0 +1,107 @@
+{
+    "name": "runs",
+    "displayName": "Runs",
+    "description": "MLflow runs, one row per run, scoped to the configured experiment IDs",
+    "tags": ["MLOps", "Runs"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "/api/2.0/mlflow/runs/search",
+        "expandInnerObjects": true,
+        "postBody": {
+            "experiment_ids": "{{ (dataSource.experimentIds && dataSource.experimentIds.trim()) ? dataSource.experimentIds.split(new RegExp('[,' + String.fromCharCode(10) + ']+')).map(s => s.trim()).filter(Boolean) : ['0'] }}",
+            "max_results": 1000
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "body", "path": "max_results", "value": "1000" },
+            "in": { "realm": "payload", "path": "next_page_token" },
+            "out": { "realm": "body", "path": "page_token" }
+        },
+        "postRequestScript": "runs.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "experiment",
+            "label": "Experiment (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["MLflow Experiment"] }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "info.run_id",
+            "displayName": "Run ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "info.experiment_id",
+            "displayName": "Experiment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "info.run_name",
+            "displayName": "Run Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "info.status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["FINISHED"],
+                        "error": ["FAILED", "KILLED"],
+                        "unknown": ["RUNNING", "SCHEDULED"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "info.start_time",
+            "displayName": "Start Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "info.end_time",
+            "displayName": "End Time",
+            "shape": "date"
+        },
+        {
+            "name": "duration_ms",
+            "displayName": "Duration",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "info.user_id",
+            "displayName": "User",
+            "shape": "string"
+        },
+        {
+            "name": "data.params",
+            "displayName": "Parameters",
+            "shape": "json"
+        },
+        {
+            "name": "data.metrics",
+            "displayName": "Metrics",
+            "shape": "json"
+        },
+        {
+            "name": "data.tags",
+            "displayName": "Tags",
+            "shape": "json"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}
