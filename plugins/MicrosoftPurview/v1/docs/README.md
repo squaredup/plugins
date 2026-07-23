@@ -8,10 +8,13 @@ This plugin connects SquaredUp to Microsoft Purview and surfaces data governance
 - Provides data streams for:
     - Assets — searchable per collection, with breakdowns by entity type and classification
     - Classification coverage — what proportion of assets carry each classification
+    - Classifications — custom and built-in classifications applied to assets
     - Scan status and run history — per data source, per scan, and global recent runs
     - Policy coverage — metadata policies attached to collections
     - Lineage — upstream and downstream lineage for a given asset
-- Ships with out-of-the-box dashboards: an overall **Overview** plus per-object **Collection**, **Data Source**, and **Scan** perspectives.
+    - Governance domains — domains defined in the Unified Catalog
+    - Glossary terms — terms defined within a governance domain
+- Ships with an out-of-the-box **Overview** dashboard.
 
 ## Prerequisites
 
@@ -37,6 +40,17 @@ Purview uses **collection-level role assignments**, not Microsoft Graph API perm
 
 Role assignments at the root collection are inherited by all child collections.
 
+### 3. Grant access to the Unified Catalog (governance domains and glossary terms)
+
+The **Governance Domains** and **Glossary Terms** streams use the Purview Unified Catalog API, which has its own permission model separate from Data Map collection roles.
+
+1. Open the **Microsoft Purview portal** and go to **Unified Catalog → Catalog Management → Governance Domains**.
+2. Select the governance domain you want to expose.
+3. Go to the **Roles** tab.
+4. Add the app registration to the **Data Catalog Reader** role.
+
+Repeat for each governance domain you want to surface. Without this role, the Governance Domains and Glossary Terms streams will return an "Unauthorized" error even if all Data Map roles are correctly assigned.
+
 ## Configuration fields
 
 | Field                       | What it is                                                                                                                          | Where to find it                                                                                                          | Required |
@@ -53,6 +67,7 @@ Role assignments at the root collection are inherited by all child collections.
 | **Purview Collection** | An organisational unit in your Purview account. The root collection is named after the account itself.    |
 | **Purview Data Source** | A registered data source — e.g. an Azure SQL database, ADLS Gen2 account, Snowflake instance, Amazon S3 bucket. |
 | **Purview Scan**       | A configured scan attached to a data source.                                                              |
+| **Purview Governance Domain** | A governance domain defined in the Unified Catalog. Requires the Data Catalog Reader role — see step 3 above. |
 
 Assets (tables, files, columns) are **not** indexed because a single Purview account can hold millions of them. They are queried on-demand by the data streams instead.
 
