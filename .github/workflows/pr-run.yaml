@@ -1,10 +1,21 @@
 name: Validate & Deploy Plugins
 
 on:
+  # TEMPORARY, remove in a follow-up PR once this is merged: validate-and-deploy is a
+  # required status check, and a required check can never be satisfied by a PR that
+  # removes its own only trigger — pull_request_target (see below) always resolves from
+  # main, which doesn't have it yet, so it can't fire for *this* PR either. Keeping
+  # pull_request alive here just long enough for this PR to report its own required
+  # check; once merged, main has pull_request_target and every future PR is covered by
+  # it, so pull_request can come out again.
+  pull_request:
+  # GitHub always resolves the workflow file (and GITHUB_REF/GITHUB_SHA) for
+  # pull_request_target from the repo's actual default branch, never the PR's own
+  # branch — so a PR editing this file (fork or not) can't change what runs against it.
   pull_request_target:
-  # Lets you run this workflow directly against any branch — pull_request_target always
-  # resolves the workflow file from the PR's base ref, so a PR can never exercise changes
-  # made to this file on its own branch. Test with:
+  # Lets you run this workflow directly against any branch — since pull_request_target
+  # always runs main's copy, a PR can't exercise changes made to this file on its own
+  # branch any other way. Test with:
   #   gh workflow run "Validate & Deploy Plugins" --ref <your-branch>
   #
   # Only ever dispatch against a real branch of this repo. Unlike pull_request_target,
@@ -22,7 +33,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           # workflow_dispatch has no pull_request payload — fall back to the dispatched ref.
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - name: Detect modified plugins
@@ -164,7 +175,7 @@ jobs:
 
       - name: Post PR comment
         # No PR/issue to comment on for a manual workflow_dispatch run.
-        if: always() && github.event_name == 'pull_request_target'
+        if: always() && github.event_name != 'workflow_dispatch'
         uses: actions/github-script@v7
         with:
           script: |
