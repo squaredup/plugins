@@ -1,6 +1,6 @@
+const assets = data?.value || [];
 const total = Number(data?.['@search.count']) || 0;
-const facets = data?.['@search.facets']?.classification || [];
-const classified = facets.reduce((sum, f) => sum + (Number(f.count) || 0), 0);
+const classified = assets.filter(a => (a.classification?.length ?? 0) > 0).length;
 const unclassified = Math.max(0, total - classified);
 
 result = [
