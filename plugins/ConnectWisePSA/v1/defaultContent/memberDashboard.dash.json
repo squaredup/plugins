@@ -1,0 +1,181 @@
+{
+    "name": "Member",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": ["{{variables.[Member]}}"],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "4c6ec774-b689-456a-9b13-24d78c29e7c5",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Member Properties",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "variables": ["{{variables.[Member]}}"],
+                    "scope": {
+                        "scope": "{{scopes.[Members]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Member]}}"
+                    },
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "hiddenColumns": ["id", "links"]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "19ca0114-cbfd-48f1-aea8-b6f015dc3b6a",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Total Hours Logged",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "variables": ["{{variables.[Member]}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.timeEntries}}",
+                        "name": "timeEntries",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "member": {
+                                "variable": "{{variables.[Member]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Members]}}"
+                            }
+                        },
+                        "group": { "by": [], "aggregate": [{ "type": "sum", "names": ["actualHours"] }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "actualHours_sum", "comparisonColumn": "none", "label": "Hours" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c189e63f-92bd-4146-92b4-78dc555d5c96",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Billable vs Non-Billable Hours",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "variables": ["{{variables.[Member]}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.timeEntries}}",
+                        "name": "timeEntries",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "member": {
+                                "variable": "{{variables.[Member]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Members]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [["billableOption", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["actualHours"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "actualHours_sum",
+                                "labelColumn": "billableOption_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9529a875-5b76-4f27-8c39-fd0edccbaac8",
+                "x": 0,
+                "y": 4,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Time Logged",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "variables": ["{{variables.[Member]}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.timeEntries}}",
+                        "name": "timeEntries",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "member": {
+                                "variable": "{{variables.[Member]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Members]}}"
+                            }
+                        },
+                        "sort": { "by": [["timeStart", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": ["company.name", "ticket.summary", "project.name", "actualHours", "billableOption", "dateEntered"],
+                                "hiddenColumns": [
+                                    "id",
+                                    "member.id",
+                                    "company.id",
+                                    "workType.name",
+                                    "hoursBilled",
+                                    "hourlyRate",
+                                    "notes",
+                                    "timeStart",
+                                    "timeEnd"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

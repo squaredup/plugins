@@ -1,0 +1,60 @@
+{
+    "name": "tickets",
+    "displayName": "Tickets",
+    "description": "Service tickets, one row per ticket",
+    "tags": ["Ticket", "Service"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/service/tickets",
+        "getArgs": [
+            { "key": "orderBy", "value": "id asc" },
+            {
+                "key": "conditions",
+                "value": "{{ [ (company && company.length) ? '(' + company.map(o => 'company/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null, (agreement && agreement.length) ? '(' + agreement.map(o => 'agreement/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null ].filter(Boolean).join(' and ') }}"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "in": { "realm": "webLink", "path": "next" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "company",
+            "label": "Company (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Company"] } }
+        },
+        {
+            "type": "objects",
+            "name": "agreement",
+            "label": "Agreement (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Agreement"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "number", "visible": false },
+        { "name": "summary", "displayName": "Summary", "shape": "string", "role": "label" },
+        { "name": "board.name", "displayName": "Board", "shape": "string" },
+        { "name": "status.name", "displayName": "Status", "shape": "string" },
+        { "name": "priority.name", "displayName": "Priority", "shape": "string" },
+        { "name": "resources", "displayName": "Resources", "shape": "string" },
+        { "name": "company.id", "displayName": "Company ID", "shape": "number", "visible": false },
+        { "name": "company.name", "displayName": "Company", "shape": "string" },
+        { "name": "type.name", "displayName": "Type", "shape": "string" },
+        { "name": "severity", "displayName": "Severity", "shape": "string" },
+        { "name": "impact", "displayName": "Impact", "shape": "string" },
+        { "name": "closedFlag", "displayName": "Closed", "shape": "boolean" },
+        { "name": "isInSla", "displayName": "In SLA", "shape": "boolean" },
+        { "name": "slaStatus", "displayName": "SLA Status", "shape": "string" },
+        { "name": "budgetHours", "displayName": "Budget Hours", "shape": "number" },
+        { "name": "actualHours", "displayName": "Actual Hours", "shape": "number" },
+        { "name": "_info.dateEntered", "displayName": "Date Entered", "shape": "date" },
+        { "name": "closedDate", "displayName": "Closed Date", "shape": "date" }
+    ],
+    "timeframes": false
+}

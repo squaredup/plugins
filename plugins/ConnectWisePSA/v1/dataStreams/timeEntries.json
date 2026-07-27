@@ -1,0 +1,70 @@
+{
+    "name": "timeEntries",
+    "displayName": "Time Entries",
+    "description": "Time tracking entries, one row per logged time entry",
+    "tags": ["Time Entry", "Billing"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/time/entries",
+        "getArgs": [
+            { "key": "orderBy", "value": "id asc" },
+            {
+                "key": "conditions",
+                "value": "{{ [ (company && company.length) ? '(' + company.map(o => 'company/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null, (member && member.length) ? '(' + member.map(o => 'member/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null, (project && project.length) ? '(' + project.map(o => 'project/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null, (agreement && agreement.length) ? '(' + agreement.map(o => 'agreement/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null, 'timeStart>=[' + timeframe.start + '] and timeStart<=[' + timeframe.end + ']' ].filter(Boolean).join(' and ') }}"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "in": { "realm": "webLink", "path": "next" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "company",
+            "label": "Company (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Company"] } }
+        },
+        {
+            "type": "objects",
+            "name": "member",
+            "label": "Member (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Member"] } }
+        },
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Project"] } }
+        },
+        {
+            "type": "objects",
+            "name": "agreement",
+            "label": "Agreement (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Agreement"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "number", "visible": false },
+        { "name": "member.id", "displayName": "Member ID", "shape": "number", "visible": false },
+        { "name": "member.name", "displayName": "Member", "shape": "string", "role": "label" },
+        { "name": "company.id", "displayName": "Company ID", "shape": "number", "visible": false },
+        { "name": "company.name", "displayName": "Company", "shape": "string" },
+        { "name": "ticket.summary", "displayName": "Ticket", "shape": "string" },
+        { "name": "project.name", "displayName": "Project", "shape": "string" },
+        { "name": "workType.name", "displayName": "Work Type", "shape": "string" },
+        { "name": "billableOption", "displayName": "Billable", "shape": "string" },
+        { "name": "actualHours", "displayName": "Hours", "shape": "number" },
+        { "name": "hoursBilled", "displayName": "Hours Billed", "shape": "number" },
+        { "name": "hourlyRate", "displayName": "Rate", "shape": "number" },
+        { "name": "notes", "displayName": "Notes", "shape": "string" },
+        { "name": "timeStart", "displayName": "Time Start", "shape": "date", "role": "timestamp" },
+        { "name": "timeEnd", "displayName": "Time End", "shape": "date" },
+        { "name": "dateEntered", "displayName": "Date Entered", "shape": "date" }
+    ],
+    "timeframes": true
+}

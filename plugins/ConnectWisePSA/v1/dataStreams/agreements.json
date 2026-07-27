@@ -1,0 +1,47 @@
+{
+    "name": "agreements",
+    "displayName": "Agreements",
+    "description": "Client contracts and SLAs, one row per agreement",
+    "tags": ["Agreement", "Finance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/finance/agreements",
+        "getArgs": [
+            { "key": "orderBy", "value": "id asc" },
+            { "key": "conditions", "value": "{{ (company && company.length) ? company.map(o => 'company/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') : null }}" }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "in": { "realm": "webLink", "path": "next" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "company",
+            "label": "Company (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Company"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "number", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "type.name", "displayName": "Type", "shape": "string" },
+        { "name": "company.id", "displayName": "Company ID", "shape": "number", "visible": false },
+        { "name": "company.name", "displayName": "Company", "shape": "string" },
+        { "name": "agreementStatus", "displayName": "Status", "shape": "string" },
+        { "name": "startDate", "displayName": "Start Date", "shape": "date" },
+        { "name": "endDate", "displayName": "End Date", "shape": "date" },
+        { "name": "noEndingDateFlag", "displayName": "No Ending Date", "shape": "boolean" },
+        { "name": "cancelledFlag", "displayName": "Cancelled", "shape": "boolean" },
+        { "name": "billingCycle.name", "displayName": "Billing Cycle", "shape": "string" },
+        { "name": "applicationUnits", "displayName": "Application Units", "shape": "string" },
+        { "name": "applicationLimit", "displayName": "Application Limit", "shape": "number" },
+        { "name": "limit", "displayName": "Hour Limit", "shape": "number" }
+    ],
+    "timeframes": false
+}

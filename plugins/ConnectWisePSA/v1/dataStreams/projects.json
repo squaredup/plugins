@@ -1,0 +1,50 @@
+{
+    "name": "projects",
+    "displayName": "Projects",
+    "description": "Projects, one row per project",
+    "tags": ["Project"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/project/projects",
+        "getArgs": [
+            { "key": "orderBy", "value": "id asc" },
+            {
+                "key": "conditions",
+                "value": "{{ (company && company.length) ? company.map(o => 'company/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') : null }}"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "in": { "realm": "webLink", "path": "next" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "company",
+            "label": "Company (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Company"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "number", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "status.name", "displayName": "Status", "shape": "string" },
+        { "name": "company.id", "displayName": "Company ID", "shape": "number", "visible": false },
+        { "name": "company.name", "displayName": "Company", "shape": "string" },
+        { "name": "manager.name", "displayName": "Manager", "shape": "string" },
+        { "name": "estimatedStart", "displayName": "Estimated Start", "shape": "date" },
+        { "name": "estimatedEnd", "displayName": "Estimated End", "shape": "date" },
+        { "name": "actualStart", "displayName": "Actual Start", "shape": "date" },
+        { "name": "actualEnd", "displayName": "Actual End", "shape": "date" },
+        { "name": "estimatedHours", "displayName": "Estimated Hours", "shape": "number" },
+        { "name": "actualHours", "displayName": "Actual Hours", "shape": "number" },
+        { "name": "budgetFlag", "displayName": "Budgeted", "shape": "boolean" },
+        { "name": "closedFlag", "displayName": "Closed", "shape": "boolean" }
+    ],
+    "timeframes": false
+}

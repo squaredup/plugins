@@ -1,0 +1,58 @@
+{
+    "name": "configurations",
+    "displayName": "Configurations",
+    "description": "Managed assets and configuration items, one row per configuration",
+    "tags": ["Configuration", "Asset"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/company/configurations",
+        "getArgs": [
+            { "key": "orderBy", "value": "id asc" },
+            {
+                "key": "conditions",
+                "value": "{{ [ (company && company.length) ? '(' + company.map(o => 'company/id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null, (configuration && configuration.length) ? '(' + configuration.map(o => 'id=' + (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId)).join(' or ') + ')' : null ].filter(Boolean).join(' and ') }}"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "in": { "realm": "webLink", "path": "next" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "company",
+            "label": "Company (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Company"] } }
+        },
+        {
+            "type": "objects",
+            "name": "configuration",
+            "label": "Configuration (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["ConnectWise Configuration"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "number", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "type.name", "displayName": "Type", "shape": "string" },
+        { "name": "status.name", "displayName": "Status", "shape": "string" },
+        { "name": "company.id", "displayName": "Company ID", "shape": "number", "visible": false },
+        { "name": "company.name", "displayName": "Company", "shape": "string" },
+        { "name": "deviceIdentifier", "displayName": "Device Identifier", "shape": "string" },
+        { "name": "serialNumber", "displayName": "Serial Number", "shape": "string" },
+        { "name": "modelNumber", "displayName": "Model Number", "shape": "string" },
+        { "name": "manufacturer.name", "displayName": "Manufacturer", "shape": "string" },
+        { "name": "ipAddress", "displayName": "IP Address", "shape": "string" },
+        { "name": "macAddress", "displayName": "MAC Address", "shape": "string" },
+        { "name": "osType", "displayName": "OS Type", "shape": "string" },
+        { "name": "activeFlag", "displayName": "Active", "shape": "boolean" },
+        { "name": "warrantyExpirationDate", "displayName": "Warranty Expiration", "shape": "date" },
+        { "name": "lastBackupDate", "displayName": "Last Backup", "shape": "date" }
+    ],
+    "timeframes": false
+}
