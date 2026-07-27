@@ -2,7 +2,7 @@
 
 This plugin connects to the **ConnectWise Manage** (ConnectWise PSA) REST API. You'll need:
 
-- A ConnectWise Manage account with admin access, to create an API Member and register an integration.
+- A ConnectWise Manage account with admin access, to create an API Member.
 - Your **Company ID** — the identifier you use to log in to ConnectWise Manage.
 
 ## Creating an API Member and keys
@@ -12,13 +12,6 @@ This plugin connects to the **ConnectWise Manage** (ConnectWise PSA) REST API. Y
 3. Give the API Member a **Security Role** with at least read access to: Companies, Service Tickets, Agreements, Configurations, Projects, Members, and Time Entries.
 4. Open the API Member record, go to the **API Keys** tab, and click **+** to generate a new key pair.
 5. Copy the **Public Key** and **Private Key** immediately — the Private Key is shown only once.
-
-## Registering a Client ID
-
-ConnectWise Manage requires every API integration to send a `clientId` header identifying the calling application, separate from your API keys.
-
-1. Go to the [ConnectWise Developer Network](https://developer.connectwise.com/ClientID) and register for a Client ID.
-2. Copy the generated **Client ID** (a GUID).
 
 ## Finding your Site URL
 
@@ -32,7 +25,6 @@ Your Site URL is the hostname of your ConnectWise Manage instance — for exampl
 | **Company ID** | Your ConnectWise Manage login identifier (System > My Account) | Yes |
 | **API Public Key** | Generated on the API Member's API Keys tab | Yes |
 | **API Private Key** | Generated alongside the Public Key — store it securely, it's shown only once | Yes |
-| **Client ID** | Issued when registering an integration at the ConnectWise Developer Network | Yes |
 
 ## What gets indexed
 
