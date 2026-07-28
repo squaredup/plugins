@@ -5,6 +5,8 @@ result = defs
     .map(c => ({
         name: c.name || '',
         description: c.description || '',
+        category: c.category || '',
+        typeVersion: c.typeVersion || '',
         createdBy: c.createdBy || '',
         createTime: c.createTime ? new Date(c.createTime).toISOString() : null,
         updatedBy: c.updatedBy || '',

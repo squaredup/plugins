@@ -7,9 +7,10 @@ result = scans.map((scan) => {
         name: scan.name || '',
         dataSourceName: scan.dataSourceName || '',
         kind: scan.kind || '',
+        collection: props.collection?.referenceName || '',
         creationType: scan.creationType || '',
-        'properties.collection.referenceName': props.collection?.referenceName || '',
         'properties.scanRulesetName': props.scanRulesetName || '',
         'properties.scanRulesetType': props.scanRulesetType || '',
+        sourceType: 'Purview Scan',
     };
 });
