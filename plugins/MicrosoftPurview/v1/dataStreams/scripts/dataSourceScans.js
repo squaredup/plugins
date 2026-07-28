@@ -4,6 +4,7 @@ result = scans.map((scan) => {
     const props = scan.properties || {};
 
     return {
+        id: (scan.dataSourceName || '') + '/' + (scan.name || ''),
         name: scan.name || '',
         dataSourceName: scan.dataSourceName || '',
         kind: scan.kind || '',
