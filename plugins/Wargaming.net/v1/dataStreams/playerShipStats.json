@@ -1,0 +1,32 @@
+{
+    "name": "playerShipStats",
+    "displayName": "Player Ship Stats",
+    "description": "Per-ship battle statistics for a selected player",
+    "tags": ["Player", "Ship"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "baseUrl": "https://api.worldofwarships.{{dataSource.realm}}/",
+        "endpointPath": "wows/ships/stats/",
+        "getArgs": [
+            { "key": "account_id", "value": "{{object.rawId}}" },
+            {
+                "key": "fields",
+                "value": "ship_id,pvp.battles,pvp.wins,pvp.damage_dealt,pvp.frags,last_battle_time"
+            }
+        ],
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" },
+        "postRequestScript": "playerShipStats.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Player"] } },
+    "metadata": [
+        { "name": "shipId", "displayName": "Ship ID", "shape": "string", "visible": false },
+        { "name": "ship", "sourceId": "shipId", "sourceType": "WoWs Ship", "objectPropertyPath": "name", "role": "label" },
+        { "name": "battles", "displayName": "Battles", "shape": "number" },
+        { "name": "winRate", "displayName": "Win Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "avgDamage", "displayName": "Avg. Damage", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "frags", "displayName": "Frags", "shape": "number" },
+        { "name": "lastBattle", "displayName": "Last Battle", "shape": "date" }
+    ],
+    "timeframes": false
+}

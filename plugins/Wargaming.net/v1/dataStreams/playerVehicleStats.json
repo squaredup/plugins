@@ -1,0 +1,32 @@
+{
+    "name": "playerVehicleStats",
+    "displayName": "Player Vehicle Stats",
+    "description": "Per-vehicle battle statistics for a selected player",
+    "tags": ["Player", "Vehicle"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "wot/tanks/stats/",
+        "getArgs": [
+            { "key": "account_id", "value": "{{object.rawId}}" },
+            {
+                "key": "fields",
+                "value": "tank_id,mark_of_mastery,all.battles,all.wins,all.damage_dealt,all.spotted,all.frags"
+            }
+        ],
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" },
+        "postRequestScript": "playerVehicleStats.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Player"] } },
+    "metadata": [
+        { "name": "tankId", "displayName": "Tank ID", "shape": "string", "visible": false },
+        { "name": "vehicle", "sourceId": "tankId", "sourceType": "WoT Vehicle", "objectPropertyPath": "name", "role": "label" },
+        { "name": "battles", "displayName": "Battles", "shape": "number" },
+        { "name": "winRate", "displayName": "Win Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "avgDamage", "displayName": "Avg. Damage", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "frags", "displayName": "Frags", "shape": "number" },
+        { "name": "spotted", "displayName": "Spotted", "shape": "number" },
+        { "name": "markOfMastery", "displayName": "Mark of Mastery", "shape": "number" }
+    ],
+    "timeframes": false
+}
