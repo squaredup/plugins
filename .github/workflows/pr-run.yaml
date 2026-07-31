@@ -1,14 +1,6 @@
 name: Validate & Deploy Plugins
 
 on:
-  # TEMPORARY, remove in a follow-up PR once this is merged: validate-and-deploy is a
-  # required status check, and a required check can never be satisfied by a PR that
-  # removes its own only trigger — pull_request_target (see below) always resolves from
-  # main, which doesn't have it yet, so it can't fire for *this* PR either. Keeping
-  # pull_request alive here just long enough for this PR to report its own required
-  # check; once merged, main has pull_request_target and every future PR is covered by
-  # it, so pull_request can come out again.
-  pull_request:
   # GitHub always resolves the workflow file (and GITHUB_REF/GITHUB_SHA) for
   # pull_request_target from the repo's actual default branch, never the PR's own
   # branch — so a PR editing this file (fork or not) can't change what runs against it.
@@ -98,12 +90,7 @@ jobs:
 
       - name: Deploy modified plugins
         id: deploy
-        # Fork PRs only validate; deploying arbitrary fork-submitted plugin code (incl.
-        # scripts) to the live tenant needs a maintainer to merge/trigger it deliberately.
-        # Restricted to pull_request_target specifically while both triggers coexist
-        # (see TEMPORARY note above) — otherwise a same-repo PR would deploy twice per
-        # push, racing on the same --suffix.
-        if: steps.detect.outputs.plugins_modified == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'pull_request_target'
+        if: steps.detect.outputs.plugins_modified == 'true'
         env:
           PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
         run: |
