@@ -18,28 +18,32 @@ Because a search-only key cannot list collections (`collections:list` requires a
 2. Note your cluster's **nodes hostname** — it looks like `xxxxxxxxx.a1.typesense.net`. Your base URL is `https://<that-host>`.
 3. Create a **search-only API key**:
    - Using an admin key, call the [Create API Key](https://typesense.org/docs/latest/api/api-keys.html) endpoint with the `documents:search` action, scoped to the collection(s) you want to expose. Example:
-     ```
+
+     ```bash
      curl "https://<host>/keys" \
        -X POST \
        -H "X-TYPESENSE-API-KEY: <ADMIN_KEY>" \
        -H "Content-Type: application/json" \
        -d '{"description":"SquaredUp search key","actions":["documents:search"],"collections":["<your-collection>"]}'
      ```
+
    - Copy the returned `value` — this is your search-only key. It is shown only once.
 4. Confirm the key works:
-   ```
+
+   ```bash
    curl "https://<host>/collections/<your-collection>/documents/search?q=*&per_page=1" \
      -H "X-TYPESENSE-API-KEY: <SEARCH_KEY>"
    ```
+
    You should get a JSON response containing a `found` count.
 
 ## Configuration fields
 
 | Field | Required | What it is / where to find it |
 |-------|----------|-------------------------------|
-| **Host URL** | Yes | Your Typesense base URL including scheme, e.g. `https://xxxxxxxxx.a1.typesense.net`. No trailing slash. From the Typesense Cloud dashboard (nodes hostname) or your self-hosted address. |
+| **Host URL** | Yes | Your Typesense base URL, e.g. `https://xxxxxxxxx.a1.typesense.net`. Must be `https://` — the API key is sent as a request header, so plaintext HTTP is rejected. No trailing slash. From the Typesense Cloud dashboard (nodes hostname) or your self-hosted address. |
 | **Search API key** | Yes | A search-only API key (`documents:search` action). See "getting a search API key" above. Stored securely. |
-| **Collection** | Yes | The name of the collection this connection queries, e.g. `products`. The key must be authorised for this collection. Add another connection for another collection. |
+| **Collection** | Yes | The name of the collection this data source queries, e.g. `products`. The key must be authorised for this collection. Add another data source for another collection. |
 
 When you save the configuration, the plugin runs a lightweight `q=*` search against the collection to confirm the host, key, and collection are all valid.
 

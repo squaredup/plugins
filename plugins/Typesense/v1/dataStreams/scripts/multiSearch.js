@@ -3,4 +3,4 @@
 // Flatten hits across all sub-searches, tagging which sub-search each row came from;
 // our meta fields must win over document fields.
 result = (data.results || []).flatMap((r, i) =>
-    (r.hits || []).map((h) => ({ ...h.document, _search: i, _relevance: h.text_match })));
+    (r.hits || []).map((h) => ({ ...h.document, _search: i + 1, _relevance: h.text_match })));
