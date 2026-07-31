@@ -60,6 +60,6 @@ Nothing. This is a query-only plugin — it imports no objects into the SquaredU
 ## Known limitations
 
 - **Search-only scope.** No cluster health, metrics, API-key or alias management, and no collection/document import — these require an admin key.
-- **Result size.** A single search returns at most 250 documents per page (`per_page`). Search is designed to return the most relevant results, not to bulk-export a collection.
+- **Result size.** This plugin caps `per_page` at 250, matching Typesense's default `--max-per-page` server limit. Self-hosted servers can raise that limit, but the plugin still caps at 250 — search is designed to return the most relevant results, not to bulk-export a collection.
 - **Response size.** Very large result sets can exceed SquaredUp's ~6MB per-request limit — keep `per_page` and returned field counts reasonable, or use `filter_by` to narrow results.
 - **No time range.** Typesense search has no built-in time-range parameter, so these streams return current results with no timeframe picker. To restrict by time, add a `filter_by` on a timestamp field in your documents.
