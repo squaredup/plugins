@@ -1,0 +1,110 @@
+{
+    "name": "bodyMetric",
+    "displayName": "Body Measurement",
+    "description": "Body measurements over time for a chosen metric such as weight or body fat, from individual logged readings",
+    "tags": [
+        "Body",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "users/me/dataTypes/{{metric}}/dataPoints",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "{{metric.replace(/-/g,'_')}}.sample_time.civil_time >= \"{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).toISOString().slice(0,10)}}\" AND {{metric.replace(/-/g,'_')}}.sample_time.civil_time < \"{{new Date(new Date(timeframe.end).getTime()+86399999).toISOString().slice(0,10)}}\""
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "nextPageToken"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "pageToken"
+            }
+        },
+        "postRequestScript": "bodyMetric.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "weight",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "weight",
+                        "label": "Weight (kg)"
+                    },
+                    {
+                        "value": "body-fat",
+                        "label": "Body Fat (%)"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string",
+            "role": "unitLabel"
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "date",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}

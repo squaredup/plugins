@@ -1,0 +1,193 @@
+{
+    "name": "sleepSessions",
+    "displayName": "Sleep Sessions",
+    "description": "Sleep sessions with time asleep, time awake, time in bed, efficiency and minutes in each sleep stage",
+    "tags": [
+        "Sleep",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "users/me/dataTypes/sleep/dataPoints",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "sleep.interval.civil_end_time >= \"{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).toISOString().slice(0,10)}}\" AND sleep.interval.civil_end_time < \"{{new Date(new Date(timeframe.end).getTime()+86399999).toISOString().slice(0,10)}}\""
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "25"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "nextPageToken"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "pageToken"
+            }
+        },
+        "postRequestScript": "sleepSessions.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "asleepMin",
+            "displayName": "Asleep (min)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "asleepHours",
+            "displayName": "Asleep (h)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "efficiencyPct",
+            "displayName": "Efficiency",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "deepMin",
+            "displayName": "Deep (min)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "remMin",
+            "displayName": "REM (min)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "lightMin",
+            "displayName": "Light (min)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "awakeMin",
+            "displayName": "Awake (min)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "inBedMin",
+            "displayName": "In Bed (min)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "startTime",
+            "displayName": "Start",
+            "shape": [
+                "date",
+                {
+                    "format": "dd MMM HH:mm"
+                }
+            ]
+        },
+        {
+            "name": "endTime",
+            "displayName": "End",
+            "shape": [
+                "date",
+                {
+                    "format": "dd MMM HH:mm"
+                }
+            ]
+        },
+        {
+            "name": "sleepGoalCol",
+            "displayName": "Sleep Goal (h)",
+            "shape": "number"
+        },
+        {
+            "name": "sleepPct",
+            "displayName": "% of Sleep Goal",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "sleepStatus",
+            "displayName": "Sleep Status",
+            "computed": true,
+            "valueExpression": "{{ $[\"sleepPct\"] === undefined || $[\"sleepPct\"] === null ? \"unknown\" : $[\"sleepPct\"] >= 100 ? \"success\" : $[\"sleepPct\"] >= 75 ? \"warning\" : \"error\" }}",
+            "shape": "state"
+        },
+        {
+            "name": "sleepGoalBand",
+            "displayName": "Goal Progress",
+            "computed": true,
+            "valueExpression": "{{ $[\"sleepPct\"] === undefined || $[\"sleepPct\"] === null ? \"No goal\" : $[\"sleepPct\"] >= 100 ? \"Goal met\" : $[\"sleepPct\"] >= 75 ? \"Near goal\" : \"Below goal\" }}",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "date",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}

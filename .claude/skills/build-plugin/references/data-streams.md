@@ -360,6 +360,8 @@ In OOB dashboard tiles, set the stream parameter in the tile's `dataStream` conf
 }
 ```
 
+> ⚠️ **`postBody` must be a JSON object, not a string, if [`paging`](#pagination) uses `realm: "body"`.** The server writes the page-size/cursor/offset value into the body with a path-based `set` that only runs against an object — against a string `postBody` it silently does nothing, and the request goes out without the paging value, with no error.
+
 ---
 
 ## expandInnerObjects
@@ -402,6 +404,29 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 }
 ```
 
+**Next-URL via `Link` header** — API returns pagination links in a standard HTTP `Link` header (RFC 8288) instead of the body, e.g. GitHub, Checkly:
+
+```json
+"paging": {
+    "mode": "nextUrl",
+    "pageSize": { "realm": "queryArg", "path": "per_page", "value": "100" },
+    "in": { "realm": "webLink", "path": "next" }
+}
+```
+
+> ⚠️ For `realm: "webLink"`, `path` is the link's **rel name** (`next`, `prev`, `last`, `first`), not a JSON path — the server parses the `Link` header and looks up that rel. This differs from every other realm, where `path` is a dot-notation path or header name.
+
+> ⚠️ Whatever value `in` extracts (`payload`, `header`, or `webLink`) is used as the **complete URL for the next request** — it is not appended to `baseUrl`/`endpointPath`. The API must return a fully-qualified URL; a relative path will break pagination.
+
+`pageSize` is optional on every mode — omit it (or set `"pageSize": { "realm": "none" }`) when the API has no separate page-size parameter, e.g. a `nextUrl` response whose URL already encodes the page size:
+
+```json
+"paging": {
+    "mode": "nextUrl",
+    "in": { "realm": "payload", "path": "pageDetails.nextPageUrl" }
+}
+```
+
 **Token** — API returns a cursor/token to send with the next request:
 
 ```json
@@ -428,8 +453,19 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 }
 ```
 
-`realm` options: `"queryArg"`, `"header"`, `"body"` (POST only), `"payload"`, `"payloadArraySize"`.
-`offset.mode`: `"page"` (increments 1,2,3…) or `"row"` (increments by page size).
+> For a `payload`/`payloadArraySize` path (`in`, `rowCountIn`), use `"."` to mean "the response body itself is the array" — unlike [`pathToData`](#pathtodata), where a root-level array means omitting the field entirely, an empty/omitted `path` here is not equivalent to `"."`.
+
+**`realm` options differ per field — they are not interchangeable:**
+
+| Field                              | Valid `realm` values                     |
+| ----------------------------------- | ----------------------------------------- |
+| `pageSize`                          | `none`, `queryArg`, `header`, `body` (POST only) |
+| `out` (token/offset)                | `queryArg`, `header`, `body` (POST only)  |
+| `in` on `nextUrl`                   | `header`, `payload`, `webLink`            |
+| `in` on `token`                     | `header`, `payload`                       |
+| `offset.rowCountIn`                 | `header`, `payload`, `payloadArraySize`   |
+
+`offset.mode`: `"page"` (increments 1,2,3…) or `"row"` (increments by the number of rows actually returned, read via `rowCountIn` — not necessarily the configured `pageSize`).
 
 ---
 
@@ -440,7 +476,19 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" }
 
 // Custom script — access response (.status, .body) and data
-"errorHandling": { "type": "script", "script": "result = response.status + ': ' + data.error;" }
+"errorHandling": { "type": "script", "script": "errorHandling/incidents.js" }
+```
+
+### Script files
+
+Reference the script as a file — the same mechanism [`postRequestScript`](#post-request-scripts) uses. Place the file in `dataStreams/scripts/errorHandling/`, named after the stream's `name` field, and set `script` to its path relative to `dataStreams/scripts/` — **the `.js` extension is required** (a bare `.js` path with no newline is what marks the value as a file reference; deploy inlines the file's source, and an unresolvable reference is a validation error).
+
+Script file (`dataStreams/scripts/errorHandling/incidents.js`) — `{{ ... }}` expressions work in script files too:
+
+```javascript
+const apiMsg = data && (data.message || data.error);
+
+result = apiMsg || ('Request failed with HTTP ' + response.status);
 ```
 
 ---
@@ -700,7 +748,7 @@ Scripts run after the HTTP response is received. Input is `data` (parsed JSON bo
 
 ### Wiring a script to a stream
 
-Set `postRequestScript` inside `config` to the script's filename — **the `.js` extension is required**. Name the file after the stream's `name` field and place it in `dataStreams/scripts/`.
+Set `postRequestScript` inside `config` to the script's filename — **the `.js` extension is required**. Name the file after the stream's `name` field and place it in `dataStreams/scripts/`. ([errorHandling scripts](#errorhandling) use the same file-reference mechanism, from the `errorHandling/` sub-folder.)
 
 Stream JSON (`dataStreams/incidents.json`):
 

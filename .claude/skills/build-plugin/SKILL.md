@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.11"
+    version: "0.0.12"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -44,15 +44,15 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Prerequisite** — `squaredup status`; ensure login + tenant (see [Prerequisites](#prerequisites))
 - [ ] **Phase 1** — Explore the API
 - [ ] **Phase 2** — Plan the plugin structure
-- [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md`)
+- [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md` draft) → [readme.md](references/readme.md)
 - [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
 - [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [checkpoints.md](references/checkpoints.md)
-- [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
+- [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents. Repeat per dependency level if any step `dependsOn` another → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
 - [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [checkpoints.md](references/checkpoints.md)
 - [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
 - [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
-- [ ] **Phase 9** — Final validate and deploy → invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
+- [ ] **Phase 9** — Finalize `docs/README.md`, then final validate and deploy → [readme.md](references/readme.md); invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
 
 ---
 
@@ -68,7 +68,7 @@ Before writing a single file, understand and explore the API. **Use `AskUserQues
     - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter), or only return a fixed snapshot / current values?
     - **Data granularity** — when the endpoint _does_ accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read it off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range).
 5. **Understand pagination** — Cursor/next-token, or offset/limit? Separate concern from response transformation.
-6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth? Determine from the docs.
+6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth, JWT Bearer (signed-JWT auth)? Determine from the docs.
 
 ---
 
@@ -79,7 +79,7 @@ This phase produces a written plan and a user-approval gate before any files are
 ### The plan must cover
 
 1. **Object types** — Every type that should appear in the SquaredUp graph. These go in `objectTypes` in `metadata.json` and as `sourceType` throughout.
-2. **Import steps** — Let the API shape dictate: one step returning many types, or separate steps per type.
+2. **Import steps** — Let the API shape dictate: one step returning many types, or separate steps per type. If an object type is only listable in the context of an already-imported parent (the API has "list X for parent Y" but no "list all X"), plan it as a **dependent step** instead — `dependsOn` the parent step and `scope` to its objects; see [index-defs.md](references/index-defs.md#scoped-dependent-steps).
 3. **Data streams** — For each object type, plan:
     - A **summary/current state** stream (`"timeframes": false`, returns current values)
     - A **history/metrics** stream (supports timeframes, returns time-series rows)
@@ -188,6 +188,8 @@ my-plugin/
       myStream.json
       scripts/
         myScript.js
+        errorHandling/
+          myStream.js          # errorHandling scripts referenced by path, like postRequestScript
     defaultContent/
       manifest.json
       scopes.json
@@ -198,17 +200,7 @@ my-plugin/
         dashboard1.dash.json
 ```
 
-**docs/README.md (required)** — surfaced in-product when a user adds the plugin. Always create as part of scaffolding; the `documentation` link in `metadata.json` must point to it (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`).
-
-The README must cover:
-
-1. What the plugin monitors — objects imported, what dashboards show
-2. Prerequisites / getting credentials — step-by-step, include required scopes/permissions
-3. Configuration fields — table explaining every `ui.json` field: what it is, where to find the value, whether required
-4. What gets indexed — list object types and what they represent
-5. Known limitations — rate limits, permission requirements, API quirks
-
-Write as if the user has never seen the API. They're reading it inside SquaredUp, not on the vendor's site.
+**docs/README.md (required)** — surfaced in-product when a user adds the plugin. Always create as part of scaffolding; the `documentation` link in `metadata.json` must point to it (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`). **Draft it now per [readme.md](references/readme.md)**: overview, Setup, and Configuration fields in full; the remaining sections as placeholder headings. It is finalized in Phase 9, once testing has surfaced the real data streams and limitations.
 
 **Other rules:**
 
@@ -244,9 +236,21 @@ Do not proceed to Phase 5 until auth is confirmed. See [checkpoints.md](referenc
 
 ## Phase 5: Import definitions & import streams
 
-Write `indexDefinitions/default.json` and the unscoped list/import streams it calls — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md) and [data-streams.md](references/data-streams.md).
+Write `indexDefinitions/default.json` and its import streams — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md) and [data-streams.md](references/data-streams.md).
 
-Then **test the import streams in parallel sub-agents** rather than inline — the raw paged response bodies are large and the streams are independent. Spawn **one test-mode sub-agent per import stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
+**Root steps first** — the ones with no `dependsOn`. These call a global/unscoped list endpoint and don't wait on anything. Build them, then **test them in parallel sub-agents** rather than inline — the raw paged response bodies are large and these streams are independent of each other. Spawn **one test-mode sub-agent per stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
+
+### Dependent steps (`dependsOn` + `scope`)
+
+Skip this if the Phase 2 plan has no dependent steps — go straight to Checkpoint B.
+
+A dependent step's stream is scoped (like a Phase 6 data stream), so it can't be tested until the objects its `scope.query` needs actually exist in the graph. Build one **dependency depth level at a time**:
+
+1. Write that level's step(s) and stream(s) in `indexDefinitions/default.json`.
+2. Test each using the same **scoped** procedure [test-agent.md](references/test-agent.md) already uses in Phase 6 (`squaredup objects` to find a real object of the depended-on type, then `squaredup test <stream> --object <id>`) — those objects come from the level below, already landed by its own Checkpoint B run.
+3. Run [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) again to land this level's objects before building the next.
+
+Repeat per level until every dependent step is built, tested, and imported — one dependent step needs a single extra pass; a three-level chain needs two.
 
 ### The reconciliation pass
 
@@ -256,7 +260,7 @@ Sub-agents run blind to each other, so several can independently rediscover — 
 2. **Propagate every API-level discovery to all sibling streams** that share the endpoint family or scoping — timeframe/granularity limits that 404, payload caps that 500, object property/id names, auth quirks. A constraint one sub-agent hit and fixed almost always applies to its siblings too; apply the same edit to each affected stream and **re-test every stream you changed** (re-spawn its sub-agent — a propagated edit is unproven until tested).
 3. **Resolve conflicting assumptions** before continuing — if two reports name the same object property or id differently (e.g. one filters on `projectId`, another on `rawId`), determine the correct one against the real response and fix every stream that used the wrong one, so none ships with a scope filter comparing `undefined === undefined`. Do not proceed with an unresolved contradiction.
 
-Run this pass at the end of both Phase 5 and Phase 6. If reconciliation edits an `indexDefinitions/*.json` mapping or an import stream, that edit only shapes a **future** import. Here in Phase 5 the import hasn't run yet, so the Checkpoint B import picks it up naturally — nothing is stale, no extra re-index needed.
+Run this pass at the end of each Phase 5 build (the root pass, and each dependent-step level) and at the end of Phase 6. If reconciliation edits an `indexDefinitions/*.json` mapping or an import stream, that edit only shapes a **future** import. Here in Phase 5, reconciliation happens before that pass's own Checkpoint B run, so the next import picks it up naturally — nothing is stale, no extra re-index needed.
 
 ---
 
@@ -310,8 +314,10 @@ Write `custom_types.json` — for this and other reusable patterns (built-in pro
 
 ---
 
-## Phase 9: Final validate & deploy
+## Phase 9: Finalize README, validate & deploy
 
-Invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
+**Finalize `docs/README.md` first** — complete the placeholder sections (What this plugin monitors, Data streams, What gets indexed, Known limitations) and run the completion checklist in [readme.md](references/readme.md). Source Known limitations from the reconciliation passes' API-level discoveries: every constraint that forced a fix in Phases 5–6 belongs there in user-facing words.
+
+Then invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
 
 **Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale)), the deployed tenant's objects are **stale** — they still match the **old** definition and won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger + poll one more import (the [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) trigger/wait steps) so the deployed objects match the shipped definition. Skip only if no import definition or import stream has changed since the last import.

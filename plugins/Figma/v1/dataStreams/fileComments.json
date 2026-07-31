@@ -1,0 +1,54 @@
+{
+    "name": "fileComments",
+    "displayName": "File Comments",
+    "description": "Comments on a specific Figma file",
+    "tags": ["Files", "Comments"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "files/{{fileKey}}/comments",
+        "pathToData": "comments",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "name": "project",
+            "type": "autocomplete",
+            "label": "Project",
+            "placeholder": "Select a Figma project",
+            "validation": { "required": true, "message": "You must select a project" },
+            "allowCustomValues": false,
+            "isMulti": false,
+            "data": { "source": "dataStream", "dataStreamName": "projectsPicker", "dataSourceConfig": {} }
+        },
+        {
+            "name": "fileKey",
+            "type": "autocomplete",
+            "label": "File",
+            "placeholder": "Select a file",
+            "validation": { "required": true, "message": "You must select a file" },
+            "allowCustomValues": false,
+            "isMulti": false,
+            "data": { "source": "dataStream", "dataStreamName": "filesInProject", "dataSourceConfig": { "endpointPath": { "fieldName": "project", "required": true } } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "message", "displayName": "Message", "shape": "string", "role": "label" },
+        { "name": "user.handle", "displayName": "Author", "shape": "string" },
+        { "name": "user.id", "visible": false },
+        { "name": "user.img_url", "visible": false },
+        { "name": "created_at", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        { "name": "resolved_at", "displayName": "Resolved", "shape": "date" },
+        { "name": "parent_id", "displayName": "Parent ID", "shape": "string", "visible": false },
+        {
+            "name": "isReply",
+            "displayName": "Is Reply",
+            "computed": true,
+            "valueExpression": "{{ $['parent_id'] ? true : false }}",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

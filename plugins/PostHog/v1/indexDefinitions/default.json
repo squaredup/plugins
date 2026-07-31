@@ -1,0 +1,96 @@
+{
+    "steps": [
+        {
+            "name": "organizations",
+            "dataStream": {
+                "name": "organizations"
+            },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "id",
+                "name": "name",
+                "type": {
+                    "value": "PostHog Organization"
+                }
+            }
+        },
+        {
+            "name": "projects",
+            "dataStream": {
+                "name": "projects"
+            },
+            "scope": {
+                "query": "g.V().has(\"sourceType\", \"PostHog Organization\")"
+            },
+            "dependsOn": [
+                "organizations"
+            ],
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "id",
+                "name": "name",
+                "type": {
+                    "value": "PostHog Project"
+                },
+                "properties": [
+                    "timezone",
+                    "organization"
+                ]
+            }
+        },
+        {
+            "name": "members",
+            "dataStream": {
+                "name": "members"
+            },
+            "scope": {
+                "query": "g.V().has(\"sourceType\", \"PostHog Organization\")"
+            },
+            "dependsOn": [
+                "organizations"
+            ],
+            "timeframe": "none",
+            "optional": true,
+            "objectMapping": {
+                "id": "id",
+                "name": "name",
+                "type": {
+                    "value": "PostHog Member"
+                },
+                "properties": [
+                    "email",
+                    "role",
+                    "last_login",
+                    "organization"
+                ]
+            }
+        },
+        {
+            "name": "featureFlags",
+            "dataStream": {
+                "name": "featureFlags"
+            },
+            "scope": {
+                "query": "g.V().has(\"sourceType\", \"PostHog Project\")"
+            },
+            "dependsOn": [
+                "projects"
+            ],
+            "timeframe": "none",
+            "optional": true,
+            "objectMapping": {
+                "id": "id",
+                "name": "key",
+                "type": {
+                    "value": "PostHog Feature Flag"
+                },
+                "properties": [
+                    "description",
+                    "active",
+                    "last_called_at",
+                    "project"
+                ]
+            }
+        }
+    ]
+}

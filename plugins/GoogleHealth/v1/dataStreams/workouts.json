@@ -1,0 +1,145 @@
+{
+    "name": "workouts",
+    "displayName": "Workouts",
+    "description": "Logged exercise sessions with type, duration, distance, calories, average heart rate and steps",
+    "tags": [
+        "Activity",
+        "Exercise"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "users/me/dataTypes/exercise/dataPoints",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "exercise.interval.civil_start_time >= \"{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).toISOString().slice(0,10)}}\" AND exercise.interval.civil_start_time < \"{{new Date(new Date(timeframe.end).getTime()+86399999).toISOString().slice(0,10)}}\""
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "25"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "nextPageToken"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "pageToken"
+            }
+        },
+        "postRequestScript": "workouts.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "startTime",
+            "displayName": "Start",
+            "shape": [
+                "date",
+                {
+                    "format": "dd MMM yyyy HH:mm"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "type",
+            "displayName": "Workout",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "durationMin",
+            "displayName": "Duration (min)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "distanceKm",
+            "displayName": "Distance (km)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "calories",
+            "displayName": "Calories",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "avgHeartRate",
+            "displayName": "Avg HR (bpm)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "steps",
+            "displayName": "Steps",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "activeZoneMinutes",
+            "displayName": "Active Zone Min",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "endTime",
+            "displayName": "End",
+            "shape": [
+                "date",
+                {
+                    "format": "dd MMM yyyy HH:mm"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "source",
+            "displayName": "Device",
+            "shape": "string"
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "startTime",
+                    "desc"
+                ]
+            ]
+        }
+    }
+}

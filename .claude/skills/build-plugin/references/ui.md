@@ -135,7 +135,7 @@ The `validation` object accepts [react-hook-form](https://react-hook-form.com/do
 }
 ```
 
-**`password`** — masked text; **use for any API key, token, secret, or password field**:
+**`password`** — masked text; **use for any API key, token, secret, or password field**
 
 ```json
 { "type": "password", "name": "apiKey", "label": "API Key" }
@@ -259,6 +259,12 @@ Choosing between them: use **`radio`** when each option reads best on its own li
 ```json
 { "type": "code", "name": "body", "label": "Request Body", "language": "json" }
 ```
+
+> ⚠️ When `language` is `json`, `defaultValue` must be a JSON object, not a string — the editor calls `JSON.stringify` on it. A string `defaultValue` renders as a quoted, escaped blob instead of formatted JSON.
+>
+> ```json
+> { "type": "code", "name": "body", "language": "json", "defaultValue": { "key": "value" } }
+> ```
 
 **`script`** — inline JavaScript editor:
 
