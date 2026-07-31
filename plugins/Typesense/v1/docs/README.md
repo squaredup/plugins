@@ -53,8 +53,8 @@ Nothing. This is a query-only plugin — it imports no objects into the SquaredU
 
 ## Data streams
 
-- **Document Search** — structured search against the configured collection. Tile parameters: `q` (query, default `*`), `query_by`, `filter_by`, `sort_by`, `per_page`. Returns one row per matching document, with the document's own fields as columns plus a relevance score.
-- **Multi Search** — runs a raw `multi_search` JSON blob (e.g. `{"searches":[{"q":"*"}]}`) for federated or advanced queries. Returns one row per hit across all sub-searches.
+- **Document Search** — structured search against the configured collection. Tile parameters: `q` (query, default `*`), `query_by`, `filter_by`, `sort_by`, `per_page` (1–250). Returns one row per matching document, with the document's own fields as columns plus a relevance score.
+- **Multi Search** — runs a raw `multi_search` JSON blob (e.g. `{"searches":[{"q":"*"}]}`) for federated or advanced queries. Returns one row per hit across all sub-searches, numbered in the **Search #** column. `"union": true` queries also work — Typesense returns one merged, globally ranked set for those, so **Search #** is empty since a row cannot be traced back to a single sub-search.
 - **Search Summary** — returns a single row with the number of matching documents, total documents scanned, and search time.
 
 ## Known limitations
