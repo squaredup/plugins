@@ -1,0 +1,34 @@
+{
+    "name": "playerWarplanesSummary",
+    "displayName": "Player Warplanes Summary",
+    "description": "Current World of Warplanes statistics for the selected players",
+    "tags": ["Player", "Aircraft"],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "baseUrl": "https://api.worldofwarplanes.{{dataSource.realm}}/",
+        "endpointPath": "wowp/account/info/",
+        "getArgs": [
+            { "key": "account_id", "value": "{{objects.map(o => o.rawId).join(',')}}" },
+            {
+                "key": "fields",
+                "value": "account_id,nickname,last_battle_time,global_rating,statistics.battles,statistics.wins,statistics.losses,statistics.survived_battles,statistics.xp,statistics.damage_dealt.total,statistics.frags.total"
+            }
+        ],
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" },
+        "postRequestScript": "playerWarplanesSummary.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Player"] } },
+    "metadata": [
+        { "name": "nickname", "displayName": "Nickname", "shape": "string", "role": "label" },
+        { "name": "battles", "displayName": "Battles", "shape": "number" },
+        { "name": "winRate", "displayName": "Win Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "avgDamage", "displayName": "Avg. Damage", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "avgXp", "displayName": "Avg. XP", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "survivalRate", "displayName": "Survival Rate", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "globalRating", "displayName": "Global Rating", "shape": "number" },
+        { "name": "frags", "displayName": "Frags", "shape": "number" },
+        { "name": "lastBattle", "displayName": "Last Battle", "shape": "date" }
+    ],
+    "timeframes": false
+}

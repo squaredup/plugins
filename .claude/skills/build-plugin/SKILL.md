@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "0.0.11"
+    version: "0.0.12"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -44,7 +44,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Prerequisite** — `squaredup status`; ensure login + tenant (see [Prerequisites](#prerequisites))
 - [ ] **Phase 1** — Explore the API
 - [ ] **Phase 2** — Plan the plugin structure
-- [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md`)
+- [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md` draft) → [readme.md](references/readme.md)
 - [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
 - [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [checkpoints.md](references/checkpoints.md)
 - [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents. Repeat per dependency level if any step `dependsOn` another → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
@@ -52,7 +52,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
 - [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
-- [ ] **Phase 9** — Final validate and deploy → invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
+- [ ] **Phase 9** — Finalize `docs/README.md`, then final validate and deploy → [readme.md](references/readme.md); invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
 
 ---
 
@@ -200,17 +200,7 @@ my-plugin/
         dashboard1.dash.json
 ```
 
-**docs/README.md (required)** — surfaced in-product when a user adds the plugin. Always create as part of scaffolding; the `documentation` link in `metadata.json` must point to it (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`).
-
-The README must cover:
-
-1. What the plugin monitors — objects imported, what dashboards show
-2. Prerequisites / getting credentials — step-by-step, include required scopes/permissions
-3. Configuration fields — table explaining every `ui.json` field: what it is, where to find the value, whether required
-4. What gets indexed — list object types and what they represent
-5. Known limitations — rate limits, permission requirements, API quirks
-
-Write as if the user has never seen the API. They're reading it inside SquaredUp, not on the vendor's site.
+**docs/README.md (required)** — surfaced in-product when a user adds the plugin. Always create as part of scaffolding; the `documentation` link in `metadata.json` must point to it (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`). **Draft it now per [readme.md](references/readme.md)**: overview, Setup, and Configuration fields in full; the remaining sections as placeholder headings. It is finalized in Phase 9, once testing has surfaced the real data streams and limitations.
 
 **Other rules:**
 
@@ -324,8 +314,10 @@ Write `custom_types.json` — for this and other reusable patterns (built-in pro
 
 ---
 
-## Phase 9: Final validate & deploy
+## Phase 9: Finalize README, validate & deploy
 
-Invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
+**Finalize `docs/README.md` first** — complete the placeholder sections (What this plugin monitors, Data streams, What gets indexed, Known limitations) and run the completion checklist in [readme.md](references/readme.md). Source Known limitations from the reconciliation passes' API-level discoveries: every constraint that forced a fix in Phases 5–6 belongs there in user-facing words.
+
+Then invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
 
 **Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale)), the deployed tenant's objects are **stale** — they still match the **old** definition and won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger + poll one more import (the [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) trigger/wait steps) so the deployed objects match the shipped definition. Skip only if no import definition or import stream has changed since the last import.
