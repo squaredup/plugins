@@ -1,0 +1,276 @@
+{
+    "name": "MSP Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "260c7326-1056-42e2-85e6-2bfb12f31891",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Managed Companies",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[companies]}}",
+                        "name": "companies",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "count", "comparisonColumn": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b330cb63-2798-478e-9e16-8260e47c20ff",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Companies with Critical Vulnerabilities",
+                    "description": "Number of managed companies that currently have at least one open Critical severity vulnerability",
+                    "timeframe": "none",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[vulnerabilities]}}",
+                        "name": "vulnerabilities",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": { "severity": "Critical" },
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "distinctCount", "names": ["companyName"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "companyName_distinctCount", "comparisonColumn": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d9febee4-cd29-49c2-bd27-e17afcc30152",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Total Assets",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[companyStats]}}",
+                        "name": "companyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "sum", "names": ["total_assets"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "total_assets_sum", "comparisonColumn": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8d071b00-8e09-4fe3-8392-b34a86971873",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Avg Vulnerability Risk Score",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[companyStats]}}",
+                        "name": "companyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [{ "type": "mean", "names": ["asset_vul_stats.avg_risk_score"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "asset_vul_stats.avg_risk_score_mean",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c66210de-aa3a-463a-87e8-3a47359926c2",
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Company Overview",
+                    "description": "Total assets and compliance status for every managed company",
+                    "timeframe": "none",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[companyStats]}}",
+                        "name": "companyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": { "by": [["total_assets", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "companyName",
+                                    "total_assets",
+                                    "total_assets_external",
+                                    "asset_vul_stats.avg_risk_score",
+                                    "asset_vul_stats.max_risk_score",
+                                    "compliance_stats.cis.compliant",
+                                    "compliance_stats.cis.non_compliant",
+                                    "compliance_stats.hipaa.compliant",
+                                    "compliance_stats.hipaa.non_compliant",
+                                    "pii_risk_score"
+                                ],
+                                "hiddenColumns": [
+                                    "date",
+                                    "external_asset_vul_stats.avg_risk_score",
+                                    "external_asset_vul_stats.max_risk_score",
+                                    "compliance_stats.cis.risk_score",
+                                    "compliance_stats.hipaa.risk_score",
+                                    "compliance_stats.iso_27002.compliant",
+                                    "compliance_stats.iso_27002.non_compliant",
+                                    "compliance_stats.iso_27002.risk_score",
+                                    "compliance_stats.nist_50083.compliant",
+                                    "compliance_stats.nist_50083.non_compliant",
+                                    "compliance_stats.nist_50083.risk_score",
+                                    "compliance_stats.nist_800_171.compliant",
+                                    "compliance_stats.nist_800_171.non_compliant",
+                                    "compliance_stats.nist_800_171.risk_score",
+                                    "compliance_stats.pcidss.compliant",
+                                    "compliance_stats.pcidss.non_compliant",
+                                    "compliance_stats.pcidss.risk_score",
+                                    "ad_stats.ad_computer",
+                                    "ad_stats.ad_computer_enabled",
+                                    "ad_stats.ad_computer_disabled",
+                                    "ad_stats.ad_computer_not_logged",
+                                    "ad_stats.ad_user",
+                                    "ad_stats.ad_user_enabled",
+                                    "ad_stats.ad_user_disabled",
+                                    "ad_stats.ad_user_not_logged",
+                                    "ad_stats.ad_group",
+                                    "ad_stats.ad_empty_group",
+                                    "ad_stats.ad_gpo",
+                                    "ad_stats.ad_active_policy",
+                                    "ad_stats.ad_inactive_policy",
+                                    "ad_stats.ad_security_not_enabled",
+                                    "ad_stats.ad_avg_risk_score",
+                                    "ad_stats.azure_computer",
+                                    "ad_stats.azure_computer_enabled",
+                                    "ad_stats.azure_computer_disabled",
+                                    "ad_stats.azure_computer_not_logged",
+                                    "ad_stats.azure_user",
+                                    "ad_stats.azure_user_enabled",
+                                    "ad_stats.azure_user_disabled",
+                                    "ad_stats.azure_user_not_logged",
+                                    "ad_stats.azure_group",
+                                    "ad_stats.azure_empty_group",
+                                    "ad_stats.azure_licenses",
+                                    "ad_stats.azure_active_licenses",
+                                    "ad_stats.azure_consumed_licenses",
+                                    "ad_stats.azure_security_not_enabled",
+                                    "ad_last_scan_time",
+                                    "created",
+                                    "updated"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "394e4976-ac66-4b31-a50f-04e0cb1f1214",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Critical Vulnerabilities by Company",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[vulnerabilities]}}",
+                        "name": "vulnerabilities",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": { "severity": "Critical" },
+                        "group": {
+                            "by": [["companyName", "uniqueValues"]],
+                            "aggregate": [{ "type": "count" }]
+                        },
+                        "sort": { "by": [["count", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": ["companyName_uniqueValues", "count"],
+                                "columnDisplayNames": {
+                                    "companyName_uniqueValues": "Company",
+                                    "count": "Critical Vulnerabilities"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

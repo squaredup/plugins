@@ -1,0 +1,73 @@
+{
+    "name": "vulnerabilities",
+    "displayName": "Vulnerabilities",
+    "description": "Security vulnerabilities found across your managed companies' assets",
+    "tags": ["Vulnerability"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/r/report_queries/problems_summary_group_by_companies",
+        "getArgs": [
+            {
+                "key": "condition",
+                "value": "{{ [ (severity ? \"severity='\" + severity + \"'\" : null), (company && company.length ? 'company_id=' + (Array.isArray(company[0].rawId) ? company[0].rawId[0] : company[0].rawId) : null) ].filter(Boolean).join(' AND ') || null }}"
+            }
+        ],
+        "pathToData": "data",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "5000" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "skip" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "severity",
+            "label": "Severity",
+            "defaultValue": "Critical",
+            "validation": { "required": true },
+            "options": [
+                { "value": "Critical", "label": "Critical" },
+                { "value": "High", "label": "High" },
+                { "value": "Medium", "label": "Medium" },
+                { "value": "Low", "label": "Low" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "company",
+            "label": "Company (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["Company"] }
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "company_id", "displayName": "Company ID", "shape": "string", "visible": false },
+        { "name": "companyName", "displayName": "Company", "sourceId": "company_id", "sourceType": "Company", "objectPropertyPath": "name" },
+        { "name": "problem_name", "displayName": "Vulnerability", "shape": "string", "role": "label" },
+        { "name": "severity", "displayName": "Severity", "shape": "string" },
+        { "name": "base_score", "displayName": "Base Score", "shape": "number" },
+        { "name": "epss_score", "displayName": "EPSS Score", "shape": "number" },
+        { "name": "exploitability_score", "displayName": "Exploitability Score", "shape": "number" },
+        { "name": "impact_score", "displayName": "Impact Score", "shape": "number" },
+        { "name": "asset_ids", "displayName": "Affected Asset IDs", "shape": "json", "visible": false },
+        {
+            "name": "affectedAssetCount",
+            "displayName": "Affected Assets",
+            "computed": true,
+            "valueExpression": "{{ ($['asset_ids'] || []).length }}",
+            "shape": "number"
+        },
+        { "name": "first_vul_discovered", "displayName": "First Discovered", "shape": "date" },
+        { "name": "last_vul_discovered", "displayName": "Last Discovered", "shape": "date" }
+    ],
+    "timeframes": false
+}
