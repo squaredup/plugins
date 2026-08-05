@@ -1,0 +1,58 @@
+{
+    "name": "cohortEventHistory",
+    "displayName": "Cohort Event History",
+    "description": "Daily count of a chosen event fired by a cohort's members",
+    "tags": ["Analytics", "Events", "Cohorts"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/2/events/segmentation",
+        "getArgs": [
+            { "key": "e", "value": "{{JSON.stringify({event_type: Array.isArray(eventType) ? (eventType[0] && eventType[0].value) : eventType})}}" },
+            { "key": "s", "value": "{{JSON.stringify([{prop: 'userdata_cohort', op: 'is', values: [object.rawId]}])}}" },
+            { "key": "start", "value": "{{timeframe.start.slice(0,10).replace(/-/g,'')}}" },
+            { "key": "end", "value": "{{timeframe.end.slice(0,10).replace(/-/g,'')}}" },
+            { "key": "i", "value": "1" },
+            { "key": "m", "value": "totals" }
+        ],
+        "postRequestScript": "cohortEventHistory.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Amplitude Cohort"] } },
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "eventType",
+            "label": "Event",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "eventTypes",
+                "dataSourceConfig": {}
+            },
+            "validation": { "required": true }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "eventCount",
+            "displayName": "Event Count",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ]
+}

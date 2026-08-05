@@ -1,0 +1,71 @@
+{
+    "name": "eventCountHistory",
+    "displayName": "Event Count History",
+    "description": "Daily count of a specific event's occurrences",
+    "tags": ["Analytics", "Events"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/2/events/segmentation",
+        "getArgs": [
+            { "key": "e", "value": "{{(function(){ var v = Array.isArray(groupByProperty) ? (groupByProperty[0] && groupByProperty[0].value) : groupByProperty; var e = {event_type: object.rawId}; if (v) { e.group_by = [{type: 'event', value: v}]; } return JSON.stringify(e); })()}}" },
+            { "key": "start", "value": "{{timeframe.start.slice(0,10).replace(/-/g,'')}}" },
+            { "key": "end", "value": "{{timeframe.end.slice(0,10).replace(/-/g,'')}}" },
+            { "key": "i", "value": "1" },
+            { "key": "m", "value": "{{metric}}" }
+        ],
+        "postRequestScript": "eventCountHistory.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Amplitude Event Type"] } },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "metric",
+            "label": "Metric",
+            "options": [
+                { "value": "totals", "label": "Total Events" },
+                { "value": "uniques", "label": "Unique Users" }
+            ],
+            "default": "totals"
+        },
+        {
+            "type": "autocomplete",
+            "name": "groupByProperty",
+            "label": "Group by property (optional)",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "eventProperties",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "eventCount",
+            "displayName": "Event Count",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "groupValue",
+            "displayName": "Property Value",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ]
+}
