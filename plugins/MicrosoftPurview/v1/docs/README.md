@@ -64,7 +64,7 @@ Repeat for each governance domain you want to surface. Without this role, the Go
 | Object type            | Represents                                                                                                |
 | ---------------------- | --------------------------------------------------------------------------------------------------------- |
 | **Purview Collection** | An organisational unit in your Purview account. The root collection is named after the account itself.    |
-| **Purview Data Source** | A registered data source — e.g. an Azure SQL database, ADLS Gen2 account, Snowflake instance, Amazon S3 bucket. |                                                            |
+| **Purview Data Source** | A registered data source — e.g. an Azure SQL database, ADLS Gen2 account, Snowflake instance, Amazon S3 bucket. |                                                           
 | **Purview Governance Domain** | A governance domain defined in the Unified Catalog. Requires the Data Catalog Reader role — see step 3 above. |
 
 Assets (tables, files, columns) are **not** indexed because a single Purview account can hold millions of them. They are queried on-demand by the data streams instead.
