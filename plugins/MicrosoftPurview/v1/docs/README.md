@@ -1,4 +1,3 @@
-# Microsoft Purview
 
 This plugin connects SquaredUp to Microsoft Purview and surfaces data governance posture across collections, data sources, scans, classifications, policies, and lineage.
 
