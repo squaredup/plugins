@@ -7,7 +7,12 @@
     ],
     "baseDataSourceName": "httpRequestUnscoped",
     "matches": "none",
-    "timeframes": false,
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ],
     "config": {
         "httpMethod": "get",
         "endpointPath": "/api/dependencies",
@@ -15,41 +20,15 @@
         "getArgs": [
             {
                 "key": "endTs",
-                "value": "{{Date.now()}}"
+                "value": "{{timeframe?.unixEnd ? timeframe.unixEnd * 1000 : Date.now()}}"
             },
             {
                 "key": "lookback",
-                "value": "{{lookback}}"
+                "value": "{{(timeframe?.unixStart && timeframe?.unixEnd) ? (timeframe.unixEnd - timeframe.unixStart) * 1000 : 1800000}}"
             }
         ],
         "headers": []
     },
-    "ui": [
-        {
-            "type": "choiceChips",
-            "name": "lookback",
-            "label": "Lookback window",
-            "defaultValue": "3600000",
-            "options": [
-                {
-                    "value": "3600000",
-                    "label": "Last hour"
-                },
-                {
-                    "value": "21600000",
-                    "label": "Last 6 hours"
-                },
-                {
-                    "value": "86400000",
-                    "label": "Last 24 hours"
-                },
-                {
-                    "value": "604800000",
-                    "label": "Last 7 days"
-                }
-            ]
-        }
-    ],
     "metadata": [
         {
             "name": "key",

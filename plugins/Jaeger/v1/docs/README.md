@@ -22,7 +22,7 @@ On save, the plugin validates the URL by fetching the list of known services; an
 ## What this plugin monitors
 
 - **Services** — every service Jaeger has seen spans for.
-- **Dependencies** — call relationships between services, with call counts over a configurable lookback window.
+- **Dependencies** — call relationships between services, with call counts over the selected timeframe.
 - **Operations** — the operation (endpoint/method) names reported by a service.
 - **Traces** — individual spans reported by a service within a selected timeframe, including duration, kind, and status.
 
@@ -46,7 +46,8 @@ Each Dependency row carries `parent` and `child` properties naming the two Servi
 
 ## Known limitations
 
-- **Dependencies reflect a fixed lookback window** — the Dependencies data stream queries Jaeger's dependency graph over a selectable window (last hour up to last 7 days), not the dashboard timeframe; it has no time-range parameter of its own.
+- **Dependencies' timeframe is restricted to last 1 hour–last 7 days** — Jaeger's dependency-graph query is comparatively expensive, so the range of selectable timeframes is deliberately narrower than Traces' full range.
+- **Scheduled indexing of Dependencies always uses a 1-hour trailing window** — indexing runs with no dashboard timeframe selected, so it falls back to querying just the hour before each run rather than spanning the full interval between imports (imports run every 12 hours by default). A dependency between two services that only occurred outside that trailing hour won't be indexed until it recurs within one.
 - **Traces are per-service only** — there's no cross-service trace search or single-trace detail view in this version.
 - **No Service Performance Monitoring (SPM) metrics** — SPM requires a separate metrics storage backend that most Jaeger deployments don't enable, so it isn't covered here.
 - **No authentication** — the Jaeger Query API has none; this plugin can't authenticate through a reverse proxy that requires it.
