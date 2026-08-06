@@ -90,6 +90,7 @@ result = (data.items || []).map((item) => {
         const desiredNumberScheduled =
             (item.status && item.status.desiredNumberScheduled) || 0;
         const numberReady = (item.status && item.status.numberReady) || 0;
+        // No eligible nodes means zero scheduled pods is the intended state, not a failure.
         const daemonSetHealth =
             desiredNumberScheduled === 0
                 ? "success"
@@ -164,6 +165,8 @@ result = (data.items || []).map((item) => {
             firstRulePath.backend &&
             firstRulePath.backend.service &&
             firstRulePath.backend.service.name;
+        // Only the default backend or the first rule's first path is exposed —
+        // later rules/paths routing to other services aren't represented.
         return {
             ...base,
             ingressClassName:

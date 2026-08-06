@@ -2,7 +2,7 @@
 
 Monitor a [Kubernetes](https://kubernetes.io) cluster in SquaredUp — a live, auto-discovered service map of namespaces, nodes, workloads (deployments, replica sets, daemon sets, stateful sets, pods), networking (services, ingresses), storage (persistent volumes), and per-namespace resource guardrails (resource quotas, limit ranges), with cluster and resource health (no Prometheus dependency), live CPU/memory usage, and a live cluster events feed, via the [Kubernetes API](https://kubernetes.io/docs/reference/kubernetes-api/).
 
-> ⚠️ CPU/memory usage tiles require [`metrics-server`](https://github.com/kubernetes-sigs/metrics-server) to be running in your cluster — this is Kubernetes' standard, lightweight Metrics API and is **not** Prometheus. Some managed clusters provide it by default (e.g. GKE); others, including EKS, do not. Run `kubectl top nodes` to check — if it fails with "Metrics API not available", install `metrics-server` before adding this plugin.
+> ⚠️ CPU/memory usage tiles require [`metrics-server`](https://github.com/kubernetes-sigs/metrics-server) to be running in your cluster — this is Kubernetes' standard, lightweight Metrics API and is **not** Prometheus. Some managed clusters provide it by default (e.g. GKE); others, including EKS, do not. Run `kubectl top nodes` to check — if it fails with "Metrics API not available", install `metrics-server` to enable the CPU/memory usage tiles.
 
 ## Setup
 
@@ -80,7 +80,7 @@ You will need a **ServiceAccount bearer token** with read-only, cluster-wide acc
 
 ### Deployment modes
 
-This plugin is **hybrid** — it can run in **cloud mode** (SquaredUp connects to your API server directly; simplest setup, requires your API server to be reachable from the internet) or **relay agent mode** (a small on-premises agent you run inside your network relays requests out; use this for private/firewalled clusters, including local clusters like `kind`/`minikube`/OrbStack). Most real-world clusters are not internet-reachable, so relay agent mode is the common case outside of a public demo cluster. See SquaredUp's relay agent documentation for installing the agent itself (it can run as a container anywhere with network access to your API server, including as a Deployment inside the cluster it monitors).
+This plugin is **hybrid** — it can run in **cloud mode** (SquaredUp connects to your API server directly; simplest setup, requires your API server to be reachable from the internet) or **relay agent mode** (a small on-premises agent you run inside your network relays requests out; use this for private/firewalled clusters, including local clusters like `kind`/`minikube`/OrbStack). Most real-world clusters are not internet-reachable, so relay agent mode is the common case outside a public demo cluster. See [SquaredUp's relay agent documentation](https://docs.squaredup.com/features/connect-and-explore/relay-agents) for installing the agent itself (it can run as a container anywhere with network access to your API server, including as a Deployment inside the cluster it monitors).
 
 ## Configuration fields
 

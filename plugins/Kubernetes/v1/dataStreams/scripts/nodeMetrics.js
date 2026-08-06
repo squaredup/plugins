@@ -50,6 +50,7 @@ const rows = (data.items || []).map((item) => {
     };
 });
 
+// Object-picker fields can be arrays. Normalize them before key comparison.
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const selected = (context.config && context.config.node) || [];
 const nodeNames = new Set(selected.map((o) => unwrap(o.name)).filter(Boolean));

@@ -18,6 +18,7 @@ function computeContainerHealth(pod) {
     return phase ? phase.toLowerCase() : "unknown";
 }
 
+// Object-picker fields can be arrays. Normalize them before key comparison.
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const ownerName = context.objects[0].name;
 const ownerNamespace = unwrap(context.objects[0].namespace);
