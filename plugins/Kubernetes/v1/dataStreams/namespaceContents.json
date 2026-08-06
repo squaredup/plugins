@@ -1,0 +1,389 @@
+{
+    "name": "namespaceContents",
+    "displayName": "Namespace Contents",
+    "description": "Objects of a chosen kind running in a namespace, one row per object",
+    "tags": [
+        "Resources"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ '/' + ({ ingresses: 'apis/networking.k8s.io/v1', deployments: 'apis/apps/v1', daemonsets: 'apis/apps/v1', statefulsets: 'apis/apps/v1', replicasets: 'apis/apps/v1' }[detailType] || 'api/v1') + '/namespaces/' + object.name + '/' + detailType }}",
+        "postRequestScript": "namespaceContents.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "metadata.continue"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "continue"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Namespace"
+        }
+    },
+    "ui": [
+        {
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Deployments",
+                        "value": "deployments"
+                    },
+                    {
+                        "label": "DaemonSets",
+                        "value": "daemonsets"
+                    },
+                    {
+                        "label": "StatefulSets",
+                        "value": "statefulsets"
+                    },
+                    {
+                        "label": "ReplicaSets",
+                        "value": "replicasets"
+                    },
+                    {
+                        "label": "Services",
+                        "value": "services"
+                    },
+                    {
+                        "label": "Ingresses",
+                        "value": "ingresses"
+                    },
+                    {
+                        "label": "Persistent Volume Claims",
+                        "value": "persistentvolumeclaims"
+                    },
+                    {
+                        "label": "Resource Quotas",
+                        "value": "resourcequotas"
+                    },
+                    {
+                        "label": "Limit Ranges",
+                        "value": "limitranges"
+                    },
+                    {
+                        "label": "Pods",
+                        "value": "pods"
+                    }
+                ]
+            },
+            "defaultValue": "pods",
+            "isClearable": false,
+            "isMulti": false,
+            "label": "Detail Type",
+            "name": "detailType",
+            "type": "autocomplete",
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "uid",
+            "displayName": "UID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "namespace",
+            "displayName": "Namespace",
+            "shape": "string"
+        },
+        {
+            "name": "desiredReplicas",
+            "displayName": "Desired Replicas",
+            "shape": "number"
+        },
+        {
+            "name": "availableReplicas",
+            "displayName": "Available Replicas",
+            "shape": "number"
+        },
+        {
+            "name": "availableStatus",
+            "displayName": "Available",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "True"
+                        ],
+                        "error": [
+                            "False"
+                        ],
+                        "unknown": [
+                            "Unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "desiredNumberScheduled",
+            "displayName": "Desired Scheduled",
+            "shape": "number"
+        },
+        {
+            "name": "numberReady",
+            "displayName": "Ready",
+            "shape": "number"
+        },
+        {
+            "name": "daemonSetHealth",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "readyReplicas",
+            "displayName": "Ready Replicas",
+            "shape": "number"
+        },
+        {
+            "name": "statefulSetHealth",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "ownerUid",
+            "displayName": "Owner UID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "serviceType",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "selectorAppLabel",
+            "displayName": "Selector App Label",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ingressClassName",
+            "displayName": "Ingress Class",
+            "shape": "string"
+        },
+        {
+            "name": "hosts",
+            "displayName": "Hosts",
+            "shape": "string"
+        },
+        {
+            "name": "primaryBackendServiceName",
+            "displayName": "Primary Backend Service",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "phase",
+            "displayName": "Phase",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Bound"
+                        ],
+                        "warning": [
+                            "Pending"
+                        ],
+                        "error": [
+                            "Lost"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "requestedStorageBytes",
+            "displayName": "Requested Storage",
+            "shape": "bytes"
+        },
+        {
+            "name": "volumeName",
+            "displayName": "Volume Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "cpuRequestHardMillicores",
+            "displayName": "CPU Requests Limit (m)",
+            "shape": "number"
+        },
+        {
+            "name": "cpuRequestUsedMillicores",
+            "displayName": "CPU Requests Used (m)",
+            "shape": "number"
+        },
+        {
+            "name": "memoryRequestHardBytes",
+            "displayName": "Memory Requests Limit",
+            "shape": "bytes"
+        },
+        {
+            "name": "memoryRequestUsedBytes",
+            "displayName": "Memory Requests Used",
+            "shape": "bytes"
+        },
+        {
+            "name": "cpuLimitHardMillicores",
+            "displayName": "CPU Limits Cap (m)",
+            "shape": "number"
+        },
+        {
+            "name": "cpuLimitUsedMillicores",
+            "displayName": "CPU Limits Used (m)",
+            "shape": "number"
+        },
+        {
+            "name": "memoryLimitHardBytes",
+            "displayName": "Memory Limits Cap",
+            "shape": "bytes"
+        },
+        {
+            "name": "memoryLimitUsedBytes",
+            "displayName": "Memory Limits Used",
+            "shape": "bytes"
+        },
+        {
+            "name": "podsHard",
+            "displayName": "Pod Limit",
+            "shape": "number"
+        },
+        {
+            "name": "podsUsed",
+            "displayName": "Pods Used",
+            "shape": "number"
+        },
+        {
+            "name": "limitType",
+            "displayName": "Limit Type",
+            "shape": "string"
+        },
+        {
+            "name": "defaultCpuMillicores",
+            "displayName": "Default CPU Limit (m)",
+            "shape": "number"
+        },
+        {
+            "name": "defaultMemoryBytes",
+            "displayName": "Default Memory Limit",
+            "shape": "bytes"
+        },
+        {
+            "name": "defaultRequestCpuMillicores",
+            "displayName": "Default CPU Request (m)",
+            "shape": "number"
+        },
+        {
+            "name": "defaultRequestMemoryBytes",
+            "displayName": "Default Memory Request",
+            "shape": "bytes"
+        },
+        {
+            "name": "maxCpuMillicores",
+            "displayName": "Max CPU (m)",
+            "shape": "number"
+        },
+        {
+            "name": "maxMemoryBytes",
+            "displayName": "Max Memory",
+            "shape": "bytes"
+        },
+        {
+            "name": "minCpuMillicores",
+            "displayName": "Min CPU (m)",
+            "shape": "number"
+        },
+        {
+            "name": "minMemoryBytes",
+            "displayName": "Min Memory",
+            "shape": "bytes"
+        },
+        {
+            "name": "nodeName",
+            "displayName": "Node",
+            "shape": "string"
+        },
+        {
+            "name": "podPhase",
+            "displayName": "Pod Phase",
+            "shape": "string"
+        },
+        {
+            "name": "containerHealth",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "healthy"
+                        ],
+                        "warning": [
+                            "pending"
+                        ],
+                        "error": [
+                            "crashloop"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

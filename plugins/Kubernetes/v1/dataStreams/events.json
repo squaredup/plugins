@@ -1,0 +1,91 @@
+{
+    "name": "events",
+    "displayName": "Events",
+    "description": "Kubernetes cluster events, one row per event",
+    "tags": [
+        "Events"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/v1/events",
+        "postRequestScript": "events.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "metadata.continue"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "continue"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "uid",
+            "displayName": "UID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "reason",
+            "displayName": "Reason",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Normal"
+                        ],
+                        "warning": [
+                            "Warning"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "message",
+            "displayName": "Message",
+            "shape": "string"
+        },
+        {
+            "name": "lastTimestamp",
+            "displayName": "Last Seen",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "involvedObjectUid",
+            "displayName": "Involved Object UID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "involvedObjectKind",
+            "displayName": "Involved Object Kind",
+            "shape": "string"
+        },
+        {
+            "name": "involvedObjectName",
+            "displayName": "Involved Object Name",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}
