@@ -1,0 +1,89 @@
+{
+    "name": "dependencies",
+    "displayName": "Dependencies",
+    "description": "Call dependencies between services, one row per parent-child pair",
+    "tags": [
+        "Services"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "matches": "none",
+    "timeframes": false,
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/dependencies",
+        "pathToData": "data",
+        "getArgs": [
+            {
+                "key": "endTs",
+                "value": "{{Date.now()}}"
+            },
+            {
+                "key": "lookback",
+                "value": "{{lookback}}"
+            }
+        ],
+        "headers": []
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "lookback",
+            "label": "Lookback window",
+            "defaultValue": "3600000",
+            "options": [
+                {
+                    "value": "3600000",
+                    "label": "Last hour"
+                },
+                {
+                    "value": "21600000",
+                    "label": "Last 6 hours"
+                },
+                {
+                    "value": "86400000",
+                    "label": "Last 24 hours"
+                },
+                {
+                    "value": "604800000",
+                    "label": "Last 7 days"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "key",
+            "displayName": "Dependency",
+            "computed": true,
+            "valueExpression": "{{ $['parent'] + ' -> ' + $['child'] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "parent",
+            "displayName": "Parent Service",
+            "shape": "string"
+        },
+        {
+            "name": "child",
+            "displayName": "Child Service",
+            "shape": "string"
+        },
+        {
+            "name": "callCount",
+            "displayName": "Call Count",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "source",
+            "displayName": "Source",
+            "shape": "string",
+            "visible": false
+        }
+    ]
+}
