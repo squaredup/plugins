@@ -211,11 +211,11 @@ In `base.config`:
 "scriptingVariables": [
     { "key": "signedJwt", "value": "{{signedJwt}}" }
 ],
-"preRequestScript": "preRequest/my-plugin.js"
+"preRequestScript": "preRequest.js"
 ```
 
 - `scriptingVariables` — key/value secrets the script reads as `secrets.<key>`. Values support `{{fieldName}}` expressions referencing `ui.json` fields, same as `headers`. Values are encrypted at rest.
-- `preRequestScript` — a file reference relative to `dataStreams/scripts/`: put the script at `dataStreams/scripts/preRequest/my-plugin.js` (named after the plugin, `.js` extension required); it's inlined into the config at deploy time.
+- `preRequestScript` — a file reference relative to the plugin's version root (unlike data-stream scripts, which live under `dataStreams/scripts/`): put the script at `<plugin>/v1/preRequest.js`; it's inlined into the config at deploy time. There's only ever one per plugin, so it doesn't need a per-plugin filename or subfolder.
 - `scriptState` — never set this: it's a reserved config property where the platform persists the script's `state`, encrypted.
 
 ### Script scope
@@ -238,7 +238,7 @@ The script body runs inside an async function — top-level `await` works. `fetc
 The user supplies a pre-signed JWT (a `ui.json` field mapped via `scriptingVariables`); the script exchanges it for a short-lived access token and caches it in `state` until expiry:
 
 ```javascript
-// dataStreams/scripts/preRequest/my-plugin.js
+// preRequest.js
 const now = Date.now();
 if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= now) {
     const authUrl = `${context.dataSources[0].baseUrl.replace(/\/*$/, "")}/api/auth/authenticate`;
