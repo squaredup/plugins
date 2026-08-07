@@ -1,0 +1,76 @@
+{
+    "name": "assets",
+    "displayName": "Assets",
+    "description": "Assets in an asset application, one row per asset, with status, owner, location and purchase detail",
+    "tags": ["Assets", "Inventory"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/assets/search",
+        "postBody": {
+            "MaxResults": "{{maxResults || dataSource.maxRecords || 2000}}",
+            "IsInService": "{{typeof inService === 'undefined' || inService === '' || inService === 'all' ? null : inService === 'inService'}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "assets.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Asset App"] }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "inService",
+            "label": "Service state",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "inService", "label": "In service" },
+                { "value": "outOfService", "label": "Out of service" }
+            ]
+        },
+        {
+            "type": "number",
+            "name": "maxResults",
+            "label": "Maximum assets",
+            "help": "The TeamDynamix asset search returns a single unpaged result set, so this is a hard ceiling on how many assets the tile can see.",
+            "validation": { "min": 1, "max": 10000, "valueAsNumber": true }
+        }
+    ],
+    "metadata": [
+        { "name": "name", "displayName": "Asset", "shape": "string", "role": "label" },
+        { "name": "sourceId", "displayName": "Source ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "assetId", "displayName": "Asset ID", "shape": "string", "visible": false },
+        { "name": "link", "displayName": "Link", "shape": ["url", { "label": "Open in TeamDynamix" }], "role": "link" },
+        { "name": "statusName", "displayName": "Status", "shape": "string" },
+        { "name": "tag", "displayName": "Tag", "shape": "string" },
+        { "name": "serialNumber", "displayName": "Serial Number", "shape": "string" },
+        { "name": "manufacturerName", "displayName": "Manufacturer", "shape": "string" },
+        { "name": "productModelName", "displayName": "Model", "shape": "string" },
+        { "name": "supplierName", "displayName": "Supplier", "shape": "string", "visible": false },
+        { "name": "locationName", "displayName": "Location", "shape": "string" },
+        { "name": "locationRoomName", "displayName": "Room", "shape": "string", "visible": false },
+        { "name": "owningCustomerName", "displayName": "Owner", "shape": "string" },
+        { "name": "owningDepartmentName", "displayName": "Owning Department", "shape": "string" },
+        { "name": "requestingCustomerName", "displayName": "Requestor", "shape": "string", "visible": false },
+        { "name": "purchaseCost", "displayName": "Purchase Cost", "shape": ["number", { "decimalPlaces": 2, "thousandsSeparator": true }] },
+        { "name": "acquisitionDate", "displayName": "Acquired", "shape": "date" },
+        { "name": "expectedReplacementDate", "displayName": "Expected Replacement", "shape": "date" },
+        { "name": "createdDate", "displayName": "Created", "shape": "date", "visible": false },
+        { "name": "modifiedDate", "displayName": "Modified", "shape": "date" },
+        { "name": "parentName", "displayName": "Parent Asset", "shape": "string", "visible": false },
+        { "name": "externalId", "displayName": "External ID", "shape": "string", "visible": false },
+        { "name": "configurationItemId", "displayName": "Configuration Item ID", "shape": "string", "visible": false },
+        { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false },
+        { "name": "sourceType", "displayName": "Object Type", "shape": "string", "visible": false },
+        { "pattern": "^attr\\..*" }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["name", "asc"]] }
+    },
+    "timeframes": false
+}

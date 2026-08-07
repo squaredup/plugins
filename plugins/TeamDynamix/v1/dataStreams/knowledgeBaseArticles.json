@@ -1,0 +1,66 @@
+{
+    "name": "knowledgeBaseArticles",
+    "displayName": "Knowledge Base Articles",
+    "description": "Knowledge base articles in a client portal application, one row per article",
+    "tags": ["Knowledge Base", "Service Management"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/knowledgebase/search",
+        "postBody": {
+            "IncludeArticleBodies": false,
+            "IncludeShortcuts": false,
+            "IsPublished": "{{typeof publishedState === 'undefined' || publishedState === '' || publishedState === 'all' ? null : publishedState === 'published'}}",
+            "ReturnCount": "{{maxResults || dataSource.maxRecords || 1000}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "knowledgeBaseArticles.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Application"] }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "publishedState",
+            "label": "Published state",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "published", "label": "Published" },
+                { "value": "unpublished", "label": "Unpublished" }
+            ]
+        },
+        {
+            "type": "number",
+            "name": "maxResults",
+            "label": "Maximum articles",
+            "validation": { "min": 1, "max": 10000, "valueAsNumber": true }
+        }
+    ],
+    "metadata": [
+        { "name": "subject", "displayName": "Article", "shape": "string", "role": "label" },
+        { "name": "articleId", "displayName": "Article ID", "shape": "string", "role": "id" },
+        { "name": "link", "displayName": "Link", "shape": ["url", { "label": "Open in TeamDynamix" }], "role": "link" },
+        { "name": "categoryName", "displayName": "Category", "shape": "string" },
+        { "name": "statusName", "displayName": "Status", "shape": "string" },
+        { "name": "isPublished", "displayName": "Published", "shape": "boolean" },
+        { "name": "isPublic", "displayName": "Public", "shape": "boolean" },
+        { "name": "ownerFullName", "displayName": "Owner", "shape": "string" },
+        { "name": "owningGroupName", "displayName": "Owning Group", "shape": "string" },
+        { "name": "summary", "displayName": "Summary", "shape": "string" },
+        { "name": "reviewDate", "displayName": "Review Due", "shape": "date" },
+        { "name": "createdDate", "displayName": "Created", "shape": "date", "visible": false },
+        { "name": "modifiedDate", "displayName": "Modified", "shape": "date" },
+        { "name": "revisionNumber", "displayName": "Revision", "shape": "number", "visible": false },
+        { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["modifiedDate", "desc"]] }
+    },
+    "timeframes": false
+}

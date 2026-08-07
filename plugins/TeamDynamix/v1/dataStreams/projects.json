@@ -1,0 +1,92 @@
+{
+    "name": "projects",
+    "displayName": "Projects",
+    "description": "Projects in a project application, one row per project, with health, schedule and budget detail",
+    "tags": ["Projects"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/projects/search",
+        "postBody": {
+            "IsActive": "{{typeof activeState === 'undefined' || activeState === '' || activeState === 'all' ? null : activeState === 'active'}}",
+            "IsOpen": "{{typeof openState === 'undefined' || openState === '' || openState === 'all' ? null : openState === 'open'}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "projects.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Application"] }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "activeState",
+            "label": "Active state",
+            "defaultValue": "active",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "active", "label": "Active" },
+                { "value": "inactive", "label": "Inactive" }
+            ]
+        },
+        {
+            "type": "switch",
+            "name": "openState",
+            "label": "Open state",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "open", "label": "Open" },
+                { "value": "closed", "label": "Closed" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "name", "displayName": "Project", "shape": "string", "role": "label" },
+        { "name": "projectId", "displayName": "Project ID", "shape": "string", "role": "id" },
+        {
+            "name": "healthName",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Green", "On Track"],
+                        "warning": ["Yellow", "At Risk"],
+                        "error": ["Red", "Off Track"],
+                        "unknown": ["None", "Not Set", ""]
+                    }
+                }
+            ]
+        },
+        { "name": "statusName", "displayName": "Status", "shape": "string" },
+        { "name": "percentComplete", "displayName": "Complete", "shape": "percent" },
+        { "name": "managerName", "displayName": "Manager", "shape": "string" },
+        { "name": "sponsorName", "displayName": "Sponsor", "shape": "string", "visible": false },
+        { "name": "accountName", "displayName": "Account / Department", "shape": "string" },
+        { "name": "typeName", "displayName": "Type", "shape": "string" },
+        { "name": "priorityName", "displayName": "Priority", "shape": "string", "visible": false },
+        { "name": "classificationName", "displayName": "Classification", "shape": "string", "visible": false },
+        { "name": "serviceName", "displayName": "Service", "shape": "string", "visible": false },
+        { "name": "startDate", "displayName": "Starts", "shape": "date" },
+        { "name": "endDate", "displayName": "Ends", "shape": "date" },
+        { "name": "estimatedHours", "displayName": "Estimated Hours", "shape": "number" },
+        { "name": "actualHours", "displayName": "Actual Hours", "shape": "number" },
+        { "name": "budget", "displayName": "Budget", "shape": ["number", { "decimalPlaces": 2, "thousandsSeparator": true }] },
+        { "name": "expensesBudget", "displayName": "Expenses Budget", "shape": ["number", { "decimalPlaces": 2, "thousandsSeparator": true }], "visible": false },
+        { "name": "expensesBudgetUsed", "displayName": "Expenses Used", "shape": ["number", { "decimalPlaces": 2, "thousandsSeparator": true }], "visible": false },
+        { "name": "isActive", "displayName": "Active", "shape": "boolean", "visible": false },
+        { "name": "statusLastUpdated", "displayName": "Status Updated", "shape": "date", "visible": false },
+        { "name": "createdDate", "displayName": "Created", "shape": "date", "visible": false },
+        { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false },
+        { "pattern": "^attr\\..*" }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["endDate", "asc"]] }
+    },
+    "timeframes": false
+}

@@ -1,0 +1,62 @@
+{
+    "name": "configurationItems",
+    "displayName": "Configuration Items",
+    "description": "Configuration items in the CMDB of an asset application, one row per item",
+    "tags": ["Configuration Items", "Inventory"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/cmdb/search",
+        "postBody": {
+            "IsActive": "{{typeof activeState === 'undefined' || activeState === '' || activeState === 'all' ? null : activeState === 'active'}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "configurationItems.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Asset App"] }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "activeState",
+            "label": "Active state",
+            "defaultValue": "active",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "active", "label": "Active" },
+                { "value": "inactive", "label": "Inactive" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "name", "displayName": "Configuration Item", "shape": "string", "role": "label" },
+        { "name": "sourceId", "displayName": "Source ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "configurationItemId", "displayName": "CI ID", "shape": "string", "visible": false },
+        { "name": "link", "displayName": "Link", "shape": ["url", { "label": "Open in TeamDynamix" }], "role": "link" },
+        { "name": "typeName", "displayName": "Type", "shape": "string" },
+        { "name": "isActive", "displayName": "Active", "shape": "boolean" },
+        { "name": "ownerFullName", "displayName": "Owner", "shape": "string" },
+        { "name": "owningDepartmentName", "displayName": "Owning Department", "shape": "string" },
+        { "name": "owningGroupName", "displayName": "Owning Group", "shape": "string" },
+        { "name": "locationName", "displayName": "Location", "shape": "string" },
+        { "name": "maintenanceScheduleName", "displayName": "Maintenance Window", "shape": "string" },
+        { "name": "backingItemType", "displayName": "Backing Item Type", "shape": "string", "visible": false },
+        { "name": "isSystemMaintained", "displayName": "System Maintained", "shape": "boolean", "visible": false },
+        { "name": "externalSourceName", "displayName": "External Source", "shape": "string", "visible": false },
+        { "name": "externalId", "displayName": "External ID", "shape": "string", "visible": false },
+        { "name": "createdDate", "displayName": "Created", "shape": "date", "visible": false },
+        { "name": "modifiedDate", "displayName": "Modified", "shape": "date" },
+        { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false },
+        { "name": "sourceType", "displayName": "Object Type", "shape": "string", "visible": false },
+        { "pattern": "^attr\\..*" }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["name", "asc"]] }
+    },
+    "timeframes": false
+}

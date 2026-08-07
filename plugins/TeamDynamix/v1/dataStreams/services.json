@@ -1,0 +1,58 @@
+{
+    "name": "services",
+    "displayName": "Services",
+    "description": "Service catalog services in a client portal application, one row per service",
+    "tags": ["Service Management"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/services/search",
+        "postBody": {
+            "IsActive": "{{typeof activeState === 'undefined' || activeState === '' || activeState === 'all' ? null : activeState === 'active'}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "services.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Application"] }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "activeState",
+            "label": "Active state",
+            "defaultValue": "active",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "active", "label": "Active" },
+                { "value": "inactive", "label": "Inactive" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "name", "displayName": "Service", "shape": "string", "role": "label" },
+        { "name": "serviceId", "displayName": "Service ID", "shape": "string", "role": "id" },
+        { "name": "categoryName", "displayName": "Category", "shape": "string" },
+        { "name": "fullCategoryText", "displayName": "Category Path", "shape": "string", "visible": false },
+        { "name": "managerName", "displayName": "Manager", "shape": "string" },
+        { "name": "managingGroupName", "displayName": "Managing Group", "shape": "string" },
+        { "name": "shortDescription", "displayName": "Description", "shape": "string" },
+        { "name": "isActive", "displayName": "Active", "shape": "boolean" },
+        { "name": "isPublic", "displayName": "Public", "shape": "boolean" },
+        { "name": "serviceOfferingsCount", "displayName": "Offerings", "shape": "number" },
+        { "name": "maintenanceScheduleName", "displayName": "Maintenance Window", "shape": "string", "visible": false },
+        { "name": "requestTypeName", "displayName": "Request Type", "shape": "string", "visible": false },
+        { "name": "createdDate", "displayName": "Created", "shape": "date", "visible": false },
+        { "name": "modifiedDate", "displayName": "Modified", "shape": "date", "visible": false },
+        { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false },
+        { "pattern": "^attr\\..*" }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["name", "asc"]] }
+    },
+    "timeframes": false
+}
