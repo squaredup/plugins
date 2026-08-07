@@ -1,4 +1,4 @@
-const byDate = data.near_earth_objects || {};
+const byDate = (data || {}).near_earth_objects || {};
 const seen = new Set();
 const rows = [];
 

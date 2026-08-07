@@ -19,7 +19,7 @@ The plugin also surfaces the Astronomy Picture of the Day (APOD) as a dashboard 
 1. Go to [api.nasa.gov](https://api.nasa.gov/) and fill in the "Generate API Key" form with your name and email.
 2. NASA emails you an API key immediately — no approval wait.
 3. Use that key when configuring this plugin.
-
+4. In SquaredUp, under Settings -> Organisation, add "https://apod.nasa.gov/" to the list of allowed domains for embedding (this ensures the NASA Image of the Day can display correctly).
 You can use the public `DEMO_KEY` to try the plugin out, but it's rate-limited to 30 requests/hour and 50/day shared across *all* users of that key — a real key raises this to 1,000 requests/hour tied to you personally. Get a real key before relying on this plugin for anything ongoing.
 
 ## Configuration fields
