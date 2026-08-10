@@ -2,16 +2,17 @@
 // pair to /api/auth/loginadmin. No built-in authMode covers that exchange, so it happens
 // here and the resulting token is cached in `state`.
 //
-// This script also does two things that aren't strictly authentication:
+// This script also normalises the request path: the user pastes a full Web API address,
+// which may or may not have a trailing slash, so collapse any doubled separator before
+// sending.
 //
-//  1. Request spacing. TeamDynamix rate limits are enforced per IP address, and the
-//     tightest documented limit is 30 requests/60s on ticket and time-entry search
-//     (most other endpoints allow 60/60s). A single import that walks several
-//     applications can breach that on its own, so we hold a minimum gap between
-//     consecutive requests rather than relying on the API to forgive us.
-//
-//  2. Path normalisation. The user pastes a full Web API address, which may or may not
-//     have a trailing slash, so collapse any doubled separator before sending.
+// Rate limiting itself is left to the platform rather than paced here. TeamDynamix returns
+// proper X-RateLimit-* headers, and the errorHandling script on every stream (rateLimit.js)
+// already turns a 429 into a clear, self-healing message naming when it resets. An earlier
+// version of this script also held a minimum gap between consecutive requests via `state`,
+// but that read-then-write isn't atomic across genuinely concurrent invocations — several
+// tiles refreshing at once, or the platform fanning out one call per matched object — so it
+// couldn't reliably prevent the bursts it was meant to smooth out, and was removed.
 
 url.pathname = url.pathname.replace(/\/{2,}/g, "/");
 
@@ -20,17 +21,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // The rate-limiting guide asks clients to wait until X-RateLimit-Reset and to enforce a
 // 5 second floor on top, to absorb clock skew and time-zone differences.
 const RATE_LIMIT_FLOOR_MS = 5000;
-
-// --- request spacing -------------------------------------------------------------
-
-// Ticket and time-entry search allow 30 req/60s (one per 2s); everything else 60 req/60s.
-const isTightlyLimited = /\/(tickets|time)\/search\/?$/i.test(url.pathname);
-const minGapMs = isTightlyLimited ? 2100 : 1100;
-
-const sinceLastRequest = Date.now() - (state?.lastRequestAt ?? 0);
-if (sinceLastRequest >= 0 && sinceLastRequest < minGapMs) {
-    await sleep(minGapMs - sinceLastRequest);
-}
 
 // --- token -----------------------------------------------------------------------
 
@@ -113,4 +103,3 @@ if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= Date.now()) 
 }
 
 headers["Authorization"] = `Bearer ${state.token}`;
-state = { ...state, lastRequestAt: Date.now() };
