@@ -19,10 +19,16 @@ const BACKING_ITEM_TYPE_NAMES = {
 // and Attributes are never included in search results — only loading a configuration item
 // individually returns them, which this stream doesn't do.
 
-const webBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
+// A sandbox Web API address (/SBTDWebApi) needs the matching sandbox web app (/SBTDNext) —
+// otherwise every sandbox CI link points at the production app instead. SBTDNext is inferred
+// from the same SB-prefix convention as SBTDWebApi; the API spec has no web UI paths to
+// confirm it against.
+const rawBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
-    .replace(/\/+$/, "")
-    .replace(/\/(SB)?TDWebApi$/i, "");
+    .replace(/\/+$/, "");
+const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
+const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
+const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
 const rows = (data || []).map((item) => ({
     // As with assets, CI IDs are only unique within an application.
@@ -30,7 +36,7 @@ const rows = (data || []).map((item) => ({
     configurationItemId: String(item.ID),
     name: item.Name || `Configuration Item ${item.ID}`,
     link: webBaseUrl
-        ? `${webBaseUrl}/TDNext/Apps/${item.AppID}/Assets/CIDet?CID=${item.ID}`
+        ? `${webBaseUrl}/${nextApp}/Apps/${item.AppID}/Assets/CIDet?CID=${item.ID}`
         : item.Uri || "",
     typeName: item.TypeName || "",
     isActive: Boolean(item.IsActive),

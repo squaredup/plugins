@@ -23,14 +23,21 @@ const STATUS_CLASS_NAMES = {
 // points at the API resource, not the web UI, so derive a TDNext deep link from the
 // configured base address instead. context.dataSources isn't guaranteed to be populated for
 // post-request scripts, so fall back to Uri rather than emitting a broken link.
-const webBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
+//
+// A sandbox Web API address (/SBTDWebApi) needs the matching sandbox web app (/SBTDNext) —
+// otherwise every sandbox ticket link points at the production app instead. The API spec
+// doesn't document web UI paths at all (sandbox or otherwise), so SBTDNext is inferred from
+// the same SB-prefix convention as SBTDWebApi, not confirmed against a real sandbox tenant.
+const rawBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
-    .replace(/\/+$/, "")
-    .replace(/\/(SB)?TDWebApi$/i, "");
+    .replace(/\/+$/, "");
+const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
+const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
+const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
 const ticketLink = (ticket) =>
     webBaseUrl
-        ? `${webBaseUrl}/TDNext/Apps/${ticket.AppID}/Tickets/TicketDet?TicketID=${ticket.ID}`
+        ? `${webBaseUrl}/${nextApp}/Apps/${ticket.AppID}/Tickets/TicketDet?TicketID=${ticket.ID}`
         : ticket.Uri || "";
 
 // Rolled up into one health value so a status tile works without shaping. SLA breach is the

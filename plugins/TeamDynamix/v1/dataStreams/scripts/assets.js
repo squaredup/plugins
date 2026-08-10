@@ -7,10 +7,16 @@
 // and Attributes are never included in search results — only loading an asset individually
 // returns them, which this stream doesn't do.
 
-const webBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
+// A sandbox Web API address (/SBTDWebApi) needs the matching sandbox web app (/SBTDNext) —
+// otherwise every sandbox asset link points at the production app instead. SBTDNext is
+// inferred from the same SB-prefix convention as SBTDWebApi; the API spec has no web UI
+// paths to confirm it against.
+const rawBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
-    .replace(/\/+$/, "")
-    .replace(/\/(SB)?TDWebApi$/i, "");
+    .replace(/\/+$/, "");
+const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
+const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
+const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
 result = (data || []).map((asset) => ({
     // Asset IDs are only unique within an application, so the graph id has to carry the app
@@ -19,7 +25,7 @@ result = (data || []).map((asset) => ({
     assetId: String(asset.ID),
     name: asset.Name || asset.Tag || asset.SerialNumber || `Asset ${asset.ID}`,
     link: webBaseUrl
-        ? `${webBaseUrl}/TDNext/Apps/${asset.AppID}/Assets/AssetDet?AssetID=${asset.ID}`
+        ? `${webBaseUrl}/${nextApp}/Apps/${asset.AppID}/Assets/AssetDet?AssetID=${asset.ID}`
         : asset.Uri || "",
     statusName: asset.StatusName || "",
     tag: asset.Tag || "",
