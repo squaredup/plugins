@@ -46,7 +46,7 @@ The out-of-the-box dashboards are an organization-wide **Overview**, a **Service
 - **Knowledge Base Articles** — knowledge base articles in a client portal application. Article bodies are excluded.
 - **Time Entries** — time logged against tickets, projects and tasks, account-wide.
 - **Locations** — active locations with their ticket, asset, configuration item and user counts, account-wide.
-- **Accounts / Departments**, **Groups**, **Applications**, **Current User** — account-wide reference data. These back the import and setup checks and are hidden from the tile editor; the imported objects are visible in the graph instead.
+- **Accounts**, **Groups**, **Applications**, **Current User** — account-wide reference data. These back the import and setup checks and are hidden from the tile editor; the imported objects are visible in the graph instead.
 
 ## What gets indexed
 
