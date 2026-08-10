@@ -7,7 +7,7 @@
 // returns them, which this stream doesn't do. Attempting to project them here would only ever
 // yield empty columns.
 
-result = (data || []).map((service) => ({
+result = (Array.isArray(data) ? data : []).map((service) => ({
     serviceId: String(service.ID),
     name: service.Name || `Service ${service.ID}`,
     categoryName: service.CategoryName || "",

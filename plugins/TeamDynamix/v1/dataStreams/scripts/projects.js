@@ -8,7 +8,7 @@
 // CustomColumns and NonWorkingDays are never included in search results — only loading a
 // project individually returns them, which this stream doesn't do.
 
-result = (data || []).map((project) => ({
+result = (Array.isArray(data) ? data : []).map((project) => ({
     projectId: String(project.ID),
     name: project.Name || `Project ${project.ID}`,
     healthName: project.HealthName || "None",

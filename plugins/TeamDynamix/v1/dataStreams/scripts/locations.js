@@ -4,7 +4,7 @@
 //
 // The Rooms array is dropped: a large campus can carry hundreds of rooms per location, which
 // is most of the payload and none of the value at this level.
-result = (data || []).map((location) => ({
+result = (Array.isArray(data) ? data : []).map((location) => ({
     locationId: String(location.ID),
     name: location.Name,
     ticketsCount: location.TicketsCount ?? 0,

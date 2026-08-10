@@ -50,7 +50,7 @@ const ticketHealth = (ticket) => {
     return "Open";
 };
 
-result = (data || []).map((ticket) => ({
+result = (Array.isArray(data) ? data : []).map((ticket) => ({
     ticketId: String(ticket.ID),
     title: ticket.Title || `Ticket ${ticket.ID}`,
     link: ticketLink(ticket),

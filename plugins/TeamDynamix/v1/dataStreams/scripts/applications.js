@@ -15,7 +15,7 @@ const SOURCE_TYPE_BY_APP_TYPE = {
 // Inactive applications are filtered out rather than imported and ignored: the asset and
 // configuration item import steps are scoped to Asset App objects, so a retired app left in
 // the graph would have requests fired at it on every import.
-result = (data || [])
+result = (Array.isArray(data) ? data : [])
     .filter((app) => app.Active !== false)
     .map((app) => ({
         appId: String(app.AppID),

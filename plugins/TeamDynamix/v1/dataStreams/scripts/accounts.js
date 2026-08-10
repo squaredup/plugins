@@ -1,7 +1,7 @@
 // Projected rather than passed through: an Account carries an Attributes array of custom
 // fields and four separate address lines that add bulk without adding anything a dashboard
 // or the graph uses.
-result = (data || []).map((account) => ({
+result = (Array.isArray(data) ? data : []).map((account) => ({
     accountId: String(account.ID),
     name: account.Name,
     code: account.Code || "",

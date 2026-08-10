@@ -18,7 +18,7 @@ const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
 const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
 const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
-result = (data || []).map((asset) => ({
+result = (Array.isArray(data) ? data : []).map((asset) => ({
     // Asset IDs are only unique within an application, so the graph id has to carry the app
     // too — two asset apps in the same tenant can both have an asset 1041.
     sourceId: `${asset.AppID}-${asset.ID}`,

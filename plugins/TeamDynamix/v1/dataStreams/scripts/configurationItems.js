@@ -30,7 +30,7 @@ const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
 const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
 const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
-const rows = (data || []).map((item) => ({
+const rows = (Array.isArray(data) ? data : []).map((item) => ({
     // As with assets, CI IDs are only unique within an application.
     sourceId: `${item.AppID}-${item.ID}`,
     configurationItemId: String(item.ID),

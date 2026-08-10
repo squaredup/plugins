@@ -14,7 +14,7 @@ const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
 const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
 const clientApp = isSandbox ? "SBTDClient" : "TDClient";
 
-result = (data || []).map((article) => ({
+result = (Array.isArray(data) ? data : []).map((article) => ({
     articleId: String(article.ID),
     subject: article.Subject || `Article ${article.ID}`,
     link: webBaseUrl
