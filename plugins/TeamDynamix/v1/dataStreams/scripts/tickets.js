@@ -15,18 +15,9 @@ const STATUS_CLASS_NAMES = {
     6: "Requested"
 };
 
-// Custom attributes arrive as a name/value array, so turning them into columns needs a
-// script — there's no declarative equivalent. Prefixed with "attr." and picked up by the
-// metadata pattern, which keeps a tenant's custom fields usable without hardcoding them.
-const customAttributeColumns = (ticket) => {
-    const columns = {};
-    for (const attribute of ticket.Attributes || []) {
-        if (!attribute || !attribute.Name) continue;
-        columns[`attr.${attribute.Name}`] =
-            attribute.ValueText ?? (attribute.Value === "" ? null : attribute.Value ?? null);
-    }
-    return columns;
-};
+// No custom-attribute columns: the API's own description for this endpoint says Attachments,
+// Attributes, Description, Notify and Tasks are never included in search results — only
+// loading a ticket individually returns them, which this stream doesn't do.
 
 // A ticket is far more useful when you can click through to it. The API's own Uri field
 // points at the API resource, not the web UI, so derive a TDNext deep link from the
@@ -90,6 +81,5 @@ result = (data || []).map((ticket) => ({
     estimatedMinutes: typeof ticket.EstimatedMinutes === "number" ? ticket.EstimatedMinutes : null,
     formName: ticket.FormName || "",
     refCode: ticket.RefCode || "",
-    appId: String(ticket.AppID ?? ""),
-    ...customAttributeColumns(ticket)
+    appId: String(ticket.AppID ?? "")
 }));

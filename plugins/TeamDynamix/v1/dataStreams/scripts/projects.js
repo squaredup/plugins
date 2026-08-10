@@ -1,17 +1,12 @@
 // A Project has 120 fields, most of them baseline/initial variants of the same value
 // (EndDateBaseline, EndDateInitial, EstimatedHoursInitial, TimeBudgetInitial ...) plus
-// AlternateManagers, CustomColumns, NonWorkingDays and Attributes arrays. Projected to the
-// fields that answer "is this project on track", which also keeps the unpaged response
-// under the ~6MB stream response cap.
-const customAttributeColumns = (project) => {
-    const columns = {};
-    for (const attribute of project.Attributes || []) {
-        if (!attribute || !attribute.Name) continue;
-        columns[`attr.${attribute.Name}`] =
-            attribute.ValueText ?? (attribute.Value === "" ? null : attribute.Value ?? null);
-    }
-    return columns;
-};
+// AlternateManagers, CustomColumns and NonWorkingDays arrays. Projected to the fields that
+// answer "is this project on track", which also keeps the unpaged response under the ~6MB
+// stream response cap.
+//
+// No custom-attribute columns: the API's own description for this endpoint says Attributes,
+// CustomColumns and NonWorkingDays are never included in search results — only loading a
+// project individually returns them, which this stream doesn't do.
 
 result = (data || []).map((project) => ({
     projectId: String(project.ID),
@@ -37,6 +32,5 @@ result = (data || []).map((project) => ({
     isActive: Boolean(project.IsActive),
     statusLastUpdated: project.StatusModifiedDate || null,
     createdDate: project.CreatedDate || null,
-    appId: String(project.AppID ?? ""),
-    ...customAttributeColumns(project)
+    appId: String(project.AppID ?? "")
 }));

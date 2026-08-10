@@ -1,17 +1,11 @@
 // Serves double duty: this stream backs both the assets import step and asset tiles.
 //
-// Projected rather than passed through for the same reason as tickets — an Asset carries
-// Attachments and Attributes arrays, and the asset search is unpaged, so a large estate in
-// one response can overrun the ~6MB stream response cap.
-const customAttributeColumns = (asset) => {
-    const columns = {};
-    for (const attribute of asset.Attributes || []) {
-        if (!attribute || !attribute.Name) continue;
-        columns[`attr.${attribute.Name}`] =
-            attribute.ValueText ?? (attribute.Value === "" ? null : attribute.Value ?? null);
-    }
-    return columns;
-};
+// Projected rather than passed through for the same reason as tickets — the asset search is
+// unpaged, so a large estate in one response can overrun the ~6MB stream response cap.
+//
+// No custom-attribute columns: the API's own description for this endpoint says Attachments
+// and Attributes are never included in search results — only loading an asset individually
+// returns them, which this stream doesn't do.
 
 const webBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
@@ -47,6 +41,5 @@ result = (data || []).map((asset) => ({
     externalId: asset.ExternalID || "",
     configurationItemId: asset.ConfigurationItemID ? String(asset.ConfigurationItemID) : "",
     appId: String(asset.AppID ?? ""),
-    sourceType: "TeamDynamix Asset",
-    ...customAttributeColumns(asset)
+    sourceType: "TeamDynamix Asset"
 }));

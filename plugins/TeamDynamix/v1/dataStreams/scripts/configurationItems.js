@@ -15,15 +15,9 @@ const BACKING_ITEM_TYPE_NAMES = {
     63: "Configuration Item"
 };
 
-const customAttributeColumns = (item) => {
-    const columns = {};
-    for (const attribute of item.Attributes || []) {
-        if (!attribute || !attribute.Name) continue;
-        columns[`attr.${attribute.Name}`] =
-            attribute.ValueText ?? (attribute.Value === "" ? null : attribute.Value ?? null);
-    }
-    return columns;
-};
+// No custom-attribute columns: the API's own description for this endpoint says Attachments
+// and Attributes are never included in search results — only loading a configuration item
+// individually returns them, which this stream doesn't do.
 
 const webBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
@@ -54,8 +48,7 @@ const rows = (data || []).map((item) => ({
     createdDate: item.CreatedDateUtc || null,
     modifiedDate: item.ModifiedDateUtc || null,
     appId: String(item.AppID ?? ""),
-    sourceType: "TeamDynamix Configuration Item",
-    ...customAttributeColumns(item)
+    sourceType: "TeamDynamix Configuration Item"
 }));
 
 // The API gave us no way to ask for fewer rows, so the cap is enforced here instead, using
