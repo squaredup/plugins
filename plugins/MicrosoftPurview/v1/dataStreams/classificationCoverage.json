@@ -1,0 +1,36 @@
+{
+    "name": "classificationCoverage",
+    "displayName": "Classification Coverage",
+    "description": "Count of assets carrying each classification across the whole account",
+    "tags": ["Classifications"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "datamap/api/search/query",
+        "getArgs": [
+            { "key": "api-version", "value": "2023-09-01" }
+        ],
+        "postBody": {
+            "keywords": null,
+            "limit": 1000
+        },
+        "postRequestScript": "classificationCoverage.js",
+        "paging": {
+            "mode": "token",
+            "in": { "realm": "payload", "path": "continuationToken" },
+            "out": { "realm": "body", "path": "continuationToken" }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "classification", "displayName": "Classification", "role": "label" },
+        { "name": "assets", "displayName": "Assets", "shape": "number" },
+        {
+            "name": "coverage",
+            "displayName": "% of Total Assets",
+            "shape": ["percent", { "asZeroToOne": true, "decimalPlaces": 1 }]
+        }
+    ],
+    "timeframes": false,
+    "defaultShaping": { "sort": { "by": [["assets", "desc"]] } }
+}
