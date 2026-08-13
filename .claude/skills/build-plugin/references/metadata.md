@@ -208,12 +208,14 @@ Exhaust the auth patterns above first — a pre-request script that only sets a 
 In `base.config`:
 
 ```json
+"showScripting": true,
 "scriptingVariables": [
     { "key": "signedJwt", "value": "{{signedJwt}}" }
 ],
 "preRequestScript": "preRequest.js"
 ```
 
+- `showScripting` — **required whenever `preRequestScript` is set.** It defaults to `false`, and when it's falsy the platform skips the pre-request script entirely: no error, no warning, and the `Headers` diagnostic just shows the static `headers` from `base.config`. The symptom is a plugin that looks correctly wired but sends unauthenticated requests. In the manual WebAPI data source this is the "Pre-request script" toggle a user ticks; a declarative plugin has no one to tick it, so it must set the flag itself.
 - `scriptingVariables` — key/value secrets the script reads as `secrets.<key>`. Values support `{{fieldName}}` expressions referencing `ui.json` fields, same as `headers`. Values are encrypted at rest.
 - `preRequestScript` — a file reference relative to the plugin's version root (unlike data-stream scripts, which live under `dataStreams/scripts/`): put the script at `<plugin>/v1/preRequest.js`; it's inlined into the config at deploy time. There's only ever one per plugin, so it doesn't need a per-plugin filename or subfolder.
 - `scriptState` — never set this: it's a reserved config property where the platform persists the script's `state`, encrypted.
