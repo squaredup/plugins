@@ -24,15 +24,31 @@ const STATUS_CODE = {
     2: "ERROR",
 };
 
+function anyValueToJs(value) {
+    if (!value) return undefined;
+    if (value.arrayValue) {
+        return (value.arrayValue.values || []).map(anyValueToJs);
+    }
+    if (value.kvlistValue) {
+        const obj = {};
+        (value.kvlistValue.values || []).forEach((kv) => {
+            obj[kv.key] = anyValueToJs(kv.value);
+        });
+        return obj;
+    }
+    return (
+        value.stringValue ??
+        value.boolValue ??
+        value.intValue ??
+        value.doubleValue ??
+        value.bytesValue
+    );
+}
+
 function attrsToObject(attributes) {
     const obj = {};
     (attributes || []).forEach((a) => {
-        const value = a.value || {};
-        obj[a.key] =
-            value.stringValue ??
-            value.intValue ??
-            value.doubleValue ??
-            value.boolValue;
+        obj[a.key] = anyValueToJs(a.value);
     });
     return obj;
 }
