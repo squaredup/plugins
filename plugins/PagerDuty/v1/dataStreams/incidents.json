@@ -1,0 +1,118 @@
+{
+    "name": "incidents",
+    "displayName": "Incidents",
+    "description": "PagerDuty incidents filterable by status, urgency, service, team and assignee, one row per incident",
+    "tags": ["Incidents"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "incidents",
+        "getArgs": [
+            { "key": "since", "value": "{{timeframe.start}}" },
+            { "key": "until", "value": "{{timeframe.end}}" },
+            { "key": "statuses[]", "value": "{{statuses?.length ? statuses : null}}" },
+            { "key": "urgencies[]", "value": "{{urgencies?.length ? urgencies : null}}" },
+            { "key": "service_ids[]", "value": "{{service?.map(o => o.rawId) || null}}" },
+            { "key": "team_ids[]", "value": "{{team?.map(o => o.rawId) || null}}" },
+            { "key": "user_ids[]", "value": "{{assignee?.map(o => o.rawId) || null}}" }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "incidents" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "postRequestScript": "incidents.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "statuses",
+            "label": "Status",
+            "isMulti": true,
+            "help": "Leave empty to include all statuses. Filtering here is done by PagerDuty rather than in the browser, keeping large result sets manageable.",
+            "options": [
+                { "value": "triggered", "label": "Triggered" },
+                { "value": "acknowledged", "label": "Acknowledged" },
+                { "value": "resolved", "label": "Resolved" }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "urgencies",
+            "label": "Urgency",
+            "isMulti": true,
+            "help": "Leave empty to include all urgencies.",
+            "options": [
+                { "value": "high", "label": "High" },
+                { "value": "low", "label": "Low" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "service",
+            "label": "Service (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Service"] } }
+        },
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Team"] } }
+        },
+        {
+            "type": "objects",
+            "name": "assignee",
+            "label": "Assignee (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty User"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "incidentNumber", "displayName": "Number", "shape": "number" },
+        { "name": "title", "displayName": "Title", "shape": "string", "role": "label" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["triggered"],
+                        "warning": ["acknowledged"],
+                        "success": ["resolved"]
+                    }
+                }
+            ]
+        },
+        { "name": "urgency", "displayName": "Urgency", "shape": "string" },
+        { "name": "priorityName", "displayName": "Priority", "shape": "string" },
+        { "name": "serviceId", "displayName": "Service ID", "shape": "string", "visible": false },
+        { "name": "serviceName", "displayName": "Service", "shape": "string" },
+        { "name": "escalationPolicyName", "displayName": "Escalation Policy", "shape": "string", "visible": false },
+        { "name": "teamNames", "displayName": "Teams", "shape": "string" },
+        { "name": "assigneeNames", "displayName": "Assignees", "shape": "string" },
+        { "name": "createdAt", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        { "name": "lastStatusChangeAt", "displayName": "Last Status Change", "shape": "date" },
+        { "name": "resolvedAt", "displayName": "Resolved", "shape": "date" },
+        { "name": "htmlUrl", "displayName": "Link", "shape": ["url", { "label": "Open in PagerDuty" }] },
+        { "sourceId": "serviceId", "sourceType": "PagerDuty Service", "name": "serviceName" }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "lastMonth",
+        "lastQuarter"
+    ],
+    "defaultTimeframe": "last24hours"
+}

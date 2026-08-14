@@ -1,0 +1,59 @@
+{
+    "name": "services",
+    "displayName": "Services",
+    "description": "PagerDuty services with current status, escalation policy and team associations, one row per service",
+    "tags": ["Services"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "services",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "services" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "postRequestScript": "services.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "service",
+            "label": "Service (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Service"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["active"],
+                        "warning": ["warning", "maintenance"],
+                        "error": ["critical"],
+                        "unmonitored": ["disabled"]
+                    }
+                }
+            ]
+        },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        { "name": "escalationPolicyId", "displayName": "Escalation Policy ID", "shape": "string", "visible": false },
+        { "name": "escalationPolicyName", "displayName": "Escalation Policy", "shape": "string" },
+        { "name": "teamIds", "displayName": "Team IDs", "shape": "string", "visible": false },
+        { "name": "teamNames", "displayName": "Teams", "shape": "string" },
+        { "name": "alertCreation", "displayName": "Alert Creation", "shape": "string", "visible": false },
+        { "name": "htmlUrl", "displayName": "Link", "shape": ["url", { "label": "Open in PagerDuty" }] },
+        { "sourceId": "id", "sourceType": "PagerDuty Service", "name": "name" }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,44 @@
+{
+    "name": "users",
+    "displayName": "Users",
+    "description": "PagerDuty user roster with role, contact and team associations, one row per user",
+    "tags": ["Users"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "users",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "users" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "postRequestScript": "users.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty User"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "email", "displayName": "Email", "shape": "string" },
+        { "name": "role", "displayName": "Role", "shape": "string" },
+        { "name": "jobTitle", "displayName": "Job Title", "shape": "string" },
+        { "name": "timezone", "displayName": "Timezone", "shape": "string", "visible": false },
+        { "name": "teamIds", "displayName": "Team IDs", "shape": "string", "visible": false },
+        { "name": "teamNames", "displayName": "Teams", "shape": "string" },
+        { "name": "htmlUrl", "displayName": "Link", "shape": ["url", { "label": "Open in PagerDuty" }] },
+        { "sourceId": "id", "sourceType": "PagerDuty User", "name": "name" }
+    ],
+    "timeframes": false
+}

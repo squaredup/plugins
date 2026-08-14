@@ -1,0 +1,71 @@
+{
+    "name": "onCall",
+    "displayName": "On-Call",
+    "description": "Who is on call now and over an upcoming look-ahead window, one row per on-call shift",
+    "tags": ["On-call"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "oncalls",
+        "expandInnerObjects": true,
+        "getArgs": [
+            { "key": "since", "value": "{{new Date().toISOString()}}" },
+            { "key": "until", "value": "{{new Date(Date.now() + Number(lookAheadDays || 1) * 86400000).toISOString()}}" },
+            { "key": "user_ids[]", "value": "{{user?.map(o => o.rawId) || null}}" },
+            { "key": "schedule_ids[]", "value": "{{schedule?.map(o => o.rawId) || null}}" },
+            { "key": "escalation_policy_ids[]", "value": "{{escalationPolicy?.map(o => o.rawId) || null}}" }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "oncalls" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        }
+    },
+    "matches": "none",
+    "pathToData": "oncalls",
+    "ui": [
+        {
+            "type": "number",
+            "name": "lookAheadDays",
+            "label": "Look-ahead window (days)",
+            "help": "How far into the future to check the on-call schedule. Defaults to 1 (who's on call right now).",
+            "defaultValue": 1
+        },
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty User"] } }
+        },
+        {
+            "type": "objects",
+            "name": "schedule",
+            "label": "Schedule (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Schedule"] } }
+        },
+        {
+            "type": "objects",
+            "name": "escalationPolicy",
+            "label": "Escalation Policy (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Escalation Policy"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "user.id", "displayName": "User ID", "shape": "string", "visible": false },
+        { "name": "user.summary", "displayName": "User", "shape": "string", "role": "label" },
+        { "name": "schedule.id", "displayName": "Schedule ID", "shape": "string", "visible": false },
+        { "name": "schedule.summary", "displayName": "Schedule", "shape": "string" },
+        { "name": "escalation_policy.id", "displayName": "Escalation Policy ID", "shape": "string", "visible": false },
+        { "name": "escalation_policy.summary", "displayName": "Escalation Policy", "shape": "string" },
+        { "name": "escalation_level", "displayName": "Escalation Level", "shape": "number" },
+        { "name": "start", "displayName": "Start", "shape": "date", "role": "timestamp" },
+        { "name": "end", "displayName": "End", "shape": "date" },
+        { "sourceId": "user.id", "sourceType": "PagerDuty User", "name": "user.summary" }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,77 @@
+{
+    "name": "incidentMetricsBreakdown",
+    "displayName": "Incident Metrics by Service/Team/Escalation Policy",
+    "description": "Aggregated incident analytics grouped by service, team or escalation policy, one row per group",
+    "tags": ["Incidents", "Analytics"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "analytics/metrics/incidents/{{groupBy}}",
+        "postBody": {
+            "filters": {
+                "created_at_start": "{{timeframe.start}}",
+                "created_at_end": "{{timeframe.end}}",
+                "urgency": "{{urgency || null}}",
+                "team_ids": "{{team?.map(o => o.rawId) || null}}",
+                "service_ids": "{{service?.map(o => o.rawId) || null}}"
+            },
+            "time_zone": "{{dataSource.timezone}}"
+        },
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "switch",
+            "name": "groupBy",
+            "label": "Group by",
+            "defaultValue": "services",
+            "options": [
+                { "value": "services", "label": "Service" },
+                { "value": "teams", "label": "Team" },
+                { "value": "escalation_policies", "label": "Escalation Policy" }
+            ],
+            "validation": { "required": true }
+        },
+        {
+            "type": "radio",
+            "name": "urgency",
+            "label": "Urgency (optional)",
+            "options": [
+                { "value": "high", "label": "High" },
+                { "value": "low", "label": "Low" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "service",
+            "label": "Service (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Service"] } }
+        },
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Team"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "service_id", "displayName": "Service ID", "shape": "string", "visible": false },
+        { "name": "service_name", "displayName": "Service", "shape": "string", "role": "label" },
+        { "name": "team_id", "displayName": "Team ID", "shape": "string", "visible": false },
+        { "name": "team_name", "displayName": "Team", "shape": "string" },
+        { "name": "escalation_policy_id", "displayName": "Escalation Policy ID", "shape": "string", "visible": false },
+        { "name": "escalation_policy_name", "displayName": "Escalation Policy", "shape": "string" },
+        { "name": "distinct_responder_count", "displayName": "Distinct Responders", "shape": "number" },
+        { "name": "total_incident_count", "displayName": "Incidents", "shape": ["number", { "thousandsSeparator": true }], "role": "value" },
+        { "name": "total_incidents_acknowledged", "displayName": "Acknowledged", "shape": "number" },
+        { "name": "total_escalation_count", "displayName": "Escalations", "shape": "number" },
+        { "name": "total_interruptions", "displayName": "Interruptions", "shape": "number" },
+        { "name": "mean_seconds_to_first_ack", "displayName": "Mean Time to Acknowledge", "shape": "seconds" },
+        { "name": "mean_seconds_to_resolve", "displayName": "Mean Time to Resolve", "shape": "seconds" },
+        { "name": "up_time_pct", "displayName": "Uptime", "shape": "percent" },
+        { "sourceId": "service_id", "sourceType": "PagerDuty Service", "name": "service_name" }
+    ],
+    "timeframes": true,
+    "defaultTimeframe": "last7days"
+}

@@ -1,0 +1,64 @@
+{
+    "name": "responderMetrics",
+    "displayName": "Responder Metrics",
+    "description": "Aggregated responder performance — incident load, mean time to acknowledge and on-call time, one row per responder",
+    "tags": ["Users", "Analytics"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "analytics/metrics/responders/all",
+        "postBody": {
+            "filters": {
+                "date_range_start": "{{timeframe.start}}",
+                "date_range_end": "{{timeframe.end}}",
+                "urgency": "{{urgency || null}}",
+                "team_ids": "{{team?.map(o => o.rawId) || null}}",
+                "responder_ids": "{{user?.map(o => o.rawId) || null}}"
+            },
+            "time_zone": "{{dataSource.timezone}}"
+        },
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "radio",
+            "name": "urgency",
+            "label": "Urgency (optional)",
+            "options": [
+                { "value": "high", "label": "High" },
+                { "value": "low", "label": "Low" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty Team"] } }
+        },
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "Responder (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty User"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "responder_id", "displayName": "Responder ID", "shape": "string", "visible": false },
+        { "name": "responder_name", "displayName": "Responder", "shape": "string", "role": "label" },
+        { "name": "team_name", "displayName": "Team", "shape": "string" },
+        { "name": "total_incident_count", "displayName": "Incidents", "shape": ["number", { "thousandsSeparator": true }], "role": "value" },
+        { "name": "total_incidents_acknowledged", "displayName": "Acknowledged", "shape": "number" },
+        { "name": "total_interruptions", "displayName": "Interruptions", "shape": "number" },
+        { "name": "total_notifications", "displayName": "Notifications", "shape": "number", "visible": false },
+        { "name": "mean_time_to_acknowledge_seconds", "displayName": "Mean Time to Acknowledge", "shape": "seconds" },
+        { "name": "mean_engaged_seconds", "displayName": "Mean Engaged Time", "shape": "seconds", "visible": false },
+        { "name": "total_engaged_seconds", "displayName": "Total Engaged Time", "shape": "seconds", "visible": false },
+        { "name": "total_seconds_on_call", "displayName": "Time On-Call", "shape": "seconds" },
+        { "name": "total_seconds_on_call_level_1", "displayName": "Time On-Call (Level 1)", "shape": "seconds", "visible": false },
+        { "name": "total_seconds_on_call_level_2_plus", "displayName": "Time On-Call (Level 2+)", "shape": "seconds", "visible": false },
+        { "sourceId": "responder_id", "sourceType": "PagerDuty User", "name": "responder_name" }
+    ],
+    "timeframes": true,
+    "defaultTimeframe": "last7days"
+}

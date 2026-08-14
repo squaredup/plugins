@@ -1,0 +1,45 @@
+{
+    "name": "escalationPolicies",
+    "displayName": "Escalation Policies (Import)",
+    "description": "One row per PagerDuty escalation policy with its team associations",
+    "tags": ["Escalation"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "escalation_policies",
+        "pathToData": "escalation_policies",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "escalation_policies" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "shape": "string" },
+        { "name": "name", "shape": "string" },
+        { "name": "num_loops", "displayName": "Number of Loops", "shape": "number" },
+        { "name": "teams", "visible": false },
+        {
+            "name": "teamIds",
+            "displayName": "Team IDs",
+            "computed": true,
+            "valueExpression": "{{ ($['teams'] || []).map(t => t.id).join(',') }}",
+            "shape": "string"
+        },
+        {
+            "name": "teamNames",
+            "displayName": "Team Names",
+            "computed": true,
+            "valueExpression": "{{ ($['teams'] || []).map(t => t.summary).join(', ') }}",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false,
+    "visibility": { "type": "hidden" }
+}

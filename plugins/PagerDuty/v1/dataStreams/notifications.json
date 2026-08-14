@@ -1,0 +1,60 @@
+{
+    "name": "notifications",
+    "displayName": "Notifications",
+    "description": "Outbound notifications sent to responders, one row per notification",
+    "tags": ["Users", "Notifications"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "notifications",
+        "expandInnerObjects": true,
+        "getArgs": [
+            { "key": "since", "value": "{{timeframe.start}}" },
+            { "key": "until", "value": "{{timeframe.end}}" },
+            { "key": "filter", "value": "{{channel || null}}" }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "notifications" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        }
+    },
+    "matches": "none",
+    "pathToData": "notifications",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["PagerDuty User"] } }
+        },
+        {
+            "type": "choiceChips",
+            "name": "channel",
+            "label": "Channel (optional)",
+            "options": [
+                { "value": "sms_notification", "label": "SMS" },
+                { "value": "email_notification", "label": "Email" },
+                { "value": "phone_notification", "label": "Phone" },
+                { "value": "push_notification", "label": "Push" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "type", "displayName": "Channel", "shape": "string" },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        { "name": "address", "displayName": "Address", "shape": "string" },
+        { "name": "user.id", "displayName": "User ID", "shape": "string", "visible": false },
+        { "name": "user.summary", "displayName": "User", "shape": "string", "role": "label" },
+        { "name": "started_at", "displayName": "Sent", "shape": "date", "role": "timestamp" },
+        { "sourceId": "user.id", "sourceType": "PagerDuty User", "name": "user.summary" }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth", "lastMonth"],
+    "defaultTimeframe": "last24hours"
+}
