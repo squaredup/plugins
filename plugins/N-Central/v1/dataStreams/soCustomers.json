@@ -1,0 +1,38 @@
+{
+    "name": "soCustomers",
+    "displayName": "Service Org Customers",
+    "description": "Customers belonging to a service organization, one row per customer",
+    "tags": ["Organization", "Customer"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/customers",
+        "pathToData": "data",
+        "getArgs": [{ "key": "select", "value": "parentId=={{object.rawId}}" }],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "pageNumber" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["N-central Service Organization"] } },
+    "metadata": [
+        {
+            "name": "customerName",
+            "displayName": "Customer",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "customerId",
+            "sourceType": "N-central Customer"
+        },
+        { "name": "customerId", "shape": "number", "visible": false },
+        { "name": "parentId", "shape": "number", "visible": false },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}
