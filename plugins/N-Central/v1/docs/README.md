@@ -1,6 +1,6 @@
 Monitor your [N-able N-central](https://www.n-able.com/products/n-central) managed estate in SquaredUp — service organizations, customers, sites, and devices, along with device inventory, service monitoring status, lifecycle info, and active issues — via the [N-central REST API](https://developer.n-able.com/n-central/docs).
 
-> ⚠️ Requires an N-central server on a version that exposes the REST API (N-central 2022.1 or later). The legacy SOAP API is not supported by this plugin.
+> ⚠️ Requires an N-central server on a version that exposes the REST API (N-central 2023.9 or later). The legacy SOAP API is not supported by this plugin.
 
 ## Setup
 
@@ -11,7 +11,7 @@ You will need your N-central server's base URL and a **User-API Token**.
 3. Click **Generate JSON Web Token** and copy the token — it is shown only once. This is your **User-API Token**.
 4. Paste your N-central server's base URL (e.g. `https://yourserver.n-able.com`) into the **Base URL** field, and the User-API Token into the **User-API Token** field.
 
-The plugin exchanges the User-API Token for a short-lived access token itself on every request (via `POST /api/auth/authenticate`), caching and refreshing it automatically — no manual token exchange or periodic refresh needed.
+The plugin exchanges the User-API Token for a short-lived access token itself via `POST /api/auth/authenticate`, but only when the cached access token has expired — the token is cached and refreshed automatically between requests, so no manual token exchange or periodic refresh is needed.
 
 ## Configuration fields
 
@@ -20,7 +20,7 @@ The plugin exchanges the User-API Token for a short-lived access token itself on
 | **Base URL** | The base address of your N-central server. | Your browser's address bar when signed in to N-central. | Yes |
 | **User-API Token** | A long-lived JWT used to automatically obtain access tokens for every API call. | Administration → User Management → Users → [user] → API Access → Generate JSON Web Token — see Setup above. | Yes |
 
-On save, the plugin calls an authenticated system-health endpoint to confirm the User-API Token works; an invalid, unreachable, or revoked token fails setup with an authentication error.
+On save, the plugin calls `GET /api/service-orgs` (a minimal authenticated probe) to confirm the User-API Token works; an invalid, unreachable, or revoked token fails setup with an authentication error.
 
 ## What this plugin monitors
 

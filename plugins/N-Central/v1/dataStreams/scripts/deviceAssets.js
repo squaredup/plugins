@@ -68,8 +68,11 @@ function addItem(category, item) {
     },
 );
 
-// List categories: prefer "_extra"'s version when both exist (it's a strict
-// superset for "application"); otherwise use whichever side has the list.
+// List categories: top-level and "_extra" entries sharing the same "_index"
+// describe the same underlying asset with complementary (occasionally
+// overlapping) fields, so merge them by "_index" the same way singleton
+// categories are merged above. "_extra" fields win on conflicts. Entries with
+// no matching "_index" on the other side are kept as-is.
 const listKeys = new Set([
     ...Object.keys(body).filter(
         (k) => k !== "_extra" && body[k] && Array.isArray(body[k].list),
@@ -83,11 +86,39 @@ listKeys.forEach((key) => {
     if (skipCategories.has(key)) {
         return;
     }
-    const list =
-        extra[key] && Array.isArray(extra[key].list)
-            ? extra[key].list
-            : body[key] && body[key].list;
-    (list || []).forEach((item) => addItem(key, item));
+    const bodyList = (body[key] && body[key].list) || [];
+    const extraList = (extra[key] && extra[key].list) || [];
+
+    const byIndex = new Map();
+    const unindexed = [];
+
+    bodyList.forEach((item) => {
+        if (item && item._index != null) {
+            byIndex.set(item._index, item);
+        } else {
+            unindexed.push(item);
+        }
+    });
+
+    extraList.forEach((item) => {
+        if (!item) {
+            return;
+        }
+        if (item._index != null && byIndex.has(item._index)) {
+            byIndex.set(item._index, {
+                ...byIndex.get(item._index),
+                ...item,
+            });
+        } else if (item._index != null) {
+            byIndex.set(item._index, item);
+        } else {
+            unindexed.push(item);
+        }
+    });
+
+    [...byIndex.values(), ...unindexed].forEach((item) =>
+        addItem(key, item),
+    );
 });
 
 result = rows;
