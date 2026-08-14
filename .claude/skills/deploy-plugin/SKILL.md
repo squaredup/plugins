@@ -84,7 +84,7 @@ New plugins start at `1.0.0`. Use semver:
 | New stream, new optional config field, new default content | MINOR (`1.x.0`) |
 | Deleted/renamed stream, breaking config change | MAJOR (`x.0.0`) |
 
-Every PR that modifies plugin files must include a version bump in `metadata.json`.
+Versions only matter at merge, so they are compared against `main`. A PR that modifies an existing plugin must end with a `version` higher than the one on `main` — that is **one bump for the whole PR, not one per commit**, so don't bump again on each review round. A brand-new plugin has nothing on `main` to compare against: leave it at `1.0.0` until it merges.
 
 **Breaking (MAJOR) changes — do not create a new major version without asking the user first.** It is often possible to avoid the break entirely. If a major version is genuinely needed:
 - Create a new versioned folder (e.g. `v2/`) rather than modifying `v1/`

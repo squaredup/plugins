@@ -32,6 +32,68 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check PR scope & version bumps
+        id: checks
+        if: steps.detect.outputs.plugins_modified == 'true'
+        run: |
+          checks_failed=false
+
+          # One plugin per PR. Several version folders of the same plugin are fine,
+          # so that deprecating in v1 alongside adding v2 stays a single PR.
+          plugin_names=$(echo "${{ steps.detect.outputs.plugin_paths }}" | cut -d/ -f2 | sort -u)
+          plugin_count=$(echo "$plugin_names" | wc -l | tr -d ' ')
+
+          if [ "$plugin_count" -gt 1 ]; then
+            echo "[FAIL] This PR modifies ${plugin_count} plugins:"
+            echo "$plugin_names" | sed 's/^/  - /'
+            echo "Raise one pull request per plugin - see REVIEW.md."
+            checks_failed=true
+          else
+            echo "[PASS] Single plugin modified: ${plugin_names}"
+          fi
+          echo ""
+
+          # Every change to an existing plugin must increase metadata.json version.
+          while IFS= read -r plugin_path; do
+            if [ ! -f "${plugin_path}/metadata.json" ]; then
+              echo "[SKIP] ${plugin_path} was removed - no version to check"
+              continue
+            fi
+
+            new_version=$(jq -r '.version' "${plugin_path}/metadata.json")
+
+            # The major version must match the version folder: v2/ holds 2.x.y
+            folder_major=$(basename "${plugin_path}")
+            folder_major=${folder_major#v}
+            if [ "${new_version%%.*}" != "$folder_major" ]; then
+              echo "[FAIL] ${plugin_path} is version ${new_version} - a plugin in v${folder_major}/ must be ${folder_major}.x.y"
+              checks_failed=true
+            fi
+
+            if ! old_metadata=$(git show "origin/main:${plugin_path}/metadata.json" 2>/dev/null); then
+              echo "[SKIP] ${plugin_path} is new - no previous version to compare"
+              continue
+            fi
+
+            old_version=$(echo "$old_metadata" | jq -r '.version')
+
+            if [ "$new_version" = "$old_version" ]; then
+              echo "[FAIL] ${plugin_path} version is unchanged (${old_version}) - bump it in metadata.json"
+              checks_failed=true
+            elif [ "$(printf '%s\n%s\n' "$old_version" "$new_version" | sort -V | head -1)" != "$old_version" ]; then
+              echo "[FAIL] ${plugin_path} version decreased (${old_version} -> ${new_version}) - it can never decrease"
+              checks_failed=true
+            else
+              echo "[PASS] ${plugin_path} version bumped ${old_version} -> ${new_version}"
+            fi
+          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+
+          if [ "$checks_failed" = "true" ]; then
+            echo ""
+            echo "One or more repository checks failed."
+            exit 1
+          fi
+
       - name: Install & Configure SquaredUp CLI
         if: steps.detect.outputs.plugins_modified == 'true'
         env:
@@ -108,13 +170,21 @@ jobs:
           echo "| Step | Status |" >> $OUT
           echo "|------|--------|" >> $OUT
 
-          validate_conclusion="${{ steps.validate.conclusion }}"
+          # A failed earlier step skips the later ones, so report skipped as skipped
+          # rather than folding it into a failure.
+          status_of() {
+            case "$1" in
+              success)      echo "✅ Passed" ;;
+              skipped|"")   echo "⏭️ Skipped" ;;
+              *)            echo "❌ Failed" ;;
+            esac
+          }
+
           deploy_conclusion="${{ steps.deploy.conclusion }}"
+          [ "$deploy_conclusion" = "success" ] && d_status="🚀 Deployed" || d_status="$(status_of "$deploy_conclusion")"
 
-          [ "$validate_conclusion" = "success" ] && v_status="✅ Passed" || v_status="❌ Failed"
-          [ "$deploy_conclusion" = "success" ] && d_status="🚀 Deployed" || d_status="⏭️ Skipped"
-
-          echo "| Validation | ${v_status} |" >> $OUT
+          echo "| Scope & version | $(status_of "${{ steps.checks.conclusion }}") |" >> $OUT
+          echo "| Validation | $(status_of "${{ steps.validate.conclusion }}") |" >> $OUT
           echo "| Deployment | ${d_status} |" >> $OUT
           echo "" >> $OUT
 

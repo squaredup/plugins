@@ -1,10 +1,19 @@
 When reviewing code, focus on:
 
+## Pull requests
+
+- **One plugin per pull request.** A PR should add or modify a single plugin. If a change spans several plugins, ask the author to split it into one PR per plugin — this keeps review focused, routes CODEOWNERS correctly, and keeps the per-plugin validate/deploy checks meaningful.
+- **The correct PR template must be used** — `Add a new plugin`, `Change to an existing plugin`, or `Miscellaneous change` (see `.github/PULL_REQUEST_TEMPLATE/`). PRs raised without the appropriate template may be closed.
+
 ## Versioning
 
-Any diff that touches files inside a plugin directory must include a corresponding change to metadata.json that increases the `version` field. If no version bump is present, assume the task is unfinished and prompt to add one.
+Versions are compared against `main`, because merging is the only point at which a version matters. A PR that modifies an existing plugin must leave `metadata.json` with a `version` higher than the one on `main`. If it doesn't, assume the task is unfinished and prompt to add one.
 
+- **One bump per PR, not per commit.** Once the version is above `main`, later commits and review rounds on the same PR do not each need another bump. Do not ask for one.
+- **A new plugin stays at `1.0.0`.** There is no version on `main` to compare against, so it stays at `1.0.0` for the life of the PR however many review rounds it takes. Do not ask for a bump.
+- **The major version must match the folder.** A plugin in `v1/` is `1.x.y`, a plugin in `v2/` is `2.x.y`. A new major version folder therefore starts at `<N>.0.0`, not `1.0.0`.
 - Breaking changes (e.g. removing or renaming a data stream, significantly changing UI parameters) require a new major version **folder** (e.g. `plugins/MyPlugin/v2/`), not just a version bump within the existing folder. The old folder must remain to avoid breaking existing users.
+- An earlier major version is not always present here. Some plugins' earlier versions are closed-source high-code plugins maintained outside this repository, so they start at `v2/` (e.g. `plugins/UptimeRobot/`). A missing `v1/` is not automatically a mistake.
 
 ## Security
 
@@ -15,7 +24,7 @@ Any diff that touches files inside a plugin directory must include a correspondi
 - Follow existing formatting in the repo
 - Use consistent naming
 - Do not introduce formatting tools or config files unless explicitly requested.
-- Do not commit editor or AI tool configuration files (e.g. `.claude/settings.json`). Personal tooling config belongs in the user's home directory.
+- Do not commit **personal** editor or AI tool configuration (e.g. `.claude/settings.json`, anything matching `*.local.json`) — that belongs in the user's home directory. Shared instructions that the whole project relies on are a different thing and are committed deliberately: `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `.claude/skills/` and `.vscode/settings.json` all belong here.
 
 ## CODEOWNERS
 
