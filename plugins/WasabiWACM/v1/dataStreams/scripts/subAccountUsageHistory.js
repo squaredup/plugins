@@ -1,6 +1,7 @@
 // Wasabi reports storage fields in TB and traffic fields in GB; convert both
-// to bytes to match the "bytes" shape used for these fields.
-const TB_TO_BYTES = 1e12;
+// to bytes to match the "bytes" shape used for these fields. Wasabi defines
+// 1 TB as 1024 GB for storage billing/utilization, not the decimal 10^12.
+const TB_TO_BYTES = 1024 ** 4;
 const GB_TO_BYTES = 1e9;
 
 function scale(value, factor) {
