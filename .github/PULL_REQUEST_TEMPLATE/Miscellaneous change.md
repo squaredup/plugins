@@ -7,16 +7,12 @@
   Describe what this PR changes.
 -->
 
----
-
 ## 🔍 Scope of change
 
 - [ ] Documentation only
 - [ ] Repository metadata or configuration
 - [ ] CI / automation
 - [ ] Other (please describe):
-
----
 
 ## 📚 Checklist
 
