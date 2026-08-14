@@ -23,13 +23,38 @@ jobs:
           if [ -z "$plugin_paths" ]; then
             echo "No plugins were modified in this PR."
             echo "plugins_modified=false" >> $GITHUB_OUTPUT
-          else
-            echo "Found modified plugin(s):"
-            echo "$plugin_paths"
-            echo "plugins_modified=true" >> $GITHUB_OUTPUT
-            echo "plugin_paths<<EOF" >> $GITHUB_OUTPUT
-            echo "$plugin_paths" >> $GITHUB_OUTPUT
+            echo "existing_modified=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Found modified plugin(s):"
+          echo "$plugin_paths"
+
+          # A PR that deletes a plugin version folder still lists it as touched, but it
+          # cannot be validated or deployed - the CLI reports "Path not found". Split the
+          # paths that still exist so only those reach the version, validate and deploy
+          # steps; the full list stays for the one-plugin-per-PR check, which must still
+          # count a deleted plugin as touched.
+          existing_paths=$(while IFS= read -r p; do if [ -d "$p" ]; then printf '%s\n' "$p"; fi; done <<< "$plugin_paths")
+          removed_paths=$(while IFS= read -r p; do if [ ! -d "$p" ]; then printf '%s\n' "$p"; fi; done <<< "$plugin_paths")
+
+          if [ -n "$removed_paths" ]; then
+            echo "Removed in this PR (skipped for validate and deploy):"
+            echo "$removed_paths"
+          fi
+
+          echo "plugins_modified=true" >> $GITHUB_OUTPUT
+          echo "plugin_paths<<EOF" >> $GITHUB_OUTPUT
+          echo "$plugin_paths" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          if [ -n "$existing_paths" ]; then
+            echo "existing_modified=true" >> $GITHUB_OUTPUT
+            echo "existing_paths<<EOF" >> $GITHUB_OUTPUT
+            echo "$existing_paths" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "existing_modified=false" >> $GITHUB_OUTPUT
           fi
 
       # Plugin paths come from the contributor's branch, so they are untrusted input.
@@ -41,6 +66,7 @@ jobs:
         if: steps.detect.outputs.plugins_modified == 'true'
         env:
           PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
+          EXISTING_PATHS: ${{ steps.detect.outputs.existing_paths }}
         run: |
           checks_failed=false
 
@@ -61,8 +87,13 @@ jobs:
 
           # Every change to an existing plugin must increase metadata.json version.
           while IFS= read -r plugin_path; do
+            if [ -z "$plugin_path" ]; then
+              continue
+            fi
+
             if [ ! -f "${plugin_path}/metadata.json" ]; then
-              echo "[SKIP] ${plugin_path} was removed - no version to check"
+              echo "[FAIL] ${plugin_path} has no metadata.json"
+              checks_failed=true
               continue
             fi
 
@@ -92,7 +123,7 @@ jobs:
             else
               echo "[PASS] ${plugin_path} version bumped ${old_version} -> ${new_version}"
             fi
-          done <<< "$PLUGIN_PATHS"
+          done <<< "$EXISTING_PATHS"
 
           if [ "$checks_failed" = "true" ]; then
             echo ""
@@ -101,7 +132,7 @@ jobs:
           fi
 
       - name: Install & Configure SquaredUp CLI
-        if: steps.detect.outputs.plugins_modified == 'true'
+        if: steps.detect.outputs.existing_modified == 'true'
         env:
           SQUAREDUP_API_KEY: ${{ secrets.SQUAREDUP_API_KEY }}
         run: |
@@ -112,9 +143,9 @@ jobs:
 
       - name: Validate modified plugins
         id: validate
-        if: steps.detect.outputs.plugins_modified == 'true'
+        if: steps.detect.outputs.existing_modified == 'true'
         env:
-          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
+          EXISTING_PATHS: ${{ steps.detect.outputs.existing_paths }}
         run: |
           validation_failed=false
 
@@ -136,7 +167,7 @@ jobs:
               validation_failed=true
             fi
             echo ""
-          done <<< "$PLUGIN_PATHS"
+          done <<< "$EXISTING_PATHS"
 
           if [ "$validation_failed" = "true" ]; then
             echo "One or more plugins failed validation."
@@ -145,16 +176,16 @@ jobs:
 
       - name: Deploy modified plugins
         id: deploy
-        if: steps.detect.outputs.plugins_modified == 'true'
+        if: steps.detect.outputs.existing_modified == 'true'
         env:
-          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
+          EXISTING_PATHS: ${{ steps.detect.outputs.existing_paths }}
         run: |
           while IFS= read -r plugin_path; do
             echo "Deploying ${plugin_path}..."
             squaredup deploy "${plugin_path}" --suffix "${{ github.event.pull_request.number }}" --force
             echo "Deployed ${plugin_path} successfully."
             echo ""
-          done <<< "$PLUGIN_PATHS"
+          done <<< "$EXISTING_PATHS"
 
       - name: Summary
         if: always()
