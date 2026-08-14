@@ -39,7 +39,7 @@ Read the relevant file rather than inferring conventions from nearby plugins:
 
 ## Layout
 
-```
+```text
 plugins/<PluginName>/v<major>/    one folder per plugin, per major version
 .claude/skills/                   build-plugin, deploy-plugin, convert-dashboard
 .github/workflows/                validate, deploy and clean up PR plugins
@@ -74,7 +74,7 @@ What each file is, in rough order of how universal it is:
 
 ## What CI does to your pull request
 
-- **`pr-run.yaml`** diffs against `origin/main` to find changed `plugins/*/v*` folders, then in order: checks the PR touches a single plugin and that each changed plugin's `metadata.json` version increased and matches its folder, runs `squaredup validate --json` on each, and deploys each to a shared organization suffixed with the PR number. Any of those failing fails the check. Results land in a sticky PR comment.
+- **`pr-run.yaml`** diffs against `origin/main` to find changed `plugins/*/v*` folders, then in order: checks the PR touches a single plugin; checks each changed plugin's major version matches its folder, and — for plugins that already exist on `main` — that `metadata.json` version increased (a new plugin has nothing to compare against, so it keeps its initial `<major>.0.0`); runs `squaredup validate --json` on each; and deploys each to a shared organization suffixed with the PR number. Any of those failing fails the check. Results land in a sticky PR comment.
 - **`pr-cleanup.yaml`** deletes those PR-suffixed plugins when the PR closes.
 - **`main-deploy.yaml`** dispatches to `squaredup/plugins-automation` to release on merge.
 

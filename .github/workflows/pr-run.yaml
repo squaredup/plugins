@@ -32,15 +32,21 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
+      # Plugin paths come from the contributor's branch, so they are untrusted input.
+      # They are passed through env rather than interpolated into the script: GitHub
+      # expands ${{ }} before Bash parses it, so a crafted directory name would
+      # otherwise run as shell code on the runner.
       - name: Check PR scope & version bumps
         id: checks
         if: steps.detect.outputs.plugins_modified == 'true'
+        env:
+          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
         run: |
           checks_failed=false
 
           # One plugin per PR. Several version folders of the same plugin are fine,
           # so that deprecating in v1 alongside adding v2 stays a single PR.
-          plugin_names=$(echo "${{ steps.detect.outputs.plugin_paths }}" | cut -d/ -f2 | sort -u)
+          plugin_names=$(printf '%s\n' "$PLUGIN_PATHS" | cut -d/ -f2 | sort -u)
           plugin_count=$(echo "$plugin_names" | wc -l | tr -d ' ')
 
           if [ "$plugin_count" -gt 1 ]; then
@@ -86,7 +92,7 @@ jobs:
             else
               echo "[PASS] ${plugin_path} version bumped ${old_version} -> ${new_version}"
             fi
-          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          done <<< "$PLUGIN_PATHS"
 
           if [ "$checks_failed" = "true" ]; then
             echo ""
@@ -107,6 +113,8 @@ jobs:
       - name: Validate modified plugins
         id: validate
         if: steps.detect.outputs.plugins_modified == 'true'
+        env:
+          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
         run: |
           validation_failed=false
 
@@ -128,7 +136,7 @@ jobs:
               validation_failed=true
             fi
             echo ""
-          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          done <<< "$PLUGIN_PATHS"
 
           if [ "$validation_failed" = "true" ]; then
             echo "One or more plugins failed validation."
@@ -138,16 +146,20 @@ jobs:
       - name: Deploy modified plugins
         id: deploy
         if: steps.detect.outputs.plugins_modified == 'true'
+        env:
+          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
         run: |
           while IFS= read -r plugin_path; do
             echo "Deploying ${plugin_path}..."
             squaredup deploy "${plugin_path}" --suffix "${{ github.event.pull_request.number }}" --force
             echo "Deployed ${plugin_path} successfully."
             echo ""
-          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          done <<< "$PLUGIN_PATHS"
 
       - name: Summary
         if: always()
+        env:
+          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
         run: |
           OUT=/tmp/summary.md
 
@@ -163,7 +175,7 @@ jobs:
           echo "### 📦 Modified Plugins" >> $OUT
           while IFS= read -r plugin_path; do
             echo "- \`${plugin_path}\`" >> $OUT
-          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          done <<< "$PLUGIN_PATHS"
           echo "" >> $OUT
 
           echo "### 📋 Results" >> $OUT

@@ -63,7 +63,7 @@ claude
 
 Then ask for the skill:
 
-```
+```text
 /build-plugin
 ```
 
