@@ -75,13 +75,15 @@ if (
             ? expirySeconds * 1000
             : 3600000;
 
+    // Refresh 5 minutes before expiration so a long-running request is less
+    // likely to fail because the token expires mid-flight. Clamp the margin
+    // below lifetimeMs so short-lived tokens still get a future expiryTime.
+    const refreshMarginMs = Math.min(300000, Math.floor(lifetimeMs / 2));
+
     state = {
         ...state,
         token,
-
-        // Refresh 5 minutes before expiration so a long-running request
-        // is less likely to fail because the token expires mid-flight.
-        expiryTime: Date.now() + lifetimeMs - 300000,
+        expiryTime: Date.now() + lifetimeMs - refreshMarginMs,
     };
 }
 
