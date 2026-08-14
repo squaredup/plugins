@@ -1,0 +1,52 @@
+{
+    "name": "controlAccountUsageHistory",
+    "displayName": "Control Account Usage History",
+    "description": "Periodic storage and traffic usage records for a control account",
+    "tags": ["Accounts", "Usage"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/v1/control-accounts/usages",
+        "getArgs": [
+            { "key": "controlAccountId", "value": "{{object.rawId}}" },
+            { "key": "from", "value": "{{timeframe.start.split('T')[0]}}" },
+            { "key": "to", "value": "{{timeframe.end.split('T')[0]}}" }
+        ],
+        "pathToData": "data.items",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "size", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data.items" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Wasabi Control Account"] } },
+    "metadata": [
+        { "name": "startTime", "displayName": "Start Time", "shape": "date", "role": "timestamp" },
+        { "name": "endTime", "displayName": "End Time", "shape": "date" },
+        { "name": "activeStorage", "displayName": "Active Storage (TB)", "shape": ["number", { "decimalPlaces": 4 }] },
+        { "name": "deletedStorage", "displayName": "Deleted Storage (TB)", "shape": ["number", { "decimalPlaces": 4 }] },
+        { "name": "storageWrote", "displayName": "Storage Written (TB)", "shape": ["number", { "decimalPlaces": 4 }] },
+        { "name": "storageRead", "displayName": "Storage Read (TB)", "shape": ["number", { "decimalPlaces": 4 }] },
+        { "name": "activeObjects", "displayName": "Active Objects", "shape": "number" },
+        { "name": "deletedObjects", "displayName": "Deleted Objects", "shape": "number" },
+        { "name": "apiCalls", "displayName": "API Calls", "shape": "number" },
+        { "name": "egress", "displayName": "Egress (GB)", "shape": "number" },
+        { "name": "ingress", "displayName": "Ingress (GB)", "shape": "number" },
+        { "pattern": ".*" }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ]
+}
