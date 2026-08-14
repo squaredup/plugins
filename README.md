@@ -10,7 +10,7 @@ SquaredUp is the operational intelligence platform that enables data-driven IT a
 
 ## About this repository
 
-SquaredUp has 60+ plugins out of the box. This repository contains all community-authored plugins and provides guidance on how to author your own plugin and submit it this repository.
+SquaredUp has 60+ plugins out of the box. This repository contains all community-authored plugins, the `build-plugin` AI skill used to author them, and guidance on submitting your own plugin here.
 
 ### Reporting issues or feature requests
 
@@ -40,39 +40,49 @@ Plugins are key components of SquaredUp. Each plugin defines how connect to and 
 [Learn more about adding a data source](https://docs.squaredup.com/first-steps/adding-a-data-source)
 
 ## How do I build my own plugin?
-> [!NOTE]
-> If you're interested in joining our private preview, please contact support@squaredup.com.
 
-### Building with Claude Code (build-plugin skill)
+Plugins are built with the **`build-plugin` AI skill**, which lives in this repository and is generally available to everyone. Point your AI coding agent at it and it takes you from an API reference to a deployed, tested plugin — exploring the API, planning the plugin with you, scaffolding the files, deploying and pausing for you to authenticate, testing every data stream against live data, and authoring out-of-the-box dashboards.
 
-If you have access to [Claude Code](https://claude.ai/code), the `build-plugin` skill can guide you through building a plugin from scratch — from exploring the API all the way to a deployed, tested plugin with dashboards.
+### Prerequisites
 
-**What it does**
+- Node.js 22 or later
+- The `squaredup` CLI, installed and logged in: `npm i -g @squaredup/cli`, then `squaredup login`
+- An AI coding agent — [Claude Code](https://claude.com/claude-code) is recommended
+- A SquaredUp organization where you can add and authenticate a data source
+- Documentation for the API you want to integrate, and credentials with real data behind them
 
-The skill walks you through the full process in structured phases:
+### Quick start
 
-1. Explores the target API and plans the plugin structure with you
-2. Scaffolds all the required files
-3. Deploys a working version of your plugin early, then pauses for you to authenticate it (OAuth, API key, or whatever the service uses)
-4. Tests imports and indexes objects so real data is flowing before the plugin is finished
-5. Builds and tests each data stream against live data as it goes
-6. Authors out-of-the-box dashboards
+Clone this repository and start your agent in it:
 
-**Prerequisites**
+```bash
+git clone https://github.com/squaredup/plugins.git
+cd plugins
+claude
+```
 
-- [Claude Code](https://claude.ai/code) installed
-- The `squaredup` CLI installed and logged in (`npm i -g @squaredup/cli`, then `squaredup login`)
-- A SquaredUp tenant where you can add and authenticate the plugin
-
-**How to use it**
-
-Open Claude Code in this repository and type:
+Then ask for the skill:
 
 ```
 /build-plugin
 ```
 
-Claude will ask for the API you want to integrate and guide you from there.
+The agent will ask which API you want to integrate and guide you from there. Expect to stay in the loop at three points: supplying the API documentation, approving the plan, and authenticating the plugin in your organization.
 
 > [!TIP]
-> **Keeping the skill up to date** — the skill lives in this repository and improves over time. To get the latest version, open a terminal in this folder and run `git pull origin main` before starting a new plugin build.
+> The skill improves over time. Run `git pull origin main` in this folder before starting a new plugin build to pick up the latest version.
+
+📺 **[Watch the video introduction and read the full guide](https://docs.squaredup.com/ai-features/building-plugins-with-ai)** — including how to run the skill in agents other than Claude Code (Codex, Cursor, Gemini CLI, GitHub Copilot and [many more](https://github.com/vercel-labs/skills#supported-agents)).
+
+## How do I submit my plugin?
+
+Community-authored plugins are welcome — open a pull request against this repository.
+
+- Add your plugin as `plugins/<PluginName>/v1/`, matching the layout of an existing plugin (`metadata.json`, `ui.json`, `icon.svg`, `dataStreams/`, `indexDefinitions/`, `defaultContent/`, `docs/README.md`)
+- Include a logo, at least one dashboard, and a `docs/README.md` covering configuration
+- Never commit secrets, API keys or credentials
+- For changes to an existing plugin, bump `version` in `metadata.json`. Breaking changes need a new major version folder (e.g. `v2/`) alongside the old one, so existing users aren't broken
+- Add yourself to [`.github/CODEOWNERS`](.github/CODEOWNERS) so you're asked to review future changes to your plugin
+- Open your PR using the **Add a new plugin** template; a community moderator will review it
+
+By contributing you agree to our [Code of Conduct](CODE_OF_CONDUCT.md).
