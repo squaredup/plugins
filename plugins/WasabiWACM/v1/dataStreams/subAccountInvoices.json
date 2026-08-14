@@ -1,0 +1,174 @@
+{
+    "name": "subAccountInvoices",
+    "displayName": "Sub-Account Invoices",
+    "description": "Billed cost line items for a sub-account",
+    "tags": [
+        "Accounts",
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/v1/invoices",
+        "getArgs": [
+            {
+                "key": "subAccountId",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "from",
+                "value": "{{timeframe.start.split('T')[0]}}"
+            },
+            {
+                "key": "to",
+                "value": "{{timeframe.end.split('T')[0]}}"
+            }
+        ],
+        "pathToData": "data.items",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "size",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data.items"
+                },
+                "base": 0
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Wasabi Sub-Account"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "periodStart",
+            "displayName": "Period Start",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "periodEnd",
+            "displayName": "Period End",
+            "shape": "date"
+        },
+        {
+            "name": "totalStorage",
+            "displayName": "Total Storage",
+            "shape": "number"
+        },
+        {
+            "name": "activeStorage",
+            "displayName": "Active Storage",
+            "shape": "number"
+        },
+        {
+            "name": "deletedStorage",
+            "displayName": "Deleted Storage",
+            "shape": "number"
+        },
+        {
+            "name": "activeStorageTotalCost",
+            "displayName": "Active Storage Cost",
+            "shape": [
+                "currency",
+                {
+                    "decimalPlaces": 2,
+                    "code": "usd",
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "deletedStorageTotalCost",
+            "displayName": "Deleted Storage Cost",
+            "shape": [
+                "currency",
+                {
+                    "decimalPlaces": 2,
+                    "code": "usd",
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "apiCallsTotalCost",
+            "displayName": "API Calls Cost",
+            "shape": [
+                "currency",
+                {
+                    "decimalPlaces": 2,
+                    "code": "usd",
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "ingressTotalCost",
+            "displayName": "Ingress Cost",
+            "shape": [
+                "currency",
+                {
+                    "decimalPlaces": 2,
+                    "code": "usd",
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "egressTotalCost",
+            "displayName": "Egress Cost",
+            "shape": [
+                "currency",
+                {
+                    "decimalPlaces": 2,
+                    "code": "usd",
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "minimumActiveStorageTotalCost",
+            "displayName": "Minimum Active Storage Cost",
+            "shape": [
+                "currency",
+                {
+                    "decimalPlaces": 2,
+                    "code": "usd",
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "subInvoiceId",
+            "displayName": "Sub-Invoice ID",
+            "shape": "string"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": [
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ]
+}

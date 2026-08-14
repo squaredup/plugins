@@ -1,0 +1,60 @@
+{
+    "name": "deviceList",
+    "displayName": "Devices",
+    "description": "Managed devices, optionally filtered to a customer or site, one row per device",
+    "tags": ["Customer", "Site", "Device"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ (typeof site !== 'undefined' && site && site.length) ? 'api/org-units/' + (Array.isArray(site[0].rawId) ? site[0].rawId[0] : site[0].rawId) + '/devices' : ((typeof customer !== 'undefined' && customer && customer.length) ? 'api/org-units/' + (Array.isArray(customer[0].rawId) ? customer[0].rawId[0] : customer[0].rawId) + '/devices' : 'api/devices') }}",
+        "pathToData": "data",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "pageNumber" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["N-central Customer"] }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["N-central Site"] }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "longName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "N-central Device"
+        },
+        { "name": "deviceId", "shape": "number", "visible": false },
+        { "name": "deviceClass", "displayName": "Device Class", "shape": "string" },
+        { "name": "supportedOs", "displayName": "OS", "shape": "string" },
+        { "name": "isProbe", "displayName": "Probe", "shape": "boolean" },
+        { "name": "licenseMode", "displayName": "License Mode", "shape": "string" },
+        { "name": "customerId", "shape": "number", "visible": false },
+        { "name": "siteId", "shape": "number", "visible": false },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

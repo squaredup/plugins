@@ -1,0 +1,36 @@
+{
+    "name": "members",
+    "displayName": "Members",
+    "description": "All Wasabi Sub-Account users, one row per member",
+    "tags": ["Accounts", "Users"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/v1/members",
+        "pathToData": "data.items",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "size", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data.items" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        }
+    },
+    "matches": "none",
+    "visibility": { "type": "hidden" },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id" },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "computed": true,
+            "valueExpression": "{{ ((($['firstName'] || '') + ' ' + ($['lastName'] || '')).trim()) || $['username'] }}",
+            "role": "label"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

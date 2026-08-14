@@ -1,0 +1,58 @@
+{
+    "name": "customerActiveIssues",
+    "displayName": "Customer Active Issues",
+    "description": "Currently active issues and alerts for a customer",
+    "tags": ["Customer", "Alerts"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/org-units/{{object.rawId}}/active-issues",
+        "pathToData": "data",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "200" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "pageNumber" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["N-central Customer"] } },
+    "metadata": [
+        { "name": "orgUnitId", "shape": "number", "visible": false },
+        { "name": "deviceId", "shape": "number", "visible": false },
+        {
+            "name": "_extra.deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "N-central Device"
+        },
+        { "name": "serviceName", "displayName": "Service", "shape": "string" },
+        { "name": "serviceType", "displayName": "Service Type", "shape": "string" },
+        { "name": "notificationState", "displayName": "Notification State", "shape": "number" },
+        {
+            "name": "_extra.transitionTime",
+            "displayName": "Since",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        { "name": "_extra.licenseMode", "displayName": "License Mode", "shape": "string" },
+        {
+            "name": "_extra.remoteControllable",
+            "displayName": "Remote Controllable",
+            "shape": "boolean"
+        },
+        { "name": "serviceId", "shape": "number", "visible": false },
+        { "name": "taskId", "shape": "number", "visible": false },
+        { "name": "serviceItemId", "shape": "number", "visible": false },
+        { "name": "_extra.customerTree.0", "shape": "string", "visible": false },
+        { "name": "_extra.customerTree.1", "shape": "string", "visible": false },
+        { "name": "_extra.customerTree.2", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}
