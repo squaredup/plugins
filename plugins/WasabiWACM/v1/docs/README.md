@@ -24,7 +24,7 @@ On save, the plugin validates the credentials by calling a lightweight reference
 
 ## What this plugin monitors
 
-- **Account hierarchy** — Standalone Accounts, Control Accounts, Channel Accounts, Sub-Accounts, and Members, with each object's key properties (status, storage quota, contact details).
+- **Account hierarchy** — Standalone Accounts, Control Accounts, Channel Accounts, Sub-Accounts, and Members, with each object's key properties (status, storage quota).
 - **Storage usage** — daily active/deleted storage, object counts, and traffic (egress/ingress/API calls) history per Sub-Account and Control Account.
 - **Bucket utilization** — daily per-bucket storage breakdowns per Sub-Account and Control Account.
 - **Billing** — monthly invoice line items and costs per Sub-Account.
