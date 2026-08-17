@@ -9,7 +9,7 @@ You will need your N-central server's base URL and a **User-API Token**.
 1. Sign in to your N-central server as a user with API access.
 2. Go to **Administration → User Management → Users**, click the user you want to use for API access, then go to the **API Access** tab.
 3. Click **Generate JSON Web Token** and copy the token — it is shown only once. This is your **User-API Token**.
-4. Paste your N-central server's base URL (e.g. `https://yourserver.n-able.com`) into the **Base URL** field, and the User-API Token into the **User-API Token** field.
+4. Paste your N-central server's base URL (e.g. `https://yourserver.n-able.com`) into the **Server URL** field, and the User-API Token into the **User-API Token** field.
 
 The plugin exchanges the User-API Token for a short-lived access token itself via `POST /api/auth/authenticate`, but only when the cached access token has expired — the token is cached and refreshed automatically between requests, so no manual token exchange or periodic refresh is needed.
 
@@ -17,7 +17,7 @@ The plugin exchanges the User-API Token for a short-lived access token itself vi
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ----------------- | -------- |
-| **Base URL** | The base address of your N-central server. | Your browser's address bar when signed in to N-central. | Yes |
+| **Server URL** | The base address of your N-central server. | Your browser's address bar when signed in to N-central. | Yes |
 | **User-API Token** | A long-lived JWT used to automatically obtain access tokens for every API call. | Administration → User Management → Users → [user] → API Access → Generate JSON Web Token — see Setup above. | Yes |
 
 On save, the plugin calls `GET /api/service-orgs` (a minimal authenticated probe) to confirm the User-API Token works; an invalid, unreachable, or revoked token fails setup with an authentication error.
