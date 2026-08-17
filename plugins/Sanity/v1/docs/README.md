@@ -1,6 +1,4 @@
-# Sanity
-
-Bring your [Sanity](https://www.sanity.io) content into SquaredUp: index projects, datasets and members, run GROQ queries, and watch dataset usage against plan limits.
+Bring your [Sanity](https://www.sanity.io) content into SquaredUp: index projects, datasets and members, run GROQ queries, and watch dataset usage against plan limits, via the [Sanity HTTP API](https://www.sanity.io/docs/http-api).
 
 ## Setup
 
@@ -24,15 +22,15 @@ For **each** project you want to monitor:
 
 ## Configuration fields
 
-| Field | What it is | Where to find it | Required |
-|---|---|---|---|
-| **Admin API token** | Token used to list the projects in your organization | sanity.io/manage → API → Tokens (or a personal/admin token) | Yes |
-| **Project API tokens** | A list of **Project ID → API token** pairs, one per project you want to read datasets, members and content from | Project ID from the project page; Viewer token from API → Tokens | Yes |
-| **Content API version** | The dated Sanity API version used for GROQ queries (advanced) | Defaults to `v2025-02-19`; leave as-is unless you need a specific version | No |
+| Field                   | What it is                                                                                                      | Where to find it                                                          | Required |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | -------- |
+| **Admin API token**     | Token used to list the projects in your organization                                                            | sanity.io/manage → API → Tokens (or a personal/admin token)               | Yes      |
+| **Project API tokens**  | A list of **Project ID → API token** pairs, one per project you want to read datasets, members and content from | Project ID from the project page; Viewer token from API → Tokens          | Yes      |
+| **Content API version** | The dated Sanity API version used for GROQ queries (advanced)                                                   | Defaults to `v2025-02-19`; leave as-is unless you need a specific version | No       |
 
-## What is monitored
+## What this plugin monitors
 
-A single plugin instance can cover **many Sanity projects** at once: it indexes each project you've supplied a token for, plus that project's datasets and members.
+A single plugin instance can cover **many Sanity projects** at once: it indexes each project you've supplied a token for, plus that project's datasets.
 
 - **Projects** — every project you've configured a token for. Imported as objects.
 - **Datasets** — a project's datasets and their access modes, imported as objects you can scope dashboards to and drill into.
@@ -40,24 +38,27 @@ A single plugin instance can cover **many Sanity projects** at once: it indexes 
 - **Custom GROQ query** — run any GROQ query against a dataset straight from a tile (the out-of-the-box dashboard uses this to break a dataset down by document type).
 - **Dataset stats** — a dataset's usage figures and how close it is to plan limits.
 
+The out-of-the-box dashboards include an organization-wide **Overview** plus a **Projects** and **Dataset** perspective.
+
+## Data streams
+
+- **All Projects** — every project in the organization, flagging whether it has an API token configured; account-wide.
+- **Datasets** — a project's datasets and their access-control mode; per project.
+- **Members** — the people with access to a project and their roles; per project.
+- **Dataset Stats** — a dataset's usage figures and how close it is to plan limits; per dataset.
+- **Custom GROQ Query** — runs an arbitrary GROQ query against a dataset; per dataset.
+
 ## What gets indexed
 
-| Object type | Represents | Example |
-|---|---|---|
-| **Project** | A project you've configured an API token for | `My Studio` |
-| **Dataset** | A dataset in a project you've supplied a token for | `My Studio - production` |
-| **Member** | A user with access to one of those projects | `Jane Doe` |
+| Object type | API source                                       | Represents                                          |
+| ----------- | ------------------------------------------------- | ---------------------------------------------------- |
+| **Project** | `GET /v2021-06-07/projects`                       | A project you've configured an API token for.       |
+| **Dataset** | `GET /v2021-06-07/projects/{projectId}/datasets`  | A dataset in a project you've supplied a token for. |
 
-Projects without a per-project token are skipped entirely — add a project's token and re-import to bring it (and its datasets and members) into the index. The Overview dashboard's Projects table lists every project in the organization and flags which ones are still missing a token.
-
-## Out-of-the-box dashboards
-
-- **Overview** — organization-wide summary: project, dataset and document counts, total JSON stored, every project in the organization with whether its API token is configured, documents by dataset, and how close each dataset is to its plan limits.
-- **Projects** — a per-project drilldown (pick the project via the dashboard variable): project details, its datasets and its members.
-- **Dataset** — a per-dataset drilldown (pick the dataset via the dashboard variable): details, document type breakdown, usage gauges showing how close the dataset is to its plan limits, and a customisable GROQ query tile.
+**Relationships:** each Dataset links to its parent Project.
 
 ## Known limitations
 
 - **No organization-level usage or billing metrics.** Sanity's HTTP API exposes no API-request counts, bandwidth, or billing figures; the **Dataset stats** stream covers per-dataset usage against plan limits.
-- **Only projects with a configured token are indexed.** Projects missing from dashboards aren't an error — add the project's ID and API token under **Project API tokens** and re-import. If a configured token is invalid or expired, tiles show an error naming the affected project.
+- **Only projects with a configured token are indexed.** Projects missing a token are skipped entirely, along with their datasets — this isn't an error; add the project's ID and API token under **Project API tokens** and re-import to bring it in. If a configured token is invalid or expired, tiles show an error naming the affected project.
 - **Document type counts can be slow on large datasets.** The out-of-the-box breakdown tile groups every document by `_type` in GROQ; on very large datasets it can be slow — narrow the query to specific types if needed.
