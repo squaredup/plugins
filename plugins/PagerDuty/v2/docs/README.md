@@ -66,6 +66,8 @@ Team membership is stored as a property on each Service and User (`teamIds`/`tea
 
 - **Incident search is capped at a 6-month window** — the **Incidents** stream's timeframe options stop at "Last quarter"; use **Incident Metrics** for longer-range trends (up to 1 year).
 - **Notifications are capped at a 3-month window** — the **Notifications** stream's timeframe options stop at "Last month".
+- **Teams require an add-on account ability** — the **Teams** import step (and the Team scope/dashboards it feeds) only returns data on PagerDuty plans with the Teams ability enabled. On accounts without it, PagerDuty rejects the request and the step is skipped with a warning rather than failing the whole import — everything else (Services, Users, Schedules, Escalation Policies, Incidents, etc.) still imports and refreshes normally.
+- **Notifications' User filter is applied client-side** — PagerDuty's notifications endpoint has no server-side user filter, so the plugin fetches the full window and filters by user in the plugin itself. This is transparent to you, but very high notification volumes over a wide timeframe may be slower to filter than a server-side filter would be.
 - **No direct Team → Service/User relationship** — the PagerDuty API only lists services/users *with* their team IDs, not teams *with* their members, so the Team perspective shows incidents and responder metrics for a team but not a services/users roster.
 - **Rate limits** — PagerDuty enforces per-account API rate limits; very large estates may import or refresh more slowly.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in PagerDuty.
