@@ -99,6 +99,7 @@ When suggesting changes:
 ### Correlation rules - (correlationRules/\*.json)
 
 - Filenames are the stable rule identity across plugin upgrades, so a rename deletes the old rule and every edge it created. Question any renamed file in a PR, and prefer kebab-case names describing the relationship (e.g. `relate-device-to-site.json`).
+- Four shapes are authorable, recognised from the fields present rather than declared: **Relate** (the default), **Bridge** (has a `bridge` leg), **Group** (`target` is an `objectGroup`), and **Merge** (`labels.forward` is exactly `"is"`). Merge collapses two objects into one rather than relating them, so treat an unexplained `"is"` label as a mistake unless the author is deliberately deduplicating.
 - displayName - Name the relationship source-first, e.g. "Node runs Pod", "Device reports to Site". Mandatory in practice: it is what identifies the rule in the product.
 - labels - Both `forward` and `reverse` should be present. `reverse` defaults to the forward label when omitted, which reads wrongly in one direction (e.g. "Node scheduled on Pod").
 - Join keys - Every `sourceProperty`/`targetProperty` must be `name`, `rawId`, `sourceType`, or a property the relevant import step maps in `objectMapping.properties`. A property the import doesn't map will validate cleanly and produce zero edges, so check the pairing against `indexDefinitions/` rather than the data stream columns.

@@ -8,7 +8,7 @@ Edges are what make a Pod appear under its Node, a device under its site, an ale
 
 ## File layout
 
-```
+```text
 my-plugin/
   v1/
     correlationRules/
@@ -29,20 +29,32 @@ Write only the rule's *shape*. These fields are filled in for you and **must not
 | Field                                | Filled in by                                                       |
 | ------------------------------------ | ------------------------------------------------------------------ |
 | `ruleName`                            | the filename                                                        |
-| `ruleType`                            | inferred — `bridge` if the rule has a `bridge` leg, else `condition` |
+| `ruleType`                            | inferred from the file's shape at install — never write it           |
 | `schemaVersion`                       | always `2`                                                          |
 | `id`, condition `id`s                 | positional (`"1"`, `"2"`, … in array order) — referenced by `conditionLogic` |
 | `pluginId` (rule, source, target, bridge) | deploy time — scoped to this plugin                             |
 | `origin`, `edgeSource`, `configs`     | deploy time                                                         |
 
-Two consequences of this:
-
-- **A plugin rule can only relate object types from its own plugin.** Cross-plugin correlation exists, but only as a user-authored rule in Settings → Correlation Rules — a plugin can't ship one.
-- **Only condition and bridge rules are shippable.** `ruleType` is inferred from the file's shape, so the platform's other rule types — semantic (fuzzy name matching) and direct (one specific object to another) — can't be authored in a plugin. Writing `semanticThreshold` into a file doesn't produce a semantic rule; it's read as a condition rule with no conditions and fails validation.
+One consequence worth knowing: **a plugin rule can only relate object types from its own plugin.** Cross-plugin correlation exists, but only as a user-authored rule in Settings → Correlation Rules — a plugin can't ship one.
 
 ---
 
-## The condition rule (what you'll write 95% of the time)
+## The four shapes
+
+Write the shape you want; the platform works out the rule type on install. Each shape is recognised purely from the fields present in the file, so there is nothing to declare:
+
+| Shape      | What it does                                                              | Recognised by                              |
+| ---------- | ------------------------------------------------------------------------- | ------------------------------------------ |
+| **Relate** | Draws a labelled edge between two object types                            | the default — no `bridge`, no `objectGroup` |
+| **Bridge** | Relates source to target *through* a third, joining object type           | a `bridge` leg is present                   |
+| **Group**  | Buckets source objects under a synthesised grouping object                | `target` is an `objectGroup`                 |
+| **Merge**  | Collapses the two objects into one, instead of relating them              | `labels.forward` is exactly `"is"`           |
+
+The platform has two further rule types — **semantic** (fuzzy name matching) and **direct** (one specific object to one other) — that a plugin **cannot** ship; they only exist as user-authored rules. Writing `semanticThreshold` into a file doesn't produce a semantic rule, it produces a Relate rule with no conditions, which fails validation.
+
+---
+
+## Relate — the default shape (95% of what you'll write)
 
 ```json
 {
@@ -117,9 +129,9 @@ Prefer mapping a clean join key in the import over an expression — an expressi
 
 ---
 
-## Bridge rules — matching through a join object
+## Bridge — matching through a join object
 
-When source and target share no property, but a third imported object joins them (a membership, an assignment, a mapping row), add a `bridge` leg. Its presence is what makes it a bridge rule:
+When source and target share no property, but a third imported object joins them (a membership, an assignment, a mapping row), add a `bridge` leg. Its presence is what makes it a Bridge rule:
 
 ```json
 {
@@ -140,17 +152,17 @@ When source and target share no property, but a third imported object joins them
 - **`sourceConditions`** (required, 1–25) compare **source → bridge**: `sourceProperty` reads the source object, `targetProperty` reads the bridge object.
 - **`targetConditions`** (required, 1–25) compare **bridge → target**: `sourceProperty` reads the **bridge**, `targetProperty` reads the target.
 - **`conditions`** (optional) compare source → target directly, as an extra filter.
-- All three arrays are AND-ed. `conditionLogic` does not apply to bridge rules.
+- All three arrays are AND-ed. `conditionLogic` does not apply to Bridge rules.
 - The edge is written **source → target**; the bridge object isn't part of it.
-- Bridge rules cannot use the canonical `"is"` label (see Merge below).
+- A Bridge rule cannot use the `"is"` label — see the Merge section below.
 
-Only reach for a bridge when the join object genuinely exists as an imported type. If the join is just an array of ids on one side, a plain condition rule matching an array property is simpler (arrays match if *any* element matches).
+Only reach for a bridge when the join object genuinely exists as an imported type. If the join is just an array of ids on one side, a plain Relate rule matching an array property is simpler (arrays match if *any* element matches).
 
 ---
 
-## Group rules — synthesising a grouping object
+## Group — synthesising a grouping object
 
-A group rule buckets source objects by a property value and creates a **synthetic group object per distinct value** — useful when the API exposes a grouping dimension (region, environment, team, tag) that has no object of its own to import. The `target` is an `objectGroup` instead of types:
+A Group rule buckets source objects by a property value and creates a **synthetic group object per distinct value** — useful when the API exposes a grouping dimension (region, environment, team, tag) that has no object of its own to import. The `target` is an `objectGroup` instead of types:
 
 ```json
 {
@@ -173,13 +185,13 @@ A group rule buckets source objects by a property value and creates a **syntheti
 - `objectGroup.sourceType` — the type name given to the synthesised group objects. They're named after the property value and owned by the correlation engine, not by an import step.
 - Group rules carry exactly **one** condition, whose `targetProperty` is the wildcard `"*"` (the only place the wildcard is legal). A `sourceExpression` on that condition still applies, so you can normalise the bucket key.
 
-Prefer importing a real object type when the API has a list endpoint for it — a real object carries properties and can be a dashboard scope. Reach for a group rule only when there's nothing to import.
+Prefer importing a real object type when the API has a list endpoint for it — a real object carries properties and can be a dashboard scope. Reach for a Group rule only when there's nothing to import.
 
 ---
 
-## Merge (`"is"`) — rarely right for a plugin
+## Merge — rarely right for a plugin
 
-A forward label of exactly `"is"` is **canonical**: instead of drawing a relationship, it merges the two objects into a single object in the graph. It exists to reconcile the same real-world thing seen by two different data sources — which a plugin rule can't do, because both legs are scoped to this plugin. Don't ship `"is"` unless you're deliberately deduplicating two object types within your own plugin, and never on a bridge rule (rejected at validation).
+A forward label of exactly `"is"` is **canonical**: instead of drawing a relationship, it merges the two objects into a single object in the graph. It exists to reconcile the same real-world thing seen by two different data sources — which a plugin rule can't do, because both legs are scoped to this plugin. Don't ship `"is"` unless you're deliberately deduplicating two object types within your own plugin, and never on a Bridge rule (rejected at validation).
 
 ---
 

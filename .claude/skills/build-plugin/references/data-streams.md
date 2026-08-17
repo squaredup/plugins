@@ -539,7 +539,7 @@ JSON-only timeframe properties (not settable via the Save as data stream modal):
 ⚠️ **`defaultTimeframe` accepts exactly two values: `"none"` or `"dashboard"`.** It is not a timeframe enum — `"last7days"` and every other value from the list above fail validation with `Invalid value — expected one of: none, dashboard (path: defaultTimeframe)`. It chooses where a new tile's timeframe comes from, not which range it opens on:
 
 - `"dashboard"` (the default when omitted) — the tile inherits the dashboard's timeframe.
-- `"none"` — the tile opens with timeframe "None", the same effect as `timeframes: false`.
+- `"none"` — the tile **opens** on "None"; every other entry in `timeframes` stays selectable. This is not the same as `timeframes: false`, which removes timeframe support altogether — availability comes from `timeframes`, `defaultTimeframe` only picks the starting selection. Pair it with `supportsNoneTimeframe: true` so "None" is a valid option in the first place.
 
 **There is no way to make a new tile default to a specific range.** If a range is wrong for the stream, remove it from `timeframes` so it can't be selected at all — restricting the array is the only lever you have.
 
