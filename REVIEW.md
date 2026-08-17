@@ -107,8 +107,8 @@ When suggesting changes:
 
 ### Documentation - (docs/README.md)
 
-- Should typically start headings from level 1. When embedded in SquaredUp, the headings will be sized appropriately.
-- When the docs are embedded in SquaredUp, they are shown under a heading labelled "Need help?". As such, discourage documentation that starts with similar headings, or headings that don't make sense. Avoid headings that repeat the plugin name or use "Overview". A good heading might be something like `# Before you start` or `# Prerequisites`.
+- Should not start with a level 1 heading. The product shows the plugin name above the rendered doc, so the README should open directly with a short overview paragraph and use level 2 headings (`##`) for its sections.
+- When the docs are embedded in SquaredUp, they are shown under a heading labelled "Need help?". As such, discourage documentation that starts with similar headings, or headings that don't make sense. Avoid headings that repeat the plugin name or use "Overview". A good heading might be something like `## Before you start` or `## Prerequisites`.
 - The Setup or Configuration section should appear near the top of the documentation, as the README is shown in-product when a user is configuring the plugin for the first time.
 - Encourage the author to include documentation for all UI fields from metadata.json unless otherwise covered by a tooltip or help text.
 - Encourage the author to include links to the third-party tool or their documentation when appropriate, e.g. `Browse to [unifi.ui.com](https://unifi.ui.com) > Settings -> API Keys > Create New API Key`
