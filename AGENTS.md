@@ -46,8 +46,6 @@ plugins/<PluginName>/v<major>/    one folder per plugin, per major version
 REVIEW.md                         plugin conventions
 ```
 
-45 plugin version folders currently exist. Only one plugin has a `v2`, so `v1` is the norm.
-
 ## Anatomy of a plugin folder
 
 What each file is, in rough order of how universal it is:
