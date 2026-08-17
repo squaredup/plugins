@@ -1,0 +1,79 @@
+{
+    "name": "loadBalancerPoolHealth",
+    "displayName": "Load Balancer Pool Health",
+    "description": "Per-origin health, response time and failure reason for a load balancer pool at each Cloudflare edge location",
+    "tags": ["Network", "Availability"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "accounts/{{object.accountId}}/load_balancers/pools/{{object.rawId}}/health",
+        "postRequestScript": "loadBalancerPoolHealth.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Load Balancer Pool"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "colo",
+            "displayName": "Location",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "origin",
+            "displayName": "Origin",
+            "shape": "string"
+        },
+        {
+            "name": "healthy",
+            "displayName": "Healthy",
+            "shape": "boolean",
+            "role": "value"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['healthy'] ? 'Healthy' : 'Unhealthy' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Healthy"],
+                        "error": ["Unhealthy"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "responseCode",
+            "displayName": "Response Code",
+            "shape": "number"
+        },
+        {
+            "name": "rtt",
+            "displayName": "Response Time",
+            "shape": "string"
+        },
+        {
+            "name": "failureReason",
+            "displayName": "Failure Reason",
+            "shape": "string"
+        },
+        {
+            "name": "coloHealthy",
+            "displayName": "Location Healthy",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

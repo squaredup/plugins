@@ -1,0 +1,91 @@
+{
+    "name": "zoneCertificates",
+    "displayName": "SSL Certificates",
+    "description": "SSL certificate packs for a Cloudflare zone with issuer, validation method and expiry details",
+    "tags": ["Zone", "Security"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "zones/{{object.rawId}}/ssl/certificate_packs",
+        "postRequestScript": "zoneCertificates.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "50"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "result" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "metadata": [
+        { "name": "hosts", "displayName": "Hosts", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["active", "deployed"],
+                        "warning": [
+                            "pending_validation",
+                            "pending_issuance",
+                            "pending_deployment",
+                            "pending_expiration",
+                            "pending_deletion",
+                            "initializing",
+                            "deleting"
+                        ],
+                        "error": ["expired", "deleted"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "certificateAuthority",
+            "displayName": "Authority",
+            "shape": "string"
+        },
+        { "name": "type", "displayName": "Type", "shape": "string" },
+        {
+            "name": "validationMethod",
+            "displayName": "Validation Method",
+            "shape": "string"
+        },
+        {
+            "name": "expiresOn",
+            "displayName": "Expires",
+            "shape": "date",
+            "role": "value"
+        },
+        {
+            "name": "daysUntilExpiry",
+            "displayName": "Days Until Expiry",
+            "computed": true,
+            "valueExpression": "{{ Math.round((new Date($['expiresOn']) - new Date()) / 86400000) }}",
+            "shape": "number"
+        },
+        { "name": "issuer", "displayName": "Issuer", "shape": "string" },
+        {
+            "name": "id",
+            "displayName": "Certificate ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

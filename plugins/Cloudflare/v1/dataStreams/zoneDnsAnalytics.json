@@ -1,0 +1,69 @@
+{
+    "name": "zoneDnsAnalytics",
+    "displayName": "DNS Analytics",
+    "description": "DNS query counts and response times for a zone grouped by a selectable dimension",
+    "tags": ["Zone", "DNS"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){dnsAnalyticsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count avg{processingTimeUs} dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "zoneDnsAnalytics.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "queryName",
+            "options": [
+                { "value": "queryName", "label": "Query Name" },
+                { "value": "queryType", "label": "Query Type" },
+                { "value": "responseCode", "label": "Response Code" },
+                { "value": "coloName", "label": "Edge Location" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "queryCount",
+            "displayName": "Query Count",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "avgResponseTimeMs",
+            "displayName": "Avg Response Time",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days"]
+}

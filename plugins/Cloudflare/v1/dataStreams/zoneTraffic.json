@@ -1,0 +1,97 @@
+{
+    "name": "zoneTraffic",
+    "displayName": "Zone Traffic",
+    "description": "Hourly HTTP request, cache and bandwidth totals for a zone",
+    "tags": [
+        "Zone",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){httpRequests1hGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){dimensions{datetime}sum{requests cachedRequests bytes cachedBytes threats pageViews encryptedRequests}uniq{uniques}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.zones.0.httpRequests1hGroups",
+        "expandInnerObjects": true,
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Zone"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.cachedRequests",
+            "displayName": "Cached Requests",
+            "shape": "number"
+        },
+        {
+            "name": "sum.bytes",
+            "displayName": "Bytes",
+            "shape": "bytes"
+        },
+        {
+            "name": "sum.cachedBytes",
+            "displayName": "Cached Bytes",
+            "shape": "bytes"
+        },
+        {
+            "name": "sum.threats",
+            "displayName": "Threats",
+            "shape": "number"
+        },
+        {
+            "name": "sum.pageViews",
+            "displayName": "Page Views",
+            "shape": "number"
+        },
+        {
+            "name": "sum.encryptedRequests",
+            "displayName": "Encrypted Requests",
+            "shape": "number"
+        },
+        {
+            "name": "uniq.uniques",
+            "displayName": "Unique Visitors",
+            "shape": "number"
+        },
+        {
+            "name": "cacheHitRatio",
+            "displayName": "Cache Hit Ratio",
+            "computed": true,
+            "valueExpression": "{{ Number($['sum.requests']) > 0 ? Math.round(10000 * Number($['sum.cachedRequests']) / Number($['sum.requests'])) / 100 : 0 }}",
+            "shape": ["percent", { "decimalPlaces": 2 }]
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours"
+    ]
+}

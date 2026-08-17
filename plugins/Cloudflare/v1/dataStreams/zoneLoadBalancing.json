@@ -1,0 +1,59 @@
+{
+    "name": "zoneLoadBalancing",
+    "displayName": "Load Balancing Requests",
+    "description": "Load balancer request counts for a zone broken down by load balancer, selected pool, origin and colo",
+    "tags": ["Zone", "Network"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){loadBalancingRequestsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count dimensions{lbName selectedPoolName selectedOriginName coloCode}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.zones.0.loadBalancingRequestsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.lbName",
+            "displayName": "Load Balancer",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "dimensions.selectedPoolName",
+            "displayName": "Pool",
+            "shape": "string"
+        },
+        {
+            "name": "dimensions.selectedOriginName",
+            "displayName": "Origin",
+            "shape": "string"
+        },
+        {
+            "name": "dimensions.coloCode",
+            "displayName": "Colo",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours"]
+}
