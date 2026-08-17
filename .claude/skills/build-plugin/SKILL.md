@@ -48,7 +48,8 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
 - [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [checkpoints.md](references/checkpoints.md)
 - [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents. Repeat per dependency level if any step `dependsOn` another → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
-- [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [checkpoints.md](references/checkpoints.md)
+- [ ] **Phase 5b** — Write `correlationRules/*.json` for the relationships planned in Phase 2 → [correlation-rules.md](references/correlation-rules.md)
+- [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist (and correlation runs) → [checkpoints.md](references/checkpoints.md)
 - [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
 - [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
@@ -80,7 +81,8 @@ This phase produces a written plan and a user-approval gate before any files are
 
 1. **Object types** — Every type that should appear in the SquaredUp graph. These go in `objectTypes` in `metadata.json` and as `sourceType` throughout.
 2. **Import steps** — Let the API shape dictate: one step returning many types, or separate steps per type. If an object type is only listable in the context of an already-imported parent (the API has "list X for parent Y" but no "list all X"), plan it as a **dependent step** instead — `dependsOn` the parent step and `scope` to its objects; see [index-defs.md](references/index-defs.md#scoped-dependent-steps).
-3. **Data streams** — For each object type, plan:
+3. **Relationships** — How the object types connect to each other (a device belongs to a site, an alert was raised by a device). Import definitions create objects only; edges come from **correlation rules**, which match a property on one object type against a property on another. For each relationship plan the **source type** (the side holding the foreign key), the **target type**, the **join key on each side**, and the **forward/reverse labels**. Then check the join keys are in that step's `objectMapping.properties` — a property the import doesn't map can never be matched, and adding it later means a full re-index. See [correlation-rules.md](references/correlation-rules.md).
+4. **Data streams** — For each object type, plan:
     - A **summary/current state** stream (`"timeframes": false`, returns current values)
     - A **history/metrics** stream (supports timeframes, returns time-series rows)
     - Any **cross-object** streams scoped to a parent (e.g. alarms for an installation)
@@ -89,10 +91,10 @@ This phase produces a written plan and a user-approval gate before any files are
         - `false` when the endpoint exposes no time-range parameter — the user can't choose a range (returns a fixed snapshot or current values regardless).
         - An **array** when the endpoint accepts a range but aggregates coarsely: don't leave the default `true`, because a daily-granularity endpoint can't serve `last1hour`. Restrict `timeframes` to the smallest window the granularity supports and up (e.g. daily → `last7days`+).
         - `true` when the endpoint accepts a range at fine granularity and any timeframe works.
-4. **What's intentionally omitted** — API capabilities not being implemented, and why. Highest-value section for catching scope creep.
-5. **Authentication** — Auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
-6. **OOB dashboards** — A **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
-7. **sourceId format** — Use the raw API ID wherever possible.
+5. **What's intentionally omitted** — API capabilities not being implemented, and why. Highest-value section for catching scope creep.
+6. **Authentication** — Auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
+7. **OOB dashboards** — A **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
+8. **sourceId format** — Use the raw API ID wherever possible.
 
 ### Plan format
 
@@ -109,6 +111,14 @@ Post the plan as markdown with one `###` heading per item above. Short example:
 ### Import steps
 
 - `installations` — one step, returns both types
+
+### Relationships
+
+| Source (holds the key) | Target             | Join                              | Labels                       |
+| ---------------------- | ------------------ | --------------------------------- | ---------------------------- |
+| `My Device`            | `My Installation`  | `siteId` → `rawId`                | installed at / contains      |
+
+`siteId` must be mapped in the devices step's `objectMapping.properties`.
 
 ### Data streams
 
@@ -185,6 +195,8 @@ my-plugin/
       README.md                # REQUIRED: shown in-product when users add the plugin
     indexDefinitions/
       default.json
+    correlationRules/           # one file per relationship; filename is the stable rule name
+      relate-device-to-site.json
     dataStreams/
       myStream.json
       scripts/
@@ -265,6 +277,21 @@ Run this pass at the end of each Phase 5 build (the root pass, and each dependen
 
 ---
 
+## Phase 5b: Correlation rules (relationships)
+
+Skip only if the Phase 2 plan has no relationships. Write one `correlationRules/<ruleName>.json` per relationship — read [correlation-rules.md](references/correlation-rules.md). These live here, immediately after the import definitions and **before** Checkpoint B, for two reasons: the join keys they match are properties of the import you just wrote, and correlation is evaluated automatically after each successful import — so shipping the rules in Checkpoint B's redeploy means that same import produces the edges.
+
+Author them inline in the main agent (they're small, and they depend on the import mapping you're holding in context). For each planned relationship:
+
+1. **Confirm both join keys exist on the object.** A condition can only match `name`, `rawId`, `sourceType`, or something in that step's `objectMapping.properties` — a column the stream returns but the step doesn't map does not exist on the object and will never match.
+2. **If a join key is missing, add it to `objectMapping.properties` now.** Adding it here is free if that step's objects haven't been imported yet; if they have (a dependent-step build where Checkpoint B already ran for a lower level), every existing object is now stale — apply the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale).
+3. **Write the rule** — source is the side holding the foreign key; always write both `forward` and `reverse` labels; `"operator": "equals"` on every condition. Never write `pluginId`, `ruleType`, `schemaVersion`, or condition `id`s — those are stamped for you.
+4. **Validate** — run `squaredup validate --json` from the plugin dir and confirm the summary's `Correlation Rules` count equals the number of files you wrote. An invalid rule fails the whole plugin validation, so fix any error before Checkpoint B.
+
+Edges can't be confirmed until Checkpoint B's import has run — verification is a step there.
+
+---
+
 ## Checkpoint B: Redeploy & run the first import
 
 Scoped data streams can't be tested until objects exist, which means the import steps must be live and an import must have run. The CLI triggers and tracks the import for you, so **drive it yourself — don't ask the user to run it in the UI.**
@@ -273,6 +300,7 @@ Scoped data streams can't be tested until objects exist, which means the import 
 2. **Trigger** — `squaredup index --datasource-id <id> --no-wait --json`. `--no-wait` returns immediately with a `since` anchor (capture it) instead of blocking until the import finishes — you poll for completion in the next step. (Plain `squaredup index` now waits and prints progress itself, which can outlast an agent command timeout on a long import; `--no-wait` is the orchestration path.) If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.
 3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [checkpoints.md](references/checkpoints.md).
 4. **Confirm** — check objects landed with an **inline scope**: `squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json` should return a non-empty list. `<Object Type>` is a `sourceType` from the `objectTypes` you defined in `metadata.json` / `indexDefinitions/default.json`. Use `--matches` here, **not** `objects <stream>`: that form resolves a data stream file's `matches`, but no scoped data stream exists yet (those come in Phase 6) and the import streams written so far have no `matches` to resolve. For the same reason, pass **inline** JSON — `--matches @<importStream>.json` won't work, as an import stream's `matches` is `none`/absent.
+5. **Confirm relationships** — only if Phase 5b shipped correlation rules. Correlation is triggered automatically once the import succeeds, but fire-and-forget: it is _not_ part of the import status, so edges appear shortly **after** `index-status` reports done. The CLI has no edge-query command, so confirm in the tenant — ask the user to open an object of the source type and check its relationships — or use the SquaredUp MCP server's `graph_query` if one is connected. Zero edges from a rule that validated almost always means an unmapped join key or a `types` string that doesn't match `objectTypes`; see the common-mistakes table in [correlation-rules.md](references/correlation-rules.md).
 
 ### ⚠️ Re-indexing rule — a definition change leaves imported objects stale
 

@@ -517,7 +517,7 @@ Works on primitives too — a string, number, or boolean at the path is returned
 "timeframes": ["last24hours", "last7days"]   // limit to specific options
 ```
 
-**Canonical enum values** — these are the only valid entries in a `timeframes` array (and the only values `defaultTimeframe` accepts). Anything else fails validation with an opaque `✖ Invalid input`.
+**Canonical enum values** — these are the only valid entries in a `timeframes` array. Anything else fails validation with an opaque `✖ Invalid input`. **They are _not_ the values `defaultTimeframe` takes** — that field accepts only `"none"` or `"dashboard"` (see below).
 
 ```text
 last1hour    last12hours   last24hours   last7days   last30days
@@ -536,6 +536,13 @@ JSON-only timeframe properties (not settable via the Save as data stream modal):
 "requiresParameterTimeframe": true // timeframe params always injected even without user selection
 ```
 
+⚠️ **`defaultTimeframe` accepts exactly two values: `"none"` or `"dashboard"`.** It is not a timeframe enum — `"last7days"` and every other value from the list above fail validation with `Invalid value — expected one of: none, dashboard (path: defaultTimeframe)`. It chooses where a new tile's timeframe comes from, not which range it opens on:
+
+- `"dashboard"` (the default when omitted) — the tile inherits the dashboard's timeframe.
+- `"none"` — the tile opens with timeframe "None", the same effect as `timeframes: false`.
+
+**There is no way to make a new tile default to a specific range.** If a range is wrong for the stream, remove it from `timeframes` so it can't be selected at all — restricting the array is the only lever you have.
+
 ### Response size limit (~6MB)
 
 The Lambda that runs a stream caps its response at ~6MB. Exceeding it surfaces as a `Function.ResponseSizeTooLarge` 500 — not a validation error. Long timeframes are the usual trigger: a wide range × a fine interval returns far more rows than a short one.
@@ -544,7 +551,7 @@ Remediation:
 
 - **If the endpoint can group, filter, or bucket server-side, push that down** (see [Push grouping, filtering and sorting down to the cheapest layer](#push-grouping-filtering-and-sorting-down-to-the-cheapest-layer)) — pre-aggregated rows are far smaller than raw ones, and this is often the only fix when even a short timeframe overflows.
 - Reduce the `pageSize` so each page (and the accumulated result) stays smaller.
-- Restrict `timeframes` to the ranges the endpoint can actually return within the cap, and set a conservative `defaultTimeframe` so new tiles don't open on the largest range.
+- Restrict `timeframes` to the ranges the endpoint can actually return within the cap. This is the whole fix — a range left in the array can be selected, and `defaultTimeframe` **cannot** be used to steer new tiles away from it (it only takes `"none"`/`"dashboard"`, see [Timeframes](#timeframes)).
 - **Apply the same restriction to every sibling stream on the same endpoint family.** If one stream on an endpoint overflows at `last30days`, its siblings hitting the same (or a heavier) endpoint will too — fixing only the one you happened to test leaves the rest broken.
 
 ---

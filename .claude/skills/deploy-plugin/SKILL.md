@@ -81,10 +81,13 @@ New plugins start at `1.0.0`. Use semver:
 | Change type | Bump |
 |---|---|
 | Bug fix, docs, icon, metadata tweak | PATCH (`1.0.x`) |
-| New stream, new optional config field, new default content | MINOR (`1.x.0`) |
+| New stream, new optional config field, new default content, new correlation rule | MINOR (`1.x.0`) |
+| Deleted/renamed correlation rule | MINOR (`1.x.0`) — see warning below |
 | Deleted/renamed stream, breaking config change | MAJOR (`x.0.0`) |
 
 Every PR that modifies plugin files must include a version bump in `metadata.json`.
+
+**Deleting or renaming a `correlationRules/*.json` file is quietly destructive.** Rules are matched by filename across upgrades, so a removed or renamed file deletes that rule **and every edge it created** on the next deploy — relationships vanish from the graph, and anything built on them (perspectives, drilldowns, relationship-scoped tiles) goes quiet. It breaks no config or data stream contract, so it stays MINOR, but call it out in the PR description, and rename a rule file only when you intend to drop its edges.
 
 **Breaking (MAJOR) changes — do not create a new major version without asking the user first.** It is often possible to avoid the break entirely. If a major version is genuinely needed:
 - Create a new versioned folder (e.g. `v2/`) rather than modifying `v1/`

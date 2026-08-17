@@ -59,9 +59,17 @@ Defines what gets imported into the SquaredUp graph.
 - `objectMapping.type` maps to the `sourceType` column. It can also be a fixed string: `{ "value": "My Device" }` — use when all rows are the same type, rather than a computed column.
 - `objectMapping.properties` are extra fields stored on the graph node, accessible in scripts as `object.propName`.
 - Use `{ "targetProp": "sourceProp" }` syntax when the column name differs from the desired property name.
+- Use `{ "targetProp": { "value": <literal> } }` to stamp a **fixed value** onto every object the step imports, with no backing column — the same `{ "value": ... }` form `objectMapping.type` takes. Strings, numbers and booleans all work:
+
+    ```json
+    "properties": ["namespace", { "region": { "value": "eu-west-1" } }, { "managed": { "value": true } }]
+    ```
+
+    Useful when one step's objects need a constant the API never returns — most often a discriminator that lets a correlation rule or a scope tell them apart from objects of the same type imported by a sibling step.
 - **Never map a column into `properties` that is already mapped as `id`, `name`, or `type`.** The id's raw value is always available on every object as `rawId` (`{{object.rawId}}` in templates, `context.objects[N].rawId` in scripts — and as a scalar, unlike user-defined properties, which arrive as arrays), and the name as `name`. Adding e.g. `{ "projectId": "id" }` to `properties` when `"id": "id"` already exists creates a duplicate that has to be re-indexed to take effect and otherwise sits as dead config — use `rawId`/`name` instead.
 - The `objectMapping.sourceType` column value **must** match an entry in `objectTypes` in `metadata.json`. For dynamic ones add these based on API response data later.
 - `frequencyMinutes` — controls re-import interval. Defaults to `720` (12 hours).
+- **Index definitions create objects, never relationships.** There is no edge/relationship syntax here — objects are linked by correlation rules in `correlationRules/`, which match one object's property against another's. Those rules can only reference `name`, `rawId`, `sourceType`, and whatever is in `objectMapping.properties`, so **any join key a relationship needs must be mapped here** — that's the one legitimate reason to map a property no tile ever displays. See [correlation-rules.md](correlation-rules.md).
 
 The stream called by an import step must return one flat row per object with at least `sourceId`, `name` that are unique.
 
