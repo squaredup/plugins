@@ -52,7 +52,7 @@ function addItem(category, item) {
         ...details,
         category,
         name: nameFor(category, item),
-        id: `${category}-${i}`,
+        id: `${category}-${_index ?? i}`,
     });
 }
 
