@@ -1,0 +1,66 @@
+{
+    "name": "gatewayNetworkSessions",
+    "displayName": "Gateway Network Sessions",
+    "description": "Zero Trust Gateway network (L4) session counts for an account grouped by a selectable dimension",
+    "tags": ["Security", "Network"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){gatewayL4SessionsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count dimensions{date {{breakdown}} }}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "gatewayNetworkSessions.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Account"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "action",
+            "options": [
+                { "value": "action", "label": "Action" },
+                { "value": "destinationIp", "label": "Destination IP" },
+                { "value": "destinationPort", "label": "Destination Port" },
+                { "value": "transportProtocol", "label": "Protocol" },
+                { "value": "deviceId", "label": "Device" },
+                { "value": "ruleId", "label": "Policy" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "sessionCount",
+            "displayName": "Session Count",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

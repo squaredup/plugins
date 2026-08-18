@@ -1,0 +1,59 @@
+{
+    "name": "queueConsumerMetrics",
+    "displayName": "Queue Consumer Metrics",
+    "description": "Average consumer concurrency for a Queue",
+    "tags": [
+        "Queues",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$queueId:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){queueConsumerMetricsAdaptiveGroups(limit:10000,filter:{queueId:$queueId,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){avg{concurrency}dimensions{datetime}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "queueId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.queueConsumerMetricsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Queue"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "avg.concurrency",
+            "displayName": "Avg Consumer Concurrency",
+            "shape": ["number", { "decimalPlaces": 2 }],
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ]
+}

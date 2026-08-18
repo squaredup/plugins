@@ -1,3 +1,10 @@
+// Cloudflare answers HTTP 200 even when the GraphQL query failed, and a
+// postRequestScript bypasses the stream's declarative errorHandling entirely,
+// so the error is raised here or it would be swallowed into an empty result.
+if (data && data.errors && data.errors.length) {
+    throw new Error("Cloudflare GraphQL error: " + data.errors[0].message);
+}
+
 // dataStreams/scripts/workersAiInference.js
 // The GraphQL query interpolates {{breakdown}} into the dimensions selection, so the
 // key holding the breakdown value inside each row's `dimensions` object varies with the
