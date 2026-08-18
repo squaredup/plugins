@@ -23,17 +23,114 @@ jobs:
           if [ -z "$plugin_paths" ]; then
             echo "No plugins were modified in this PR."
             echo "plugins_modified=false" >> $GITHUB_OUTPUT
-          else
-            echo "Found modified plugin(s):"
-            echo "$plugin_paths"
-            echo "plugins_modified=true" >> $GITHUB_OUTPUT
-            echo "plugin_paths<<EOF" >> $GITHUB_OUTPUT
-            echo "$plugin_paths" >> $GITHUB_OUTPUT
+            echo "existing_modified=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Found modified plugin(s):"
+          echo "$plugin_paths"
+
+          # A PR that deletes a plugin version folder still lists it as touched, but it
+          # cannot be validated or deployed - the CLI reports "Path not found". Split the
+          # paths that still exist so only those reach the version, validate and deploy
+          # steps; the full list stays for the one-plugin-per-PR check, which must still
+          # count a deleted plugin as touched.
+          existing_paths=$(while IFS= read -r p; do if [ -d "$p" ]; then printf '%s\n' "$p"; fi; done <<< "$plugin_paths")
+          removed_paths=$(while IFS= read -r p; do if [ ! -d "$p" ]; then printf '%s\n' "$p"; fi; done <<< "$plugin_paths")
+
+          if [ -n "$removed_paths" ]; then
+            echo "Removed in this PR (skipped for validate and deploy):"
+            echo "$removed_paths"
+          fi
+
+          echo "plugins_modified=true" >> $GITHUB_OUTPUT
+          echo "plugin_paths<<EOF" >> $GITHUB_OUTPUT
+          echo "$plugin_paths" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          if [ -n "$existing_paths" ]; then
+            echo "existing_modified=true" >> $GITHUB_OUTPUT
+            echo "existing_paths<<EOF" >> $GITHUB_OUTPUT
+            echo "$existing_paths" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "existing_modified=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Plugin paths come from the contributor's branch, so they are untrusted input.
+      # They are passed through env rather than interpolated into the script
+      - name: Check PR scope & version bumps
+        id: checks
+        if: steps.detect.outputs.plugins_modified == 'true'
+        env:
+          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
+          EXISTING_PATHS: ${{ steps.detect.outputs.existing_paths }}
+        run: |
+          checks_failed=false
+
+          # One plugin per PR. Several version folders of the same plugin are fine,
+          # so that deprecating in v1 alongside adding v2 stays a single PR.
+          plugin_names=$(printf '%s\n' "$PLUGIN_PATHS" | cut -d/ -f2 | sort -u)
+          plugin_count=$(echo "$plugin_names" | wc -l | tr -d ' ')
+
+          if [ "$plugin_count" -gt 1 ]; then
+            echo "[FAIL] This PR modifies ${plugin_count} plugins:"
+            echo "$plugin_names" | sed 's/^/  - /'
+            echo "Raise one pull request per plugin - see REVIEW.md."
+            checks_failed=true
+          else
+            echo "[PASS] Single plugin modified: ${plugin_names}"
+          fi
+          echo ""
+
+          # Every change to an existing plugin must increase metadata.json version.
+          while IFS= read -r plugin_path; do
+            if [ -z "$plugin_path" ]; then
+              continue
+            fi
+
+            if [ ! -f "${plugin_path}/metadata.json" ]; then
+              echo "[FAIL] ${plugin_path} has no metadata.json"
+              checks_failed=true
+              continue
+            fi
+
+            new_version=$(jq -r '.version' "${plugin_path}/metadata.json")
+
+            # The major version must match the version folder: v2/ holds 2.x.y
+            folder_major=$(basename "${plugin_path}")
+            folder_major=${folder_major#v}
+            if [ "${new_version%%.*}" != "$folder_major" ]; then
+              echo "[FAIL] ${plugin_path} is version ${new_version} - a plugin in v${folder_major}/ must be ${folder_major}.x.y"
+              checks_failed=true
+            fi
+
+            if ! old_metadata=$(git show "origin/main:${plugin_path}/metadata.json" 2>/dev/null); then
+              echo "[SKIP] ${plugin_path} is new - no previous version to compare"
+              continue
+            fi
+
+            old_version=$(echo "$old_metadata" | jq -r '.version')
+
+            if [ "$new_version" = "$old_version" ]; then
+              echo "[FAIL] ${plugin_path} version is unchanged (${old_version}) - bump it in metadata.json"
+              checks_failed=true
+            elif [ "$(printf '%s\n%s\n' "$old_version" "$new_version" | sort -V | head -1)" != "$old_version" ]; then
+              echo "[FAIL] ${plugin_path} version decreased (${old_version} -> ${new_version}) - it can never decrease"
+              checks_failed=true
+            else
+              echo "[PASS] ${plugin_path} version bumped ${old_version} -> ${new_version}"
+            fi
+          done <<< "$EXISTING_PATHS"
+
+          if [ "$checks_failed" = "true" ]; then
+            echo ""
+            echo "One or more repository checks failed."
+            exit 1
           fi
 
       - name: Install & Configure SquaredUp CLI
-        if: steps.detect.outputs.plugins_modified == 'true'
+        if: steps.detect.outputs.existing_modified == 'true'
         env:
           SQUAREDUP_API_KEY: ${{ secrets.SQUAREDUP_API_KEY }}
         run: |
@@ -44,7 +141,9 @@ jobs:
 
       - name: Validate modified plugins
         id: validate
-        if: steps.detect.outputs.plugins_modified == 'true'
+        if: steps.detect.outputs.existing_modified == 'true'
+        env:
+          EXISTING_PATHS: ${{ steps.detect.outputs.existing_paths }}
         run: |
           validation_failed=false
 
@@ -66,7 +165,7 @@ jobs:
               validation_failed=true
             fi
             echo ""
-          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          done <<< "$EXISTING_PATHS"
 
           if [ "$validation_failed" = "true" ]; then
             echo "One or more plugins failed validation."
@@ -75,17 +174,21 @@ jobs:
 
       - name: Deploy modified plugins
         id: deploy
-        if: steps.detect.outputs.plugins_modified == 'true'
+        if: steps.detect.outputs.existing_modified == 'true'
+        env:
+          EXISTING_PATHS: ${{ steps.detect.outputs.existing_paths }}
         run: |
           while IFS= read -r plugin_path; do
             echo "Deploying ${plugin_path}..."
             squaredup deploy "${plugin_path}" --suffix "${{ github.event.pull_request.number }}" --force
             echo "Deployed ${plugin_path} successfully."
             echo ""
-          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          done <<< "$EXISTING_PATHS"
 
       - name: Summary
         if: always()
+        env:
+          PLUGIN_PATHS: ${{ steps.detect.outputs.plugin_paths }}
         run: |
           OUT=/tmp/summary.md
 
@@ -101,20 +204,28 @@ jobs:
           echo "### 📦 Modified Plugins" >> $OUT
           while IFS= read -r plugin_path; do
             echo "- \`${plugin_path}\`" >> $OUT
-          done <<< "${{ steps.detect.outputs.plugin_paths }}"
+          done <<< "$PLUGIN_PATHS"
           echo "" >> $OUT
 
           echo "### 📋 Results" >> $OUT
           echo "| Step | Status |" >> $OUT
           echo "|------|--------|" >> $OUT
 
-          validate_conclusion="${{ steps.validate.conclusion }}"
+          # A failed earlier step skips the later ones, so report skipped as skipped
+          # rather than folding it into a failure.
+          status_of() {
+            case "$1" in
+              success)      echo "✅ Passed" ;;
+              skipped|"")   echo "⏭️ Skipped" ;;
+              *)            echo "❌ Failed" ;;
+            esac
+          }
+
           deploy_conclusion="${{ steps.deploy.conclusion }}"
+          [ "$deploy_conclusion" = "success" ] && d_status="🚀 Deployed" || d_status="$(status_of "$deploy_conclusion")"
 
-          [ "$validate_conclusion" = "success" ] && v_status="✅ Passed" || v_status="❌ Failed"
-          [ "$deploy_conclusion" = "success" ] && d_status="🚀 Deployed" || d_status="⏭️ Skipped"
-
-          echo "| Validation | ${v_status} |" >> $OUT
+          echo "| Scope & version | $(status_of "${{ steps.checks.conclusion }}") |" >> $OUT
+          echo "| Validation | $(status_of "${{ steps.validate.conclusion }}") |" >> $OUT
           echo "| Deployment | ${d_status} |" >> $OUT
           echo "" >> $OUT
 

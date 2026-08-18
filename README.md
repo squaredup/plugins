@@ -63,7 +63,7 @@ claude
 
 Then ask for the skill:
 
-```
+```text
 /build-plugin
 ```
 
@@ -83,6 +83,9 @@ Community-authored plugins are welcome — open a pull request against this repo
 - Never commit secrets, API keys or credentials
 - For changes to an existing plugin, bump `version` in `metadata.json`. Breaking changes need a new major version folder (e.g. `v2/`) alongside the old one, so existing users aren't broken
 - Add yourself to [`.github/CODEOWNERS`](.github/CODEOWNERS) so you're asked to review future changes to your plugin
-- Open your PR using the **Add a new plugin** template; a community moderator will review it
+- **One plugin per pull request** — if your work spans several plugins, raise a separate PR for each
+- **Use the matching PR template** — *Add a new plugin*, *Change to an existing plugin*, or *Miscellaneous change*. PRs raised without the appropriate template may be closed
+
+A community moderator will review your PR.
 
 By contributing you agree to our [Code of Conduct](CODE_OF_CONDUCT.md).
