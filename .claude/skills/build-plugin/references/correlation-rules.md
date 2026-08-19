@@ -244,7 +244,57 @@ Matching semantics:
 
 So the sequence to see edges is always: deploy the rules → run an import → wait a moment. A rule added after the last import produces nothing until the next import completes.
 
-**Verifying:** the CLI has no edge-query command. Confirm rules deployed via the `Correlation Rules: N` count from `squaredup validate`, and confirm edges via the tenant UI — open an object and check its relationships/graph view — or with the SquaredUp MCP server's `graph_query` tool if one is connected.
+A rule added after the last import can also be evaluated on demand — see the iteration loop below — which is what makes authoring rules bearable: you do not need a fresh import for every fix.
+
+---
+
+## Verifying and iterating with the CLI
+
+Three commands cover the whole loop. All take `--json`, and `--datasource-id` makes them folder-independent.
+
+| Command | Answers |
+| --- | --- |
+| `squaredup correlate-status --datasource-id <id> --json` | Which rules are installed for this data source, and what did each last run do? |
+| `squaredup edges --datasource-id <id> --plugin-id <pluginId> --json` | Which edges exist on this data source's objects? `--rule <ruleName>` narrows to one rule; `--object <nodeId>` to one object. |
+| `squaredup correlate --datasource-id <id> --json` | Re-run the rules now and wait. `--rule <ruleName>` runs one. **Tenant admin only.** |
+
+**Confirming the rules installed.** `correlate-status` lists one entry per rule the data source has, keyed by `ruleName` — the filename you chose. Compare that list against your `correlationRules/` directory: a file that isn't listed never installed, which usually means the deploy that shipped it hasn't landed. This is a stronger check than `validate`, which only proves the file parses.
+
+```jsonc
+{
+  "done": true,
+  "succeeded": true,
+  "rules": [
+    { "ruleName": "relate-pod-to-node", "status": "succeeded", "edgesCreated": 42, "verticesProcessed": 50 },
+    { "ruleName": "relate-pod-to-namespace", "status": "succeeded", "edgesCreated": 0, "verticesProcessed": 50 }
+  ]
+}
+```
+
+Read it per rule, not just the top-level flags. `succeeded: true` means every rule *ran*, not that any of them matched: `relate-pod-to-namespace` above ran cleanly and produced nothing, which is a rule bug. `edgesCreated: 0` alongside a healthy `verticesProcessed` is the classic signature of a join key that doesn't match — take that rule to the common-mistakes table below.
+
+**The iteration loop.** Correlation normally only runs after an import, but `correlate` re-runs it on demand, so fixing a rule costs a redeploy rather than a full re-index:
+
+1. Fix the rule file.
+2. Redeploy (invoke `deploy-plugin`) — rules ship with the plugin, so the fix isn't live until it lands.
+3. `squaredup correlate --datasource-id <id> --rule <ruleName> --json` — re-runs just that rule and waits for it, reporting `edgesCreated`.
+4. `squaredup edges --datasource-id <id> --plugin-id <pluginId> --rule <ruleName> --json` — look at the edges themselves, not just the count.
+
+Only step 2 is slow. **This loop does not need a re-index**: the objects are already in the graph, and correlation re-reads them. You only need a fresh import when you changed `objectMapping.properties` to add a join key — the [re-indexing rule](../SKILL.md#re-indexing-rule) applies then, because existing objects lack the new property.
+
+**Reading `edges`.** Each edge names both ends, so you can see whether the rule joined what you intended and in which direction:
+
+```jsonc
+{ "source": { "id": "node-...", "name": "web-01", "sourceType": "Pod" },
+  "target": { "id": "node-...", "name": "ip-10-0-1-4", "sourceType": "Node" },
+  "label": "runs on", "reverseLabel": "hosts", "origin": "plugin", "configId": "config-..." }
+```
+
+- Endpoints reading backwards means source and target are swapped in the rule.
+- An empty list while `correlate-status` reports `edgesCreated > 0` for that rule means the two are looking at different things — most often a `--datasource-id` that isn't the one the rule is scoped to, or a `truncated: true` result you read past.
+- `origin: "plugin"` confirms the edge came from a plugin rule rather than a user-authored or platform one.
+
+**If you aren't a tenant admin**, `correlate` returns "requires a tenant admin". `correlate-status` and `edges` still work, so you can confirm everything — you just have to trigger a fresh import (Checkpoint B) to re-run rules instead of calling `correlate`.
 
 ---
 
@@ -252,8 +302,8 @@ So the sequence to see edges is always: deploy the rules → run an import → w
 
 | Mistake                                                      | Symptom / fix                                                                                     |
 | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Join key not in `objectMapping.properties`                    | Rule validates, zero edges forever. Map the property, then **re-index** — existing objects are stale. |
-| Rule written but no import run since                          | Zero edges. Trigger an import (Checkpoint B) after deploying rules.                                  |
+| Join key not in `objectMapping.properties`                    | `correlate-status` shows the rule ran with `edgesCreated: 0`. Map the property, then **re-index** — existing objects are stale. |
+| Rule written but no import run since                          | The rule is absent from `correlate-status`, or present with `status: "notRun"`. Redeploy, then `squaredup correlate` (admin) or run an import. |
 | `types` doesn't match `objectTypes` exactly                   | Zero edges, no error. Copy the string from `metadata.json`.                                          |
 | `operator` omitted                                            | Validation failure — `equals` is required on every condition.                                        |
 | `reverse` label omitted                                       | The relationship reads identically in both directions. Always write both.                            |

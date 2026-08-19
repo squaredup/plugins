@@ -21,7 +21,9 @@ This skill **tests every data stream against a live, authenticated plugin** in y
 1. Run `squaredup status --json`. If the command isn't found, install the CLI first: `npm i -g @squaredup/cli`. If it exits non-zero, the user is not logged in — ask them to run `! squaredup login` in this session, then re-run `squaredup status --json`. Capture the JSON output (`{ tenantName, region }`) — you'll need `region` in Checkpoint A. Login/region mechanics live in the `deploy-plugin` skill.
 2. Confirm the user has a SquaredUp tenant where they can add and authenticate the plugin.
 
-Checkpoint B drives the import with `squaredup index` / `index-status`, so a current `squaredup` CLI is assumed.
+Checkpoint B drives the import with `squaredup index` / `index-status`, and confirms relationships with `squaredup correlate-status` / `edges`, so a current `squaredup` CLI is assumed — the correlation commands need **1.1.0 or later**. If `squaredup edges --help` reports an unknown command, the CLI is too old: `npm i -g @squaredup/cli`.
+
+One of them needs more than a login: `squaredup correlate` re-runs rules on demand and requires a **tenant admin**, returning "requires a tenant admin" otherwise. `correlate-status` and `edges` are reads and need no such permission, so a non-admin can still confirm everything — they just can't re-run rules without a fresh import.
 
 If login or a tenant is unavailable, **stop** — this skill cannot build a plugin it cannot test.
 
@@ -288,7 +290,7 @@ Author them inline in the main agent (they're small, and they depend on the impo
 3. **Write the rule** — source is the side holding the foreign key; always write both `forward` and `reverse` labels; `"operator": "equals"` on every condition. Never write `pluginId`, `ruleType`, `schemaVersion`, or condition `id`s — those are stamped for you.
 4. **Validate** — run `squaredup validate --json` from the plugin dir and confirm the summary's `Correlation Rules` count equals the number of files you wrote. An invalid rule fails the whole plugin validation, so fix any error before Checkpoint B.
 
-Edges can't be confirmed until Checkpoint B's import has run — verification is a step there.
+`validate` only proves the files are well-formed — it says nothing about whether they installed or matched anything. Both are confirmed after Checkpoint B's import, with `squaredup correlate-status` (did the rules install and run?) and `squaredup edges` (did they relate anything?). Verification is a step there.
 
 ---
 
@@ -300,7 +302,11 @@ Scoped data streams can't be tested until objects exist, which means the import 
 2. **Trigger** — `squaredup index --datasource-id <id> --no-wait --json`. `--no-wait` returns immediately with a `since` anchor (capture it) instead of blocking until the import finishes — you poll for completion in the next step. (Plain `squaredup index` now waits and prints progress itself, which can outlast an agent command timeout on a long import; `--no-wait` is the orchestration path.) If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.
 3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [checkpoints.md](references/checkpoints.md).
 4. **Confirm** — check objects landed with an **inline scope**: `squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json` should return a non-empty list. `<Object Type>` is a `sourceType` from the `objectTypes` you defined in `metadata.json` / `indexDefinitions/default.json`. Use `--matches` here, **not** `objects <stream>`: that form resolves a data stream file's `matches`, but no scoped data stream exists yet (those come in Phase 6) and the import streams written so far have no `matches` to resolve. For the same reason, pass **inline** JSON — `--matches @<importStream>.json` won't work, as an import stream's `matches` is `none`/absent.
-5. **Confirm relationships** — only if Phase 5b shipped correlation rules. Correlation is triggered automatically once the import succeeds, but fire-and-forget: it is _not_ part of the import status, so edges appear shortly **after** `index-status` reports done. The CLI has no edge-query command, so confirm in the tenant — ask the user to open an object of the source type and check its relationships — or use the SquaredUp MCP server's `graph_query` if one is connected. Zero edges from a rule that validated almost always means an unmapped join key or a `types` string that doesn't match `objectTypes`; see the common-mistakes table in [correlation-rules.md](references/correlation-rules.md).
+5. **Confirm relationships** — only if Phase 5b shipped correlation rules. Correlation is triggered automatically once the import succeeds, but fire-and-forget: it is _not_ part of the import status, so edges appear shortly **after** `index-status` reports done. Drive the confirmation yourself, in two steps:
+    - `squaredup correlate-status --datasource-id <id> --json` — lists every rule this data source has installed, with its last-run outcome and `edgesCreated`. **The rule list is itself the check that your rules installed**: a rule you wrote that isn't listed never deployed. Poll until `done` is `true` (correlation may still be running just after the import).
+    - `squaredup edges --datasource-id <id> --plugin-id <pluginId> --json` — the edges those rules actually produced. `--rule <ruleName>` narrows to one rule.
+
+    A rule reporting `edgesCreated: 0` is the signal to debug, and it names which rule to look at. That almost always means an unmapped join key or a `types` string that doesn't match `objectTypes` — see the common-mistakes table in [correlation-rules.md](references/correlation-rules.md), which also covers the fix loop.
 
 ### Re-indexing rule
 

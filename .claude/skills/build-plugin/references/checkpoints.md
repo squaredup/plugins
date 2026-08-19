@@ -60,8 +60,31 @@ Notes:
 - **`status` is the run's lifecycle, not the outcome.** While running it's `ready`/`inProgress`; once `done` it's one of `succeeded`, `failed`, `warning`, or `cancelled`. `succeeded` and `warning` both report `succeeded: true` (a `warning` run finished but a step emitted warnings — check the `steps[]`); `failed` and `cancelled` report `succeeded: false`. A datasource that has never imported reports `status: "notRun"`, `done: false`.
 - `--since` is **exclusive** (`scheduledStart > since`): always pass the `since` from `index` so `done` can't latch on a stale previous run.
 - If `index` reports `alreadyRunning: true`, it adopted the in-flight run — poll with the `since` it returned. Imports can take several minutes (object import allows up to ~10 min); use a generous overall timeout.
-- **Correlation runs after the import, not as part of it.** If the plugin ships `correlationRules/*.json`, a successful import triggers correlation fire-and-forget — `done: true, succeeded: true` says nothing about whether edges were written, and they land shortly afterwards. There is no CLI command for edges; confirm relationships in the tenant UI. See [correlation-rules.md](correlation-rules.md).
+- **Correlation runs after the import, not as part of it.** If the plugin ships `correlationRules/*.json`, a successful import triggers correlation fire-and-forget — `done: true, succeeded: true` says nothing about whether edges were written, and they land shortly afterwards. Confirm them with the two commands below rather than in the UI.
 - The `--matches` confirm in step 3 must be **inline JSON** — `--matches @<importStream>.json` only resolves a real scope, and an import stream's `matches` is `none`/absent. Likewise `objects <stream>` needs a scoped stream, which doesn't exist until Phase 6.
+
+## Checkpoint B, step 5: confirm relationships
+
+Only if the plugin ships correlation rules. Correlation lands after the import, so poll for it rather than reading edges the instant `index-status` says done:
+
+```bash
+# 1. Which rules are installed, and what did each one do? Poll until done is true.
+squaredup correlate-status --datasource-id <id> --json --silent
+#    → { "done": true, "succeeded": true,
+#         "rules": [ { "ruleName": "relate-pod-to-node", "status": "succeeded", "edgesCreated": 42 } ] }
+
+# 2. The edges themselves. --rule <ruleName> narrows to one rule.
+squaredup edges --datasource-id <id> --plugin-id <pluginId> --json --silent
+#    → { "edges": [ { "source": {...}, "target": {...}, "label": "runs on", "origin": "plugin" } ], "truncated": false }
+```
+
+Notes:
+
+- **The `rules` list is how you confirm the rules installed.** A `correlationRules/*.json` you wrote that doesn't appear never deployed. `validate` only proves the file parses.
+- **Read per rule, not just the top-level flags.** `succeeded: true` means every rule ran, not that any matched — a rule with `edgesCreated: 0` and a healthy `verticesProcessed` ran fine and matched nothing, which is a rule bug. See the common-mistakes table in [correlation-rules.md](correlation-rules.md).
+- `edges` needs `--plugin-id` as well as `--datasource-id`; `correlate-status` needs only the datasource.
+- **An empty `edges` result is exit 0, not an error** — poll it the same way you poll `index-status`, rather than treating the first empty read as failure.
+- To re-run rules without a fresh import (the authoring loop after fixing a rule), use `squaredup correlate` — **tenant admin only**. Without admin, trigger another import instead. See [correlation-rules.md](correlation-rules.md).
 
 ## Imported objects are frozen at import time — re-index to refresh them
 
