@@ -254,9 +254,9 @@ Three commands cover the whole loop. All take `--json`, and `--datasource-id` ma
 
 | Command | Answers |
 | --- | --- |
-| `squaredup correlate-status --datasource-id <id> --json` | Which rules are installed for this data source, and what did each last run do? |
+| `squaredup correlate-status --datasource-id <id> --json` | Which rules are installed for this data source, and what did each last run do? `--since <epoch>` scopes `done` to a run newer than that anchor. |
 | `squaredup edges --datasource-id <id> --plugin-id <pluginId> --json` | Which edges exist on this data source's objects? `--rule <ruleName>` narrows to one rule; `--object <nodeId>` to one object. |
-| `squaredup correlate --datasource-id <id> --json` | Re-run the rules now and wait. `--rule <ruleName>` runs one. **Tenant admin only.** |
+| `squaredup correlate --datasource-id <id> --json` | Re-run the rules now and wait (5s polls, `--timeout` seconds, default 600). `--rule <ruleName>` runs one; `--no-wait` returns immediately with the `since` anchor to poll on. **Tenant admin only.** |
 
 **Confirming the rules installed.** `correlate-status` lists one entry per rule the data source has, keyed by `ruleName` — the filename you chose. Compare that list against your `correlationRules/` directory: a file that isn't listed never installed, which usually means the deploy that shipped it hasn't landed. This is a stronger check than `validate`, which only proves the file parses.
 
@@ -265,13 +265,19 @@ Three commands cover the whole loop. All take `--json`, and `--datasource-id` ma
   "done": true,
   "succeeded": true,
   "rules": [
-    { "ruleName": "relate-pod-to-node", "status": "succeeded", "edgesCreated": 42, "verticesProcessed": 50 },
-    { "ruleName": "relate-pod-to-namespace", "status": "succeeded", "edgesCreated": 0, "verticesProcessed": 50 }
+    { "ruleName": "relate-pod-to-node", "status": "succeeded", "done": true, "succeeded": true,
+      "edgesCreated": 42, "verticesProcessed": 50, "errorCount": 0, "limitExceeded": false,
+      "lastEvaluated": 1755500123456 },
+    { "ruleName": "relate-pod-to-namespace", "status": "succeeded", "done": true, "succeeded": true,
+      "edgesCreated": 0, "verticesProcessed": 50, "errorCount": 0, "limitExceeded": false,
+      "lastEvaluated": 1755500123456 }
   ]
 }
 ```
 
-Read it per rule, not just the top-level flags. `succeeded: true` means every rule *ran*, not that any of them matched: `relate-pod-to-namespace` above ran cleanly and produced nothing, which is a rule bug. `edgesCreated: 0` alongside a healthy `verticesProcessed` is the classic signature of a join key that doesn't match — take that rule to the common-mistakes table below.
+Read it per rule, not just the top-level flags. `succeeded: true` means every rule *ran*, not that any of them matched: `relate-pod-to-namespace` above ran cleanly and produced nothing. `edgesCreated: 0` alongside a healthy `verticesProcessed` is the classic signature of a join key that doesn't match — take that rule to the common-mistakes table below. It is not *proof* of a bug, though: a correct rule reports zero against data that holds nothing to relate. Before rewriting the rule, confirm the tenant actually has a matching pair — read the join-key property on both sides with `squaredup objects` and check the values pair up. Only rewrite once you've seen a pair the rule should have joined and didn't.
+
+**Anchor the poll, and branch on failure.** `done` without `--since` means "every rule has a finished status", which a *previous* run satisfies — so a rule that matched last import reads as a pass before this run has even started. `--since` is exclusive on `lastEvaluated`, exactly like `index-status --since` on `scheduledStart`: `correlate --no-wait --json` prints the anchor, or read the highest `rules[].lastEvaluated` yourself before triggering. Poll every ~5s and cap the wait; a timeout is not a failure (the run continues server-side) but it is not a confirmation either. `succeeded: false`, or any rule with `status: "failed"`, means stop and read that rule's `errorCount` rather than going on to `edges`. `status: "warnings"` counts as succeeded — edges were created but errors were logged. `limitExceeded: true` means the rule stopped at the tenant edge limit, so `edgesCreated` is a floor.
 
 **The iteration loop.** Correlation normally only runs after an import, but `correlate` re-runs it on demand, so fixing a rule costs a redeploy rather than a full re-index:
 
@@ -280,7 +286,7 @@ Read it per rule, not just the top-level flags. `succeeded: true` means every ru
 3. `squaredup correlate --datasource-id <id> --rule <ruleName> --json` — re-runs just that rule and waits for it, reporting `edgesCreated`.
 4. `squaredup edges --datasource-id <id> --plugin-id <pluginId> --rule <ruleName> --json` — look at the edges themselves, not just the count.
 
-Only step 2 is slow. **This loop does not need a re-index**: the objects are already in the graph, and correlation re-reads them. You only need a fresh import when you changed `objectMapping.properties` to add a join key — the [re-indexing rule](../SKILL.md#re-indexing-rule) applies then, because existing objects lack the new property.
+Only step 2 is slow. **This loop needs no re-index as long as the imported objects themselves are unchanged**: they are already in the graph, and correlation re-reads them. The moment the fix touches the *shape* of those objects — any edit to `indexDefinitions/*.json` or an import stream, whether that's adding a join key to `objectMapping.properties`, changing an existing mapping, or changing `id`/`name`/`type` — the objects in the graph are stale and correlation is reading the old values. Then the [re-indexing rule](../SKILL.md#re-indexing-rule) applies and you owe the full Checkpoint B cycle before trusting any correlation result.
 
 **Reading `edges`.** Each edge names both ends, so you can see whether the rule joined what you intended and in which direction:
 

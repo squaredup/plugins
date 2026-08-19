@@ -65,13 +65,21 @@ Notes:
 
 ## Checkpoint B, step 5: confirm relationships
 
-Only if the plugin ships correlation rules. Correlation lands after the import, so poll for it rather than reading edges the instant `index-status` says done:
+Only if the plugin ships correlation rules. Correlation lands after the import, so poll for it — with an anchor, the same way you poll `index-status`:
 
 ```bash
-# 1. Which rules are installed, and what did each one do? Poll until done is true.
+# 0. BEFORE triggering the import (step 2): read the anchor — the newest lastEvaluated across the rules.
 squaredup correlate-status --datasource-id <id> --json --silent
+#    → { "rules": [ { "ruleName": "relate-pod-to-node", "lastEvaluated": 1755500000000, ... } ] }
+#      anchor = max(rules[].lastEvaluated), or 0 if the rules have never run.
+
+# 1. After index-status reports done: poll until THIS run's correlation is done.
+squaredup correlate-status --datasource-id <id> --since <anchor> --json --silent
 #    → { "done": true, "succeeded": true,
-#         "rules": [ { "ruleName": "relate-pod-to-node", "status": "succeeded", "edgesCreated": 42 } ] }
+#         "rules": [ { "ruleName": "relate-pod-to-node", "status": "succeeded",
+#                      "done": true, "succeeded": true, "edgesCreated": 42,
+#                      "verticesProcessed": 50, "errorCount": 0, "limitExceeded": false,
+#                      "lastEvaluated": 1755500123456 } ] }
 
 # 2. The edges themselves. --rule <ruleName> narrows to one rule.
 squaredup edges --datasource-id <id> --plugin-id <pluginId> --json --silent
@@ -80,8 +88,12 @@ squaredup edges --datasource-id <id> --plugin-id <pluginId> --json --silent
 
 Notes:
 
+- **`--since` is what makes `done` mean *this* run.** It's an exclusive anchor on `lastEvaluated`, exactly like `index-status --since` on `scheduledStart`. Omit it and `done: true` can be the *previous* import's correlation — a rule that ran and matched last time reads as a pass before this run has even started. Don't reuse the `since` from `index`: that is the previous import's start time, which the previous correlation run already cleared. Take the anchor from a pre-import `correlate-status`, or from `squaredup correlate --no-wait --json`, which prints one.
+- **Bound the poll.** Poll every ~5s and give up after ~5 minutes (the CLI's own `correlate` polls at 5s and waits 600s by default). A timeout is **not** a failure — the run continues server-side — but it is also not a confirmation: report the relationships as unconfirmed and say which rules were still in flight, rather than reading `edges` and treating whatever is there as the result.
+- **Stop before `edges` on a failure.** If `succeeded` is `false`, or any rule reports `status: "failed"`, report the run-level outcome plus the offending rule's `ruleName`, `status` and `errorCount`, and fix that before reading edges. `succeeded` is `null` while any rule is still in flight; a rule that has never been evaluated reports `status: "notRun"`, `done: false`. `status: "warnings"` counts as succeeded — the rule created edges but logged errors, so check `errorCount`.
 - **The `rules` list is how you confirm the rules installed.** A `correlationRules/*.json` you wrote that doesn't appear never deployed. `validate` only proves the file parses.
-- **Read per rule, not just the top-level flags.** `succeeded: true` means every rule ran, not that any matched — a rule with `edgesCreated: 0` and a healthy `verticesProcessed` ran fine and matched nothing, which is a rule bug. See the common-mistakes table in [correlation-rules.md](correlation-rules.md).
+- **Read per rule, not just the top-level flags.** `succeeded: true` means every rule ran, not that any matched — a rule with `edgesCreated: 0` and a healthy `verticesProcessed` ran fine and matched nothing. That is usually a rule bug, but a correct rule reports zero on data that holds nothing to relate, so check the join-key values actually pair up on both sides (`squaredup objects`) before rewriting it. See the common-mistakes table in [correlation-rules.md](correlation-rules.md).
+- `limitExceeded: true` means the rule stopped at the tenant edge limit, so `edgesCreated` is a floor rather than the full match count.
 - `edges` needs `--plugin-id` as well as `--datasource-id`; `correlate-status` needs only the datasource.
 - **An empty `edges` result is exit 0, not an error** — poll it the same way you poll `index-status`, rather than treating the first empty read as failure.
 - To re-run rules without a fresh import (the authoring loop after fixing a rule), use `squaredup correlate` — **tenant admin only**. Without admin, trigger another import instead. See [correlation-rules.md](correlation-rules.md).
