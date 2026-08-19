@@ -14,7 +14,8 @@ result = ((data && data.result) || []).map((project) => {
         // Kept as an array, not a joined string: it is the join key for the
         // Pages Project -> Zone correlation rule, and correlation matches an
         // array property if any element matches.
-        domains: project.domains || [],
+        domains: (project.domains || []).join(", "),
+        primaryDomain: (project.domains || [])[0] || "",
         productionBranch: project.production_branch || "",
         latestDeploymentStatus: stage.status || "",
         latestDeploymentOn: latest.modified_on || latest.created_on,

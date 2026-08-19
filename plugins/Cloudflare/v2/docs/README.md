@@ -176,9 +176,9 @@ Cloudflare's GraphQL Analytics API exposes far more datasets than this plugin sh
 | Worker **serves** Zone | through the Worker Route that names both |
 | Worker Route **routes to** Worker, and **belongs to** Zone | the route's script name and zone id |
 | Durable Object Namespace **implemented by** Worker | the namespace's script name against the Worker name |
-| Pages Project **served by** Zone | the project's custom domains against the zone name |
-| Queue **consumed by** Worker, and **produced to by** Worker | the queue's consumer and producer script names against the Worker name |
-| Turnstile Widget **protects** Zone | the widget's allowed domains against the zone name |
+| Pages Project **served by** Zone | the project's first custom domain against the zone name |
+| Queue **consumed by** Worker, and **produced to by** Worker | the queue's first consumer and first producer script name against the Worker name |
+| Turnstile Widget **protects** Zone | the widget's first allowed domain against the zone name |
 | Access Application **protects** Zone | the registrable domain derived from the app's hostname against the zone name |
 
 Together these give a dependency graph: from a KV namespace you can see which Workers bind it, and from a Worker which zones it serves.
@@ -186,6 +186,8 @@ Together these give a dependency graph: from a KV namespace you can see which Wo
 Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed with the account id (`<accountId>:<name>`) because Cloudflare only guarantees those names are unique within an account. Every other type uses its own Cloudflare id.
 
 ## Known limitations
+
+- **One-to-many relationships only correlate on their first value.** The import serialises an array-valued property to a JSON string (`["a.com","b.com"]`) rather than storing it as a multi-valued property, and correlation conditions only offer `equals`, so an array can never match a scalar. Where a Cloudflare object names several others - a Turnstile widget's allowed domains, a Pages project's custom domains, a queue's consumers and producers - the plugin stores the full list as a readable string for display and a separate `primary*` property holding the first entry, and correlates on that. A widget covering three zones therefore draws an edge to one of them. The same constraint is why Kubernetes, the only other plugin here shipping correlation rules, joins on `primaryBackendServiceName` rather than the full backend list.
 
 - **Analytics timeframes are capped per dataset, and the caps are short.** Cloudflare's GraphQL Analytics API limits how wide a single query's time range can be, and the limit differs for every dataset. These were measured against a Pro-plan account:
 

@@ -21,11 +21,19 @@ result = ((data && data.result) || []).map((queue) => ({
     // no service name and are filtered out.
     consumerScripts: (queue.consumers || [])
         .map((c) => c && c.service)
-        .filter(Boolean),
+        .filter(Boolean)
+        .join(", "),
+    primaryConsumerScript:
+        ((queue.consumers || []).map((c) => c && c.service).filter(Boolean))[0] ||
+        "",
     // The producing Worker script names, same join-key reasoning as consumers.
     producerScripts: (queue.producers || [])
         .map((p) => p && p.script)
-        .filter(Boolean),
+        .filter(Boolean)
+        .join(", "),
+    primaryProducerScript:
+        ((queue.producers || []).map((p) => p && p.script).filter(Boolean))[0] ||
+        "",
     createdOn: queue.created_on,
     modifiedOn: queue.modified_on,
 }));
