@@ -172,9 +172,14 @@ Cloudflare's GraphQL Analytics API exposes far more datasets than this plugin sh
 | ------------ | -------------- |
 | Every resource **belongs to** its Account | the resource's `accountId` against the account's id |
 | Worker Binding **declared by** Worker, and **targets** the KV namespace / R2 bucket / D1 database / queue / Durable Object namespace / Vectorize index / Hyperdrive config it points at | the binding's target id against that resource's id |
+| Worker Binding **calls** Worker | a service binding's target script name against the Worker name |
 | Worker **serves** Zone | through the Worker Route that names both |
+| Worker Route **routes to** Worker, and **belongs to** Zone | the route's script name and zone id |
+| Durable Object Namespace **implemented by** Worker | the namespace's script name against the Worker name |
 | Pages Project **served by** Zone | the project's custom domains against the zone name |
-| Queue **consumed by** Worker | the queue's consumer script names against the Worker name |
+| Queue **consumed by** Worker, and **produced to by** Worker | the queue's consumer and producer script names against the Worker name |
+| Turnstile Widget **protects** Zone | the widget's allowed domains against the zone name |
+| Access Application **protects** Zone | the registrable domain derived from the app's hostname against the zone name |
 
 Together these give a dependency graph: from a KV namespace you can see which Workers bind it, and from a Worker which zones it serves.
 
