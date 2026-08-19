@@ -22,6 +22,10 @@ result = ((data && data.result) || []).map((queue) => ({
     consumerScripts: (queue.consumers || [])
         .map((c) => c && c.service)
         .filter(Boolean),
+    // The producing Worker script names, same join-key reasoning as consumers.
+    producerScripts: (queue.producers || [])
+        .map((p) => p && p.script)
+        .filter(Boolean),
     createdOn: queue.created_on,
     modifiedOn: queue.modified_on,
 }));
