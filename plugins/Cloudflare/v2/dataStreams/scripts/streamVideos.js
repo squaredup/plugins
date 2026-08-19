@@ -12,7 +12,10 @@ result = ((data && data.result) || []).map((v) => {
         videoName: meta.name || v.uid,
         accountId: accountId,
         statusState: status.state || "",
-        duration: typeof v.duration === "number" ? v.duration : null,
+        // Cloudflare reports -1 while a video is still being processed and its
+        // duration is not yet known; that is absent data, not a real length.
+        duration:
+            typeof v.duration === "number" && v.duration >= 0 ? v.duration : null,
         size: typeof v.size === "number" ? v.size : null,
         readyToStream: Boolean(v.readyToStream),
         createdOn: v.created,

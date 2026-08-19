@@ -1,6 +1,6 @@
 Monitor your [Cloudflare](https://www.cloudflare.com) account in SquaredUp - zone traffic and cache performance, firewall and WAF activity, DNS records and SSL certificate expiry, plus the developer platform: Workers, R2, KV, D1, Queues, Pages, Tunnels, Load Balancers and Access applications. Data comes from the [Cloudflare REST API](https://developers.cloudflare.com/api/) and the [GraphQL Analytics API](https://developers.cloudflare.com/analytics/graphql-api/).
 
-> ⚠️ This plugin is **read-only** and never changes anything in your Cloudflare account. It does not cover Logpush, Magic Transit, Magic WAN, Spectrum, Stream, Images, Turnstile or Waiting Room.
+> ⚠️ This plugin is **read-only** and never changes anything in your Cloudflare account. It does not cover Logpush, Magic Transit, Magic WAN, Spectrum or Waiting Room.
 
 ## Setup
 
@@ -172,20 +172,24 @@ Cloudflare's GraphQL Analytics API exposes far more datasets than this plugin sh
 | ------------ | -------------- |
 | Every resource **belongs to** its Account | the resource's `accountId` against the account's id |
 | Worker Binding **declared by** Worker, and **targets** the KV namespace / R2 bucket / D1 database / queue / Durable Object namespace / Vectorize index / Hyperdrive config it points at | the binding's target id against that resource's id |
-| Worker Binding **calls** Worker | a service binding's target script name against the Worker name |
+| Worker Binding **calls** Worker | a service binding's target script name against the Worker name, within the same account |
 | Worker **serves** Zone | through the Worker Route that names both |
 | Worker Route **routes to** Worker, and **belongs to** Zone | the route's script name and zone id |
-| Durable Object Namespace **implemented by** Worker | the namespace's script name against the Worker name |
+| Durable Object Namespace **implemented by** Worker | the namespace's script name against the Worker name, within the same account |
 | Pages Project **served by** Zone | the project's first custom domain against the zone name |
-| Queue **consumed by** Worker, and **produced to by** Worker | the queue's first consumer and first producer script name against the Worker name |
+| Queue **consumed by** Worker, and **receives messages from** Worker | the queue's first consumer and first producer script name against the Worker name, within the same account |
 | Turnstile Widget **protects** Zone | the widget's first allowed domain against the zone name |
 | Access Application **protects** Zone | the registrable domain derived from the app's hostname against the zone name |
 
 Together these give a dependency graph: from a KV namespace you can see which Workers bind it, and from a Worker which zones it serves.
 
+Rules that match on a name rather than an id also match on `accountId`. Cloudflare only guarantees a Worker, queue, bucket or index name is unique within an account, so a token that can read two accounts would otherwise draw edges between resources in one and a same-named Worker in the other.
+
 Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed with the account id (`<accountId>:<name>`) because Cloudflare only guarantees those names are unique within an account. Every other type uses its own Cloudflare id.
 
 ## Known limitations
+
+- **Access Applications only correlate to zones under a single-label suffix.** The rule derives the zone from the application's hostname by taking its last two labels, so `login.example.com` matches the zone `example.com`. Under a multi-label public suffix that is wrong - `login.example.co.uk` reduces to `co.uk`, which matches no zone, so the edge is not drawn. Correlation expressions have no public-suffix list to consult and Cloudflare does not return a zone id on the Access application, so applications on `.co.uk`, `.com.au` and similar domains are left unrelated rather than related to the wrong zone.
 
 - **One-to-many relationships only correlate on their first value.** The import serialises an array-valued property to a JSON string (`["a.com","b.com"]`) rather than storing it as a multi-valued property, and correlation conditions only offer `equals`, so an array can never match a scalar. Where a Cloudflare object names several others - a Turnstile widget's allowed domains, a Pages project's custom domains, a queue's consumers and producers - the plugin stores the full list as a readable string for display and a separate `primary*` property holding the first entry, and correlates on that. A widget covering three zones therefore draws an edge to one of them. The same constraint is why Kubernetes, the only other plugin here shipping correlation rules, joins on `primaryBackendServiceName` rather than the full backend list.
 
@@ -215,6 +219,8 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 - **Pages endpoints cap page size at 10.** Cloudflare rejects any larger `per_page` on the Pages API, so Pages projects and deployments are fetched ten at a time.
 - **Some resource lists are not paged.** R2 buckets, D1 databases, Queues, load balancer pools, Access applications, Vectorize indexes, Hyperdrive configs, Worker scripts and Worker routes are imported in a single request each. Where Cloudflare's paging behaviour could be proven against real data it is used (zones, accounts, DNS records, Pages projects, KV namespaces, Tunnels and Durable Object namespaces all page); the rest were left unpaged because the endpoint either ignores the paging parameters outright — as `workers/scripts` does — or holds too few records in the tested account to confirm they are honoured. If an account holds more of one of these than Cloudflare returns on a single page, the remainder is not imported.
 - **Rate limits.** The REST API allowed 1,200 requests per 300 seconds on the token tested, and Cloudflare documents a separate limit of 300 GraphQL queries per 5 minutes. Every analytics stream issues one request per selected object, so very large estates can hit these limits.
+- **Long timeframes on per-minute analytics can return a partial series.** Cloudflare caps a GraphQL result at 10,000 rows, and the streams that break down by `datetime` produce one row per minute per dimension value - Worker Invocations, Pages Functions Invocations, Durable Object Invocations and Subrequests, D1 Queries, Queue Backlog and Consumer Metrics, R2 Operations and Storage, Cache Reserve Storage, Gateway HTTP Requests, Container Metrics, Pipeline Ingestion, Browser Rendering, Realtime Usage and Audit Logs. A busy resource can exceed 10,000 rows well inside `last30days`; because the queries order by time ascending, the excess is dropped from the end and the tile shows the earliest part of the range as though the series simply stopped. Prefer a narrower timeframe when a chart appears to end early.
+
 - **Hand-written GraphQL queries are unbounded.** The **GraphQL Query** stream runs whatever you give it, so it can hit limits the built-in streams are tuned to avoid: a large `limit` on a multi-dimension dataset can exceed the ~6 MB response cap, and a timeframe wider than that dataset's own cap fails outright. Prefer the pre-aggregated `*Groups` datasets over raw event datasets, and keep `limit` modest. The stream does not page, so your `limit` is the ceiling.
 - **Some analytics are only available on paid plans.** Page Shield and Network Error Logs return an authorization error on plans without them; Cache Reserve, Load Balancing and Health Checks are add-ons. An unentitled feature shows no data rather than an error in most tiles.
 - **A failed Cloudflare query can look like "no data".** Cloudflare answers a failed GraphQL query with HTTP 200 and an `errors` array, which the platform does not treat as a failure. Streams that use a post-request script raise these errors explicitly, but the simpler declarative streams will show an empty tile instead of an error message.

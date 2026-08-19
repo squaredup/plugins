@@ -16,9 +16,10 @@ result = ((data && data.result) || []).map((queue) => ({
         typeof queue.consumers_total_count === "number"
             ? queue.consumers_total_count
             : (queue.consumers || []).length,
-    // The consuming Worker script names, kept as an array: this is the join
-    // key for the Queue -> Worker correlation rule. HTTP-pull consumers have
-    // no service name and are filtered out.
+    // The consuming Worker script names as a readable list, for display only.
+    // Array properties are JSON-stringified on import (SAAS-9816), so the
+    // Queue -> Worker rule correlates on primaryConsumerScript below.
+    // HTTP-pull consumers have no service name and are filtered out.
     consumerScripts: (queue.consumers || [])
         .map((c) => c && c.service)
         .filter(Boolean)
@@ -26,7 +27,8 @@ result = ((data && data.result) || []).map((queue) => ({
     primaryConsumerScript:
         ((queue.consumers || []).map((c) => c && c.service).filter(Boolean))[0] ||
         "",
-    // The producing Worker script names, same join-key reasoning as consumers.
+    // The producing Worker script names, same display-only reasoning as consumers;
+    // the producer rule correlates on primaryProducerScript.
     producerScripts: (queue.producers || [])
         .map((p) => p && p.script)
         .filter(Boolean)

@@ -12,14 +12,17 @@ for (const colo of Object.keys(popHealth)) {
             rows.push({
                 colo: colo,
                 origin: originName,
-                healthy: Boolean(o.healthy),
+                // Absent health is unknown, not unhealthy - Boolean() would
+                // report an origin Cloudflare has no data for as down.
+                healthy: typeof o.healthy === "boolean" ? o.healthy : null,
                 responseCode:
                     typeof o.response_code === "number"
                         ? o.response_code
                         : null,
                 rtt: o.rtt || "",
                 failureReason: o.failure_reason || "",
-                coloHealthy: Boolean(pop.healthy),
+                coloHealthy:
+                    typeof pop.healthy === "boolean" ? pop.healthy : null,
             });
         }
     }

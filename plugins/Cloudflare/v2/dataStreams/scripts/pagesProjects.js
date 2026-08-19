@@ -11,9 +11,9 @@ result = ((data && data.result) || []).map((project) => {
         projectName: project.name,
         accountId: accountId,
         subdomain: project.subdomain || "",
-        // Kept as an array, not a joined string: it is the join key for the
-        // Pages Project -> Zone correlation rule, and correlation matches an
-        // array property if any element matches.
+        // A readable list for display only. Array properties are JSON-stringified
+        // on import (SAAS-9816), so the Pages Project -> Zone rule correlates on
+        // primaryDomain below rather than on this column.
         domains: (project.domains || []).join(", "),
         primaryDomain: (project.domains || [])[0] || "",
         productionBranch: project.production_branch || "",
