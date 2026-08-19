@@ -9,7 +9,10 @@ result = ((data && data.result) || []).map((w) => ({
     accountId: accountId,
     mode: w.mode || "",
     region: w.region || "",
-    domains: (w.domains || []).join(", "),
+    // Kept as an array, not a joined string: it is the join key for the
+    // Turnstile Widget -> Zone correlation rule, and correlation matches an
+    // array property if any element matches.
+    domains: w.domains || [],
     botFightMode: Boolean(w.bot_fight_mode),
     createdOn: w.created_on,
     modifiedOn: w.modified_on,
