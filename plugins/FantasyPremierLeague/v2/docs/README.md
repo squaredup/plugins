@@ -49,3 +49,4 @@ The out-of-the-box dashboard is a single **Summary** covering the manager's prof
 - **Manager ID changes each season** — the FPL API assigns entries per season, so an ID used for testing or dashboards may need updating when a new season starts.
 - **League standings depend on the season being live** — before the season's first gameweek deadline, league and current-season data streams return no rows.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in Fantasy Premier League.
+- **Summary dashboard image tile** — the OOB Summary dashboard embeds an image hosted at `resources.premierleague.com`. It only displays if that domain is in your organization's list of allowed embed URLs; otherwise the tile shows blank.
