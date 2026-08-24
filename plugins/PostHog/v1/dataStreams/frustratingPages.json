@@ -1,0 +1,63 @@
+{
+    "name": "frustratingPages",
+    "displayName": "Frustrating Pages",
+    "description": "Per-page counts of rage clicks, dead clicks and errors for a project",
+    "tags": [
+        "Web Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT properties.$pathname AS path, countIf(event = '$rageclick') AS rage_clicks, countIf(event = '$dead_click') AS dead_clicks, countIf(event = '$exception') AS errors FROM events WHERE event IN ('$rageclick', '$dead_click', '$exception') AND timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY path ORDER BY rage_clicks DESC LIMIT 50"
+            }
+        },
+        "postRequestScript": "frustratingPages.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "path",
+            "displayName": "Path",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "rage_clicks",
+            "displayName": "Rage Clicks",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "dead_clicks",
+            "displayName": "Dead Clicks",
+            "shape": "number"
+        },
+        {
+            "name": "errors",
+            "displayName": "Errors",
+            "shape": "number"
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "rage_clicks",
+                    "desc"
+                ]
+            ]
+        }
+    }
+}

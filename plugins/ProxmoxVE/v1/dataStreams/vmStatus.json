@@ -1,0 +1,28 @@
+{
+    "name": "vmStatus",
+    "displayName": "VM Status",
+    "description": "Current CPU, memory, disk, and uptime for a QEMU/KVM virtual machine",
+    "tags": ["VM", "Status"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/nodes/{{object.node}}/qemu/{{object.rawId}}/status/current",
+        "pathToData": "data"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Proxmox VM"] } },
+    "metadata": [
+        { "name": "status", "displayName": "Status", "shape": ["state", { "map": { "success": ["running"], "error": ["stopped"], "warning": ["paused", "unknown"] } }], "role": "value" },
+        { "name": "cpu", "displayName": "CPU Usage", "shape": ["percent", { "asZeroToOne": true }] },
+        { "name": "cpus", "displayName": "CPU Cores", "shape": "number" },
+        { "name": "mem", "displayName": "Memory Used", "shape": "bytes" },
+        { "name": "maxmem", "displayName": "Memory Total", "shape": "bytes" },
+        { "name": "disk", "displayName": "Disk Used", "shape": "bytes" },
+        { "name": "maxdisk", "displayName": "Disk Total", "shape": "bytes" },
+        { "name": "uptime", "displayName": "Uptime", "shape": "seconds" },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "vmid", "displayName": "VM ID", "shape": "number" },
+        { "name": "netin", "displayName": "Network In", "shape": "bytes" },
+        { "name": "netout", "displayName": "Network Out", "shape": "bytes" }
+    ],
+    "timeframes": false
+}

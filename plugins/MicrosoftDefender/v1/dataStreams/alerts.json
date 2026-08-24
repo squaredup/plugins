@@ -1,0 +1,218 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "description": "Returns a list of alert resources created to track suspicious activities in an organization",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "errorHandling": {
+            "type": "default"
+        },
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": {
+                    "value": "none",
+                    "label": "none"
+                }
+            },
+            "in": {
+                "realm": {
+                    "value": "payload",
+                    "label": "payload"
+                },
+                "path": "@odata.nextLink"
+            }
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "alerts_v2",
+        "pathToData": "value",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ status && status.length > 0 ? \"(status eq \" + status.map((m) => { return `'${m}'` }).join(\" or status eq \") + \") and \" : \"\" }}{{ severity && severity.length > 0 ? \"(severity eq \" + severity.map((m) => { return `'${m}'` }).join(\" or severity eq \") + \") and \" : \"\" }}{{timeframe.enum !== \"none\" ? timeframeCol + \" ge \" + timeframe.start + \" and \" + timeframeCol + \" le \" + timeframe.end : \"1 eq 1\"}}"
+            }
+        ],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "name": "title",
+            "displayName": "Alert Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "systemTags",
+            "displayName": "System Tags",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "detectionSource",
+            "displayName": "Detection Source",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "firstActivityDateTime",
+            "displayName": "First Activity",
+            "shape": "date",
+            "role": "label"
+        },
+        {
+            "name": "lastActivityDateTime",
+            "displayName": "Last Activity",
+            "shape": "date",
+            "role": "label"
+        },
+        {
+            "name": "classification",
+            "displayName": "Classification",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "determination",
+            "displayName": "Determination",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "assignedTo",
+            "displayName": "Assigned To",
+            "shape": "string",
+            "role": "label"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear"
+    ],
+    "supportsNoneTimeframe": true,
+    "manualConfigApply": true,
+    "providesPluginDiagnostics": true,
+    "tags": [],
+    "ui": [
+        {
+            "name": "severity",
+            "label": "Severity",
+            "type": "autocomplete",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "low",
+                        "label": "Low"
+                    },
+                    {
+                        "value": "medium",
+                        "label": "Medium"
+                    },
+                    {
+                        "value": "high",
+                        "label": "High"
+                    },
+                    {
+                        "value": "informational",
+                        "label": "Informational"
+                    },
+                    {
+                        "value": "unknown",
+                        "label": "Unknown"
+                    },
+                    {
+                        "value": "unknownFutureValue",
+                        "label": "Unknown Future Value"
+                    }
+                ]
+            },
+            "isClearable": true
+        },
+        {
+            "name": "status",
+            "label": "Status",
+            "type": "autocomplete",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "newAlert",
+                        "label": "New"
+                    },
+                    {
+                        "value": "inProgress",
+                        "label": "In Progress"
+                    },
+                    {
+                        "value": "resolved",
+                        "label": "Resolved"
+                    },
+                    {
+                        "value": "unknown",
+                        "label": "Unknown"
+                    },
+                    {
+                        "value": "unknownFutureValue",
+                        "label": "Unknown Future Value"
+                    }
+                ]
+            },
+            "isClearable": true
+        },
+        {
+            "tileEditorStep": ["Timeframe"],
+            "isMulti": false,
+            "help": "Select the column to apply the timeframe",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "createdDateTime",
+                        "label": "Creation Time"
+                    },
+                    {
+                        "value": "lastActivityDateTime",
+                        "label": "Last Activity Time"
+                    },
+                    {
+                        "value": "lastUpdateDateTime",
+                        "label": "Last Update Time"
+                    }
+                ]
+            },
+            "defaultValue": "createdDateTime",
+            "name": "timeframeCol",
+            "label": "Timeframe Column",
+            "type": "autocomplete",
+            "isClearable": false
+        }
+    ]
+}

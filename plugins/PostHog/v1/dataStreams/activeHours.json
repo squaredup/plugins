@@ -1,0 +1,68 @@
+{
+    "name": "activeHours",
+    "displayName": "Active Hours",
+    "description": "Event activity by day of week and hour of day for a project",
+    "tags": [
+        "Web Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/projects/{{object.rawId}}/query/",
+        "postBody": {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": "SELECT toDayOfWeek(timestamp) AS day_of_week, toHour(timestamp) AS hour_of_day, count() AS events FROM events WHERE event = '$pageview' AND timestamp >= toDateTime('{{timeframe.start}}') AND timestamp < toDateTime('{{timeframe.end}}') GROUP BY day_of_week, hour_of_day ORDER BY day_of_week, hour_of_day"
+            }
+        },
+        "postRequestScript": "activeHours.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PostHog Project"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "day_name",
+            "displayName": "Day",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "day_of_week",
+            "displayName": "Day of Week",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "hour_of_day",
+            "displayName": "Hour",
+            "shape": "number"
+        },
+        {
+            "name": "events",
+            "displayName": "Events",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "day_of_week",
+                    "asc"
+                ],
+                [
+                    "hour_of_day",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}

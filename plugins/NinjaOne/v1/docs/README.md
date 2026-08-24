@@ -4,24 +4,24 @@ To use this data source, you will need to create OAuth2 API credentials in your 
 
 ## Create NinjaOne API Credentials
 
-1. Log in to your NinjaOne portal
-2. Navigate to **Administration** > **API** > **Add Application**
-3. Configure the application:
-    - **Application Name**: Enter a descriptive name (e.g., "SquaredUp Integration")
-    - **Allowed Grant Types**: Ensure "Client Credentials" is enabled
-    - **Scopes**: Select the following scopes:
-        - `monitoring` - Required for device monitoring data
-        - `management` - Required for management operations
-        - `control` - Required for control operations
-        - `offline_access` - Required for refresh tokens
-4. Click **Create Application**
-5. Copy the **Client ID** and **Client Secret** - you will need these when configuring the plugin in SquaredUp
+1. Log in to your NinjaOne portal.
+2. Navigate to **Administration** > **Apps** > **API** and click **Add**.
+3. When prompted to choose an **Application Platform**, select **API Services**. This is what enables the Client Credentials grant type the plugin uses — **there is no separate "Client Credentials" checkbox to tick on the next screen.**
+4. On the **Client app** screen, fill in:
+    - **Name**: A descriptive name (e.g., "SquaredUp Integration").
+    - **Redirect URIs**: `https://app.squaredup.com/settings/pluginsoauth2`
+    - **Scopes**: Tick all three:
+        - `Monitoring` — required for device monitoring data
+        - `Management` — required for management operations
+        - `Control` — required for control operations
+    - **Allowed grant types**: `Refresh token` is **not** required by the plugin and can be left unticked.
+5. Save the application. NinjaOne will then show the **Client ID** and **Client Secret** — copy both, as you'll need them when configuring the plugin in SquaredUp. (The Client Secret is only shown once on creation; if you lose it, use **Generate new secret** to issue a new one.)
 
 ## Configure the Plugin in SquaredUp
 
 When adding the NinjaOne data source in SquaredUp, you will need to provide:
 
-1. **Region**: Select your NinjaOne instance region (US, EU, Canada, or OC). The API URL will be automatically configured based on your selection.
+1. **Region**: Select your NinjaOne instance region (US, US2, EU, Canada, or OC). The API URL will be automatically configured based on your selection.
 
 2. **Client ID**: Paste the Client ID from your NinjaOne API application
 
@@ -77,11 +77,11 @@ This plugin provides the following data streams for monitoring your NinjaOne env
 
 ## Troubleshooting
 
-**Authentication Failed**: Ensure your Client ID and Client Secret are correct and that "Client Credentials" is enabled as an allowed grant type in your NinjaOne API application.
+**Authentication Failed**: Verify your Client ID and Client Secret are correct. Also check that your NinjaOne client app was created with the **API Services** application platform — this is what makes Client Credentials the active grant type. There is no separate "Client Credentials" checkbox in the client app screen; if you picked a different platform (e.g. Web app), the OAuth token request will fail.
 
 **No Data Returned**: Verify that the selected API Region matches your NinjaOne instance region.
 
-**Insufficient Permissions**: Ensure the API application has all required scopes (`monitoring`, `management`, `control`, `offline_access`).
+**Insufficient Permissions**: Ensure the API application has all required scopes (`Monitoring`, `Management`, `Control`).
 
 ## Additional Resources
 

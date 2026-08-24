@@ -1,0 +1,77 @@
+{
+    "name": "Vulnerabilities",
+    "displayName": "Vulnerabilities",
+    "description": "Returns vulnerabilities data for the specified device",
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "default"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "runHuntingQuery",
+        "postBody": {
+            "Query": "DeviceTvmSoftwareVulnerabilities | where DeviceId in ({{objects.map(o => {return `\"${o.rawId}\"`}).join(\",\")}})",
+            "Timespan": "{{timeframe.enum != \"none\" ? `${timeframe.start}/${timeframe.end}` : \"\" }}"
+        },
+        "pathToData": "results",
+        "getArgs": [],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "name": "CveGuide",
+            "displayName": "Cve Id",
+            "valueExpression": "{{ $['CveId'] ? `https://msrc.microsoft.com/update-guide/vulnerability/${$['CveId']}` : '' }}",
+            "formatExpression": "{{ $['CveId'] }}",
+            "shape": "url",
+            "computed": true
+        },
+        {
+            "name": "CveId",
+            "displayName": "CVE Id",
+            "shape": "string",
+            "visible": false,
+            "role": "label"
+        },
+        {
+            "name": "VulnerabilitySeverityLevel",
+            "displayName": "Severity",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "SoftwareName",
+            "displayName": "Affected Software",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "CveTags",
+            "displayName": "Tags",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "sourceId": "DeviceId",
+            "name": "DeviceName",
+            "shape": "string",
+            "visible": false,
+            "role": "label",
+            "sourceType": "Device"
+        }
+    ],
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Device"
+        }
+    },
+    "timeframes": false,
+    "providesPluginDiagnostics": true,
+    "objectLimit": 1,
+    "tags": []
+}

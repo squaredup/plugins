@@ -1,0 +1,73 @@
+{
+    "name": "queriesByPage",
+    "displayName": "Queries by page",
+    "description": "Returns query metrics for the selected page",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "default"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "postBody": {
+            "startDate": "{{new Date(timeframe.start).toISOString().split('T')[0]}}",
+            "endDate": "{{new Date(timeframe.end).toISOString().split('T')[0]}}",
+            "dimensions": ["query"],
+            "dimensionFilterGroups": [
+                {
+                    "filters": [
+                        {
+                            "dimension": "page",
+                            "operator": "equals",
+                            "expression": "{{scope?.[0]?.name}}"
+                        }
+                    ]
+                }
+            ],
+            "rowLimit": 2500,
+            "dataState": "final"
+        },
+        "postRequestScript": "postRequest/queries.js",
+        "getArgs": [],
+        "headers": []
+    },
+    "providesPluginDiagnostics": true,
+    "timeframes": true,
+    "tags": ["SEO", "Analytics"],
+    "metadata": [
+        {
+            "shape": [
+                "percent",
+                {
+                    "thousandsSeparator": true,
+                    "decimalPlaces": 2,
+                    "asZeroToOne": true
+                }
+            ],
+            "name": "CTR"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "ui": [
+        {
+            "name": "scope",
+            "objectLimit": 1,
+            "label": "Page",
+            "type": "objects",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "page"
+                }
+            },
+            "validation": {
+                "required": true
+            }
+        }
+    ]
+}

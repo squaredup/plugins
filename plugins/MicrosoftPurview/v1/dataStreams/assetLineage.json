@@ -1,0 +1,76 @@
+{
+    "name": "assetLineage",
+    "displayName": "Asset Lineage",
+    "description": "Upstream and downstream lineage for an asset identified by its GUID",
+    "tags": ["Assets"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "text",
+            "name": "assetGuid",
+            "label": "Asset GUID",
+            "placeholder": "Asset GUID from the catalog",
+            "validation": {
+                "required": true,
+                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            },
+            "help": "The Purview asset's GUID. Copy it from the asset details page in the Purview portal, or from the **Asset GUID** column of the Search Assets stream."
+        },
+        {
+            "type": "switch",
+            "name": "direction",
+            "label": "Direction",
+            "defaultValue": "BOTH",
+            "options": [
+                { "value": "BOTH", "label": "Both" },
+                { "value": "INPUT", "label": "Upstream" },
+                { "value": "OUTPUT", "label": "Downstream" }
+            ]
+        },
+        {
+            "type": "number",
+            "name": "depth",
+            "label": "Depth",
+            "defaultValue": 3,
+            "validation": { "min": 0, "max": 10 },
+            "help": "Number of hops to traverse in each direction."
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "datamap/api/atlas/v2/lineage/{{assetGuid}}",
+        "getArgs": [
+            { "key": "direction", "value": "{{direction}}" },
+            { "key": "depth", "value": "{{depth}}" }
+        ],
+        "postRequestScript": "assetLineage.js"
+    },
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        { "name": "guid", "displayName": "GUID", "shape": "guid", "visible": false },
+        { "name": "name", "displayName": "Name", "role": "label" },
+        { "name": "typeName", "displayName": "Entity Type" },
+        { "name": "qualifiedName", "displayName": "Qualified Name" },
+        {
+            "name": "role",
+            "displayName": "Role",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Base"],
+                        "warning": ["Upstream"],
+                        "unknown": ["Downstream"]
+                    }
+                }
+            ]
+        },
+        { "name": "status", "displayName": "Status" },
+        {
+            "name": "classifications",
+            "displayName": "Classifications"
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,35 @@
+{
+    "name": "collectionClassifiedAssets",
+    "displayName": "Classified Assets",
+    "description": "Assets with classifications in the selected collection, one row per asset-classification pair",
+    "tags": ["Classifications"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "datamap/api/search/query",
+        "getArgs": [
+            { "key": "api-version", "value": "2023-09-01" }
+        ],
+        "postBody": {
+            "keywords": null,
+            "limit": 1000,
+            "filter": {
+                "collectionId": "{{object.collectionName}}"
+            }
+        },
+        "paging": {
+            "mode": "token",
+            "in": { "realm": "payload", "path": "continuationToken" },
+            "out": { "realm": "body", "path": "continuationToken" }
+        },
+        "postRequestScript": "collectionClassifiedAssets.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Purview Collection"] } },
+    "metadata": [
+        { "name": "assetName", "displayName": "Asset", "role": "label" },
+        { "name": "entityType", "displayName": "Entity Type" },
+        { "name": "collectionId", "displayName": "Collection", "visible": false },
+        { "name": "classification", "displayName": "Classification" }
+    ],
+    "timeframes": false
+}

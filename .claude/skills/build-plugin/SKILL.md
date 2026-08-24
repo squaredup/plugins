@@ -1,0 +1,324 @@
+---
+name: build-plugin
+description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
+metadata:
+    author: SquaredUp
+    version: "1.0.0"
+---
+
+# Building a SquaredUp Low-Code Plugin
+
+> **Scope:** Web API-based plugins only. If the target tool has no usable REST API, PowerShell may be a better fit — suggest it and stop.
+
+**Announce at start:** "I'm using the build-plugin skill."
+
+---
+
+## Prerequisites
+
+This skill **tests every data stream against a live, authenticated plugin** in your tenant before relying on it — testing is not optional. That requires the `squaredup` CLI logged in and a tenant you can authenticate the plugin in. Confirm both **before Phase 1**:
+
+1. Run `squaredup status --json`. If the command isn't found, install the CLI first: `npm i -g @squaredup/cli`. If it exits non-zero, the user is not logged in — ask them to run `! squaredup login` in this session, then re-run `squaredup status --json`. Capture the JSON output (`{ tenantName, region }`) — you'll need `region` in Checkpoint A. Login/region mechanics live in the `deploy-plugin` skill.
+2. Confirm the user has a SquaredUp tenant where they can add and authenticate the plugin.
+
+Checkpoint B drives the import with `squaredup index` / `index-status`, so a current `squaredup` CLI is assumed.
+
+If login or a tenant is unavailable, **stop** — this skill cannot build a plugin it cannot test.
+
+---
+
+## Required user inputs
+
+| Input                                             | When to ask                              | Why                                                                                    |
+| ------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Author handle** (GitHub handle or display name) | Before writing `metadata.json` (Phase 4) | Goes into `author.name`. Guessing from git config frequently picks the wrong identity. |
+
+If the user has already volunteered the answer earlier in the conversation or you're updating a plugin, use that and skip the prompt. Otherwise, ask — even in autonomous mode.
+
+---
+
+## Checklist
+
+Create a TaskCreate task for each phase. The flow deploys early and tests as it builds, so deploy/authenticate/test checkpoints are interleaved between the writing phases:
+
+- [ ] **Prerequisite** — `squaredup status`; ensure login + tenant (see [Prerequisites](#prerequisites))
+- [ ] **Phase 1** — Explore the API
+- [ ] **Phase 2** — Plan the plugin structure
+- [ ] **Phase 3** — Scaffold files (icon, file structure, `docs/README.md` draft) → [readme.md](references/readme.md)
+- [ ] **Phase 4** — Write `metadata.json`, `ui.json`, `configValidation.json` + its backing stream — the deployable **shell** → [metadata.md](references/metadata.md), [ui.md](references/ui.md)
+- [ ] **Checkpoint A** — Deploy the shell and authenticate (invoke `deploy-plugin`, probe auth) → [checkpoints.md](references/checkpoints.md)
+- [ ] **Phase 5** — Write import definitions and import streams; test each in parallel sub-agents. Repeat per dependency level if any step `dependsOn` another → [index-defs.md](references/index-defs.md), [test-agent.md](references/test-agent.md)
+- [ ] **Checkpoint B** — Redeploy, then trigger + await the import via the CLI so objects exist → [checkpoints.md](references/checkpoints.md)
+- [ ] **Phase 6** — Build + test data streams in parallel sub-agents → [test-agent.md](references/test-agent.md), [data-streams.md](references/data-streams.md)
+- [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
+- [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
+- [ ] **Phase 9** — Finalize `docs/README.md`, then final validate and deploy → [readme.md](references/readme.md); invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
+
+---
+
+## Phase 1: Explore the API
+
+Before writing a single file, understand and explore the API. **Use `AskUserQuestion` to ask for API documentation URLs, OpenAPI/Swagger specs, Postman collections, or any other reference material.** You can also search online, but verify you're looking at docs for the exact product/version the user wants.
+
+1. **Find the docs** — Gather URLs or spec files from the user, then fetch and read them.
+2. **Identify the object model** — What are the core entities? (e.g. installations, devices, sites). These become the **indexed objects** in SquaredUp — available for drilldown, search, scoping dashboards, and use as variables.
+3. **Find the list endpoints** — Used to import objects. Prefer fetching **50–250 records per page** across multiple requests — SquaredUp has a per-page timeout but supports as many paged requests as needed.
+4. **Find the data endpoints** — These power data streams. For each, record three things; Phase 2 turns the last two into the stream's `timeframes`:
+    - **Scoping** — scoped to a single object, multiple objects, or global (no object context).
+    - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter), or only return a fixed snapshot / current values?
+    - **Data granularity** — when the endpoint _does_ accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read it off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range).
+5. **Understand pagination** — Cursor/next-token, or offset/limit? Separate concern from response transformation.
+6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth, JWT Bearer (signed-JWT auth)? Determine from the docs. If the flow is custom — a token-exchange step or per-request signing no standard mode covers — plan a **pre-request script** ([metadata.md](references/metadata.md#pre-request-scripts-custom-auth-flows)).
+
+---
+
+## Phase 2: Plan the Plugin Structure
+
+This phase produces a written plan and a user-approval gate before any files are written. Object types, import shape, and sourceId format are expensive to change once Phase 3+ commits them to JSON — Phase 2 is where scope errors are cheap to fix.
+
+### The plan must cover
+
+1. **Object types** — Every type that should appear in the SquaredUp graph. These go in `objectTypes` in `metadata.json` and as `sourceType` throughout.
+2. **Import steps** — Let the API shape dictate: one step returning many types, or separate steps per type. If an object type is only listable in the context of an already-imported parent (the API has "list X for parent Y" but no "list all X"), plan it as a **dependent step** instead — `dependsOn` the parent step and `scope` to its objects; see [index-defs.md](references/index-defs.md#scoped-dependent-steps).
+3. **Data streams** — For each object type, plan:
+    - A **summary/current state** stream (`"timeframes": false`, returns current values)
+    - A **history/metrics** stream (supports timeframes, returns time-series rows)
+    - Any **cross-object** streams scoped to a parent (e.g. alarms for an installation)
+    - **One stream per data shape, not per view — shaping is the tile's job.** Split a second stream off an endpoint you already cover **only when the underlying data differs** (a different endpoint, object type, or a granularity the API can't return). If it would differ only in how the **same rows** are grouped, aggregated, time-bucketed, or scoped, plan **one** configurable stream — and a single stream serves both account-wide and per-object drilldown via an optional `objects` filter, so you don't need a separate scoped stream. Full consolidate/split test and the five-"Cost by X" anti-pattern: [data-streams.md](references/data-streams.md#one-stream-per-shape).
+    - **Supported timeframes** — state each stream's `timeframes` value, derived from the endpoint's **time-range control** and **data granularity** recorded in Phase 1:
+        - `false` when the endpoint exposes no time-range parameter — the user can't choose a range (returns a fixed snapshot or current values regardless).
+        - An **array** when the endpoint accepts a range but aggregates coarsely: don't leave the default `true`, because a daily-granularity endpoint can't serve `last1hour`. Restrict `timeframes` to the smallest window the granularity supports and up (e.g. daily → `last7days`+).
+        - `true` when the endpoint accepts a range at fine granularity and any timeframe works.
+4. **What's intentionally omitted** — API capabilities not being implemented, and why. Highest-value section for catching scope creep.
+5. **Authentication** — Auth mechanism and any UX concerns (token expiry, rate limits, hard-to-obtain credentials).
+6. **OOB dashboards** — A **top-level summary dashboard** plus **one perspective per object type** scoped via a dashboard variable.
+7. **sourceId format** — Use the raw API ID wherever possible.
+
+### Plan format
+
+Post the plan as markdown with one `###` heading per item above. Short example:
+
+```markdown
+## Plan
+
+### Object types
+
+- `My Installation` — sites being monitored
+- `My Device` — physical devices reporting telemetry
+
+### Import steps
+
+- `installations` — one step, returns both types
+
+### Data streams
+
+| Stream           | Scope                     | Time range? / granularity         | `timeframes` |
+| ---------------- | ------------------------- | --------------------------------- | ------------ |
+| `batterySummary` | per-device, current state | no range param — current snapshot | `false`      |
+| `batteryHistory` | per-device, time-series   | range, hourly granularity         | `true`       |
+| `siteAlarms`     | per-installation          | no range param — current alarms   | `false`      |
+| `siteBilling`    | per-installation          | range, daily granularity          | `last7days`+ |
+
+### What's intentionally omitted
+
+- Webhook ingestion (no v1 use case)
+
+### Authentication
+
+- API key in `X-API-Key` header
+
+### OOB dashboards
+
+- Overview, Installation perspective, Device perspective
+
+### sourceId format
+
+- Installation: raw API `id`
+- Device: composite `{installationId}-{deviceId}` (API has no global device ID)
+```
+
+### Approval gate
+
+**When to fire:** when `metadata.json` doesn't exist yet in the plugin folder, OR when the planned work adds anything new — different `objectTypes`, a new data stream, or a new dashboard. Otherwise skip — incremental work that doesn't introduce new entities, streams, or dashboards doesn't need the gate.
+
+**How:** post the plan, then call `AskUserQuestion` **in the same turn** with three options:
+
+- `Approve as written` → proceed to Phase 3
+- `Trim scope — start with less` → user wants a smaller MVP; ask what to cut
+- `Adjust — different objects/streams/auth` → user wants changes; ask what specifically
+
+If the user picks anything other than approve (including "Other"), revise the plan and re-fire the gate with the updated plan. Loop until approval — a revised plan can introduce new wrong assumptions, so the second pass is doing real work, not theatre. If the user explicitly waives further gating ("just proceed", "looks fine, go", "stop asking"), honor that for the rest of this conversation.
+
+---
+
+## Phase 3: Scaffold Files
+
+**Icon — delegate to a write-capable sub-agent.** Finding the official logo means browsing vendor sites and image search, and the SVG/PNG markup itself is large — all of which floods the main context if done inline. Spawn **one general-purpose, write-capable sub-agent** for the icon (**not** an `Explore` agent — those are read-only and can't write the file). This work is mechanical — fetching a logo and applying rote SVG transforms — so spawn it with `model: "sonnet"` to save tokens; the quality of the icon doesn't depend on a frontier model. Give it this prompt:
+
+- **Find** the official brand/product logo (SVG preferred, PNG acceptable). Never auto-generate a generic icon. Search these sources, roughly in order:
+    1. **Simple Icons** (`simpleicons.org`, raw SVGs at `https://cdn.simpleicons.org/<slug>` or the `simple-icons` GitHub repo) — clean single-path brand SVGs; also lists each brand's official hex colour, handy for the background `<rect>`.
+    2. **The vendor's own brand/press kit** — try `/brand`, `/press`, `/media`, `/about/brand-assets`, `/newsroom`; these carry the canonical, correctly-coloured logo and the licence terms.
+    3. **Wikimedia Commons / Wikipedia** — the infobox logo is usually an SVG with a clear licence note.
+    4. **VectorLogoZone** (`vectorlogo.zone`) or **WorldVectorLogo** as a fallback for SVGs.
+    5. **Last resort:** the vendor's `favicon.svg`/high-res favicon, or the GitHub org avatar — flag it as low-quality in your return note so the user can replace it.
+- **Post-process the SVG if needed** — SquaredUp shows icons on dark/white backgrounds. Fix if the SVG lacks a background or is not square:
+    1. Set `width="512" height="512" viewBox="0 0 512 512"`
+    2. Insert `<rect width="512" height="512" fill="BRAND_COLOR"/>` as the first child
+    3. Wrap paths in `<g transform="translate(X, Y) scale(S)">` for ~10% padding: `S = min(409.6/w, 409.6/h)`, `X = (512−w*S)/2`, `Y = (512−h*S)/2`
+- **Write** the finished icon to `<plugin>/v1/icon.svg`.
+- **Return only** the file path, the source URL the logo came from, and a one-line licence/attribution note. **Never return the SVG or PNG markup itself** — the file on disk is all that's needed, and the markup is pure context bloat.
+
+If the sub-agent reports it couldn't find an official logo, ask the user to supply one.
+
+**File structure:**
+
+```
+my-plugin/
+  v1/
+    metadata.json
+    ui.json
+    icon.svg
+    custom_types.json
+    configValidation.json      # required for authenticated APIs; validates config on setup
+    preRequest.js # only when using a pre-request script (custom auth)
+    docs/
+      README.md                # REQUIRED: shown in-product when users add the plugin
+    indexDefinitions/
+      default.json
+    dataStreams/
+      myStream.json
+      scripts/
+        myScript.js
+        errorHandling/
+          myStream.js          # errorHandling scripts referenced by path, like postRequestScript
+    defaultContent/
+      manifest.json
+      scopes.json
+      overviewDashboard.dash.json
+      deviceDashboard.dash.json  # single perspective — no sub-folder needed
+      Installations/             # sub-folder only for multiple dashboards of the same type
+        manifest.json
+        dashboard1.dash.json
+```
+
+**docs/README.md (required)** — surfaced in-product when a user adds the plugin. Always create as part of scaffolding; the `documentation` link in `metadata.json` must point to it (e.g. `https://github.com/squaredup/plugins/blob/main/plugins/MyPlugin/v1/docs/README.md`). **Draft it now per [readme.md](references/readme.md)**: overview, Setup, and Configuration fields in full; the remaining sections as placeholder headings. It is finalized in Phase 9, once testing has surfaced the real data streams and limitations.
+
+**Other rules:**
+
+- `scopes.json`: only include scopes used by OOB dashboards. Don't add speculatively.
+- `configValidation.json`: **required for authenticated APIs**, recommended otherwise. Its lightweight backing stream doubles as the auth probe in Checkpoint A — see [common-patterns.md](references/common-patterns.md).
+- **Single-dashboard rule:** Only create a sub-folder under `defaultContent/` when you have **multiple dashboards** for the same type.
+
+---
+
+## Phase 4: Plugin identity, auth & config validation (the shell)
+
+Write `metadata.json`, `ui.json`, and — for any authenticated API — `configValidation.json` plus its backing data stream. Read [metadata.md](references/metadata.md), [data-streams.md](references/data-streams.md) and [ui.md](references/ui.md); for the validation step pattern read [common-patterns.md](references/common-patterns.md).
+
+This is the deployable **shell**: just enough to deploy, add to a tenant, and authenticate. The configValidation backing stream is a single **unscoped** call to a lightweight endpoint (e.g. `/me`) — it both validates the user's config on setup and serves as the auth probe in Checkpoint A. Don't write data streams or import definitions yet.
+
+---
+
+## Checkpoint A: Deploy the shell & authenticate
+
+The shell can't be tested until it's deployed and a config is authenticated against it.
+
+1. **Deploy** — invoke the `deploy-plugin` skill to validate and deploy the shell. Deploy with `squaredup deploy --json --force`; the JSON output includes the deployed `pluginId` — **capture it here** rather than looking it up later.
+2. **Authenticate** — give the user a direct link to the plugin's setup page so they can add it to their tenant and authenticate:
+    - Plugin id: take the `pluginId` from the `deploy --json` output in step 1. (No need to run `squaredup list` — the deploy already returned it.)
+    - Region: take `region` from the `squaredup status --json` output captured during Prerequisites. Build the host — `us` → `app.squaredup.com`, `dev` → `master.dev.app.squaredup.com`, any other region → `<region>.app.squaredup.com` (e.g. `eu` → `eu.app.squaredup.com`).
+    - Send them to `https://<host>/settings/plugins?addPluginId=<id>` and ask them to authenticate it. **Pause and wait for them to confirm.**
+3. **Capture the datasource id** — you already have the `pluginId` from step 1. The datasource only exists once the user authenticates, so run `squaredup datasources --json` now to grab the datasource `id`. Reuse both as `--plugin-id <id> --datasource-id <id>` on every `test`/`objects` call from here on (Phases 5–6, Checkpoint B) so the CLI skips the plugin and datasource lookups each call. **Pass both ids into every testing sub-agent prompt** spawned in Phases 5 and 6 (see [test-agent.md](references/test-agent.md)).
+4. **Probe** — run `squaredup test <validationStream> --plugin-id <pluginId> --datasource-id <id> --diagnostic Status --json --silent` and confirm the returned `Status` is a 2xx. `--diagnostic Status` filters the response to just the HTTP-status diagnostic (a one-line JSON array), so the probe never dumps the full `currentUser` diagnostics into the main context. A non-2xx status — or a request error (printed to stderr, exit code 1) or a missing `Status` diagnostic — means auth isn't right yet; **only then** drop `--diagnostic Status` to inspect the full response. Repeat until the status is 2xx.
+
+Do not proceed to Phase 5 until auth is confirmed. See [checkpoints.md](references/checkpoints.md) — the main agent never reads [testing.md](references/testing.md); that is the sub-agents' per-stream testing guide.
+
+---
+
+## Phase 5: Import definitions & import streams
+
+Write `indexDefinitions/default.json` and its import streams — these are coupled (the index steps reference the stream columns), so author them here in the main agent. Read [index-defs.md](references/index-defs.md) and [data-streams.md](references/data-streams.md).
+
+**Root steps first** — the ones with no `dependsOn`. These call a global/unscoped list endpoint and don't wait on anything. Build them, then **test them in parallel sub-agents** rather than inline — the raw paged response bodies are large and these streams are independent of each other. Spawn **one test-mode sub-agent per stream, all in a single message**, with `model: "sonnet"` (this is run-and-report testing, not deep authoring), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A. Each sub-agent tests its (already-written) unscoped stream, confirms it returns one flat row per object, and returns a compact report (per [test-agent.md](references/test-agent.md)). Fix any stream a sub-agent flags before Checkpoint B.
+
+### Dependent steps (`dependsOn` + `scope`)
+
+Skip this if the Phase 2 plan has no dependent steps — go straight to Checkpoint B.
+
+A dependent step's stream is scoped (like a Phase 6 data stream), so it can't be tested until the objects its `scope.query` needs actually exist in the graph. Build one **dependency depth level at a time**:
+
+1. Write that level's step(s) and stream(s) in `indexDefinitions/default.json`.
+2. Test each using the same **scoped** procedure [test-agent.md](references/test-agent.md) already uses in Phase 6 (`squaredup objects` to find a real object of the depended-on type, then `squaredup test <stream> --object <id>`) — those objects come from the level below, already landed by its own Checkpoint B run.
+3. Run [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) again to land this level's objects before building the next.
+
+Repeat per level until every dependent step is built, tested, and imported — one dependent step needs a single extra pass; a three-level chain needs two.
+
+### The reconciliation pass
+
+Sub-agents run blind to each other, so several can independently rediscover — or contradict each other on — the same API fact. After collecting **all** reports, reconcile them rather than resolving each in isolation:
+
+1. **Diff the reports** against each other — line up every report's **"API-level discoveries"** section plus its fixes applied, assumptions, and constraints hit. Look for a fact present in one report but missing from its siblings.
+2. **Propagate every API-level discovery to all sibling streams** that share the endpoint family or scoping — timeframe/granularity limits that 404, payload caps that 500, object property/id names, auth quirks. A constraint one sub-agent hit and fixed almost always applies to its siblings too; apply the same edit to each affected stream and **re-test every stream you changed** (re-spawn its sub-agent — a propagated edit is unproven until tested).
+3. **Resolve conflicting assumptions** before continuing — if two reports name the same object property or id differently (e.g. one filters on `projectId`, another on `rawId`), determine the correct one against the real response and fix every stream that used the wrong one, so none ships with a scope filter comparing `undefined === undefined`. Do not proceed with an unresolved contradiction.
+
+Run this pass at the end of each Phase 5 build (the root pass, and each dependent-step level) and at the end of Phase 6. If reconciliation edits an `indexDefinitions/*.json` mapping or an import stream, that edit only shapes a **future** import. Here in Phase 5, reconciliation happens before that pass's own Checkpoint B run, so the next import picks it up naturally — nothing is stale, no extra re-index needed.
+
+---
+
+## Checkpoint B: Redeploy & run the first import
+
+Scoped data streams can't be tested until objects exist, which means the import steps must be live and an import must have run. The CLI triggers and tracks the import for you, so **drive it yourself — don't ask the user to run it in the UI.**
+
+1. **Redeploy** — invoke `deploy-plugin` again so the new import steps ship. The import definitions only take effect once this redeploy lands, so the import must run _after_ it.
+2. **Trigger** — `squaredup index --datasource-id <id> --no-wait --json`. `--no-wait` returns immediately with a `since` anchor (capture it) instead of blocking until the import finishes — you poll for completion in the next step. (Plain `squaredup index` now waits and prints progress itself, which can outlast an agent command timeout on a long import; `--no-wait` is the orchestration path.) If an import was already running it reports `alreadyRunning: true` and adopts that run — poll with the `since` it returns either way.
+3. **Wait** — poll `squaredup index-status --datasource-id <id> --since <since> --json` until `done` is `true`, passing the `since` from step 2. `succeeded: true` means objects are indexed; `succeeded: false` means the import failed — read the run-level `message` and the per-step `steps[]` (which step has `status: "failed"` and its `errorReason`) to pinpoint the break, fix that import stream, and re-trigger before continuing. Imports can take several minutes; use a generous timeout. See [checkpoints.md](references/checkpoints.md).
+4. **Confirm** — check objects landed with an **inline scope**: `squaredup objects --matches '{"sourceType":{"type":"equals","value":"<Object Type>"}}' --plugin-id <pluginId> --datasource-id <id> --json` should return a non-empty list. `<Object Type>` is a `sourceType` from the `objectTypes` you defined in `metadata.json` / `indexDefinitions/default.json`. Use `--matches` here, **not** `objects <stream>`: that form resolves a data stream file's `matches`, but no scoped data stream exists yet (those come in Phase 6) and the import streams written so far have no `matches` to resolve. For the same reason, pass **inline** JSON — `--matches @<importStream>.json` won't work, as an import stream's `matches` is `none`/absent.
+
+### ⚠️ Re-indexing rule — a definition change leaves imported objects stale
+
+The objects now in the graph are **frozen at import time**: any later edit to `indexDefinitions/*.json` or an import stream leaves every existing object **stale** until the datasource is re-imported — a property you map now is absent on every already-imported object.
+
+So before you **rely** on such a change — spawning Phase 6 sub-agents that reference a new property, building dashboards on it, or shipping a stream that scopes on it — **re-run the full Checkpoint B cycle and confirm the change itself landed**, not merely that the import succeeded. Only then may you tell Phase 6 sub-agents the property exists. The procedure — including checking the change is even needed before re-indexing — lives in [checkpoints.md](references/checkpoints.md). Skipping it is the root cause of the shipped `undefined === undefined` scope bug — see [testing.md](references/testing.md), "The two-object rule".
+
+---
+
+## Phase 6: Data streams
+
+Data streams are independent files (`dataStreams/<name>.json` + optional `scripts/<name>.js`), and testing each one floods the main context with large raw response bodies. So **build + test each stream in its own sub-agent, spawned in parallel** — don't write or test them inline here. Read [test-agent.md](references/test-agent.md) for the contract; and [data-streams.md](references/data-streams.md) for guidance on writing a data stream.
+
+For each data stream in the Phase 2 plan, **spawn one build-mode sub-agent (all in a single message)** with `model: "sonnet"` (Sonnet is capable enough for the write-test-fix loop on a single stream), passing the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A plus the stream's **build spec** (endpoint, method, scoping, candidate `pathToData`, planned columns + shapes, any `ui` params/timeframes, and — for a non-real-time endpoint — the data granularity plus a first-test `--timeframe` hint so the default `last1hour` doesn't 404 against aggregated data; see [test-agent.md](references/test-agent.md)). Each sub-agent writes the stream from the spec, tests it (`objects` → `test --object` for scoped; `test` for global), fixes `pathToData`/script/`metadata` until the shaped rows are correct, and returns a compact PASS/FAIL report.
+
+Collect the reports, then **run [the reconciliation pass](#the-reconciliation-pass)** before Phase 7 — now across the data-stream reports. This is where a constraint one stream hit — a daily-granularity endpoint that 404s on `last1hour`, the ~6MB response cap that 500s on long timeframes — gets its `timeframes` fix propagated to **all** sibling streams on that endpoint, not just the one that found it.
+
+If resolving a contradiction means **adding or renaming a mapped property** in `indexDefinitions/*.json` (not just fixing a stream to use one that already exists), the imported objects are now stale — apply the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale) before re-spawning sub-agents that rely on the change.
+
+`test` sends the **local** stream config against the deployed plugin, so **no redeploy** is needed to test a new or edited stream (including the re-tests above) — only Checkpoints A and B and the final deploy redeploy.
+
+---
+
+## Phase 7: OOB default content — build in a sub-agent
+
+Dashboards are large JSON files and authoring them inline floods the main context. Spawn **one** build-mode sub-agent for all of Phase 7 — a single agent, not one per dashboard, because the dashboards share `manifest.json` and `scopes.json`.
+
+Pass in the prompt:
+
+- The versioned plugin dir, plus the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A.
+- The planned dashboards from Phase 2 (top-level summary + one perspective per object type) and the object types.
+- The data stream names to build tiles from — the sub-agent reads the stream files itself for columns and parameters.
+- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
+
+Resolve anything the report flags before Phase 8.
+
+## Phase 8: Custom types
+
+Write `custom_types.json` — for this and other reusable patterns (built-in properties stream, configValidation steps), read [common-patterns.md](references/common-patterns.md).
+
+---
+
+## Phase 9: Finalize README, validate & deploy
+
+**Finalize `docs/README.md` first** — complete the placeholder sections (What this plugin monitors, Data streams, What gets indexed, Known limitations) and run the completion checklist in [readme.md](references/readme.md). Source Known limitations from the reconciliation passes' API-level discoveries: every constraint that forced a fix in Phases 5–6 belongs there in user-facing words.
+
+Then invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
+
+**Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale)), the deployed tenant's objects are **stale** — they still match the **old** definition and won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger + poll one more import (the [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) trigger/wait steps) so the deployed objects match the shipped definition. Skip only if no import definition or import stream has changed since the last import.

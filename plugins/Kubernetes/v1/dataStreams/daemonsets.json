@@ -1,0 +1,81 @@
+{
+    "name": "daemonsets",
+    "displayName": "DaemonSets",
+    "description": "Kubernetes daemonsets, one row per daemonset",
+    "tags": [
+        "Resources"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/apis/apps/v1/daemonsets",
+        "postRequestScript": "daemonsets.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "metadata.continue"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "continue"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "uid",
+            "displayName": "UID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "namespace",
+            "displayName": "Namespace",
+            "shape": "string"
+        },
+        {
+            "name": "desiredNumberScheduled",
+            "displayName": "Desired Number Scheduled",
+            "shape": "number"
+        },
+        {
+            "name": "numberReady",
+            "displayName": "Number Ready",
+            "shape": "number"
+        },
+        {
+            "name": "daemonSetHealth",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

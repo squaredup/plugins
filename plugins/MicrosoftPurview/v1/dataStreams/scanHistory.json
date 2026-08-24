@@ -1,0 +1,94 @@
+{
+    "name": "scanHistory",
+    "displayName": "Scan History",
+    "description": "Historical scan runs for a named scan on the selected data source",
+    "tags": ["Data Sources"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "scanName",
+            "label": "Scan Name",
+            "placeholder": "Select a scan",
+            "isMulti": false,
+            "allowCustomValues": false,
+            "validation": { "required": true },
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "scansForDataSource",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "scan/datasources/{{object.rawId}}/scans/{{scanName}}/runs",
+        "getArgs": [
+            { "key": "api-version", "value": "2023-09-01" }
+        ],
+        "pathToData": "value",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "nextLink" }
+        }
+    },
+    "objectLimit": 1,
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Purview Data Source"] } },
+    "metadata": [
+        { "name": "id", "displayName": "Run ID", "shape": "guid", "visible": false },
+        { "name": "parentId", "displayName": "Scan Definition ID", "shape": "guid", "visible": false },
+        { "name": "startTime", "displayName": "Started", "shape": "date", "role": "timestamp" },
+        { "name": "endTime", "displayName": "Ended", "shape": "date" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Succeeded"],
+                        "error": ["Failed", "TransientFailure"],
+                        "warning": ["Canceled"],
+                        "unknown": ["Accepted", "InProgress"]
+                    }
+                }
+            ]
+        },
+        { "name": "runType", "displayName": "Run Type" },
+        { "name": "scanLevelType", "displayName": "Scan Level" },
+        {
+            "name": "duration",
+            "displayName": "Duration",
+            "computed": true,
+            "valueExpression": "{{ $['startTime'] && $['endTime'] ? (new Date($['endTime']).getTime() - new Date($['startTime']).getTime()) / 1000 : null }}",
+            "shape": ["seconds", { "formatDuration": true, "decimalPlaces": 0 }]
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration (s)",
+            "computed": true,
+            "valueExpression": "{{ $['startTime'] && $['endTime'] ? (new Date($['endTime']).getTime() - new Date($['startTime']).getTime()) / 1000 : null }}",
+            "shape": "number"
+        },
+        {
+            "name": "discoveryExecutionDetails.statistics.assets.discovered",
+            "displayName": "Assets Discovered",
+            "shape": "number"
+        },
+        {
+            "name": "discoveryExecutionDetails.statistics.assets.classified",
+            "displayName": "Assets Classified",
+            "shape": "number"
+        },
+        {
+            "name": "discoveryExecutionDetails.statistics.assets.failed",
+            "displayName": "Assets Failed",
+            "shape": "number"
+        },
+        { "name": "errorMessage", "displayName": "Error", "visible": false },
+        { "name": "dataSourceType", "displayName": "Data Source Type" }
+    ],
+    "timeframes": true,
+    "defaultShaping": { "sort": { "by": [["startTime", "desc"]] } }
+}

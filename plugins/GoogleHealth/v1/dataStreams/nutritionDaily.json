@@ -1,0 +1,233 @@
+{
+    "name": "nutritionDaily",
+    "displayName": "Daily Nutrition",
+    "description": "Daily logged nutrition totals including calories consumed, carbohydrates, fat, protein, sugar, fibre and sodium",
+    "tags": [
+        "Nutrition",
+        "Diet"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "users/me/dataTypes/nutrition-log/dataPoints:dailyRollUp",
+        "postBody": {
+            "range": {
+                "start": {
+                    "date": {
+                        "year": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCFullYear()}}",
+                        "month": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCMonth()+1}}",
+                        "day": "{{new Date(new Date(timeframe.end).getTime()-new Date(timeframe.start).getTime()<=90000000 ? new Date(timeframe.end).getTime()-1 : timeframe.start).getUTCDate()}}"
+                    }
+                },
+                "end": {
+                    "date": {
+                        "year": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCFullYear()}}",
+                        "month": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCMonth()+1}}",
+                        "day": "{{new Date(new Date(timeframe.end).getTime()+86399999).getUTCDate()}}"
+                    }
+                }
+            },
+            "windowSizeDays": 1
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "nutritionDaily.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "calories",
+            "displayName": "Calories",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "carbsG",
+            "displayName": "Carbs (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "fatG",
+            "displayName": "Fat (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "proteinG",
+            "displayName": "Protein (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "sugarG",
+            "displayName": "Sugar (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "fibreG",
+            "displayName": "Fibre (g)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "sodiumMg",
+            "displayName": "Sodium (mg)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "calorieGoalCol",
+            "displayName": "Calorie Goal",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "proteinGoalCol",
+            "displayName": "Protein Goal",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "carbGoalCol",
+            "displayName": "Carb Goal",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "fatGoalCol",
+            "displayName": "Fat Goal",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "caloriesPct",
+            "displayName": "Calories % of Goal",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "proteinPct",
+            "displayName": "Protein % of Goal",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "carbsPct",
+            "displayName": "Carbs % of Goal",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "fatPct",
+            "displayName": "Fat % of Goal",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "caloriesStatus",
+            "displayName": "Calories Status",
+            "computed": true,
+            "valueExpression": "{{ $[\"caloriesPct\"] === undefined || $[\"caloriesPct\"] === null ? \"unknown\" : $[\"caloriesPct\"] <= 100 ? \"success\" : $[\"caloriesPct\"] <= 110 ? \"warning\" : \"error\" }}",
+            "shape": "state",
+            "visible": false
+        },
+        {
+            "name": "proteinStatus",
+            "displayName": "Protein Status",
+            "computed": true,
+            "valueExpression": "{{ $[\"proteinPct\"] === undefined || $[\"proteinPct\"] === null ? \"unknown\" : $[\"proteinPct\"] >= 100 ? \"success\" : $[\"proteinPct\"] >= 75 ? \"warning\" : \"error\" }}",
+            "shape": "state",
+            "visible": false
+        },
+        {
+            "name": "carbsStatus",
+            "displayName": "Carbs Status",
+            "computed": true,
+            "valueExpression": "{{ $[\"carbsPct\"] === undefined || $[\"carbsPct\"] === null ? \"unknown\" : $[\"carbsPct\"] <= 100 ? \"success\" : $[\"carbsPct\"] <= 110 ? \"warning\" : \"error\" }}",
+            "shape": "state",
+            "visible": false
+        },
+        {
+            "name": "fatStatus",
+            "displayName": "Fat Status",
+            "computed": true,
+            "valueExpression": "{{ $[\"fatPct\"] === undefined || $[\"fatPct\"] === null ? \"unknown\" : $[\"fatPct\"] <= 100 ? \"success\" : $[\"fatPct\"] <= 110 ? \"warning\" : \"error\" }}",
+            "shape": "state",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "date",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}
