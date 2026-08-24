@@ -3,21 +3,16 @@
 // yields "Free Space C:", a ping sensor "Response Time"). A declared-column data
 // stream cannot express that, so unpivot to one row per channel per interval.
 //
-// Timestamps have to come from the `datetime` string, awkward as that is.
-// historicdata.json does expose a `datetime_raw` OLE date, but only when
-// `usecaption` is omitted entirely — and in that mode every channel collapses
-// into one unnamed `value` column, which defeats the whole point of this stream.
-// The two are mutually exclusive. `datetime_raw` is also the bucket *end* while
-// `datetime` shows the bucket range, so swapping to it would shift every point
-// by one interval. Verified against PRTG 26.3.122.1665 (see the PR description).
+// Timestamps come from the `datetime` string. historicdata.json also returns a
+// `datetime_raw` OLE date, but only when `usecaption` is omitted — a mode that
+// collapses every channel into one unnamed `value` column — and it carries the
+// bucket end rather than its start, so neither form is usable here (checked
+// against PRTG 26.3.122.1665).
 //
-// So: parse the wall clock, then convert it to UTC using the configured zone.
-// Without that, this stream sits an hour (or more) away from `Last Check` and
-// the Log stream on the same dashboard.
-//
-// The zone is interpolated at request time. IANA names only ever contain
-// [A-Za-z0-9_+/-], so stripping everything else keeps a stray quote from
-// terminating the string literal below and injecting into this script.
+// `datetime` is a local wall clock, so convert it to UTC with the configured
+// zone, or this stream sits an hour or more from `Last Check` and the Log stream
+// on the same dashboard. IANA names contain only [A-Za-z0-9_+/-]; stripping
+// other characters stops a quote in a custom value terminating the literal below.
 const TIME_ZONE =
     '{{ (function(){ var v = dataSource.serverTimeZone; var tz = Array.isArray(v) ? (v[0] && v[0].value) : v; return String(tz || "UTC").replace(/[^A-Za-z0-9_+\/-]/g, "") || "UTC"; })() }}';
 
