@@ -28,7 +28,7 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 | Field                              | What it is                                                                                                                                                | Where to find it                                                        | Required |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------- |
 | **PRTG URL**                       | The base address of your PRTG web interface — for example `https://prtg.example.com` or `https://yourname.my-prtg.com`. Include the sub-path if PRTG sits behind a reverse proxy, but no query string.           | The address bar of your PRTG web interface.                              | Yes      |
-| **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter, which is the only scheme PRTG's v1 API accepts.                                       | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
+| **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter — PRTG rejects the key in an `Authorization` header.                                    | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
 | **PRTG time zone**                 | The time zone of the PRTG account whose API key you supplied, as an IANA name such as `Europe/London`. Only affects **Sensor History** and **Log**. Defaults to UTC. | PRTG → **Setup → Account Settings → My Account → Time Zone**.            | No       |
 | **Ignore certificate errors**      | Skips TLS certificate validation. Only enable for an on-premise PRTG server using a self-signed certificate.                                               | —                                                                       | No       |
 
@@ -75,14 +75,14 @@ for each **Probe**, **Group**, **Device** and **Sensor**.
 
 | Object type      | API source                                             | Represents                                                     |
 | ---------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
-| **PRTG Probe**   | `GET /api/table.json?content=probes&filter_type=probenode` | A local or remote probe that performs monitoring.          |
-| **PRTG Group**   | `GET /api/table.json?content=groups`                   | A group of devices. Groups can nest inside other groups.        |
-| **PRTG Device**  | `GET /api/table.json?content=devices`                  | A monitored host, identified by its address.                    |
-| **PRTG Sensor**  | `GET /api/table.json?content=sensors`                  | A single check running against a device.                        |
+| **Probe**        | `GET /api/table.json?content=probes&filter_type=probenode` | A local or remote probe that performs monitoring.          |
+| **Group**        | `GET /api/table.json?content=groups`                   | A group of devices. Groups can nest inside other groups.        |
+| **Device**       | `GET /api/table.json?content=devices`                  | A monitored host, identified by its address.                    |
+| **Sensor**       | `GET /api/table.json?content=sensors`                  | A single check running against a device.                        |
 
 **Relationships:** every object stores its PRTG parent's id as a `parentId` property, and sensors also store
 `deviceId`, `deviceName`, `groupName` and `probeName`. The **Sensors** stream links its Device column
-straight to the **PRTG Device** object, so you can click through from a sensor to the device it runs on. See
+straight to the **Device** object, so you can click through from a sensor to the device it runs on. See
 the first limitation below for why these are properties rather than graph relationships.
 
 **Sites:** PRTG has no "site" object. Probes, groups and devices each store a `location` property holding
@@ -107,7 +107,8 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 - **Sensor History is limited to 30 days**, and beyond a week it is averaged hourly. Finer buckets over a
   long range return more rows than the platform's response size limit allows, so when you have not chosen an
   **Averaging interval** the plugin asks PRTG for hourly figures on ranges longer than seven days. Choosing
-  **5 minutes** or **Raw** explicitly on a long range can still exceed the limit and fail the tile.
+  **5 minutes** or **Raw** explicitly on a long range can still exceed the limit and fail the tile. A tile
+  following a dashboard timeframe longer than 30 days shows the most recent 30 days rather than failing.
 - **The log returns at most 5,000 entries per query.** PRTG returns newest first, so on a busy installation
   over a long timeframe the oldest entries in the range are dropped without warning. Unlike the object
   tables, PRTG reports no usable total for the log, so there is no way to detect that truncation happened —
@@ -127,7 +128,9 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 - **Historic data granularity is PRTG's.** PRTG aggregates history into buckets and returns a `coverage`
   percentage per bucket; intervals PRTG has no data for are omitted rather than plotted as zero. Choosing
   **Raw** on **Sensor History** is only practical over short timeframes.
-- **The API key travels in the query string.** PRTG's v1 API rejects `Authorization: Bearer`, so the token
-  must be sent as the `apitoken` query parameter. Always use HTTPS.
+- **The API key travels in the query string.** PRTG's manual documents `Authorization: Bearer` for API keys,
+  but PRTG rejects it in practice — `Bearer`, `X-Api-Key` and `Authorization: apitoken` all answer
+  `401 Unsupported authorization scheme` on 26.3.122.1665, leaving the `apitoken` query parameter as the only
+  scheme that works. Always use HTTPS.
 - **Read-only.** The plugin never creates, modifies, acknowledges, pauses or deletes anything in PRTG, and a
   **Read access** API key is all it needs.
