@@ -1,0 +1,122 @@
+{
+    "name": "probes",
+    "displayName": "Probes",
+    "description": "All PRTG probes with their status and connection state",
+    "tags": [
+        "Infrastructure",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "table.json",
+        "getArgs": [
+            {
+                "key": "content",
+                "value": "probes"
+            },
+            {
+                "key": "filter_type",
+                "value": "probenode"
+            },
+            {
+                "key": "columns",
+                "value": "objid,name,status,condition,active,location"
+            },
+            {
+                "key": "sortby",
+                "value": "objid"
+            },
+            {
+                "key": "count",
+                "value": "50000"
+            }
+        ],
+        "pathToData": "probes",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "objid",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Probe",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Up"
+                        ],
+                        "warning": [
+                            "Warning",
+                            "Unusual"
+                        ],
+                        "error": [
+                            "Down",
+                            "Down (Partial)",
+                            "Down (Acknowledged)",
+                            "No Probe",
+                            "Not Connected"
+                        ],
+                        "unknown": [
+                            "Unknown",
+                            "None",
+                            "Scanning"
+                        ],
+                        "unmonitored": [
+                            "Paused",
+                            "Paused by User",
+                            "Paused by Dependency",
+                            "Paused by Schedule",
+                            "Paused by License",
+                            "Paused until"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "status_raw",
+            "displayName": "Status Code",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ ({0:'None',1:'Unknown',2:'Scanning',3:'Up',4:'Warning',5:'Down',6:'No Probe',7:'Paused',8:'Paused',9:'Paused',10:'Unusual',11:'Paused',12:'Paused',13:'Down (Acknowledged)',14:'Down (Partial)'})[Number($['status_raw'])] || 'Unknown' }}"
+        },
+        {
+            "name": "condition",
+            "displayName": "Connection",
+            "shape": "string"
+        },
+        {
+            "name": "active",
+            "displayName": "Monitoring Active",
+            "shape": "boolean"
+        },
+        {
+            "name": "location_raw",
+            "displayName": "Location",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

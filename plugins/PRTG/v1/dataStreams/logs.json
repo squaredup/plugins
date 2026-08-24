@@ -1,0 +1,91 @@
+{
+    "name": "logs",
+    "displayName": "Log",
+    "description": "PRTG log entries with the object they relate to and the event that was recorded",
+    "tags": [
+        "Events",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "table.json",
+        "getArgs": [
+            {
+                "key": "content",
+                "value": "messages"
+            },
+            {
+                "key": "columns",
+                "value": "objid,datetime,parent,type,name,status,message"
+            },
+            {
+                "key": "filter_dstart",
+                "value": "{{ (function(){ var v = dataSource.serverTimeZone; var tz = Array.isArray(v) ? (v[0] && v[0].value) : v; if (!tz) { tz = \"UTC\"; } var d = new Date(timeframe.start); var fmt = function(zone){ return d.toLocaleString(\"sv-SE\", { timeZone: zone }).replace(\" \", \"-\").replace(/:/g, \"-\"); }; try { return fmt(tz); } catch (e) { return fmt(\"UTC\"); } })() }}"
+            },
+            {
+                "key": "filter_dend",
+                "value": "{{ (function(){ var v = dataSource.serverTimeZone; var tz = Array.isArray(v) ? (v[0] && v[0].value) : v; if (!tz) { tz = \"UTC\"; } var d = new Date(timeframe.end); var fmt = function(zone){ return d.toLocaleString(\"sv-SE\", { timeZone: zone }).replace(\" \", \"-\").replace(/:/g, \"-\"); }; try { return fmt(tz); } catch (e) { return fmt(\"UTC\"); } })() }}"
+            },
+            {
+                "key": "count",
+                "value": "5000"
+            }
+        ],
+        "pathToData": "messages",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "datetime_raw",
+            "displayName": "Time (Raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "time",
+            "displayName": "Time",
+            "computed": true,
+            "shape": "date",
+            "role": "timestamp",
+            "valueExpression": "{{ Number($['datetime_raw']) > 0 ? new Date((Number($['datetime_raw']) - 25569) * 86400000).toISOString() : null }}"
+        },
+        {
+            "name": "objid",
+            "displayName": "Object ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Object",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "parent",
+            "displayName": "Parent",
+            "shape": "string"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Event",
+            "shape": "string"
+        },
+        {
+            "name": "message_raw",
+            "displayName": "Message",
+            "shape": "string"
+        }
+    ],
+    "timeframes": true,
+    "defaultTimeframe": "dashboard"
+}

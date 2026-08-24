@@ -1,0 +1,183 @@
+{
+    "name": "containerDevices",
+    "displayName": "Devices in Probe or Group",
+    "description": "Devices beneath a probe or group, with status, host address and sensor counts by state",
+    "tags": [
+        "Infrastructure",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "table.json",
+        "getArgs": [
+            {
+                "key": "content",
+                "value": "devices"
+            },
+            {
+                "key": "id",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "columns",
+                "value": "objid,name,parentid,probe,group,host,status,active,tags,location,icon,totalsens,upsens,downsens,warnsens,pausedsens"
+            },
+            {
+                "key": "sortby",
+                "value": "objid"
+            },
+            {
+                "key": "count",
+                "value": "50000"
+            }
+        ],
+        "pathToData": "devices",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PRTG Probe",
+                "PRTG Group"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "objid",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "parentid",
+            "displayName": "Parent ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "probe",
+            "displayName": "Probe",
+            "shape": "string"
+        },
+        {
+            "name": "group",
+            "displayName": "Group",
+            "shape": "string"
+        },
+        {
+            "name": "host",
+            "displayName": "Host",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Up"
+                        ],
+                        "warning": [
+                            "Warning",
+                            "Unusual"
+                        ],
+                        "error": [
+                            "Down",
+                            "Down (Partial)",
+                            "Down (Acknowledged)",
+                            "No Probe",
+                            "Not Connected"
+                        ],
+                        "unknown": [
+                            "Unknown",
+                            "None",
+                            "Scanning"
+                        ],
+                        "unmonitored": [
+                            "Paused",
+                            "Paused by User",
+                            "Paused by Dependency",
+                            "Paused by Schedule",
+                            "Paused by License",
+                            "Paused until"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "status_raw",
+            "displayName": "Status Code",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ ({0:'None',1:'Unknown',2:'Scanning',3:'Up',4:'Warning',5:'Down',6:'No Probe',7:'Paused',8:'Paused',9:'Paused',10:'Unusual',11:'Paused',12:'Paused',13:'Down (Acknowledged)',14:'Down (Partial)'})[Number($['status_raw'])] || 'Unknown' }}"
+        },
+        {
+            "name": "totalsens_raw",
+            "displayName": "Total Sensors",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "upsens_raw",
+            "displayName": "Up Sensors",
+            "shape": "number"
+        },
+        {
+            "name": "downsens_raw",
+            "displayName": "Down Sensors",
+            "shape": "number"
+        },
+        {
+            "name": "warnsens_raw",
+            "displayName": "Warning Sensors",
+            "shape": "number"
+        },
+        {
+            "name": "pausedsens_raw",
+            "displayName": "Paused Sensors",
+            "shape": "number"
+        },
+        {
+            "name": "location_raw",
+            "displayName": "Location",
+            "shape": "string"
+        },
+        {
+            "name": "tags",
+            "displayName": "Tags",
+            "shape": "string"
+        },
+        {
+            "name": "icon",
+            "displayName": "Icon",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "active",
+            "displayName": "Monitoring Active",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

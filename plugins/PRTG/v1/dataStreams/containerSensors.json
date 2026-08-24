@@ -1,0 +1,232 @@
+{
+    "name": "containerSensors",
+    "displayName": "Sensors in Probe, Group or Device",
+    "description": "Sensors beneath a probe, group or device, with status, last reading and uptime",
+    "tags": [
+        "Monitoring",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "table.json",
+        "getArgs": [
+            {
+                "key": "content",
+                "value": "sensors"
+            },
+            {
+                "key": "id",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "columns",
+                "value": "objid,name,parentid,probe,group,device,type,status,message,lastvalue,lastcheck,interval,priority,active,tags,uptime,downtime"
+            },
+            {
+                "key": "sortby",
+                "value": "objid"
+            },
+            {
+                "key": "count",
+                "value": "50000"
+            }
+        ],
+        "pathToData": "sensors",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "PRTG Probe",
+                "PRTG Group",
+                "PRTG Device"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "objid",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Sensor",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "parentid",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "device",
+            "displayName": "Device",
+            "shape": "string"
+        },
+        {
+            "name": "group",
+            "displayName": "Group",
+            "shape": "string"
+        },
+        {
+            "name": "probe",
+            "displayName": "Probe",
+            "shape": "string"
+        },
+        {
+            "name": "type",
+            "displayName": "Sensor Type",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Up"
+                        ],
+                        "warning": [
+                            "Warning",
+                            "Unusual"
+                        ],
+                        "error": [
+                            "Down",
+                            "Down (Partial)",
+                            "Down (Acknowledged)",
+                            "No Probe",
+                            "Not Connected"
+                        ],
+                        "unknown": [
+                            "Unknown",
+                            "None",
+                            "Scanning"
+                        ],
+                        "unmonitored": [
+                            "Paused",
+                            "Paused by User",
+                            "Paused by Dependency",
+                            "Paused by Schedule",
+                            "Paused by License",
+                            "Paused until"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "status_raw",
+            "displayName": "Status Code",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ ({0:'None',1:'Unknown',2:'Scanning',3:'Up',4:'Warning',5:'Down',6:'No Probe',7:'Paused',8:'Paused',9:'Paused',10:'Unusual',11:'Paused',12:'Paused',13:'Down (Acknowledged)',14:'Down (Partial)'})[Number($['status_raw'])] || 'Unknown' }}"
+        },
+        {
+            "name": "message_raw",
+            "displayName": "Message",
+            "shape": "string"
+        },
+        {
+            "name": "lastvalue",
+            "displayName": "Last Value",
+            "shape": "string"
+        },
+        {
+            "name": "lastvalue_raw",
+            "displayName": "Last Value (Numeric)",
+            "shape": "number"
+        },
+        {
+            "name": "lastcheck_raw",
+            "displayName": "Last Check (Raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "lastCheck",
+            "displayName": "Last Check",
+            "computed": true,
+            "shape": "date",
+            "valueExpression": "{{ Number($['lastcheck_raw']) > 0 ? new Date((Number($['lastcheck_raw']) - 25569) * 86400000).toISOString() : null }}"
+        },
+        {
+            "name": "uptime_raw",
+            "displayName": "Uptime (Raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "uptimePercent",
+            "displayName": "Uptime",
+            "computed": true,
+            "role": "value",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "valueExpression": "{{ $['uptime_raw'] === '' || $['uptime_raw'] === null || $['uptime_raw'] === undefined ? null : Number($['uptime_raw']) / 10000 }}"
+        },
+        {
+            "name": "downtime_raw",
+            "displayName": "Downtime (Raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "downtimePercent",
+            "displayName": "Downtime",
+            "computed": true,
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "valueExpression": "{{ $['downtime_raw'] === '' || $['downtime_raw'] === null || $['downtime_raw'] === undefined ? null : Number($['downtime_raw']) / 10000 }}"
+        },
+        {
+            "name": "interval_raw",
+            "displayName": "Scanning Interval",
+            "shape": "seconds"
+        },
+        {
+            "name": "priority_raw",
+            "displayName": "Priority",
+            "shape": "number"
+        },
+        {
+            "name": "tags",
+            "displayName": "Tags",
+            "shape": "string"
+        },
+        {
+            "name": "active",
+            "displayName": "Monitoring Active",
+            "shape": "boolean"
+        },
+        {
+            "sourceId": "parentid",
+            "sourceType": "PRTG Device",
+            "name": "device"
+        }
+    ],
+    "timeframes": false
+}
