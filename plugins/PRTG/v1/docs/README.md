@@ -21,7 +21,8 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
    delete the key and create a new one.
 7. Paste the key into the **API key** field, and your PRTG address into **PRTG URL**.
 8. Set **PRTG time zone** to the time zone of the account whose key you just created — it is shown in PRTG
-   under **Setup → Account Settings → My Account → Time Zone**.
+   under **Setup → Account Settings → My Account → Time Zone**. Saving checks your answer against the zone
+   PRTG reports, so a mismatch is flagged there and then.
 
 ## Configuration fields
 
@@ -32,8 +33,10 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 | **PRTG time zone**                 | The time zone of the PRTG account whose API key you supplied, as an IANA name such as `Europe/London`. Only affects **Sensor History** and **Log**. Defaults to UTC. | PRTG → **Setup → Account Settings → My Account → Time Zone**.            | No       |
 | **Ignore certificate errors**      | Skips TLS certificate validation. Only enable for an on-premise PRTG server using a self-signed certificate.                                               | —                                                                       | No       |
 
-On save, the plugin calls PRTG's status endpoint to confirm the URL and key. A failure means the URL is
-unreachable or the key is invalid, expired, or deleted.
+On save, the plugin calls PRTG's status endpoint twice: once to confirm the URL and key — a failure there
+means the URL is unreachable or the key is invalid, expired, or deleted — and once to compare **PRTG time
+zone** against the zone PRTG says it is using. A zone mismatch is a warning rather than a failure, so it
+will not stop you connecting.
 
 > ⚠️ **Get the time zone right.** PRTG interprets date ranges in its *own* time zone rather than UTC, so the
 > wrong zone shifts **Sensor History** and **Log** — and on short timeframes can make them look empty.
@@ -100,6 +103,11 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
   **Sensor History** timestamps to UTC, because that endpoint reports times only as local text with no UTC
   equivalent — so the wrong zone shifts both the range queried *and* the times plotted. An unrecognised zone
   name falls back to UTC rather than failing the request.
+
+  PRTG does report the zone it is using, as a fixed offset — the **System Status** data stream surfaces it as
+  **Server Time Zone**, and saving the configuration warns when it disagrees with the zone you picked. That
+  offset cannot replace the setting, though: it describes only the present moment, whereas **Sensor History**
+  covers up to 30 days and needs the daylight saving transitions an IANA name carries.
 - **Very large installations may hit a response size limit.** Each object type is fetched in a single
   request rather than page by page. In practice the sensor import is the binding constraint and should
   comfortably handle around 10,000 sensors, which is also Paessler's own recommended maximum per core
