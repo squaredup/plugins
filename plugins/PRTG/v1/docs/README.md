@@ -25,6 +25,13 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
    under **Setup → Account Settings → My Account → Time Zone**. Saving checks your answer against the zone
    PRTG reports, so a mismatch is flagged there and then.
 
+> **Tip: give SquaredUp its own PRTG account, set to UTC.** PRTG has no per-request time zone parameter —
+> every response uses the time zone of the account the key belongs to. Change that account's time zone to
+> **UTC** in PRTG, create the key there, and answer `UTC` here: daylight saving stops mattering, and nobody
+> editing their personal time zone can silently shift your dashboards. Note this means genuinely setting the
+> PRTG account to UTC — answering `UTC` for an account still on another zone is the mismatch the save-time
+> check exists to catch.
+
 ## Configuration fields
 
 | Field                              | What it is                                                                                                                                                | Where to find it                                                        | Required |
@@ -99,11 +106,14 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
   code-based plugins, not low-code ones like this. The PRTG hierarchy is therefore expressed as properties
   (`parentId`, `deviceName`, `groupName`, `probeName`) and through dashboard scoping and drilldown, rather
   than as traversable parent/child links in the graph.
-- **Date ranges follow PRTG's own time zone.** See the **PRTG time zone** field above. PRTG offers no way to
-  query in UTC and accepts no relative ranges, so the zone has to be supplied. It is also used to convert
-  **Sensor History** timestamps to UTC, because that endpoint reports times only as local text with no UTC
-  equivalent — so the wrong zone shifts both the range queried *and* the times plotted. An unrecognised zone
-  name falls back to UTC rather than failing the request.
+- **Date ranges follow the API account's time zone.** See the **PRTG time zone** field above. The zone is a
+  property of the PRTG *account* the key belongs to, and Paessler
+  [document no per-request override](https://helpdesk.paessler.com/en/support/solutions/articles/76000073098-output-of-api-table-json-content-messages-contains-datetime-is-it-in-gmt-utc-filter-dstart) — there is no
+  UTC parameter and no relative ranges — so the zone has to be supplied. API v2 does not help; it exposes no
+  time zone endpoint at all. The zone is also used to convert **Sensor History** timestamps to UTC, because
+  that endpoint reports times only as local text with no UTC equivalent — so the wrong zone shifts both the
+  range queried *and* the times plotted. An unrecognised zone name falls back to UTC rather than failing the
+  request.
 
   PRTG does report the zone it is using, as a fixed offset — the **System Status** data stream surfaces it as
   **Server Time Zone**, and saving the configuration warns when it disagrees with the zone you picked. That
