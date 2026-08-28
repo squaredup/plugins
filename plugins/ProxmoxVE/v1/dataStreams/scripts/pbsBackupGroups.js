@@ -9,7 +9,7 @@ result = groups.map(function(g) {
         backupType: g['backup-type'],
         backupId: g['backup-id'],
         owner: g.owner || null,
-        lastBackup: g['last-backup'] != null ? g['last-backup'] * 1000 : null,
+        lastBackup: g['last-backup'] != null ? new Date(g['last-backup'] * 1000).toISOString() : null,
         backupCount: g['backup-count'] || 0
     };
 });
