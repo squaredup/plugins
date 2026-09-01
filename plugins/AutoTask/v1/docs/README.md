@@ -1,4 +1,6 @@
-# Before you start
+Connect to Datto Autotask PSA to monitor tickets, contracts, projects, resources, and company data.
+
+## Before you start
 
 You will need an Autotask account with admin access to create an API User. API Users are a dedicated account type in Autotask used for system integrations. They are separate from regular user accounts and cannot log in to the Autotask UI.
 
