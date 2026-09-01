@@ -1,0 +1,35 @@
+{
+    "name": "companyAccountRestoreStatus",
+    "displayName": "Company Account Restore Status",
+    "description": "Current restore operation status per account for a company",
+    "tags": ["Backup", "Account"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/restores/status/accounts",
+        "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "results"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Redstor Company"] } },
+    "metadata": [
+        { "name": "accountName", "displayName": "Account", "shape": "string", "role": "label" },
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        {
+            "name": "status",
+            "displayName": "Status Code",
+            "shape": "number",
+            "help": "Raw Redstor status code — RedAPI's public documentation does not define the meaning of each value."
+        },
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false },
+        { "name": "accountId", "displayName": "Account ID", "shape": "guid", "visible": false },
+        { "name": "companyId", "displayName": "Company ID", "shape": "guid", "visible": false },
+        { "name": "groupId", "displayName": "Group ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

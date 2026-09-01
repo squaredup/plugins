@@ -1,0 +1,36 @@
+{
+    "name": "companyRestoreStatus",
+    "displayName": "Company Restore Status",
+    "description": "Current restore operation status by product for a company",
+    "tags": ["Backup", "Company"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/restores/status",
+        "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "results"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Redstor Company"] } },
+    "metadata": [
+        { "name": "productName", "displayName": "Product", "shape": "string", "role": "label" },
+        { "name": "succeeded", "displayName": "Succeeded", "shape": "number" },
+        { "name": "completedWithWarnings", "displayName": "Completed with Warnings", "shape": "number" },
+        { "name": "completedWithErrors", "displayName": "Completed with Errors", "shape": "number" },
+        { "name": "failed", "displayName": "Failed", "shape": "number" },
+        {
+            "name": "overallStatus",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['failed'] > 0 ? 'error' : ($['completedWithErrors'] > 0 ? 'warning' : 'success') }}",
+            "shape": "state"
+        },
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false }
+    ],
+    "timeframes": false
+}

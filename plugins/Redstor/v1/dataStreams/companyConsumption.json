@@ -1,0 +1,47 @@
+{
+    "name": "companyConsumption",
+    "displayName": "Company Consumption",
+    "description": "Storage consumption and seat usage by product for a company",
+    "tags": ["Consumption", "Company"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/consumption",
+        "getArgs": [
+            { "key": "companyId", "value": "{{object.rawId}}" },
+            { "key": "shouldExcludeTrials", "value": "{{excludeTrials || null}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "results"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Redstor Company"] } },
+    "ui": [
+        {
+            "type": "checkbox",
+            "name": "excludeTrials",
+            "label": "Exclude trial subscriptions",
+            "value": "true"
+        }
+    ],
+    "metadata": [
+        { "name": "productName", "displayName": "Product", "shape": "string", "role": "label" },
+        { "name": "sku", "displayName": "SKU", "shape": "string" },
+        { "name": "totalDataProtectedInBytes", "displayName": "Data Protected", "shape": "bytes" },
+        { "name": "totalDataProtectedInBytesExternal", "displayName": "Data Protected (External)", "shape": "bytes" },
+        { "name": "fupOverageInBytes", "displayName": "Fair Use Overage", "shape": "bytes" },
+        { "name": "activeSeats", "displayName": "Active Seats", "shape": "number" },
+        { "name": "inactiveSeats", "displayName": "Inactive Seats", "shape": "number" },
+        { "name": "sharedSeats", "displayName": "Shared Seats", "shape": "number" },
+        { "name": "activeWorkloads", "displayName": "Active Workloads", "shape": "number" },
+        { "name": "licensedUsers", "displayName": "Licensed Users", "shape": "number" },
+        { "name": "isTrial", "displayName": "Trial", "shape": "boolean" },
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false },
+        { "name": "subscriptionId", "displayName": "Subscription ID", "shape": "guid", "visible": false }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,35 @@
+{
+    "name": "companyAccountBackupStatus",
+    "displayName": "Company Account Backup Status",
+    "description": "Recent backup operation status history per account for a company",
+    "tags": ["Backup", "Account"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/backups/status/accounts",
+        "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "postRequestScript": "companyAccountBackupStatus.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Redstor Company"] } },
+    "metadata": [
+        { "name": "accountName", "displayName": "Account", "shape": "string", "role": "label" },
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        {
+            "name": "status",
+            "displayName": "Status Code",
+            "shape": "number",
+            "help": "Raw Redstor status code — RedAPI's public documentation does not define the meaning of each value."
+        },
+        { "name": "message", "displayName": "Message", "shape": "string" },
+        { "name": "errorCount", "displayName": "Error Count", "shape": "number" },
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false },
+        { "name": "accountId", "displayName": "Account ID", "shape": "guid", "visible": false }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,43 @@
+{
+    "name": "companySubscriptions",
+    "displayName": "Company Subscriptions",
+    "description": "Product subscriptions for a company",
+    "tags": ["Subscriptions", "Company"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/subscriptions",
+        "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "results"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Redstor Company"] } },
+    "metadata": [
+        { "name": "subscriptionId", "displayName": "Subscription ID", "shape": "guid", "role": "label" },
+        { "name": "productId", "displayName": "Product ID", "shape": "number" },
+        { "name": "editionId", "displayName": "Edition ID", "shape": "number" },
+        { "name": "isActive", "displayName": "Active", "shape": "boolean" },
+        {
+            "name": "trialStatus",
+            "displayName": "Trial Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Upgraded"],
+                        "unknown": ["NotUsed"],
+                        "warning": ["Trial"],
+                        "error": ["Expired"],
+                        "unmonitored": ["Removed"]
+                    }
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}
