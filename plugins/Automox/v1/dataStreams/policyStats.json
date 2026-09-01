@@ -1,0 +1,43 @@
+{
+    "name": "policyStats",
+    "displayName": "Policy Stats",
+    "description": "Compliant, non-compliant and pending device counts per policy",
+    "tags": ["Automox", "Policy", "Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "policystats",
+        "getArgs": [{ "key": "o", "value": "{{dataSource.organizationId}}" }],
+        "paging": { "mode": "none" },
+        "postRequestScript": "policyStats.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/automoxRateLimit.js" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "policy",
+            "label": "Policy (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Automox Policy"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "policy_id", "displayName": "Policy ID", "shape": "number", "visible": false },
+        { "name": "policy_name", "displayName": "Policy", "shape": "string", "role": "label" },
+        { "name": "policy_type_name", "displayName": "Policy Type", "shape": "string" },
+        { "name": "organization_id", "displayName": "Organization ID", "shape": "number", "visible": false },
+        { "name": "compliant", "displayName": "Compliant", "shape": "number" },
+        { "name": "noncompliant", "displayName": "Non-Compliant", "shape": "number" },
+        { "name": "pending", "displayName": "Pending", "shape": "number" },
+        {
+            "name": "compliancePercent",
+            "displayName": "Compliance (%)",
+            "computed": true,
+            "valueExpression": "{{ ($['compliant']+$['noncompliant']+$['pending']) > 0 ? Math.round($['compliant']/($['compliant']+$['noncompliant']+$['pending'])*100) : null }}",
+            "shape": "percent",
+            "role": "value"
+        },
+        { "sourceId": "policy_id", "sourceType": "Automox Policy", "name": "policy_name" }
+    ],
+    "timeframes": false
+}

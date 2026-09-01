@@ -1,0 +1,267 @@
+{
+    "name": "Policy Compliance",
+    "schemaVersion": "1.5",
+    "variables": ["{{variables.[Policy]}}"],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "65d48fe7-65e3-426b-8d9a-b03f85e1feb8",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Total Policies",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.policies}}",
+                        "name": "policies",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "count", "comparisonColumn": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "59660e8c-266c-42ba-8ebd-cd1f64e3d39c",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Average Compliance",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.policyStats}}",
+                        "name": "policyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [], "aggregate": [{ "type": "mean", "names": ["compliancePercent"] }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "compliancePercent_mean", "comparisonColumn": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b8f54579-3da5-4bb2-83b0-a0c672d1cfcc",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Non-Compliant Policies",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.policyStats}}",
+                        "name": "policyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "noncompliant", "operation": "greaterthan", "value": "0" }]
+                        },
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "count", "comparisonColumn": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8d4cdf12-0930-42b3-a4d2-926f252620cb",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Pending Remediations",
+                    "description": "Devices pending remediation, summed across all policies",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.policyStats}}",
+                        "name": "policyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [], "aggregate": [{ "type": "sum", "names": ["pending"] }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "pending_sum", "comparisonColumn": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7af8b03f-72d4-4d12-9fb7-df8185d6b0ac",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Policies by Type",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.policies}}",
+                        "name": "policies",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["policy_type_name", "uniqueValues"]],
+                            "aggregate": [{ "type": "count" }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "count",
+                                "labelColumn": "policy_type_name_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c944abc2-d265-4a00-a1bd-df3cd5ea1d52",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Average Compliance by Policy Type",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.policyStats}}",
+                        "name": "policyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["policy_type_name", "uniqueValues"]],
+                            "aggregate": [{ "type": "mean", "names": ["compliancePercent"] }]
+                        },
+                        "sort": { "by": [["compliancePercent_mean", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "policy_type_name_uniqueValues",
+                                "yAxisData": ["compliancePercent_mean"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "Compliance (%)",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": true,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7f77ad08-4aac-461c-914d-f25afb192724",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 6,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Policy Compliance",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "variables": ["{{variables.[Policy]}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.policyStats}}",
+                        "name": "policyStats",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": { "by": [["compliancePercent", "asc"]] },
+                        "dataSourceConfig": {
+                            "policy": {
+                                "variable": "{{variables.[Policy]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Policies]}}"
+                            }
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Policies]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Policy]}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": ["policy_name", "policy_type_name", "compliant", "noncompliant", "pending", "compliancePercent"],
+                                "hiddenColumns": ["policy_id", "organization_id"]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,59 @@
+{
+    "name": "prepatchDevices",
+    "displayName": "Pre-Patch Devices",
+    "description": "Devices with pending patches, one row per device - id matches the Devices stream's id property, not its uuid",
+    "tags": ["Automox", "Device", "Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "reports/prepatch",
+        "getArgs": [
+            { "key": "o", "value": "{{dataSource.organizationId}}" },
+            { "key": "groupId", "value": "{{groupId || null}}" },
+            { "key": "limit", "value": "100" },
+            { "key": "offset", "value": "0" }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "prepatch.devices" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "postRequestScript": "prepatchDevices.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/automoxRateLimit.js" }
+    },
+    "matches": "none",
+    "ui": [
+        { "type": "number", "name": "groupId", "label": "Server Group ID (optional)" },
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Automox Device"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "Device ID", "shape": "number" },
+        { "name": "name", "displayName": "Device", "shape": "string", "role": "label" },
+        { "name": "createTime", "displayName": "Enrolled", "shape": "date" },
+        { "name": "group", "displayName": "Server Group", "shape": "string" },
+        {
+            "name": "compliant",
+            "displayName": "Compliant",
+            "shape": ["state", { "map": { "success": ["true"], "error": ["false"] } }]
+        },
+        {
+            "name": "connected",
+            "displayName": "Connected",
+            "shape": ["state", { "map": { "success": ["true"], "error": ["false"] } }]
+        },
+        { "name": "needsReboot", "displayName": "Needs Reboot", "shape": "boolean" },
+        { "name": "os_family", "displayName": "OS Family", "shape": "string" },
+        { "name": "patches", "displayName": "Patches", "shape": "json" }
+    ],
+    "timeframes": false
+}

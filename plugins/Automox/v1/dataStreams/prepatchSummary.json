@@ -1,0 +1,37 @@
+{
+    "name": "prepatchSummary",
+    "displayName": "Pre-Patch Summary",
+    "description": "Pending patch operations in the organization, bucketed by highest severity - the total counts operations (device x package version), not devices",
+    "tags": ["Automox", "Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "reports/prepatch",
+        "getArgs": [
+            { "key": "o", "value": "{{dataSource.organizationId}}" },
+            { "key": "groupId", "value": "{{groupId || null}}" }
+        ],
+        "paging": { "mode": "none" },
+        "expandInnerObjects": true,
+        "errorHandling": { "type": "script", "script": "errorHandling/automoxRateLimit.js" }
+    },
+    "matches": "none",
+    "ui": [{ "type": "number", "name": "groupId", "label": "Server Group ID (optional)" }],
+    "metadata": [
+        {
+            "name": "prepatch.total",
+            "displayName": "Pending Patch Operations (not devices)",
+            "shape": "number",
+            "role": "value"
+        },
+        { "name": "prepatch.needsAttention", "displayName": "Needs Attention", "shape": "number" },
+        { "name": "prepatch.critical", "displayName": "Critical", "shape": "number" },
+        { "name": "prepatch.high", "displayName": "High", "shape": "number" },
+        { "name": "prepatch.medium", "displayName": "Medium", "shape": "number" },
+        { "name": "prepatch.low", "displayName": "Low", "shape": "number" },
+        { "name": "prepatch.none", "displayName": "None", "shape": "number" },
+        { "name": "prepatch.unknown", "displayName": "Unknown", "shape": "number" },
+        { "name": "prepatch.no_known_cves", "displayName": "No Known CVEs", "shape": "number" }
+    ],
+    "timeframes": false
+}

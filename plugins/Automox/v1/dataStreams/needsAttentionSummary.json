@@ -1,0 +1,30 @@
+{
+    "name": "needsAttentionSummary",
+    "displayName": "Needs Attention Summary",
+    "description": "Non-compliant devices in the organization, bucketed by highest failing severity - the Devices stream's needs_attention flag gives a simpler estate-wide count without the severity breakdown",
+    "tags": ["Automox", "Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "reports/needs-attention",
+        "getArgs": [
+            { "key": "o", "value": "{{dataSource.organizationId}}" },
+            { "key": "groupId", "value": "{{groupId || null}}" }
+        ],
+        "paging": { "mode": "none" },
+        "expandInnerObjects": true,
+        "errorHandling": { "type": "script", "script": "errorHandling/automoxRateLimit.js" }
+    },
+    "matches": "none",
+    "ui": [{ "type": "number", "name": "groupId", "label": "Server Group ID (optional)" }],
+    "metadata": [
+        { "name": "nonCompliant.total", "displayName": "Non-Compliant Devices", "shape": "number", "role": "value" },
+        { "name": "nonCompliant.critical", "displayName": "Critical", "shape": "number" },
+        { "name": "nonCompliant.high", "displayName": "High", "shape": "number" },
+        { "name": "nonCompliant.medium", "displayName": "Medium", "shape": "number" },
+        { "name": "nonCompliant.low", "displayName": "Low", "shape": "number" },
+        { "name": "nonCompliant.none", "displayName": "None", "shape": "number" },
+        { "name": "nonCompliant.other", "displayName": "Other", "shape": "number" }
+    ],
+    "timeframes": false
+}

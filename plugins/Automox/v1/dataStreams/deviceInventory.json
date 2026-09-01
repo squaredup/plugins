@@ -1,0 +1,36 @@
+{
+    "name": "deviceInventory",
+    "displayName": "Device Inventory",
+    "description": "Detailed inventory attributes for a device, one API call per device in scope - avoid scoping this to the full device estate",
+    "tags": ["Automox", "Device"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "device-details/orgs/__ORG_UUID__/devices/{{object.rawId}}/inventory",
+        "getArgs": [{ "key": "category", "value": "{{category || null}}" }],
+        "postRequestScript": "deviceInventory.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/automoxRateLimit.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Automox Device"] } },
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "category",
+            "label": "Category (optional)",
+            "isClearable": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "deviceInventoryCategories",
+                "dataSourceConfig": { "dataSourceName": "datasourceName" }
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "group", "displayName": "Group", "shape": "string" },
+        { "name": "name", "displayName": "Attribute", "shape": "string", "role": "label" },
+        { "name": "value", "displayName": "Value", "shape": "string" },
+        { "name": "type", "displayName": "Type", "shape": "string", "visible": false },
+        { "name": "collectedAt", "displayName": "Collected", "shape": "date" }
+    ],
+    "timeframes": false
+}

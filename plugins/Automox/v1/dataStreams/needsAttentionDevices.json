@@ -1,0 +1,56 @@
+{
+    "name": "needsAttentionDevices",
+    "displayName": "Devices Needing Attention",
+    "description": "Non-compliant devices with their failing policies, one row per device - id matches the Devices stream's id property, not its uuid",
+    "tags": ["Automox", "Device", "Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "reports/needs-attention",
+        "getArgs": [
+            { "key": "o", "value": "{{dataSource.organizationId}}" },
+            { "key": "groupId", "value": "{{groupId || null}}" },
+            { "key": "limit", "value": "100" },
+            { "key": "offset", "value": "0" }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "nonCompliant.devices" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "postRequestScript": "needsAttentionDevices.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/automoxRateLimit.js" }
+    },
+    "matches": "none",
+    "ui": [
+        { "type": "number", "name": "groupId", "label": "Server Group ID (optional)" },
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Automox Device"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "Device ID", "shape": "number" },
+        { "name": "name", "displayName": "Device", "shape": "string", "role": "label" },
+        { "name": "customName", "displayName": "Custom Name", "shape": "string", "visible": false },
+        { "name": "groupId", "displayName": "Server Group ID", "shape": "number" },
+        {
+            "name": "connected",
+            "displayName": "Connected",
+            "shape": ["state", { "map": { "success": ["true"], "error": ["false"] } }]
+        },
+        { "name": "needsReboot", "displayName": "Needs Reboot", "shape": "boolean" },
+        { "name": "os_family", "displayName": "OS Family", "shape": "string" },
+        { "name": "policies", "displayName": "Failing Policies", "shape": "json" },
+        { "name": "lastRefreshTime", "displayName": "Last Refresh", "shape": "date" },
+        { "name": "serverCreateTime", "displayName": "Enrolled", "shape": "date" }
+    ],
+    "timeframes": false
+}
