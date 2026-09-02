@@ -11,7 +11,7 @@ You will need an Autotask account with admin access to create an API User. API U
 3. Complete the required fields in the **General** section, including **Email Address**. This address is only used to notify you if the integration has a problem, and it is **not** the API Username
 4. Set **Security Level** to an API User (API-only) level with read access to the entities you want to monitor
 5. In the **Credentials** section, click **Generate Key** to create the **Username (Key)**, and **Generate Secret** to create the **Password (Secret)**. Let Autotask generate both rather than typing your own, so they are formatted correctly
-6. In the **API Tracking Identifier** section, select **Squared Up** as your **Integration Vendor** (it's listed with a space, not as "SquaredUp"). Its **API Integration Code** is `FWAABGUO7E7BBHD3PQMLWCGLGY` — enter this value when configuring the plugin
+6. In the **API Tracking Identifier** section, select **Squared Up** as your **Integration Vendor**. Its **API Integration Code** is `FWAABGUO7E7BBHD3PQMLWCGLGY` — enter this value when configuring the plugin
 7. Save the record, then copy the Username (Key), Password (Secret) and tracking identifier somewhere safe. The secret cannot be retrieved again after you leave the page
 
 The API User must have sufficient security permissions to read the entities you want to monitor (Companies, Tickets, Contracts, Projects, Resources, and Survey Results).
