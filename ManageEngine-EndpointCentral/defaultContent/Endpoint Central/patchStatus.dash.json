@@ -1,0 +1,691 @@
+{
+    "name": "Patch Status",
+    "schemaVersion": "1.5",
+    "dashboard": {
+        "_type": "layout/grid",
+        "contents": [
+            {
+                "static": false,
+                "w": 3,
+                "moved": false,
+                "h": 3,
+                "x": 3,
+                "y": 0,
+                "i": "04a08963-f760-4e93-babb-3ab2a67218dc",
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Systems Summary",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "/api/1.4/patch/summary",
+                                                "headers": [],
+                                                "pathToData": "message_response.summary",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "\r\nSELECT \r\n    \"system_summary.healthy_systems\" AS value,\r\n    'Healthy' AS label\r\nFROM dataset1\r\n\r\nUNION ALL\r\nSELECT \r\n    \"system_summary.moderately_vulnerable_systems\" AS value,\r\n    'Moderately Vulnerable' AS label\r\nFROM dataset1\r\n\r\nUNION ALL\r\nSELECT \r\n    \"system_summary.highly_vulnerable_systems\" AS value,\r\n    'Highly Vulnerable' AS label\r\nFROM dataset1\r\n\r\nUNION ALL\r\nSELECT \r\n    \"system_summary.health_unknown_systems\" AS value,\r\n    'Unknown' AS label\r\nFROM dataset1;\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ],
+                                "name": "value"
+                            },
+                            {
+                                "shape": [
+                                    "state",
+                                    {
+                                        "map": {
+                                            "warning": [
+                                                "Moderately Vulnerable"
+                                            ],
+                                            "unmonitored": [],
+                                            "error": [
+                                                "Highly Vulnerable"
+                                            ],
+                                            "success": [
+                                                "Healthy"
+                                            ],
+                                            "unknown": [
+                                                "Unknown"
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "name": "label"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-blocks",
+                        "config": {
+                            "data-stream-blocks": {
+                                "stateColumn": "label",
+                                "linkColumn": "none",
+                                "columns": 2,
+                                "sublabel": "value",
+                                "labelColumn": "label[Expanded].rawState"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 3,
+                "x": 0,
+                "y": 0,
+                "i": "aaa4190b-4dfc-4436-8874-0438f22afbcd",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "timeframe": "last24hours",
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "endpointCentralPatchSummary",
+                                            "id": "{{dataStreams.endpointCentralPatchSummary}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "SELECT \r\n\r\n\r\n    ROUND(\r\n        (\r\n            (\"system_summary.total_systems\" \r\n             - \"missing_patch_severity_summary.critical_count\")::DOUBLE\r\n            / \"system_summary.total_systems\"::DOUBLE\r\n        ) * 100,\r\n        0\r\n    ) AS percent_not_missing_critical\r\nFROM dataset1;"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "asZeroToOne": false
+                                    }
+                                ],
+                                "name": "percent_not_missing_critical"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "KPI is 95%",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [
+                                "percent_not_missing_critical"
+                            ],
+                            "logic": {
+                                "if": [
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "top"
+                                            },
+                                            90
+                                        ]
+                                    },
+                                    "error",
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "top"
+                                            },
+                                            95
+                                        ]
+                                    },
+                                    "warning"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "column": "percent_not_missing_critical",
+                        "aggregation": "top",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 5
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Total Installed",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "Critical",
+                                "value": "percent_not_missing_critical",
+                                "labelPosition": "top",
+                                "formatted": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 3,
+                "x": 1,
+                "y": 0,
+                "i": "97fce299-4344-4c64-9ab6-9404eb520233",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "timeframe": "last24hours",
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "/api/1.4/patch/summary",
+                                                "headers": [],
+                                                "pathToData": "message_response.summary",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "\r\nSELECT\r\n    ROUND(\r\n        (\r\n            (\"system_summary.total_systems\" \r\n             - \"missing_patch_severity_summary.important_count\")::DOUBLE\r\n            / \"system_summary.total_systems\"::DOUBLE\r\n        ) * 100,\r\n        0\r\n    ) AS percent_not_missing_important\r\nFROM dataset1;\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "asZeroToOne": false
+                                    }
+                                ],
+                                "name": "percent_not_missing_important"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "KPI is 95%",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [
+                                "percent_not_missing_important"
+                            ],
+                            "logic": {
+                                "if": [
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "top"
+                                            },
+                                            90
+                                        ]
+                                    },
+                                    "error",
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "top"
+                                            },
+                                            95
+                                        ]
+                                    },
+                                    "warning"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "column": "percent_not_missing_important",
+                        "aggregation": "top",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 15
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Total Installed",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "Important",
+                                "value": "percent_not_missing_critical",
+                                "labelPosition": "top",
+                                "formatted": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 1,
+                "moved": false,
+                "h": 3,
+                "x": 2,
+                "y": 0,
+                "i": "36cb8c49-6f07-4da4-ab2c-dd665b6a8218",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "timeframe": "last24hours",
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "/api/1.4/patch/summary",
+                                                "headers": [],
+                                                "pathToData": "message_response.summary",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "\r\nSELECT\r\n    ROUND(\r\n        (\r\n            (\"system_summary.total_systems\" \r\n             - \"missing_patch_severity_summary.moderate_count\")::DOUBLE\r\n            / \"system_summary.total_systems\"::DOUBLE\r\n        ) * 100,\r\n        0\r\n    ) AS percent_not_missing_moderate\r\nFROM dataset1;\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "asZeroToOne": false
+                                    }
+                                ],
+                                "name": "percent_not_missing_moderate"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "KPI is 95%",
+                    "monitor": {
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "condition": {
+                            "columns": [
+                                "percent_not_missing_moderate"
+                            ],
+                            "logic": {
+                                "if": [
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "top"
+                                            },
+                                            90
+                                        ]
+                                    },
+                                    "error",
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "top"
+                                            },
+                                            95
+                                        ]
+                                    },
+                                    "warning"
+                                ]
+                            }
+                        },
+                        "_type": "simple",
+                        "column": "percent_not_missing_moderate",
+                        "aggregation": "top",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 15
+                    },
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Total Installed",
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "comparisonColumn": "none",
+                                "label": "Moderate",
+                                "value": "percent_not_missing_critical",
+                                "labelPosition": "top",
+                                "formatted": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 3,
+                "moved": false,
+                "h": 3,
+                "x": 3,
+                "y": 3,
+                "i": "78309120-401e-40c0-b92f-5c2da98dd903",
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Breakdown of Missing Patches",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "/api/1.4/patch/summary",
+                                                "headers": [],
+                                                "pathToData": "message_response.summary",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "\r\nWITH s AS (\r\n  SELECT\r\n    COALESCE(\"missing_patch_severity_summary.total_count\", 0)     AS total_count,\r\n    COALESCE(\"missing_patch_severity_summary.critical_count\", 0)  AS critical_count,\r\n    COALESCE(\"missing_patch_severity_summary.important_count\", 0) AS important_count,\r\n    COALESCE(\"missing_patch_severity_summary.moderate_count\", 0)  AS moderate_count,\r\n    COALESCE(\"missing_patch_severity_summary.low_count\", 0)       AS low_count,\r\n    COALESCE(\"missing_patch_severity_summary.unrated_count\", 0)   AS unrated_count\r\n  FROM dataset1\r\n)\r\n\r\n-- Percentages as strings with 2 decimals and a % sign\r\nSELECT printf('%.2f%%',\r\n              CASE WHEN total_count > 0 THEN 100.0 * critical_count  / total_count ELSE 0 END) AS value,\r\n       'Critical'  AS label\r\nFROM s\r\n\r\nUNION ALL\r\nSELECT printf('%.2f%%',\r\n              CASE WHEN total_count > 0 THEN 100.0 * important_count / total_count ELSE 0 END) AS value,\r\n       'Important' AS label\r\nFROM s\r\n\r\nUNION ALL\r\nSELECT printf('%.2f%%',\r\n              CASE WHEN total_count > 0 THEN 100.0 * moderate_count  / total_count ELSE 0 END) AS value,\r\n       'Moderate'  AS label\r\nFROM s\r\n\r\nUNION ALL\r\nSELECT printf('%.2f%%',\r\n              CASE WHEN total_count > 0 THEN 100.0 * low_count       / total_count ELSE 0 END) AS value,\r\n       'Low'       AS label\r\nFROM s\r\n\r\nUNION ALL\r\nSELECT printf('%.2f%%',\r\n              CASE WHEN total_count > 0 THEN 100.0 * unrated_count   / total_count ELSE 0 END) AS value,\r\n       'Unrated'   AS label\r\nFROM s\r\n\r\nUNION ALL\r\n-- Total Count as a string with 0 decimals (no % sign)\r\nSELECT printf('%.0f', CAST(total_count AS DOUBLE)) AS value,\r\n       'Total Count' AS label\r\nFROM s;\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 2,
+                                        "asZeroToOne": false
+                                    }
+                                ],
+                                "name": "critical_pct"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-blocks",
+                        "config": {
+                            "data-stream-blocks": {
+                                "linkColumn": "none",
+                                "sublabel": "value",
+                                "columns": 3,
+                                "labelColumn": "label"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 3,
+                "moved": false,
+                "h": 3,
+                "x": 0,
+                "y": 3,
+                "i": "330afd71-bfce-40a8-acb8-8a10c3f7de79",
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Missing Patch Severity",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "name": "configurableHttpRequestV2",
+                                            "dataSourceConfig": {
+                                                "endpointPath": "/api/1.4/patch/summary",
+                                                "headers": [],
+                                                "pathToData": "message_response.summary",
+                                                "paging": {
+                                                    "mode": "none"
+                                                },
+                                                "httpMethod": "get",
+                                                "errorHandling": {
+                                                    "type": "default"
+                                                },
+                                                "getArgs": []
+                                            },
+                                            "id": "{{dataStreams.configurableHttpRequestV2}}",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    },
+                                    "tableName": "dataset1"
+                                }
+                            ],
+                            "sql": "\r\nSELECT \r\n    \"missing_patch_severity_summary.moderate_count\" AS value,\r\n    'Moderate' AS label\r\nFROM dataset1\r\n\r\nUNION ALL\r\nSELECT \r\n    \"missing_patch_severity_summary.unrated_count\" AS value,\r\n    'Unrated' AS label\r\nFROM dataset1\r\n\r\nUNION ALL\r\nSELECT \r\n    \"missing_patch_severity_summary.critical_count\" AS value,\r\n    'Critical' AS label\r\nFROM dataset1\r\n\r\nUNION ALL\r\nSELECT \r\n    \"missing_patch_severity_summary.important_count\" AS value,\r\n    'Important' AS label\r\nFROM dataset1\r\n\r\nUNION ALL\r\nSELECT \r\n    \"missing_patch_severity_summary.low_count\" AS value,\r\n    'Low' AS label\r\nFROM dataset1;\r\n"
+                        },
+                        "metadata": [
+                            {
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ],
+                                "name": "value"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ],
+                        "id": "datastream-sql"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "value",
+                                "labelColumn": "label"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 6,
+                "moved": false,
+                "h": 3,
+                "x": 0,
+                "y": 6,
+                "i": "fcc5df5f-c1ff-4e97-9534-5af204f7c9ae",
+                "z": 0,
+                "config": {
+                    "timeframe": "last24hours",
+                    "dataStream": {
+                        "name": "endpointCentralAllPatches",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": []
+                        },
+                        "id": "{{dataStreams.endpointCentralAllPatches}}",
+                        "sort": {
+                            "top": 10,
+                            "by": [
+                                [
+                                    "missing",
+                                    "desc"
+                                ]
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": []
+                        },
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "baseTile": "data-stream-base-tile",
+                    "title": "Top Missing Patches",
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "patch_released_time",
+                                    "platform_name",
+                                    "missing",
+                                    "s.name",
+                                    "patch_name",
+                                    "patch_description"
+                                ],
+                                "resizedColumns": {
+                                    "columnWidths": {
+                                        "platform_name": 135
+                                    }
+                                },
+                                "hiddenColumns": [
+                                    "au.first_name",
+                                    "bulletin_id",
+                                    "cps.status_id",
+                                    "cps.updated_time",
+                                    "installed",
+                                    "patch_id",
+                                    "patch_noreboot",
+                                    "patch_size",
+                                    "patch_supported_time",
+                                    "patch_uninstall_status",
+                                    "platform",
+                                    "severity",
+                                    "severity_name",
+                                    "sqnumber",
+                                    "status_id",
+                                    "status_image",
+                                    "status_label",
+                                    "superceded_by",
+                                    "vendor_name",
+                                    "failed",
+                                    "update_name"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "version": 204,
+        "columns": 6
+    }
+}
