@@ -1,0 +1,66 @@
+{
+    "name": "sensorChannels",
+    "displayName": "Sensor Channels",
+    "description": "Current, minimum and maximum reading for each channel of a sensor",
+    "tags": ["Monitoring", "Performance"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "table.json",
+        "getArgs": [
+            { "key": "content", "value": "channels" },
+            { "key": "id", "value": "{{object.rawId}}" },
+            {
+                "key": "columns",
+                "value": "objid,name,lastvalue,minimum,maximum"
+            },
+            { "key": "count", "value": "50000" }
+        ],
+        "pathToData": "channels",
+        "paging": { "mode": "none" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Sensor"] } },
+    "metadata": [
+        {
+            "name": "objid",
+            "displayName": "Channel ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Channel",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "lastvalue_raw",
+            "displayName": "Last Value (Numeric)",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "lastvalue",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "lastValueFormatted",
+            "displayName": "Last Value",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ String($['lastvalue'] === null || $['lastvalue'] === undefined ? '' : $['lastvalue']).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ') }}"
+        },
+        {
+            "name": "minimum_raw",
+            "displayName": "Minimum",
+            "shape": "number"
+        },
+        {
+            "name": "maximum_raw",
+            "displayName": "Maximum",
+            "shape": "number"
+        }
+    ],
+    "timeframes": false
+}

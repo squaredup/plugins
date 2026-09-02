@@ -1,0 +1,112 @@
+{
+    "name": "sensorHistory",
+    "displayName": "Sensor History",
+    "description": "Historic channel readings for a sensor, one row per channel per interval",
+    "tags": [
+        "Monitoring",
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "historicdata.json",
+        "getArgs": [
+            {
+                "key": "id",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "usecaption",
+                "value": "1"
+            },
+            {
+                "key": "sdate",
+                "value": "{{ (function(){ var v = dataSource.serverTimeZone; var tz = Array.isArray(v) ? (v[0] && v[0].value) : v; if (!tz) { tz = \"UTC\"; } var MAX = 30 * 86400000; var start = new Date(timeframe.start).getTime(); var end = new Date(timeframe.end).getTime(); if (end - start > MAX) { start = end - MAX; } var fmt = function(zone){ var parts = new Intl.DateTimeFormat(\"en-GB\", { timeZone: zone, hourCycle: \"h23\", year: \"numeric\", month: \"2-digit\", day: \"2-digit\", hour: \"2-digit\", minute: \"2-digit\", second: \"2-digit\" }).formatToParts(new Date(start)); var p = {}; for (var i = 0; i < parts.length; i++) { p[parts[i].type] = parts[i].value; } return p.year + \"-\" + p.month + \"-\" + p.day + \"-\" + p.hour + \"-\" + p.minute + \"-\" + p.second; }; try { return fmt(tz); } catch (e) { return fmt(\"UTC\"); } })() }}"
+            },
+            {
+                "key": "edate",
+                "value": "{{ (function(){ var v = dataSource.serverTimeZone; var tz = Array.isArray(v) ? (v[0] && v[0].value) : v; if (!tz) { tz = \"UTC\"; } var MAX = 30 * 86400000; var start = new Date(timeframe.start).getTime(); var end = new Date(timeframe.end).getTime(); var fmt = function(zone){ var parts = new Intl.DateTimeFormat(\"en-GB\", { timeZone: zone, hourCycle: \"h23\", year: \"numeric\", month: \"2-digit\", day: \"2-digit\", hour: \"2-digit\", minute: \"2-digit\", second: \"2-digit\" }).formatToParts(new Date(end)); var p = {}; for (var i = 0; i < parts.length; i++) { p[parts[i].type] = parts[i].value; } return p.year + \"-\" + p.month + \"-\" + p.day + \"-\" + p.hour + \"-\" + p.minute + \"-\" + p.second; }; try { return fmt(tz); } catch (e) { return fmt(\"UTC\"); } })() }}"
+            },
+            {
+                "key": "avg",
+                "value": "{{ average || (new Date(timeframe.end) - new Date(timeframe.start) > 604800000 ? '3600' : null) }}"
+            }
+        ],
+        "postRequestScript": "sensorHistory.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Sensor"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "average",
+            "label": "Averaging interval",
+            "help": "How PRTG aggregates the readings. Left unset, PRTG uses 5-minute buckets, or hourly on ranges longer than seven days. **Raw** returns every individual reading — only practical over short timeframes.",
+            "options": [
+                {
+                    "value": "0",
+                    "label": "Raw"
+                },
+                {
+                    "value": "300",
+                    "label": "5 minutes"
+                },
+                {
+                    "value": "3600",
+                    "label": "1 hour"
+                },
+                {
+                    "value": "86400",
+                    "label": "1 day"
+                }
+            ],
+            "tileEditorStep": [
+                "Timeframe"
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "channel",
+            "displayName": "Channel",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "coverage",
+            "displayName": "Coverage",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ],
+    "defaultTimeframe": "dashboard"
+}
