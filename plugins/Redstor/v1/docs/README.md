@@ -31,7 +31,7 @@ On save, the plugin authenticates by exchanging a signed JWT for a Redstor acces
 - **Consumption & subscriptions** — storage and seat usage, and active product subscriptions, per company.
 - **Account errors** — backup and restore error and warning messages for a specific account.
 
-The out-of-the-box dashboards include a Partner-wide **Overview** plus a perspective for each **Company** and **Account**.
+The out-of-the-box dashboards include a Company **Overview** and a perspective for each **Account**.
 
 ## Data streams
 
@@ -49,16 +49,16 @@ The out-of-the-box dashboards include a Partner-wide **Overview** plus a perspec
 
 | Object type | API source | Represents |
 | ----------- | ---------- | ---------- |
-| **Redstor Company** | `GET /companies/{companyId}`, `GET /companies/{companyId}/customers` | Your configured Partner company and its direct customer companies. |
-| **Redstor Account** | `GET /storage/accounts` | A backup or storage account belonging to a company, for one product/service. |
+| **Company** | `GET /companies/{companyId}`, `GET /companies/{companyId}/customers` | Your configured Partner company and its direct customer companies. |
+| **Account** | `GET /storage/accounts` | A backup or storage account belonging to a company, for one product/service. |
 
 **Relationships:** each Account belongs to its parent Company.
 
 ## Known limitations
 
-- **Entirely unverified against a live Redstor tenant** — this plugin was authored directly from Redstor's public RedAPI OpenAPI specification, with no Redstor Partner Admin credentials available to test authentication or any data stream against a real account. Verify against a live tenant before relying on it in production.
+- **Unverified against a live Redstor tenant** — this plugin's endpoints, parameters, and response fields were checked field-by-field against Redstor's public RedAPI OpenAPI specification (`https://assets.redstor.com/api-gateway/swagger-ui/public.json`), but no Redstor Partner Admin credentials were available to test authentication or any data stream against a real account. Verify against a live tenant before relying on it in production.
 - **No historical or time-range data** — RedAPI exposes no `from`/`to` range parameter on any endpoint; every stream returns a current-state snapshot, and dashboards have no timeframe picker.
-- **Backup/restore status codes are undocumented** — the numeric `status` values in Company Account Backup/Restore Status aren't defined anywhere in RedAPI's public documentation, so they're shown as raw numbers rather than mapped to a health color.
+- **Restore status codes are undocumented** — the numeric `status` values in Company Account Restore Status aren't defined anywhere in RedAPI's public documentation, so they're shown as a raw number rather than mapped to a health color. (Company Account Backup Status's codes *are* documented and are mapped to a status color.)
 - **Subscriptions show IDs, not names** — RedAPI's `/subscriptions` endpoint returns `productId`/`editionId` only, with no product name lookup; this plugin doesn't index a Products type, so subscription rows show numeric IDs.
 - **Company hierarchy is one level deep** — only the configured Partner company and its direct customers are indexed; deeper reseller-of-reseller chains aren't walked recursively.
 - **Private key format assumed PEM** — the exact format RedApp downloads for a RedAPI service account key couldn't be confirmed without live access; PEM is assumed based on standard `private_key_jwt` practice.
