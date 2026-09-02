@@ -1,0 +1,94 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "description": "Detections and incidents from the unified Falcon Alerts API, one row per alert, with computed detection and response latency",
+    "tags": ["Security", "Alerts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "/alerts/combined/alerts/v1",
+        "postBody": {
+            "limit": 100,
+            "sort": "created_timestamp|desc",
+            "after": "{{after || null}}",
+            "filter": "{{(function(){var parts=[];if(typeof timeframe!=='undefined'&&timeframe&&timeframe.start&&timeframe.end){parts.push(\"created_timestamp:>'\"+timeframe.start+\"'+created_timestamp:<'\"+timeframe.end+\"'\");}var sel=(typeof scope!=='undefined'?scope:[])||[];var unwrap=function(v){return Array.isArray(v)?v[0]:v;};if(sel.length){var dev=[],grp=[];sel.forEach(function(o){var id=unwrap(o.rawId);if(o.type==='CrowdStrike Host Group'){grp.push(id);}else{dev.push(id);}});if(dev.length)parts.push(\"device.device_id:[\"+dev.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");if(grp.length)parts.push(\"device.groups:[\"+grp.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");}var st=(typeof status!=='undefined'?status:[])||[];if(st.length)parts.push(\"status:[\"+st.map(function(s){return \"'\"+(s.value||s)+\"'\";}).join(\",\")+\"]\");return parts.length?parts.join(\"+\"):null;})()}}"
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "body", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "meta.pagination.after" },
+            "out": { "realm": "body", "path": "after" }
+        },
+        "pathToData": "resources",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Host or Host Group (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["CrowdStrike Host", "CrowdStrike Host Group"] }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status",
+            "isMulti": true,
+            "options": [
+                { "value": "new", "label": "New" },
+                { "value": "in_progress", "label": "In Progress" },
+                { "value": "closed", "label": "Closed" },
+                { "value": "reopened", "label": "Reopened" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "composite_id", "displayName": "ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        { "name": "severity_name", "displayName": "Severity", "shape": "string" },
+        { "name": "severity", "displayName": "Severity Score", "shape": "number" },
+        { "name": "confidence", "displayName": "Confidence", "shape": "number" },
+        { "name": "product", "displayName": "Product", "shape": "string" },
+        { "name": "type", "displayName": "Alert Type", "shape": "string" },
+        { "name": "tactic", "displayName": "Tactic", "shape": "string" },
+        { "name": "technique", "displayName": "Technique", "shape": "string" },
+        { "name": "device.device_id", "displayName": "Device ID", "shape": "string", "visible": false },
+        { "name": "device.hostname", "displayName": "Hostname", "shape": "string" },
+        { "name": "device.platform_name", "displayName": "Platform", "shape": "string" },
+        { "name": "filename", "displayName": "File Name", "shape": "string" },
+        { "name": "filepath", "displayName": "File Path", "shape": "string" },
+        { "name": "cmdline", "displayName": "Command Line", "shape": "string" },
+        { "name": "user_name", "displayName": "User", "shape": "string" },
+        { "name": "tags", "displayName": "Tags", "shape": "string" },
+        { "name": "created_timestamp", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        { "name": "updated_timestamp", "displayName": "Last Updated", "shape": "date" },
+        { "name": "first_behavior", "displayName": "First Behavior", "shape": "date" },
+        { "name": "last_behavior", "displayName": "Last Behavior", "shape": "date" },
+        {
+            "name": "detectionLatencySeconds",
+            "displayName": "Detection Latency",
+            "computed": true,
+            "valueExpression": "{{ ($['first_behavior'] && $['created_timestamp']) ? Math.max(0, (new Date($['created_timestamp']) - new Date($['first_behavior'])) / 1000) : null }}",
+            "shape": ["seconds", { "formatDuration": true }]
+        },
+        {
+            "name": "responseLatencySeconds",
+            "displayName": "Response Latency",
+            "computed": true,
+            "valueExpression": "{{ ($['status'] === 'closed' && $['updated_timestamp'] && $['created_timestamp']) ? Math.max(0, (new Date($['updated_timestamp']) - new Date($['created_timestamp'])) / 1000) : null }}",
+            "shape": ["seconds", { "formatDuration": true }]
+        },
+        {
+            "sourceId": "device.device_id",
+            "sourceType": "CrowdStrike Host",
+            "name": "device.hostname"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": true
+}

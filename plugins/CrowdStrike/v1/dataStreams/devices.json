@@ -1,0 +1,88 @@
+{
+    "name": "devices",
+    "displayName": "Devices",
+    "description": "Host inventory with platform, sensor, network, group membership and policy assignment detail, one row per device",
+    "tags": ["Security", "Hosts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/devices/combined/devices/v1",
+        "getArgs": [
+            { "key": "limit", "value": "500" },
+            {
+                "key": "filter",
+                "value": "{{(function(){var sel=(typeof scope!=='undefined'?scope:[])||[];if(!sel.length)return null;var unwrap=function(v){return Array.isArray(v)?v[0]:v;};var dev=[],grp=[];sel.forEach(function(o){var id=unwrap(o.rawId);if(o.type==='CrowdStrike Host Group'){grp.push(id);}else{dev.push(id);}});var parts=[];if(dev.length)parts.push(\"device_id:[\"+dev.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");if(grp.length)parts.push(\"group_ids:[\"+grp.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");return parts.length?parts.join(\"+\"):null;})()}}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "500" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "resources" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "pathToData": "resources",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Host or Host Group (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["CrowdStrike Host", "CrowdStrike Host Group"] }
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "device_id", "displayName": "Device ID", "shape": "string", "visible": false },
+        { "name": "hostname", "displayName": "Hostname", "shape": "string", "role": "label" },
+        { "name": "platform_name", "displayName": "Platform", "shape": "string" },
+        { "name": "os_version", "displayName": "OS Version", "shape": "string" },
+        { "name": "product_type_desc", "displayName": "Product Type", "shape": "string" },
+        { "name": "agent_version", "displayName": "Sensor Version", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Containment Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["normal"],
+                        "warning": ["containment_pending", "lift_containment_pending"],
+                        "error": ["contained"]
+                    }
+                }
+            ]
+        },
+        { "name": "reduced_functionality_mode", "displayName": "Reduced Functionality Mode", "shape": "string" },
+        { "name": "first_seen", "displayName": "First Seen", "shape": "date" },
+        { "name": "last_seen", "displayName": "Last Seen", "shape": "date" },
+        { "name": "local_ip", "displayName": "Local IP", "shape": "string" },
+        { "name": "external_ip", "displayName": "External IP", "shape": "string" },
+        { "name": "mac_address", "displayName": "MAC Address", "shape": "string" },
+        { "name": "machine_domain", "displayName": "Domain", "shape": "string" },
+        { "name": "site_name", "displayName": "Site", "shape": "string" },
+        { "name": "serial_number", "displayName": "Serial Number", "shape": "string" },
+        { "name": "system_manufacturer", "displayName": "Manufacturer", "shape": "string" },
+        { "name": "system_product_name", "displayName": "Model", "shape": "string" },
+        { "name": "group_ids", "displayName": "Host Group IDs", "shape": "string", "visible": false },
+        { "name": "tags", "displayName": "Tags", "shape": "string" },
+        {
+            "name": "device_policies.prevention.applied",
+            "displayName": "Prevention Policy Applied",
+            "shape": "boolean"
+        },
+        {
+            "name": "device_policies.sensor_update.applied",
+            "displayName": "Sensor Update Policy Applied",
+            "shape": "boolean"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}
