@@ -1,0 +1,33 @@
+{
+    "name": "pbsGroupSnapshots",
+    "displayName": "Backup Group Snapshots",
+    "description": "Retained backup snapshots for a backup group, with size and verification status",
+    "tags": ["Backup Server", "Backup Group", "Snapshot"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "baseUrl": "{{dataSource.pbsHost}}/api2/json",
+        "httpMethod": "get",
+        "endpointPath": "/admin/datastore/{{object.store}}/snapshots",
+        "getArgs": [
+            { "key": "backup-type", "value": "{{object.backupType}}" },
+            { "key": "backup-id", "value": "{{object.backupId}}" }
+        ],
+        "headers": [
+            {
+                "key": "Authorization",
+                "value": "PBSAPIToken {{dataSource.pbsTokenId}}:{{dataSource.pbsTokenSecret}}"
+            }
+        ],
+        "postRequestScript": "pbsGroupSnapshots.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Proxmox Backup Group"] } },
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "timestamp", "role": "timestamp" },
+        { "name": "size", "displayName": "Size", "shape": "bytes", "role": "value" },
+        { "name": "protected", "displayName": "Protected", "shape": "boolean" },
+        { "name": "verificationState", "displayName": "Verification State", "shape": "string" },
+        { "name": "comment", "displayName": "Comment", "shape": "string" },
+        { "name": "backupGroup", "displayName": "Backup Group", "shape": "string" }
+    ],
+    "timeframes": false
+}
