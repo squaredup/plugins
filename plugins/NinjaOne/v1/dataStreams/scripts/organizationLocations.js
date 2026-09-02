@@ -8,3 +8,7 @@ result = items
         id: item.id ? item.id.toString() : null,
         organizationId: item.organizationId ? item.organizationId.toString() : null
     }));
+
+// Cursor must track the raw (unfiltered) API page, not the org-filtered result,
+// or pages of locations belonging to other organizations would be skipped.
+pagingContext = items.length ? items[items.length - 1].id : undefined;
