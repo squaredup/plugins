@@ -1,0 +1,87 @@
+{
+    "name": "zoneHealthCheckEvents",
+    "displayName": "Health Check Events",
+    "description": "Individual health check pass/fail events for a zone, with origin, region and latency detail",
+    "tags": ["Zone", "Availability"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){healthCheckEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){count avg{rttMs}dimensions{datetime healthCheckName healthCheckId healthStatus healthChanged failureReason region originIP}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.zones.0.healthCheckEventsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.healthCheckName",
+            "displayName": "Health Check",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "dimensions.healthStatus",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "dimensions.healthChanged",
+            "displayName": "Status Changed",
+            "shape": "number"
+        },
+        {
+            "name": "dimensions.failureReason",
+            "displayName": "Failure Reason",
+            "shape": "string"
+        },
+        {
+            "name": "dimensions.region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "dimensions.originIP",
+            "displayName": "Origin IP",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Event Count",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "avg.rttMs",
+            "displayName": "Avg Round Trip Time",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "dimensions.healthCheckId",
+            "displayName": "Health Check ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours"]
+}

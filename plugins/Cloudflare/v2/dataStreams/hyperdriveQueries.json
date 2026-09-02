@@ -1,0 +1,54 @@
+{
+    "name": "hyperdriveQueries",
+    "displayName": "Hyperdrive Queries",
+    "description": "Daily query count and query latency for a Hyperdrive config",
+    "tags": ["Database", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$configId:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){hyperdriveQueriesAdaptiveGroups(limit:10000,filter:{configId:$configId,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count avg{queryLatency} dimensions{date}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "configId": "{{object.rawId}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.hyperdriveQueriesAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Hyperdrive Config"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "count",
+            "displayName": "Queries",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "avg.queryLatency",
+            "displayName": "Avg Query Latency",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}

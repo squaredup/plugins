@@ -1,0 +1,54 @@
+{
+    "name": "vectorizeQueries",
+    "displayName": "Vectorize Queries",
+    "description": "Daily query count and query latency for a Vectorize index",
+    "tags": ["Database", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$indexName:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){vectorizeV2QueriesAdaptiveGroups(limit:10000,filter:{indexName:$indexName,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count avg{requestDurationMs} dimensions{date}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "indexName": "{{object.name}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.vectorizeV2QueriesAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Vectorize Index"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "count",
+            "displayName": "Queries",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "avg.requestDurationMs",
+            "displayName": "Avg Query Latency",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}

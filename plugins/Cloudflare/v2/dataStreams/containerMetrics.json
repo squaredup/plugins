@@ -1,0 +1,93 @@
+{
+    "name": "containerMetrics",
+    "displayName": "Container Metrics",
+    "description": "CPU, memory, network and uptime metrics for a Cloudflare Container Application",
+    "tags": ["Compute"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$applicationId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){containersMetricsAdaptiveGroups(limit:10000,filter:{applicationId:$applicationId,datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count avg{cpuUtilization memory containerUptime} sum{rxBytes txBytes} dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "applicationId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "containerMetrics.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Container Application"]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "region",
+            "options": [
+                { "value": "region", "label": "Region" },
+                { "value": "location", "label": "Location" },
+                { "value": "procType", "label": "Process Type" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "count",
+            "displayName": "Samples",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "avgCpuUtilization",
+            "displayName": "Avg CPU Utilization",
+            "shape": "number"
+        },
+        {
+            "name": "avgMemory",
+            "displayName": "Avg Memory Usage",
+            "shape": "number"
+        },
+        {
+            "name": "avgContainerUptimeMs",
+            "displayName": "Avg Container Uptime",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "sumRxBytes",
+            "displayName": "Bytes Received",
+            "shape": "bytes"
+        },
+        {
+            "name": "sumTxBytes",
+            "displayName": "Bytes Transmitted",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}

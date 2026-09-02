@@ -1,0 +1,54 @@
+{
+    "name": "vectorizeStorage",
+    "displayName": "Vectorize Storage",
+    "description": "Daily stored vector count and dimensionality for a Vectorize index",
+    "tags": ["Database", "Storage"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$indexName:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){vectorizeV2StorageAdaptiveGroups(limit:10000,filter:{indexName:$indexName,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){max{storedVectorDimensions vectorCount} dimensions{date}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "indexName": "{{object.name}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.vectorizeV2StorageAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Vectorize Index"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "max.vectorCount",
+            "displayName": "Stored Vectors",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "max.storedVectorDimensions",
+            "displayName": "Stored Vector Dimensions",
+            "shape": "number"
+        }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}

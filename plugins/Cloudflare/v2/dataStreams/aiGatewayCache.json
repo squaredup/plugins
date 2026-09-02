@@ -1,0 +1,57 @@
+{
+    "name": "aiGatewayCache",
+    "displayName": "AI Gateway Cache",
+    "description": "Cache hit and miss counts for an AI Gateway",
+    "tags": ["AI", "Cache"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$gateway:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){aiGatewayCacheAdaptiveGroups(limit:10000,filter:{gateway:$gateway,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count dimensions{date cacheOp}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "gateway": "{{object.name}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.aiGatewayCacheAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare AI Gateway"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        { "name": "dimensions.cacheOp", "visible": false },
+        {
+            "name": "cacheStatus",
+            "displayName": "Cache Status",
+            "computed": true,
+            "valueExpression": "{{ $['dimensions.cacheOp'] == 1 ? 'Hit' : 'Miss' }}",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}

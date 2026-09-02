@@ -1,0 +1,60 @@
+{
+    "name": "realtimeUsage",
+    "displayName": "Realtime Usage",
+    "description": "Bandwidth sent and received by a Cloudflare Realtime App, broken down by track type",
+    "tags": ["Media"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$appId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){callsUsageAdaptiveGroups(limit:10000,filter:{appId:$appId,datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){sum{egressBytes ingressBytes} dimensions{date trackType}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "appId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.callsUsageAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Realtime App"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.trackType",
+            "displayName": "Track Type",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "sum.egressBytes",
+            "displayName": "Bytes Sent",
+            "shape": "bytes",
+            "role": "value"
+        },
+        {
+            "name": "sum.ingressBytes",
+            "displayName": "Bytes Received",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}

@@ -1,0 +1,62 @@
+{
+    "name": "r2Operations",
+    "displayName": "R2 Operations",
+    "description": "Requests and response bytes against an R2 bucket, broken down by operation and outcome",
+    "tags": ["Storage", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$bucketName:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){r2OperationsAdaptiveGroups(limit:10000,filter:{bucketName:$bucketName,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){sum{requests responseBytes}dimensions{datetime actionType actionStatus}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "bucketName": "{{object.name}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.r2OperationsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare R2 Bucket"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.actionType",
+            "displayName": "Operation",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "dimensions.actionStatus",
+            "displayName": "Outcome",
+            "shape": "string"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.responseBytes",
+            "displayName": "Response Bytes",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

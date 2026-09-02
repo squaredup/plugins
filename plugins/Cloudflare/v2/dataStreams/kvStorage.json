@@ -1,0 +1,50 @@
+{
+    "name": "kvStorage",
+    "displayName": "KV Storage",
+    "description": "Daily stored key count and byte size for a Workers KV namespace",
+    "tags": ["Storage"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$namespaceId:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){kvStorageAdaptiveGroups(filter:{namespaceId:$namespaceId,date_geq:$start,date_leq:$end},limit:10000,orderBy:[date_DESC]){max{keyCount byteCount}dimensions{date}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "namespaceId": "{{object.rawId}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.kvStorageAdaptiveGroups",
+        "expandInnerObjects": true,
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare KV Namespace"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "max.keyCount",
+            "displayName": "Keys",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "max.byteCount",
+            "displayName": "Size",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}
