@@ -116,6 +116,7 @@ When suggesting changes:
 - Multiple conditions are AND-ed by default. Only expect `conditionLogic` when the author genuinely needs OR/parentheses, and check every condition index it references exists.
 - Format expressions - `sourceExpression`/`targetExpression` run per candidate object on every correlation run. Where the upstream data allows, prefer mapping a clean join key in the import over transforming one here.
 - Scope - Never accept `pluginId`, `configs`, `ruleType`, `schemaVersion`, `origin`, or condition `id`s in the file; all are stamped at deploy time. A plugin rule can only relate its own object types.
+- Evidence - A rule that validates can still match nothing, and nothing in CI catches that. Expect the author to say they confirmed edges against a real data source (`squaredup correlate-status` shows each rule's `edgesCreated`, `squaredup edges --rule <name>` shows the edges themselves). Treat a new rule with no such evidence as unverified.
 
 ### Documentation - (docs/README.md)
 
