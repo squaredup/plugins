@@ -1,0 +1,32 @@
+{
+    "name": "scheduleShifts",
+    "displayName": "Schedule Shifts",
+    "description": "The schedule's effective shifts across a time window, accounting for overrides",
+    "tags": ["On-Call", "Schedules"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/schedule_entries",
+        "getArgs": [
+            { "key": "schedule_id", "value": "{{object.rawId}}" },
+            { "key": "entry_window_start", "value": "{{timeframe.start}}" },
+            { "key": "entry_window_end", "value": "{{timeframe.end}}" }
+        ],
+        "expandInnerObjects": true,
+        "pathToData": "schedule_entries.final",
+        "paging": { "mode": "none" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Schedule"] } },
+    "metadata": [
+        { "name": "user.name", "displayName": "On-Call User", "shape": "string", "role": "label" },
+        { "name": "user.email", "displayName": "Email", "shape": "string" },
+        { "name": "start_at", "displayName": "Start", "shape": "date", "role": "timestamp" },
+        { "name": "end_at", "displayName": "End", "shape": "date" },
+        { "name": "rotation_id", "displayName": "Rotation ID", "shape": "string" },
+        { "name": "layer_id", "displayName": "Layer ID", "shape": "string" },
+        { "name": "entry_id", "displayName": "Entry ID", "shape": "string", "visible": false },
+        { "name": "fingerprint", "displayName": "Fingerprint", "shape": "string", "visible": false },
+        { "pattern": ".*" }
+    ],
+    "timeframes": true
+}
