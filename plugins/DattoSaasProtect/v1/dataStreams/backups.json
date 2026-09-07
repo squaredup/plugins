@@ -1,0 +1,38 @@
+{
+    "name": "backups",
+    "displayName": "Backups",
+    "description": "Backup runs for a SaaS Protection customer, one row per application type per day-window over the last 10 days",
+    "tags": ["Backup"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": { "sourceType": { "type": "oneOf", "values": ["SaaS Customer"] } },
+    "timeframes": false,
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/saas/{{object.rawId}}/applications",
+        "postRequestScript": "backups.js",
+        "paging": { "mode": "none" }
+    },
+    "defaultShaping": {
+        "sort": {
+            "by": [["windowEnd", "desc"]]
+        }
+    },
+    "metadata": [
+        { "name": "appType", "displayName": "Application", "shape": "string", "role": "label" },
+        { "name": "status", "displayName": "Status", "shape": ["state", { "map": { "success": ["Perfect"], "warning": ["Backup With Issues"], "error": ["Backup With Lots Of Issues"] } }] },
+        { "name": "windowEnd", "displayName": "Window End", "shape": ["date", { "timeZone": "Etc/UTC" }], "role": "timestamp" },
+        { "name": "windowStart", "displayName": "Window Start", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "timeWindow", "displayName": "Day Window", "shape": "string" },
+        { "name": "activeServiceWithPerfectBackupCount", "displayName": "Fully Backed Up", "shape": "number" },
+        { "name": "activeServiceWithBackupCount", "displayName": "Backed Up", "shape": "number" },
+        { "name": "activeServiceCount", "displayName": "Active Services", "shape": "number" },
+        { "name": "totalServiceCount", "displayName": "Total Services", "shape": "number" },
+        { "name": "uningestedServiceCount", "displayName": "Not Yet Ingested", "shape": "number" },
+        { "name": "usedBytes", "displayName": "Storage Used", "shape": "bytes" },
+        { "name": "lastFullyProtectedTime", "displayName": "Last Fully Protected", "shape": ["date", { "timeZone": "Etc/UTC" }] },
+        { "name": "suiteType", "displayName": "Suite", "shape": "string" },
+        { "name": "customerName", "displayName": "Customer", "shape": "string" },
+        { "name": "customerId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        { "pattern": ".*" }
+    ]
+}

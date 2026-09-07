@@ -1,0 +1,33 @@
+{
+    "name": "seats",
+    "displayName": "Seats",
+    "description": "Protected seats for a SaaS Protection customer, with seat type, state and billable status",
+    "tags": ["Backup"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": { "sourceType": { "type": "oneOf", "values": ["SaaS Customer"] } },
+    "timeframes": false,
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/saas/{{object.rawId}}/seats",
+        "postRequestScript": "seats.js",
+        "paging": { "mode": "none" }
+    },
+    "defaultShaping": {
+        "sort": {
+            "by": [["name", "asc"]]
+        }
+    },
+    "metadata": [
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "mainId", "displayName": "Protected Entity", "shape": "string" },
+        { "name": "seatType", "displayName": "Seat Type", "shape": "string" },
+        { "name": "seatState", "displayName": "State", "shape": ["state", { "map": { "success": ["Active"], "warning": ["Unprotected"], "unmonitored": ["Archived"] } }] },
+        { "name": "billable", "displayName": "Billable", "shape": "boolean" },
+        { "name": "dateAdded", "displayName": "Added", "shape": "date" },
+        { "name": "remoteId", "displayName": "Remote ID", "shape": "string", "visible": false },
+        { "name": "seatKey", "displayName": "Seat Key", "shape": "string", "visible": false },
+        { "name": "saasCustomerId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        { "sourceId": "seatKey", "sourceType": "Seat", "name": "name" },
+        { "pattern": ".*" }
+    ]
+}
