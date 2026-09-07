@@ -9,9 +9,9 @@ You will need a RedAPI **service account** with its Client ID and private key, p
 1. Sign in to [RedApp](https://redapp.redstor.com) as a **Partner Admin**.
 2. Note your Partner company's ID — find it under **Company Settings** — and paste it into the **Company ID** field.
 3. Go to **RedAPI → Service accounts** and click to add a new service account. Give it a descriptive name and assign it access to your Partner company (and the customers you want visibility into).
-4. Under the service account, create a **key**. Redstor generates a Client ID and a private/public key pair — download the private key file.
+4. Under the service account, create a **key**. Redstor generates a Client ID and a JSON Web Key (JWK) file — download the JWK file.
 5. Copy the **Client ID** into the **Client ID** field.
-6. Open the downloaded private key file and paste its full contents — including the `-----BEGIN PRIVATE KEY-----` / `-----END PRIVATE KEY-----` lines — into the **Private Key** field.
+6. Open the downloaded JWK file (a `.json` file) and paste its full contents, exactly as downloaded, into the **Private Key** field.
 
 ## Configuration fields
 
@@ -19,7 +19,7 @@ You will need a RedAPI **service account** with its Client ID and private key, p
 | ----- | ---------- | ---------------- | -------- |
 | **Company ID** | Your Redstor Partner company's ID. Scopes every API call to this company and its direct customers. | RedApp → **Company Settings**. | Yes |
 | **Client ID** | Identifies the RedAPI service account used to authenticate. | RedApp → **RedAPI → Service accounts** → your service account's key. | Yes |
-| **Private Key** | The PEM-encoded private key paired with the Client ID; signs the client assertion used to obtain access tokens. | Downloaded when the service account's key was created. | Yes |
+| **Private Key** | The JSON Web Key (JWK) paired with the Client ID; signs the client assertion used to obtain access tokens. | Downloaded when the service account's key was created. | Yes |
 
 On save, the plugin authenticates by exchanging a signed JWT for a Redstor access token and calling your company's profile; an invalid Company ID, Client ID, or Private Key fails setup with an authentication error.
 
@@ -56,11 +56,10 @@ The out-of-the-box dashboards include a Company **Overview** and a perspective f
 
 ## Known limitations
 
-- **Unverified against a live Redstor tenant** — this plugin's endpoints, parameters, and response fields were checked field-by-field against Redstor's public RedAPI OpenAPI specification (`https://assets.redstor.com/api-gateway/swagger-ui/public.json`), but no Redstor Partner Admin credentials were available to test authentication or any data stream against a real account. Verify against a live tenant before relying on it in production.
+- **Only partially verified against a live Redstor tenant** — authentication (the JWK-signed `private_key_jwt` exchange) and the Company Profile endpoint have been confirmed working end-to-end against a real Partner account. Every other data stream was still only checked field-by-field against RedAPI's public OpenAPI specification (`https://assets.redstor.com/api-gateway/swagger-ui/public.json`), which is not fully reliable — the spec's documented auth header (`X-Api-Key`) turned out to be wrong; the live API actually requires a standard `Authorization: Bearer` header plus an `apiVersion=2.0` query parameter the spec lists as optional. Verify the remaining data streams against a live tenant before relying on them in production.
 - **No historical or time-range data** — RedAPI exposes no `from`/`to` range parameter on any endpoint; every stream returns a current-state snapshot, and dashboards have no timeframe picker.
 - **Restore status codes are undocumented** — the numeric `status` values in Company Account Restore Status aren't defined anywhere in RedAPI's public documentation, so they're shown as a raw number rather than mapped to a health color. (Company Account Backup Status's codes *are* documented and are mapped to a status color.)
 - **Subscriptions show IDs, not names** — RedAPI's `/subscriptions` endpoint returns `productId`/`editionId` only, with no product name lookup; this plugin doesn't index a Products type, so subscription rows show numeric IDs.
 - **Company hierarchy is one level deep** — only the configured Partner company and its direct customers are indexed; deeper reseller-of-reseller chains aren't walked recursively.
-- **Private key format assumed PEM** — the exact format RedApp downloads for a RedAPI service account key couldn't be confirmed without live access; PEM is assumed based on standard `private_key_jwt` practice.
 - **Subject to Redstor's fair-use throttling** — RedAPI enforces rate limiting; specific limits aren't published.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in Redstor.

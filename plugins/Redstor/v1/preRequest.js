@@ -3,9 +3,17 @@
 // assertion is signed with a service account's private key and exchanged
 // at the token endpoint for a short-lived access token.
 //
-// Unlike a standard OAuth2 flow, the resulting access token is NOT sent as
-// `Authorization: Bearer` on API calls — RedAPI's OpenAPI spec declares the
-// security scheme as an `X-Api-Key` header, so that's where the token goes.
+// RedApp issues the service account's signing key as a JSON Web Key (JWK),
+// not a PEM file — confirmed against a live RedApp export. The JWK is
+// imported directly via crypto.subtle, and its `kid` (when present) is
+// echoed in the JWT header, since RedAPI's auth server needs it to identify
+// which registered key signed the assertion.
+//
+// The access token IS sent as a standard `Authorization: Bearer` header —
+// confirmed against a live account. RedAPI's published OpenAPI spec
+// declares the security scheme as an `X-Api-Key` header instead, but that
+// does not match how the deployed API actually behaves; sending X-Api-Key
+// gets a 401 with `WWW-Authenticate: Bearer`.
 //
 // The access token is cached in `state` and reused until shortly before
 // expiration; the client-assertion JWT itself is re-signed on every
@@ -14,19 +22,6 @@
 const TOKEN_ENDPOINT = "https://id.redstor.com/connect/token";
 
 // --- helpers -----------------------------------------------------------------------
-
-function pemToArrayBuffer(pem) {
-    const base64 = String(pem)
-        .replace(/-----BEGIN [^-]+-----/, "")
-        .replace(/-----END [^-]+-----/, "")
-        .replace(/\s+/g, "");
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes.buffer;
-}
 
 function bytesToBase64Url(bytes) {
     let binary = "";
@@ -40,8 +35,14 @@ function utf8ToBytes(str) {
     return new TextEncoder().encode(str);
 }
 
-async function signClientAssertion(clientId, privateKeyPem) {
+async function signClientAssertion(clientId, privateKeyJwk) {
     const header = { alg: "RS256", typ: "JWT" };
+    if (privateKeyJwk.kid) {
+        // RedAPI's auth server expects the kid from the issued JWK so it can
+        // look up the matching registered public key for this client.
+        header.kid = privateKeyJwk.kid;
+    }
+
     const nowSeconds = Math.floor(Date.now() / 1000);
     const payload = {
         iss: clientId,
@@ -59,8 +60,8 @@ async function signClientAssertion(clientId, privateKeyPem) {
     const signingInput = `${encodedHeader}.${encodedPayload}`;
 
     const key = await crypto.subtle.importKey(
-        "pkcs8",
-        pemToArrayBuffer(privateKeyPem),
+        "jwk",
+        privateKeyJwk,
         { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
         false,
         ["sign"],
@@ -79,19 +80,29 @@ async function signClientAssertion(clientId, privateKeyPem) {
 
 if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= Date.now()) {
     const clientId = String(secrets.clientId || "").trim();
-    const privateKey = String(secrets.privateKey || "").trim();
+    const privateKeyRaw = String(secrets.privateKey || "").trim();
 
-    if (!clientId || !privateKey) {
+    if (!clientId || !privateKeyRaw) {
         api.report.error("Redstor RedAPI Client ID or Private Key is not configured.");
+        return;
+    }
+
+    let privateKeyJwk;
+    try {
+        privateKeyJwk = JSON.parse(privateKeyRaw);
+    } catch (e) {
+        api.report.error(
+            "Could not parse the Redstor Private Key — it must be the full JSON Web Key (JWK) downloaded from RedApp, pasted as-is.",
+        );
         return;
     }
 
     let clientAssertion;
     try {
-        clientAssertion = await signClientAssertion(clientId, privateKey);
+        clientAssertion = await signClientAssertion(clientId, privateKeyJwk);
     } catch (e) {
         api.report.error(
-            `Could not sign the Redstor client assertion — check the Private Key is a valid PEM-encoded RSA private key. ${e}`,
+            `Could not sign the Redstor client assertion — check the Private Key is a valid RSA JWK. ${e}`,
         );
         return;
     }
@@ -147,4 +158,4 @@ if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= Date.now()) 
 
 // --- request ---------------------------------------------------------------------
 
-headers["X-Api-Key"] = state.token;
+headers["Authorization"] = `Bearer ${state.token}`;
