@@ -1,4 +1,6 @@
-# Before you start
+Connect to Datto Autotask PSA to monitor tickets, contracts, projects, resources, and company data.
+
+## Before you start
 
 You will need an Autotask account with admin access to create an API User. API Users are a dedicated account type in Autotask used for system integrations. They are separate from regular user accounts and cannot log in to the Autotask UI.
 
@@ -9,7 +11,7 @@ You will need an Autotask account with admin access to create an API User. API U
 3. Complete the required fields in the **General** section, including **Email Address**. This address is only used to notify you if the integration has a problem, and it is **not** the API Username
 4. Set **Security Level** to an API User (API-only) level with read access to the entities you want to monitor
 5. In the **Credentials** section, click **Generate Key** to create the **Username (Key)**, and **Generate Secret** to create the **Password (Secret)**. Let Autotask generate both rather than typing your own, so they are formatted correctly
-6. In the **API Tracking Identifier** section, select your **Integration Vendor**, or choose **Custom (Internal Integration)** to generate an identifier. This value is the **API Integration Code**
+6. In the **API Tracking Identifier** section, select **Squared Up** as your **Integration Vendor**. Its **API Integration Code** is `FWAABGUO7E7BBHD3PQMLWCGLGY` — enter this value when configuring the plugin
 7. Save the record, then copy the Username (Key), Password (Secret) and tracking identifier somewhere safe. The secret cannot be retrieved again after you leave the page
 
 The API User must have sufficient security permissions to read the entities you want to monitor (Companies, Tickets, Contracts, Projects, Resources, and Survey Results).
@@ -38,5 +40,5 @@ Enter the full base including `https://`.
 |---|---|
 | **Zone URL** | Derived from your Autotask login URL. See above |
 | **API Username** | API User record > Credentials > **Username (Key)** |
-| **API Integration Code** | API User record > **API Tracking Identifier** |
+| **API Integration Code** | The **Squared Up** Integration Vendor code is `FWAABGUO7E7BBHD3PQMLWCGLGY` |
 | **API Secret** | API User record > Credentials > **Password (Secret)** |
