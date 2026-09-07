@@ -1,13 +1,19 @@
 {
     "name": "incidents",
     "displayName": "Incidents",
-    "description": "All incidents in the organization, one row per incident",
+    "description": "All incidents in the organization within the selected timeframe, one row per incident",
     "tags": ["Incidents"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
         "endpointPath": "v2/incidents",
         "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "created_at[date_range]",
+                "value": "{{timeframe.enum === 'none' ? null : (timeframe.start + '~' + timeframe.end)}}"
+            }
+        ],
         "pathToData": "incidents",
         "paging": {
             "mode": "token",
@@ -32,5 +38,20 @@
         { "name": "permalink", "displayName": "Permalink", "shape": "url" },
         { "pattern": ".*" }
     ],
-    "timeframes": false
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
 }

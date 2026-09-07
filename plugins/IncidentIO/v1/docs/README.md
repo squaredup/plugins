@@ -28,7 +28,7 @@ The out-of-the-box dashboards include an estate-wide **Overview** plus a perspec
 ## Data streams
 
 - **Current User** — identity and role for the configured API key (used to validate setup; hidden from the tile editor).
-- **Incidents** — all incidents in the organization, one row per incident.
+- **Incidents** — all incidents in the organization within the selected timeframe, one row per incident.
 - **Alerts** — all alerts ingested by your alert sources, one row per alert.
 - **Schedule On-Call** — the current on-call shift(s) for one schedule.
 - **Schedule Shifts** — the effective shift schedule for one schedule, over a timeframe.
