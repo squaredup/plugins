@@ -43,7 +43,7 @@ The out-of-the-box dashboards include an account-wide **Overview**, a dedicated 
 
 - **Services** — current status, escalation policy and team associations, one row per service.
 - **Users** — role, contact and team associations, one row per user.
-- **Incidents** — filterable by status, urgency, service, team and assignee, one row per incident.
+- **Incidents** — filterable by status, urgency, service, team and assignee, one row per incident, including who last modified/resolved it.
 - **Incident Metrics** — account-wide aggregated incident analytics, optionally bucketed by day, week or month.
 - **Incident Metrics by Service/Team/Escalation Policy** — the same analytics grouped by dimension, one row per group.
 - **Responder Metrics** — aggregated responder performance, one row per responder.
@@ -64,7 +64,8 @@ Team membership is stored as a property on each Service and User (`teamIds`/`tea
 
 ## Known limitations
 
-- **Incident search is capped at a 6-month window** — the **Incidents** stream's timeframe options stop at "Last quarter"; use **Incident Metrics** for longer-range trends (up to 1 year).
+- **Incident search is capped at a 6-month window** — this is a hard limit of PagerDuty's own incident search API, not a SquaredUp restriction: a request spanning more than ~6 months is rejected outright. The **Incidents** stream offers every timeframe, including This Year, Last Year and a custom range, but automatically clamps the start of any wider selection to 6 months before the end so the query never fails — you'll silently get the most recent 6 months of a longer range. Use **Incident Metrics** for longer-range trend analysis, which has no such cap.
+- **Responder-level resolution counts aren't available** — PagerDuty's responder analytics API reports involvement (incident count, interruptions, acknowledgements, on-call time, mean time to resolve) but not how many incidents each responder actually resolved. For per-incident resolution attribution, use the **Incidents** stream's **Modified By** column, filtered to Status = Resolved.
 - **Notifications are capped at a 3-month window** — the **Notifications** stream's timeframe options stop at "Last month".
 - **Teams require an add-on account ability** — the **Teams** import step (and the Team scope/dashboards it feeds) only returns data on PagerDuty plans with the Teams ability enabled. On accounts without it, PagerDuty rejects the request and the step is skipped with a warning rather than failing the whole import — everything else (Services, Users, Schedules, Escalation Policies, Incidents, etc.) still imports and refreshes normally.
 - **Notifications' User filter is applied client-side** — PagerDuty's notifications endpoint has no server-side user filter, so the plugin fetches the full window and filters by user in the plugin itself. This is transparent to you, but very high notification volumes over a wide timeframe may be slower to filter than a server-side filter would be.

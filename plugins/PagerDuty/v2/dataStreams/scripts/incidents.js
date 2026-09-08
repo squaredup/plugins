@@ -15,6 +15,9 @@ result = rows.map((i) => ({
         .map((a) => a.assignee && a.assignee.summary)
         .filter(Boolean)
         .join(", "),
+    modifiedById: i.last_status_change_by ? i.last_status_change_by.id : "",
+    modifiedByName: i.last_status_change_by ? i.last_status_change_by.summary : "",
+    modifiedByType: i.last_status_change_by ? i.last_status_change_by.type : "",
     createdAt: i.created_at,
     lastStatusChangeAt: i.last_status_change_at,
     resolvedAt: i.resolved_at || "",

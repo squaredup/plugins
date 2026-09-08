@@ -1,14 +1,14 @@
 {
     "name": "incidents",
     "displayName": "Incidents",
-    "description": "PagerDuty incidents filterable by status, urgency, service, team and assignee, one row per incident",
+    "description": "PagerDuty incidents filterable by status, urgency, service, team and assignee, one row per incident. PagerDuty's incident search only supports a ~6-month lookback, so a longer or custom range is automatically clamped to the most recent 6 months.",
     "tags": ["Incidents"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
         "endpointPath": "incidents",
         "getArgs": [
-            { "key": "since", "value": "{{timeframe.start}}" },
+            { "key": "since", "value": "{{new Date(Math.max(new Date(timeframe.start).getTime(), new Date(timeframe.end).getTime() - 182 * 86400000)).toISOString()}}" },
             { "key": "until", "value": "{{timeframe.end}}" },
             { "key": "statuses[]", "value": "{{statuses?.length ? statuses : null}}" },
             { "key": "urgencies[]", "value": "{{urgencies?.length ? urgencies : null}}" },
@@ -97,22 +97,15 @@
         { "name": "escalationPolicyName", "displayName": "Escalation Policy", "shape": "string", "visible": false },
         { "name": "teamNames", "displayName": "Teams", "shape": "string" },
         { "name": "assigneeNames", "displayName": "Assignees", "shape": "string" },
+        { "name": "modifiedById", "displayName": "Modified By ID", "shape": "string", "visible": false },
+        { "name": "modifiedByName", "displayName": "Modified By", "shape": "string" },
+        { "name": "modifiedByType", "displayName": "Modified By Type", "shape": "string", "visible": false },
         { "name": "createdAt", "displayName": "Created", "shape": "date", "role": "timestamp" },
         { "name": "lastStatusChangeAt", "displayName": "Last Status Change", "shape": "date" },
         { "name": "resolvedAt", "displayName": "Resolved", "shape": "date" },
         { "name": "htmlUrl", "displayName": "Link", "shape": ["url", { "label": "Open in PagerDuty" }] },
         { "sourceId": "serviceId", "sourceType": "PagerDuty Service", "name": "serviceName" }
     ],
-    "timeframes": [
-        "last1hour",
-        "last12hours",
-        "last24hours",
-        "last7days",
-        "last30days",
-        "thisMonth",
-        "thisQuarter",
-        "lastMonth",
-        "lastQuarter"
-    ],
+    "timeframes": true,
     "defaultTimeframe": "dashboard"
 }
