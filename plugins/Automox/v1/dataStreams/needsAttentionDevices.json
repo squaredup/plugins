@@ -48,7 +48,35 @@
         },
         { "name": "needsReboot", "displayName": "Needs Reboot", "shape": "boolean" },
         { "name": "os_family", "displayName": "OS Family", "shape": "string" },
-        { "name": "policies", "displayName": "Failing Policies", "shape": "json" },
+        { "name": "policies", "displayName": "Failing Policies", "shape": "json", "visible": false },
+        {
+            "name": "failingPolicyCount",
+            "displayName": "Failing Policy Count",
+            "computed": true,
+            "valueExpression": "{{ ($['policies'] || []).length }}",
+            "shape": "number"
+        },
+        {
+            "name": "failingPolicyNames",
+            "displayName": "Failing Policies",
+            "computed": true,
+            "valueExpression": "{{ ($['policies'] || []).map(p => p.name).filter(Boolean).join(', ') }}",
+            "shape": "string"
+        },
+        {
+            "name": "failingPolicySeverities",
+            "displayName": "Failing Policy Severities",
+            "computed": true,
+            "valueExpression": "{{ [...new Set(($['policies'] || []).map(p => p.severity).filter(Boolean))].join(', ') }}",
+            "shape": "string"
+        },
+        {
+            "name": "failingPolicyReasons",
+            "displayName": "Failing Policy Reasons",
+            "computed": true,
+            "valueExpression": "{{ ($['policies'] || []).map(p => p.reasonForFail).filter(Boolean).join('; ') }}",
+            "shape": "string"
+        },
         { "name": "lastRefreshTime", "displayName": "Last Refresh", "shape": "date" },
         { "name": "serverCreateTime", "displayName": "Enrolled", "shape": "date" }
     ],
