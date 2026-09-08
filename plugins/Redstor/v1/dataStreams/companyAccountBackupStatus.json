@@ -1,7 +1,7 @@
 {
     "name": "companyAccountBackupStatus",
     "displayName": "Company Account Backup Status",
-    "description": "Recent backup operation status history per account for a company",
+    "description": "Latest backup run per account for a company (the full seven day history is available as an option)",
     "tags": ["Backup", "Account"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
@@ -17,8 +17,25 @@
         "postRequestScript": "companyAccountBackupStatus.js"
     },
     "matches": { "sourceType": { "type": "oneOf", "values": ["Company"] } },
+    "ui": [
+        {
+            "type": "checkbox",
+            "name": "includeHistory",
+            "label": "Include full history",
+            "defaultValue": false,
+            "help": "Returns every run in Redstor's rolling seven day window. Large datasets may exceed the amount of data a tile can return."
+        }
+    ],
     "metadata": [
         { "name": "accountName", "displayName": "Account", "shape": "string", "role": "label" },
+        { "name": "serviceId", "displayName": "Service ID", "shape": "number", "visible": false },
+        {
+            "name": "serviceName",
+            "displayName": "Service",
+            "sourceId": "serviceId",
+            "sourceType": "Service",
+            "objectPropertyPath": "name"
+        },
         { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
         {
             "name": "overallStatus",
@@ -36,7 +53,6 @@
         },
         { "name": "message", "displayName": "Message", "shape": "string" },
         { "name": "errorCount", "displayName": "Error Count", "shape": "number" },
-        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false },
         { "name": "accountId", "displayName": "Account ID", "shape": "guid", "visible": false }
     ],
     "timeframes": false
