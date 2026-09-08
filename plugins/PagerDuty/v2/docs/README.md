@@ -45,7 +45,7 @@ The out-of-the-box dashboards include an account-wide **Overview**, a dedicated 
 - **Users** — role, contact and team associations, one row per user.
 - **Incidents** — filterable by status, urgency, service, team and assignee, one row per incident, including who last modified/resolved it.
 - **Incident Metrics** — account-wide aggregated incident analytics, optionally bucketed by day, week or month.
-- **Incident Metrics by Service/Team/Escalation Policy** — the same analytics grouped by dimension, one row per group.
+- **Incident Metrics (by Service / Team / Escalation Policy)** — the same analytics grouped by dimension, one row per group.
 - **Responder Metrics** — aggregated responder performance, one row per responder.
 - **On-Call** — who is on call now and over an upcoming look-ahead window, one row per shift.
 - **Notifications** — outbound notifications sent to responders, one row per notification.
