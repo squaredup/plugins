@@ -60,6 +60,7 @@ Notes:
 - **`status` is the run's lifecycle, not the outcome.** While running it's `ready`/`inProgress`; once `done` it's one of `succeeded`, `failed`, `warning`, or `cancelled`. `succeeded` and `warning` both report `succeeded: true` (a `warning` run finished but a step emitted warnings — check the `steps[]`); `failed` and `cancelled` report `succeeded: false`. A datasource that has never imported reports `status: "notRun"`, `done: false`.
 - `--since` is **exclusive** (`scheduledStart > since`): always pass the `since` from `index` so `done` can't latch on a stale previous run.
 - If `index` reports `alreadyRunning: true`, it adopted the in-flight run — poll with the `since` it returned. Imports can take several minutes (object import allows up to ~10 min); use a generous overall timeout.
+- **Correlation runs after the import, not as part of it.** If the plugin ships `correlationRules/*.json`, a successful import triggers correlation fire-and-forget — `done: true, succeeded: true` says nothing about whether edges were written, and they land shortly afterwards. There is no CLI command for edges; confirm relationships in the tenant UI. See [correlation-rules.md](correlation-rules.md).
 - The `--matches` confirm in step 3 must be **inline JSON** — `--matches @<importStream>.json` only resolves a real scope, and an import stream's `matches` is `none`/absent. Likewise `objects <stream>` needs a scoped stream, which doesn't exist until Phase 6.
 
 ## Imported objects are frozen at import time — re-index to refresh them
