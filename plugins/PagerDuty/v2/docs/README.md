@@ -7,22 +7,21 @@ schedules and responder performance in SquaredUp, via the
 You will need a PagerDuty **REST API key**.
 
 1. Sign in to your [PagerDuty account](https://app.pagerduty.com).
-2. For a key tied to your own user, go to **My Profile → User Settings** and
-   click **Create API User Token**. For a key that keeps working if your
-   account is ever removed, go to **Integrations → API Access Keys** instead
-   and click **Create New API Key** (requires admin permissions) — choose
-   **Read-only** unless you have a reason to grant write access.
+2. Create the key from your user profile settings for a token tied to your own
+   user, or from your account's API access settings for a general-access key
+   that keeps working if your account is ever removed (creating one of those
+   requires admin permissions). Choose **Read-only** unless you have a reason
+   to grant write access.
 3. Copy the generated key and paste it into the **API token** field.
-4. Choose the **Service region** that matches your account (check
-   **Account Settings** in PagerDuty if you're unsure — most accounts are
-   **Global/US**).
+4. Choose the **Service region** that matches your account — check your account
+   settings in PagerDuty if you're unsure; most accounts are **Global/US**.
 
 ## Configuration fields
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ----------------- | -------- |
-| **API token** | Authenticates every request via the `Authorization: Token token=...` header. | PagerDuty → **My Profile → User Settings** (personal) or **Integrations → API Access Keys** (general access). | Yes |
-| **Service region** | Selects the PagerDuty API host (`api.pagerduty.com` or `api.eu.pagerduty.com`) for your account. | PagerDuty → **Account Settings**. | Yes |
+| **API token** | Authenticates every request via the `Authorization: Token token=...` header. | Your PagerDuty user profile settings (personal token) or account API access settings (general access). | Yes |
+| **Service region** | Selects the PagerDuty API host (`api.pagerduty.com` or `api.eu.pagerduty.com`) for your account. | Your PagerDuty account settings. | Yes |
 | **Timezone** | IANA timezone used to align time-based filters and aggregated results. | — | No |
 
 On save, the plugin validates the token by fetching your account's enabled
