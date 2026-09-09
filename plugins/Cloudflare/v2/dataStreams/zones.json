@@ -1,0 +1,166 @@
+{
+    "name": "zones",
+    "displayName": "Zones",
+    "description": "Cloudflare zones with their status, plan and owning account",
+    "tags": [
+        "Zone"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "zones",
+        "pathToData": "result",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "50"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "result"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": "none",
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Zone ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Zone",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Cloudflare Zone"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "active"
+                        ],
+                        "warning": [
+                            "pending",
+                            "initializing",
+                            "read only"
+                        ],
+                        "error": [
+                            "moved",
+                            "deactivated",
+                            "deleted"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "paused",
+            "displayName": "Paused",
+            "shape": "boolean"
+        },
+        {
+            "name": "type",
+            "displayName": "Zone Type",
+            "shape": "string"
+        },
+        {
+            "name": "development_mode",
+            "visible": false,
+            "shape": "number"
+        },
+        {
+            "name": "developmentModeActive",
+            "displayName": "Development Mode",
+            "computed": true,
+            "valueExpression": "{{ Number($['development_mode']) > 0 }}",
+            "shape": "boolean"
+        },
+        {
+            "name": "account.id",
+            "visible": false,
+            "shape": "string"
+        },
+        {
+            "name": "account.name",
+            "visible": false,
+            "shape": "string"
+        },
+        {
+            "name": "plan.name",
+            "visible": false,
+            "shape": "string"
+        },
+        {
+            "name": "accountId",
+            "displayName": "Account ID",
+            "computed": true,
+            "valueExpression": "{{ $['account.id'] }}",
+            "shape": "string"
+        },
+        {
+            "name": "accountName",
+            "displayName": "Account",
+            "computed": true,
+            "valueExpression": "{{ $['account.name'] }}",
+            "shape": "string"
+        },
+        {
+            "name": "planName",
+            "displayName": "Plan",
+            "computed": true,
+            "valueExpression": "{{ $['plan.name'] }}",
+            "shape": "string"
+        },
+        {
+            "name": "created_on",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "activated_on",
+            "displayName": "Activated",
+            "shape": "date"
+        },
+        {
+            "name": "name_servers",
+            "displayName": "Name Servers",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "nameServers",
+            "displayName": "Name Servers",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ $['name_servers'].split('\"').join('').split('[').join('').split(']').join('').split(',').join(', ') }}"
+        }
+    ],
+    "timeframes": false
+}

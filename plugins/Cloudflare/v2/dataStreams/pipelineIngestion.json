@@ -1,0 +1,59 @@
+{
+    "name": "pipelineIngestion",
+    "displayName": "Pipeline Ingestion",
+    "description": "Records and bytes ingested by a Cloudflare Pipeline",
+    "tags": ["Compute"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$pipelineId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){pipelinesIngestionAdaptiveGroups(limit:10000,filter:{pipelineId:$pipelineId,datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count sum{ingestedBytes ingestedRecords} dimensions{date}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "pipelineId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.pipelinesIngestionAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Pipeline"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sum.ingestedRecords",
+            "displayName": "Records Ingested",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.ingestedBytes",
+            "displayName": "Bytes Ingested",
+            "shape": "bytes"
+        },
+        {
+            "name": "count",
+            "displayName": "Ingestion Operations",
+            "shape": "number"
+        }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}
