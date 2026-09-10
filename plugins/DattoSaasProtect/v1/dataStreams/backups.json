@@ -1,27 +1,23 @@
 {
     "name": "backups",
     "displayName": "Backups",
-    "description": "Backup runs for a SaaS Protection customer, one row per application type per day-window over a configurable trailing period",
+    "description": "Backup runs for a SaaS Protection customer, one row per application type per day-window over the selected timeframe",
     "tags": ["Backup"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "matches": { "sourceType": { "type": "oneOf", "values": ["SaaS Customer"] } },
-    "timeframes": false,
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth"],
     "config": {
         "httpMethod": "get",
         "endpointPath": "v1/saas/{{object.rawId}}/applications",
-        "getArgs": [{ "key": "daysUntil", "value": "{{daysUntil || null}}" }],
+        "getArgs": [
+            {
+                "key": "daysUntil",
+                "value": "{{Math.min(30, Math.max(1, Math.ceil((Date.now() / 1000 - timeframe.unixStart) / 86400 - 0.01)))}}"
+            }
+        ],
         "postRequestScript": "backups.js",
         "paging": { "mode": "none" }
     },
-    "ui": [
-        {
-            "type": "number",
-            "name": "daysUntil",
-            "label": "Backup History (days)",
-            "help": "How many trailing days of backup history to return. Defaults to 10 days; the API rejects values above 30 with an internal error.",
-            "validation": { "min": 1, "max": 30 }
-        }
-    ],
     "defaultShaping": {
         "sort": {
             "by": [["windowEnd", "desc"]]
@@ -29,10 +25,10 @@
     },
     "metadata": [
         { "name": "appType", "displayName": "Application", "shape": "string", "role": "label" },
-        { "name": "status", "displayName": "Status", "shape": ["state", { "map": { "success": ["Perfect"], "warning": ["Backup With Issues"], "error": ["Backup With Lots Of Issues"] } }] },
+        { "name": "status", "displayName": "Status", "shape": ["state", { "map": { "success": ["Perfect"], "warning": ["Backup With Few Issues", "Backup With Issues"], "error": ["Backup With Lots Of Issues"], "unmonitored": ["Insufficient History"] } }] },
         { "name": "windowEnd", "displayName": "Window End", "shape": ["date", { "timeZone": "Etc/UTC" }], "role": "timestamp" },
         { "name": "windowStart", "displayName": "Window Start", "shape": ["date", { "timeZone": "Etc/UTC" }] },
-        { "name": "timeWindow", "displayName": "Day Window", "shape": "string" },
+        { "name": "timeWindow", "displayName": "Backup Window", "shape": "string" },
         { "name": "activeServiceWithPerfectBackupCount", "displayName": "Fully Backed Up", "shape": "number" },
         { "name": "activeServiceWithBackupCount", "displayName": "Backed Up", "shape": "number" },
         { "name": "activeServiceCount", "displayName": "Active Services", "shape": "number" },

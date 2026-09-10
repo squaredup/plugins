@@ -9,25 +9,36 @@
     "config": {
         "httpMethod": "get",
         "endpointPath": "v1/saas/{{object.rawId}}/seats",
-        "getArgs": [{ "key": "seatType", "value": "{{seatType && seatType.length ? seatType.join(',') : null}}" }],
+        "getArgs": [
+            {
+                "key": "seatType",
+                "value": "{{seatType && seatType.length && !seatType.includes('*') ? seatType.join(',') : null}}"
+            }
+        ],
         "postRequestScript": "seats.js",
         "paging": { "mode": "none" }
     },
     "ui": [
         {
-            "type": "choiceChips",
+            "type": "autocomplete",
             "name": "seatType",
             "label": "Seat Type",
             "isMulti": true,
-            "help": "Filter to specific seat types. Leave empty to return every seat.",
-            "options": [
-                { "value": "User", "label": "User" },
-                { "value": "Site", "label": "Site" },
-                { "value": "TeamSite", "label": "Team Site" },
-                { "value": "SharedMailbox", "label": "Shared Mailbox" },
-                { "value": "Team", "label": "Team" },
-                { "value": "SharedDrive", "label": "Shared Drive" }
-            ]
+            "isClearable": true,
+            "allowCustomValues": false,
+            "help": "Filter to specific seat types. Select All seat types, or leave empty, to return every seat.",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "*", "label": "All seat types" },
+                    { "value": "User", "label": "User" },
+                    { "value": "Site", "label": "Site" },
+                    { "value": "TeamSite", "label": "Team Site" },
+                    { "value": "SharedMailbox", "label": "Shared Mailbox" },
+                    { "value": "Team", "label": "Team" },
+                    { "value": "SharedDrive", "label": "Shared Drive" }
+                ]
+            }
         }
     ],
     "defaultShaping": {
