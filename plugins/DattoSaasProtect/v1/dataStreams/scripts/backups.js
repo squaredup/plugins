@@ -4,6 +4,14 @@
 //
 // The API's startTime and endTime are inverted: startTime is consistently the later
 // of the two, exactly 24h after endTime. Emit them in the correct order so charts sort.
+//
+// GOTCHA: items[].usedBytes (-> customerTotalUsedBytes below) is NOT the sum of this
+// customer's appTypes[].usedBytes (-> usedBytes below) - it's consistently equal to or
+// larger, by anywhere from ~0% to ~10% across sampled customers, never derivable from
+// the per-app figures. It lines up with Datto's documented billing metric ("total stored
+// size", one figure per customer, computed after compression/dedup, and - unlike the
+// per-app figures here - inclusive of every retained historical backup version, not just
+// the current state). See docs/README.md "Known limitations" before reconciling the two.
 const rows = [];
 
 for (const customer of data?.items || []) {
@@ -17,6 +25,7 @@ for (const customer of data?.items || []) {
                 rows.push({
                     customerName: customer.customerName,
                     customerId: customer.customerId,
+                    customerTotalUsedBytes: customer.usedBytes,
                     suiteType: suite.suiteType,
                     appType: app.appType,
                     timeWindow: run.timeWindow,

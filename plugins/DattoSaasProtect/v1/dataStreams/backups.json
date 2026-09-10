@@ -1,7 +1,7 @@
 {
     "name": "backups",
     "displayName": "Backups",
-    "description": "Backup runs for a SaaS Protection customer, one row per application type per day-window over the last 10 days",
+    "description": "Backup runs for a SaaS Protection customer, one row per application type per day-window over a configurable trailing period",
     "tags": ["Backup"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "matches": { "sourceType": { "type": "oneOf", "values": ["SaaS Customer"] } },
@@ -9,9 +9,19 @@
     "config": {
         "httpMethod": "get",
         "endpointPath": "v1/saas/{{object.rawId}}/applications",
+        "getArgs": [{ "key": "daysUntil", "value": "{{daysUntil || null}}" }],
         "postRequestScript": "backups.js",
         "paging": { "mode": "none" }
     },
+    "ui": [
+        {
+            "type": "number",
+            "name": "daysUntil",
+            "label": "Backup History (days)",
+            "help": "How many trailing days of backup history to return. Defaults to 10 days; the API rejects values above 30 with an internal error.",
+            "validation": { "min": 1, "max": 30 }
+        }
+    ],
     "defaultShaping": {
         "sort": {
             "by": [["windowEnd", "desc"]]
@@ -33,6 +43,7 @@
         { "name": "suiteType", "displayName": "Suite", "shape": "string" },
         { "name": "customerName", "displayName": "Customer", "shape": "string" },
         { "name": "customerId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        { "name": "customerTotalUsedBytes", "displayName": "Total Storage Used (Account)", "shape": "bytes" },
         { "pattern": ".*" }
     ]
 }
