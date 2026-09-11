@@ -1,8 +1,8 @@
 {
-    "name": "companyAccountRestoreStatus",
-    "displayName": "Company Account Restore Status",
-    "description": "Current restore operation status per account for a company",
-    "tags": ["Account"],
+    "name": "companyRestores",
+    "displayName": "Company Restores",
+    "description": "Latest restore run per account for a company (the full seven day history is available as an option, where Redstor holds one)",
+    "tags": ["Restore"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "get",
@@ -14,9 +14,18 @@
             "in": { "realm": "payload", "path": "nextPageToken" },
             "out": { "realm": "queryArg", "path": "pageToken" }
         },
-        "pathToData": "results"
+        "postRequestScript": "companyRestores.js"
     },
     "matches": { "sourceType": { "type": "oneOf", "values": ["Company"] } },
+    "ui": [
+        {
+            "type": "checkbox",
+            "name": "includeHistory",
+            "label": "Include full history",
+            "defaultValue": false,
+            "help": "Returns every run in Redstor's rolling seven day window, where history is available. Large datasets may exceed the amount of data a tile can return."
+        }
+    ],
     "metadata": [
         { "name": "accountName", "displayName": "Account", "shape": "string", "role": "label" },
         {

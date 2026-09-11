@@ -1,0 +1,43 @@
+{
+    "name": "accountBackups",
+    "displayName": "Account Backups",
+    "description": "Backup run history for an account, over Redstor's rolling seven day window",
+    "tags": ["Backup"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/backups/status/accounts",
+        "getArgs": [
+            { "key": "companyId", "value": "{{object.companyId}}" },
+            { "key": "accountId", "value": "{{object.rawId}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "postRequestScript": "accountBackups.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Account"] } },
+    "metadata": [
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        {
+            "name": "overallStatus",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['status'] === 1 ? 'success' : ($['status'] === 2 ? 'warning' : 'error') }}",
+            "shape": "state"
+        },
+        {
+            "name": "status",
+            "displayName": "Status Code",
+            "shape": "number",
+            "visible": false,
+            "help": "Raw Redstor status code: 0 = Failed, 1 = Completed successfully, 2 = Completed with warnings, 3 = Completed with errors."
+        },
+        { "name": "message", "displayName": "Message", "shape": "string", "role": "label" },
+        { "name": "errorCount", "displayName": "Error Count", "shape": "number" }
+    ],
+    "timeframes": false
+}

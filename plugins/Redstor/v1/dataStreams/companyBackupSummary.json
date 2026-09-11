@@ -1,12 +1,12 @@
 {
-    "name": "companyRestoreStatus",
-    "displayName": "Company Restore Status",
-    "description": "Current restore operation status by product for a company",
-    "tags": ["Company"],
+    "name": "companyBackupSummary",
+    "displayName": "Company Backup Summary",
+    "description": "Current backup operation status by product for a company",
+    "tags": ["Backup"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "get",
-        "endpointPath": "/restores/status",
+        "endpointPath": "/backups/status",
         "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
         "paging": {
             "mode": "token",
@@ -23,11 +23,12 @@
         { "name": "completedWithWarnings", "displayName": "Completed with Warnings", "shape": "number" },
         { "name": "completedWithErrors", "displayName": "Completed with Errors", "shape": "number" },
         { "name": "failed", "displayName": "Failed", "shape": "number" },
+        { "name": "missed", "displayName": "Missed", "shape": "number" },
         {
             "name": "overallStatus",
             "displayName": "Status",
             "computed": true,
-            "valueExpression": "{{ $['failed'] > 0 ? 'error' : ($['completedWithErrors'] > 0 ? 'warning' : 'success') }}",
+            "valueExpression": "{{ $['failed'] > 0 ? 'error' : (($['completedWithErrors'] > 0 || $['missed'] > 0) ? 'warning' : 'success') }}",
             "shape": "state"
         },
         { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false }

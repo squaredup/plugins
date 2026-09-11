@@ -39,11 +39,15 @@ The out-of-the-box dashboards include a Company **Overview** and a perspective f
 
 - **Company Consumption** — seat counts, licensed users, data protected and fair use overage by product, for a company.
 - **Company Subscriptions** — product subscriptions for a company, with the product and edition named and the trial status shown.
-- **Company Backup Status** — backup results by product for a company, counting succeeded, warnings, errors, failures and missed runs.
-- **Company Restore Status** — restore results by product for a company.
-- **Company Account Backup Status** — the latest backup run for every account in a company, with an option to return the full history Redstor holds.
-- **Company Account Restore Status** — the latest restore state for every account in a company.
+- **Company Backup Summary** — backup results by product for a company, counting succeeded, warnings, errors, failures and missed runs.
+- **Company Restore Summary** — restore results by product for a company.
+- **Company Backups** — the latest backup run for every account in a company, with an option to return the full history Redstor holds.
+- **Company Restores** — the latest restore state for every account in a company.
 - **Company Accounts** — every backup account in a company, one row per account, with its product, service, storage region and creation date.
+- **Account Backups** — backup run history for a single account, over Redstor's rolling seven day window.
+- **Account Restores** — restore run history for a single account, where Redstor holds one.
+- **Company Backup Errors** — backup error and warning messages for every account in a company.
+- **Company Restore Errors** — restore error and warning messages for every account in a company.
 - **Account Backup Errors** — backup error and warning messages for a single account.
 - **Account Restore Errors** — restore error and warning messages for a single account.
 - **Products** — the Redstor product catalog.
@@ -67,7 +71,7 @@ Seats are not indexed as objects, because Redstor reports them as counts rather 
 ## Known limitations
 
 - **No historical data** — every stream reports the current state, as RedAPI exposes no time ranges, so tiles have no timeframe selection. Consumption is the one partial exception: it can report a single past date, but not a range or a trend.
-- **Backup history is limited and can be large** — Company Account Backup Status shows the latest run per account by default. Enabling **Include full history** returns every run in Redstor's rolling seven day window, which on a large customer can be more data than a single tile can return.
+- **Backup and restore history is limited and can be large** — Company Backups and Company Restores show the latest run per account by default. Enabling **Include full history** returns every run in Redstor's rolling seven day window, which on a large customer can be more data than a single tile can return. Account Backups and Account Restores always return the full history, since they cover one account at a time.
 - **Accounts that have never run a backup have no error detail** — Redstor only keeps error messages for accounts that have backup history. The Account Backup Errors and Account Restore Errors streams say so rather than returning rows. In testing this applied to roughly a third of a company's accounts.
 - **Machine products report workloads, not seats** — Machines and Azure Virtual Machines return zero for every seat count and are measured by workload count instead, so seat-based tiles will look empty for those products.
 - **No billable seat total** — Redstor reports active, inactive and shared seats separately but publishes no chargeable figure, so billing has to be worked out from your own agreement and Redstor's fair use rules rather than read directly.
