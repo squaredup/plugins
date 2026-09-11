@@ -43,7 +43,7 @@ The out-of-the-box dashboards include a Company **Overview** and a perspective f
 - **Company Restore Status** — restore results by product for a company.
 - **Company Account Backup Status** — the latest backup run for every account in a company, with an option to return the full history Redstor holds.
 - **Company Account Restore Status** — the latest restore state for every account in a company.
-- **Backup Accounts** — every backup account in a company, one row per account, with its product, service, storage region and creation date.
+- **Company Accounts** — every backup account in a company, one row per account, with its product, service, storage region and creation date.
 - **Account Backup Errors** — backup error and warning messages for a single account.
 - **Account Restore Errors** — restore error and warning messages for a single account.
 - **Products** — the Redstor product catalog.
