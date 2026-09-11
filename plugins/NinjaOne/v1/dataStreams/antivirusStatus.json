@@ -2,7 +2,7 @@
     "name": "antivirusStatus",
     "displayName": "Antivirus Status",
     "tags": ["Security"],
-    "description": "Antivirus product status and definition updates",
+    "description": "Antivirus product status and definition updates (timeframe filters on when each record was last collected)",
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
@@ -24,11 +24,11 @@
         },
         "expandInnerObjects": false,
         "endpointPath": "/v2/queries/antivirus-status",
-        "pathToData": "results",
+        "postRequestScript": "collectionWindow.js",
         "getArgs": [
             {
                 "key": "ts",
-                "value": "{{timeframe.end}}"
+                "value": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || timeframe.unixStart == null ? null : 'after ' + timeframe.unixStart}}"
             }
         ],
         "headers": []
@@ -99,5 +99,7 @@
         "lastQuarter",
         "lastYear",
         "none"
-    ]
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
 }

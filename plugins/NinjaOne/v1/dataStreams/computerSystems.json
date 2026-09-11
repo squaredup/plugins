@@ -2,7 +2,7 @@
     "name": "computerSystems",
     "displayName": "Computer Systems",
     "tags": ["Monitoring"],
-    "description": "Hardware information including manufacturer, model, and serial number",
+    "description": "Hardware information including manufacturer, model, and serial number (timeframe filters on when each record was last collected)",
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
@@ -24,11 +24,11 @@
         },
         "expandInnerObjects": false,
         "endpointPath": "/v2/queries/computer-systems",
-        "pathToData": "results",
+        "postRequestScript": "collectionWindow.js",
         "getArgs": [
             {
                 "key": "ts",
-                "value": "{{timeframe.end}}"
+                "value": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || timeframe.unixStart == null ? null : 'after ' + timeframe.unixStart}}"
             }
         ],
         "headers": []
@@ -78,6 +78,16 @@
             "shape": "string"
         },
         {
+            "name": "timestamp",
+            "displayName": "Last Updated",
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ]
+        },
+        {
             "pattern": ".*"
         }
     ],
@@ -94,5 +104,7 @@
         "lastQuarter",
         "lastYear",
         "none"
-    ]
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
 }
