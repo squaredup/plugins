@@ -1,0 +1,32 @@
+{
+    "name": "companyBackupRollupSummary",
+    "displayName": "Company Backup Rollup Summary",
+    "description": "Current backup status by product, split between the company's own backups and its customer companies' rolled-up backups",
+    "tags": ["Backup"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/backups/status/summary",
+        "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
+        "postRequestScript": "companyBackupRollupSummary.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Company"] } },
+    "metadata": [
+        { "name": "productName", "displayName": "Product", "shape": "string", "role": "label" },
+        { "name": "scope", "displayName": "Scope", "shape": "string" },
+        { "name": "succeeded", "displayName": "Succeeded", "shape": "number" },
+        { "name": "completedWithWarnings", "displayName": "Completed with Warnings", "shape": "number" },
+        { "name": "completedWithErrors", "displayName": "Completed with Errors", "shape": "number" },
+        { "name": "failed", "displayName": "Failed", "shape": "number" },
+        { "name": "missed", "displayName": "Missed", "shape": "number" },
+        {
+            "name": "overallStatus",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['failed'] > 0 ? 'error' : (($['completedWithErrors'] > 0 || $['missed'] > 0) ? 'warning' : 'success') }}",
+            "shape": "state"
+        },
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false }
+    ],
+    "timeframes": false
+}
