@@ -11,7 +11,7 @@ You will need a RedAPI **service account** with its Client ID and private key, p
 3. Go to **RedAPI → Service accounts** and click to add a new service account. Give it a descriptive name and assign it access to your Partner company (and the customers you want visibility into).
 4. Under the service account, create a **key**. Redstor generates a Client ID and a JSON Web Key (JWK) file — download the JWK file.
 5. Copy the **Client ID** into the **Client ID** field.
-6. Open the downloaded JWK file (a `.json` file) and paste its full contents, exactly as downloaded, into the **Private Key** field.
+6. Open the downloaded JWK file (a `.json` file) and paste its full contents, exactly as downloaded, into the **Private key** field.
 
 ## Configuration fields
 
@@ -19,9 +19,9 @@ You will need a RedAPI **service account** with its Client ID and private key, p
 | ----- | ---------- | ---------------- | -------- |
 | **Company ID** | Your Redstor Partner company's ID. Scopes every API call to this company and its direct customers. | RedApp → **Company Settings**. | Yes |
 | **Client ID** | Identifies the RedAPI service account used to authenticate. | RedApp → **RedAPI → Service accounts** → your service account's key. | Yes |
-| **Private Key** | The JSON Web Key (JWK) paired with the Client ID; signs the request used to obtain access tokens. | Downloaded when the service account's key was created. | Yes |
+| **Private key** | The JSON Web Key (JWK) paired with the Client ID; signs the request used to obtain access tokens. | Downloaded when the service account's key was created. | Yes |
 
-On save, the plugin authenticates and calls your company's profile; an invalid Company ID, Client ID, or Private Key fails setup with an authentication error.
+On save, the plugin authenticates and calls your company's profile; an invalid Company ID, Client ID, or Private key fails setup with an authentication error.
 
 ## What this plugin monitors
 
@@ -37,22 +37,23 @@ The out-of-the-box dashboards include a Company **Overview** and a perspective f
 
 ## Data streams
 
-- **Company Consumption** — seat counts, licensed users, data protected and fair use overage by product, for a company.
-- **Company Subscriptions** — product subscriptions for a company, with the product and edition named and the trial status shown.
+Start with the **Company** streams to see backup and restore health across every account in a company at a glance. When one needs investigating, switch to the matching **Account** stream for that account's full run history and error detail.
+
+**Company streams — for summarising activity across a company**
+
 - **Company Backup Summary** — backup results by product for a company, counting succeeded, warnings, errors, failures and missed runs.
 - **Company Restore Summary** — restore results by product for a company.
-- **Company Backups** — the latest backup run for every account in a company, with an option to return the full history Redstor holds.
-- **Company Restores** — the latest restore state for every account in a company.
+- **Company Backups** — backup run history for every account in a company.
+- **Company Restores** — the current restore status for every account in a company.
 - **Company Accounts** — every backup account in a company, one row per account, with its product, service, storage region and creation date.
+- **Company Consumption** — seat counts, licensed users, data protected and fair use overage by product, for a company.
+
+**Account streams — for tracking down an individual account's history and errors**
+
 - **Account Backups** — backup run history for a single account, over Redstor's rolling seven day window.
-- **Account Restores** — restore run history for a single account, where Redstor holds one.
-- **Company Backup Errors** — backup error and warning messages for every account in a company.
-- **Company Restore Errors** — restore error and warning messages for every account in a company.
+- **Account Restores** — the current restore status for a single account.
 - **Account Backup Errors** — backup error and warning messages for a single account.
 - **Account Restore Errors** — restore error and warning messages for a single account.
-- **Products** — the Redstor product catalog.
-- **Product Services** — the services within each product, such as Exchange and OneDrive within O365.
-- **Product Editions** — the editions available for each product, and which of them offer a trial.
 
 ## What gets indexed
 
@@ -71,7 +72,7 @@ Seats are not indexed as objects, because Redstor reports them as counts rather 
 ## Known limitations
 
 - **No historical data** — every stream reports the current state, as RedAPI exposes no time ranges, so tiles have no timeframe selection. Consumption is the one partial exception: it can report a single past date, but not a range or a trend.
-- **Backup and restore history is limited and can be large** — Company Backups and Company Restores show the latest run per account by default. Enabling **Include full history** returns every run in Redstor's rolling seven day window, which on a large customer can be more data than a single tile can return. Account Backups and Account Restores always return the full history, since they cover one account at a time.
+- **Backup history can be large** — Company Backups returns every run in Redstor's rolling seven day window for every account in the company, which on a large customer can be more data than a single tile can return. Account Backups covers the same window for one account at a time, so it stays small regardless of company size.
 - **Accounts that have never run a backup have no error detail** — Redstor only keeps error messages for accounts that have backup history. The Account Backup Errors and Account Restore Errors streams say so rather than returning rows. In testing this applied to roughly a third of a company's accounts.
 - **Machine products report workloads, not seats** — Machines and Azure Virtual Machines return zero for every seat count and are measured by workload count instead, so seat-based tiles will look empty for those products.
 - **No billable seat total** — Redstor reports active, inactive and shared seats separately but publishes no chargeable figure, so billing has to be worked out from your own agreement and Redstor's fair use rules rather than read directly.
