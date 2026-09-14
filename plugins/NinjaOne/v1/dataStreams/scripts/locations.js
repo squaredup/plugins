@@ -7,3 +7,7 @@ result = items.map(item => ({
     // Add organizationId as string if it's there
     organizationId: item.organizationId ? item.organizationId.toString() : null
 }));
+
+// NinjaOne's /v2/locations response is a bare array with no next-page token, so the cursor
+// is derived here (last id in the raw page) and set directly as pagingContext.
+pagingContext = items.length ? items[items.length - 1].id : undefined;
