@@ -1,4 +1,5 @@
-// Applies the upper end of the timeframe to a /v2/queries/* monitoring snapshot.
+// Applies the upper end of the timeframe to a /v2/queries/* monitoring snapshot, and
+// serialises the epoch timestamps those endpoints return.
 //
 // NinjaOne's `ts` filter accepts exactly one clause - `after X` and `before Y` each work
 // alone, but `after X and before Y`, `between X and Y` and a repeated `ts` arg all fail
@@ -20,6 +21,28 @@ const endTime = tf.enum === 'none' ? null : tf.unixEnd;
 // Rows with no `timestamp` never reach this filter: whenever a window is selected the
 // request carries `after unixStart`, which NinjaOne already applies server-side, and it
 // drops them. The typeof check is belt-and-braces.
-result = typeof endTime === 'number'
+const kept = typeof endTime === 'number'
     ? items.filter((item) => typeof item.timestamp === 'number' && item.timestamp <= endTime)
     : items;
+
+// Every date column on these endpoints is declared `number`/`double` in NinjaOne's spec,
+// so convert to ISO 8601 for the `date` shape. Named rather than key-sniffed: the
+// recursive helper the other scripts share matches on substrings and silently misses
+// fields (devices.js drops `created` and the backup job dates that way).
+// Runs after the filter, which compares against unixEnd in epoch seconds.
+const EPOCH_FIELDS = ['timestamp', 'detectedAt', 'lastBootTime', 'installedAt'];
+
+const toIso = (value) =>
+    typeof value === 'number' && value > 1000000000 && value < 10000000000
+        ? new Date(value * 1000).toISOString()
+        : value;
+
+result = kept.map((item) => {
+    const row = { ...item };
+    EPOCH_FIELDS.forEach((field) => {
+        if (field in row) {
+            row[field] = toIso(row[field]);
+        }
+    });
+    return row;
+});
