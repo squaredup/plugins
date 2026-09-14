@@ -1,0 +1,37 @@
+{
+    "name": "assetCountByEntityType",
+    "displayName": "Asset Count by Entity Type",
+    "description": "Count of assets in the selected collection grouped by entity type",
+    "tags": ["Assets"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "datamap/api/search/query",
+        "getArgs": [
+            { "key": "api-version", "value": "2023-09-01" }
+        ],
+        "postBody": {
+            "keywords": null,
+            "limit": 1,
+            "filter": {
+                "collectionId": "{{object.collectionName}}"
+            },
+            "facets": [
+                {
+                    "facet": "entityType",
+                    "count": 50,
+                    "sort": { "count": "desc" }
+                }
+            ]
+        },
+        "pathToData": "@search.facets.entityType",
+        "postRequestScript": "assetCountByEntityType.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Purview Collection"] } },
+    "metadata": [
+        { "name": "entityType", "displayName": "Entity Type", "role": "label" },
+        { "name": "count", "displayName": "Assets", "shape": "number" }
+    ],
+    "timeframes": false,
+    "defaultShaping": { "sort": { "by": [["count", "desc"]] } }
+}

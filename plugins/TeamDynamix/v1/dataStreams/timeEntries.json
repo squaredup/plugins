@@ -1,0 +1,74 @@
+{
+    "name": "timeEntries",
+    "displayName": "Time Entries",
+    "description": "Time logged against tickets, projects and tasks, one row per time entry",
+    "tags": ["Time", "Service Management"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/time/search",
+        "postBody": {
+            "MaxResults": "{{maxResults || dataSource.maxRecords || 1000}}",
+            "EntryDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' ? null : timeframe.start}}",
+            "EntryDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' ? null : timeframe.end}}",
+            "IsBillable": "{{typeof billable === 'undefined' || billable === '' || billable === 'all' ? null : billable === 'billable'}}"
+        },
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": "none",
+    "manualConfigApply": true,
+    "ui": [
+        {
+            "type": "switch",
+            "name": "billable",
+            "label": "Billable",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "billable", "label": "Billable only" },
+                { "value": "nonBillable", "label": "Non-billable only" }
+            ]
+        },
+        {
+            "type": "number",
+            "name": "maxResults",
+            "label": "Maximum entries",
+            "help": "The TeamDynamix time search returns a single unpaged result set, so this is a hard ceiling on how many entries the tile can see.",
+            "validation": { "min": 1, "max": 10000, "valueAsNumber": true }
+        }
+    ],
+    "metadata": [
+        { "name": "ItemTitle", "displayName": "Work Item", "shape": "string", "role": "label" },
+        { "name": "TimeID", "displayName": "Time Entry ID", "shape": "string", "role": "id" },
+        { "name": "TimeDate", "displayName": "Date", "shape": "date", "role": "timestamp" },
+        { "name": "Hours", "displayName": "Hours", "shape": ["number", { "decimalPlaces": 2 }], "role": "value" },
+        { "name": "Minutes", "displayName": "Minutes", "shape": "minutes", "visible": false },
+        { "name": "Billable", "displayName": "Billable", "shape": "boolean" },
+        {
+            "name": "Component",
+            "displayName": "Component",
+            "shape": "number",
+            "formatExpression": "{{ ({1:'Project Time',2:'Task Time',3:'Issue Time',9:'Ticket Time',17:'Time Off',23:'Portfolio Time',25:'Ticket Task Time',45:'Workspace Time',83:'Portfolio Issue Time'})[$['Component']] || $['Component'] }}"
+        },
+        { "name": "AppName", "displayName": "Application", "shape": "string" },
+        { "name": "ProjectName", "displayName": "Project", "shape": "string" },
+        { "name": "PortfolioName", "displayName": "Portfolio", "shape": "string", "visible": false },
+        { "name": "TicketID", "displayName": "Ticket ID", "shape": "string" },
+        { "name": "Description", "displayName": "Description", "shape": "string" },
+        { "name": "StatusFullName", "displayName": "Status Set By", "shape": "string", "visible": false },
+        { "name": "ApproverFullName", "displayName": "Approver", "shape": "string", "visible": false },
+        { "name": "BillRate", "displayName": "Bill Rate", "shape": ["number", { "decimalPlaces": 2 }], "visible": false },
+        { "name": "CostRate", "displayName": "Cost Rate", "shape": ["number", { "decimalPlaces": 2 }], "visible": false },
+        { "name": "Uid", "displayName": "Person UID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["TimeDate", "desc"]] }
+    },
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "dashboard"
+}

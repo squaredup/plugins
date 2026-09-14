@@ -1,0 +1,84 @@
+{
+    "name": "persistentvolumes",
+    "displayName": "Persistent Volumes",
+    "description": "Kubernetes persistent volumes, one row per volume",
+    "tags": [
+        "Resources"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/v1/persistentvolumes",
+        "postRequestScript": "persistentvolumes.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "metadata.continue"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "continue"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "uid",
+            "displayName": "UID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "phase",
+            "displayName": "Phase",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Bound",
+                            "Available"
+                        ],
+                        "warning": [
+                            "Released"
+                        ],
+                        "error": [
+                            "Failed"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "capacityBytes",
+            "displayName": "Capacity",
+            "shape": "bytes"
+        },
+        {
+            "name": "claimName",
+            "displayName": "Claim Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "claimNamespace",
+            "displayName": "Claim Namespace",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

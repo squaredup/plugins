@@ -1,0 +1,40 @@
+{
+    "name": "accounts",
+    "displayName": "Standalone Accounts",
+    "description": "All Wasabi Standalone Accounts, one row per account",
+    "tags": ["Accounts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/v1/accounts",
+        "pathToData": "data.items",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "size", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data.items" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        }
+    },
+    "matches": "none",
+    "visibility": { "type": "hidden" },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id" },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "computed": true,
+            "valueExpression": "{{ $['companyName'] || (($['firstName'] || '') + ' ' + ($['lastName'] || '')).trim() }}",
+            "role": "label"
+        },
+        { "name": "firstName", "visible": false },
+        { "name": "lastName", "visible": false },
+        { "name": "email", "visible": false },
+        { "name": "phoneNumber", "visible": false },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

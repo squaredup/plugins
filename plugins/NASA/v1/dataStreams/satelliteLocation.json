@@ -1,0 +1,44 @@
+{
+    "name": "satelliteLocation",
+    "displayName": "Satellite Location",
+    "description": "GSE coordinate position of a satellite over time",
+    "tags": ["Astronomy"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "baseUrl": "https://sscweb.gsfc.nasa.gov/WS/sscr/2",
+        "httpMethod": "post",
+        "endpointPath": "/locations",
+        "headers": [
+            { "key": "Accept", "value": "application/json" },
+            { "key": "Content-Type", "value": "application/json" }
+        ],
+        "postBody": "[\"gov.nasa.gsfc.sscweb.schema.DataRequest\", {\"TimeInterval\": [\"gov.nasa.gsfc.sscweb.schema.TimeInterval\", {\"Start\": [\"javax.xml.datatype.XMLGregorianCalendar\", \"{{timeframe.start}}\"], \"End\": [\"javax.xml.datatype.XMLGregorianCalendar\", \"{{timeframe.end}}\"]}], \"Satellites\": [\"java.util.ArrayList\", [[\"gov.nasa.gsfc.sscweb.schema.SatelliteSpecification\", {\"Id\": \"{{object.rawId}}\", \"ResolutionFactor\": 1}]]], \"OutputOptions\": [\"gov.nasa.gsfc.sscweb.schema.OutputOptions\", {\"AllLocationFilters\": false, \"CoordinateOptions\": [\"java.util.ArrayList\", [[\"gov.nasa.gsfc.sscweb.schema.FilteredCoordinateOptions\", {\"CoordinateSystem\": \"GSE\", \"Component\": \"X\"}], [\"gov.nasa.gsfc.sscweb.schema.FilteredCoordinateOptions\", {\"CoordinateSystem\": \"GSE\", \"Component\": \"Y\"}], [\"gov.nasa.gsfc.sscweb.schema.FilteredCoordinateOptions\", {\"CoordinateSystem\": \"GSE\", \"Component\": \"Z\"}]]], \"MinMaxPoints\": 2}]}]",
+        "postRequestScript": "satelliteLocation.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Satellite"] } },
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        {
+            "name": "x",
+            "displayName": "X (km)",
+            "shape": ["number", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "y",
+            "displayName": "Y (km)",
+            "shape": ["number", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "z",
+            "displayName": "Z (km)",
+            "shape": ["number", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "coordinateSystem",
+            "displayName": "Coordinate System",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days"]
+}

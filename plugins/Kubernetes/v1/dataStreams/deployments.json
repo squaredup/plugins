@@ -1,0 +1,81 @@
+{
+    "name": "deployments",
+    "displayName": "Deployments",
+    "description": "Kubernetes deployments, one row per deployment",
+    "tags": [
+        "Resources"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/apis/apps/v1/deployments",
+        "postRequestScript": "deployments.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "metadata.continue"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "continue"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "uid",
+            "displayName": "UID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "namespace",
+            "displayName": "Namespace",
+            "shape": "string"
+        },
+        {
+            "name": "desiredReplicas",
+            "displayName": "Desired Replicas",
+            "shape": "number"
+        },
+        {
+            "name": "availableReplicas",
+            "displayName": "Available Replicas",
+            "shape": "number"
+        },
+        {
+            "name": "availableStatus",
+            "displayName": "Available",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "True"
+                        ],
+                        "error": [
+                            "False"
+                        ],
+                        "unknown": [
+                            "Unknown"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

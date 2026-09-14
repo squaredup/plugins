@@ -1,0 +1,52 @@
+{
+    "name": "deviceServiceMonitorStatus",
+    "displayName": "Device Service Monitor Status",
+    "description": "Current service monitor health status for a device",
+    "tags": ["Device", "Monitoring"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/devices/{{object.rawId}}/service-monitor-status",
+        "pathToData": "data"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Device"] } },
+    "metadata": [
+        { "name": "moduleName", "displayName": "Service", "shape": "string", "role": "label" },
+        { "name": "taskIdent", "displayName": "Instance", "shape": "string" },
+        {
+            "name": "stateStatus",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Normal","OK"],
+                        "warning": ["Warning"],
+                        "error": ["Failed"],
+                        "unmonitored": ["Disabled", "Unmanaged"],
+                        "unknown": ["No Data", "Misconfigured", "Stale", "Disconnected"]
+                    }
+                }
+            ]
+        },
+        { "name": "taskNote", "displayName": "Template", "shape": "string" },
+        {
+            "name": "lastScanTime",
+            "displayName": "Last Scan",
+            "shape": ["date", { "inputPattern": "yyyy-MM-dd HH:mm:ss.SSS xx" }]
+        },
+        {
+            "name": "transitionTime",
+            "displayName": "Status Changed",
+            "shape": ["date", { "inputPattern": "yyyy-MM-dd HH:mm:ss.SSS" }]
+        },
+        { "name": "timeToStale", "displayName": "Time to Stale (s)", "shape": "seconds" },
+        { "name": "applianceName", "displayName": "Probe", "shape": "string" },
+        { "name": "isManagedTask", "displayName": "Managed", "shape": "boolean" },
+        { "name": "taskId", "displayName": "Task ID", "shape": "number", "role": "id", "visible": false },
+        { "name": "serviceId", "displayName": "Service ID", "shape": "number", "visible": false },
+        { "name": "serviceItemId", "displayName": "Service Item ID", "shape": "number", "visible": false },
+        { "name": "applianceId", "displayName": "Appliance ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,42 @@
+{
+    "name": "assetsByCollection",
+    "displayName": "Assets in Collection",
+    "description": "Assets found in the selected Purview collection",
+    "tags": ["Assets"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "datamap/api/search/query",
+        "getArgs": [
+            { "key": "api-version", "value": "2023-09-01" }
+        ],
+        "postBody": {
+            "keywords": null,
+            "limit": 100,
+            "filter": {
+                "collectionId": "{{object.collectionName}}"
+            },
+            "orderby": [{ "name": "ASC" }]
+        },
+        "postRequestScript": "assetsByCollection.js",
+        "paging": {
+            "mode": "token",
+            "in": { "realm": "payload", "path": "continuationToken" },
+            "out": { "realm": "body", "path": "continuationToken" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Purview Collection"] } },
+    "metadata": [
+        { "name": "id", "displayName": "Asset GUID", "shape": "guid", "visible": false },
+        { "name": "name", "displayName": "Name", "role": "label" },
+        { "name": "qualifiedName", "displayName": "Qualified Name" },
+        { "name": "entityType", "displayName": "Entity Type" },
+        { "name": "assetType", "displayName": "Asset Type" },
+        { "name": "classification", "displayName": "Classifications" },
+        { "name": "term", "displayName": "Glossary Terms" },
+        { "name": "label", "displayName": "Labels" },
+        { "name": "description", "displayName": "Description" },
+        { "name": "owner", "displayName": "Owner" }
+    ],
+    "timeframes": false
+}

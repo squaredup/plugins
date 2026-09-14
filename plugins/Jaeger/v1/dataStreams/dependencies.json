@@ -1,0 +1,68 @@
+{
+    "name": "dependencies",
+    "displayName": "Dependencies",
+    "description": "Call dependencies between services, one row per parent-child pair",
+    "tags": [
+        "Services"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "matches": "none",
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/dependencies",
+        "pathToData": "data",
+        "getArgs": [
+            {
+                "key": "endTs",
+                "value": "{{timeframe.unixEnd * 1000}}"
+            },
+            {
+                "key": "lookback",
+                "value": "{{(timeframe.unixEnd - timeframe.unixStart) * 1000}}"
+            }
+        ],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "name": "key",
+            "displayName": "Dependency",
+            "computed": true,
+            "valueExpression": "{{ $['parent'] + ' -> ' + $['child'] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "parent",
+            "displayName": "Parent Service",
+            "shape": "string"
+        },
+        {
+            "name": "child",
+            "displayName": "Child Service",
+            "shape": "string"
+        },
+        {
+            "name": "callCount",
+            "displayName": "Call Count",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "source",
+            "displayName": "Source",
+            "shape": "string",
+            "visible": false
+        }
+    ]
+}

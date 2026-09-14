@@ -1,0 +1,53 @@
+{
+    "name": "donkiNotifications",
+    "displayName": "Space Weather Notifications",
+    "description": "Space weather alerts from the last 30 days, covering solar flares, coronal mass ejections, geomagnetic storms and other event types",
+    "tags": ["Astronomy", "Alerts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/DONKI/notifications",
+        "getArgs": [
+            { "key": "type", "value": "all" },
+            {
+                "key": "startDate",
+                "value": "{{new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}}"
+            },
+            { "key": "endDate", "value": "{{new Date().toISOString().split('T')[0]}}" }
+        ]
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "messageID", "displayName": "Message ID", "shape": "string", "role": "id" },
+        { "name": "messageType", "displayName": "Type", "shape": "string" },
+        {
+            "name": "messageIssueTime",
+            "displayName": "Issued",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "messageURL",
+            "displayName": "Details",
+            "shape": ["url", { "label": "View" }],
+            "visible": false
+        },
+        { "name": "messageBody", "displayName": "Message Body", "shape": "string", "visible": false },
+        {
+            "name": "title",
+            "displayName": "Notification",
+            "computed": true,
+            "valueExpression": "{{ $['messageType'] + ' — ' + $['messageIssueTime'].split('T')[0] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "summary",
+            "displayName": "Summary",
+            "computed": true,
+            "valueExpression": "{{ $['messageBody'].substring(0, 300) }}",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

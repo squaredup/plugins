@@ -1,0 +1,65 @@
+{
+    "name": "customQuery",
+    "displayName": "Custom GROQ Query",
+    "description": "Run an arbitrary GROQ query against a dataset",
+    "tags": ["Documents"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Dataset"
+        }
+    },
+    "providesPluginDiagnostics": true,
+    "config": {
+        "baseUrl": "https://{{object.projectId}}.api.sanity.io/{{dataSource.apiVersion}}/",
+        "httpMethod": "get",
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "data/query/{{object.datasetId}}",
+        "pathToData": "result",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query}}"
+            },
+            {
+                "key": "perspective",
+                "value": "{{perspective}}"
+            }
+        ],
+        "headers": [
+            {
+                "key": "Authorization",
+                "value": "Bearer {{ ((dataSource.projects || []).find(p => p.key === object.projectId) || {}).value }}"
+            }
+        ]
+    },
+    "ui": [
+        {
+            "type": "code",
+            "name": "query",
+            "language": "groq",
+            "label": "GROQ query",
+            "defaultValue": "*[ !(_id in path(\"_.**\")) ] | order(_updatedAt desc) [0...20] {_id, _type, _updatedAt}",
+            "validation": { "required": true },
+            "help": "See [GROQ query cheat sheet](https://www.sanity.io/docs/content-lake/query-cheat-sheet) for patterns"
+        },
+        {
+            "type": "switch",
+            "name": "perspective",
+            "label": "Perspective",
+            "defaultValue": "published",
+            "options": [
+                { "value": "published", "label": "Published" },
+                { "value": "drafts", "label": "Drafts" },
+                { "value": "raw", "label": "Raw" }
+            ]
+        }
+    ],
+    "metadata": [{ "pattern": ".*" }],
+    "timeframes": false,
+    "manualConfigApply": true
+}

@@ -1,0 +1,34 @@
+{
+    "name": "collectionClassificationSummary",
+    "displayName": "Classification Summary",
+    "description": "Classified vs unclassified asset counts for the selected collection",
+    "tags": ["Classifications"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "datamap/api/search/query",
+        "getArgs": [
+            { "key": "api-version", "value": "2023-09-01" }
+        ],
+        "postBody": {
+            "keywords": null,
+            "limit": 1000,
+            "filter": {
+                "collectionId": "{{object.collectionName}}"
+            }
+        },
+        "paging": {
+            "mode": "token",
+            "in": { "realm": "payload", "path": "continuationToken" },
+            "out": { "realm": "body", "path": "continuationToken" }
+        },
+        "postRequestScript": "collectionClassificationSummary.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Purview Collection"] } },
+    "metadata": [
+        { "name": "state", "displayName": "State", "shape": ["state", { "map": { "success": ["Classified"], "warning": ["Unclassified"] } }] },
+        { "name": "label", "displayName": "Category", "role": "label" },
+        { "name": "assets", "displayName": "Assets", "shape": "number", "role": "value" }
+    ],
+    "timeframes": false
+}

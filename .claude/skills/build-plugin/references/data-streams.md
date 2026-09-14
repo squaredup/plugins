@@ -744,7 +744,7 @@ Replace a raw ID column with a human-readable property from a related indexed ob
 
 ## Post-request scripts
 
-Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects.
+Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects. (For a datasource-level script that runs _before_ every request — custom auth flows — see [Pre-request scripts](metadata.md#pre-request-scripts-custom-auth-flows) in metadata.md.)
 
 ### Wiring a script to a stream
 

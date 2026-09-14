@@ -1,0 +1,81 @@
+{
+    "name": "statefulsets",
+    "displayName": "StatefulSets",
+    "description": "Kubernetes statefulsets, one row per statefulset",
+    "tags": [
+        "Resources"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/apis/apps/v1/statefulsets",
+        "postRequestScript": "statefulsets.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "metadata.continue"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "continue"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "uid",
+            "displayName": "UID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "namespace",
+            "displayName": "Namespace",
+            "shape": "string"
+        },
+        {
+            "name": "desiredReplicas",
+            "displayName": "Desired Replicas",
+            "shape": "number"
+        },
+        {
+            "name": "readyReplicas",
+            "displayName": "Ready Replicas",
+            "shape": "number"
+        },
+        {
+            "name": "statefulSetHealth",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}
