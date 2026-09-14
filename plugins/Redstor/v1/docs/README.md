@@ -33,13 +33,20 @@ On save, the plugin authenticates and calls your company's profile; an invalid C
 
 **Seats and accounts are not the same number.** Redstor bills per seat, where a seat is one person. A single seat usually holds several backup accounts: a Microsoft 365 seat is an Exchange account plus a OneDrive account, and SharePoint and Teams sites add more on top. A company's account count will therefore be considerably higher than its seat count, so take seat figures from **Company Consumption** rather than by counting accounts.
 
-The out-of-the-box dashboards include a Company **Overview** and a perspective for each **Account**.
+The out-of-the-box dashboards are an **Overview** (your whole estate — the Partner company plus every customer beneath it, no selection needed) and an **Account view** perspective for drilling into a single backup account.
 
 ## Data streams
 
-Start with the **Company** streams to see backup and restore health across every account in a company at a glance. When one needs investigating, switch to the matching **Account** stream for that account's full run history and error detail.
+Start with the **Estate** streams for an at-a-glance view across your whole Partner account, or the **Company** streams to see backup and restore health for one company at a time. When an account needs investigating, switch to the matching **Account** stream for that account's full run history and error detail.
 
-**Company streams — for summarising activity across a company**
+**Estate streams — for summarising activity across the whole Partner account (no company selection needed)**
+
+- **Estate Backup Summary** — backup results by product, split into the Partner company's own totals and a rollup across every customer beneath it.
+- **Estate Restore Summary** — restore results by product, split the same way.
+- **Estate Consumption** — seat counts, licensed users and data protected, split the same way.
+- **Partner Subscriptions** — which products the Partner company itself is subscribed to. Redstor has no equivalent "across all customers" endpoint for subscriptions, so this covers the Partner company only.
+
+**Company streams — for summarising activity across one company, picked via a scope or dashboard variable**
 
 - **Company Backup Summary** — backup results by product for a company, counting succeeded, warnings, errors, failures and missed runs.
 - **Company Restore Summary** — restore results by product for a company.
@@ -47,6 +54,7 @@ Start with the **Company** streams to see backup and restore health across every
 - **Company Restores** — the current restore status for every account in a company.
 - **Company Accounts** — every backup account in a company, one row per account, with its product, service, storage region and creation date.
 - **Company Consumption** — seat counts, licensed users, data protected and fair use overage by product, for a company.
+- **Company Subscriptions** — which products a company is subscribed to, and whether each is on trial.
 
 **Account streams — for tracking down an individual account's history and errors**
 
@@ -78,6 +86,7 @@ Seats are not indexed as objects, because Redstor reports them as counts rather 
 - **No billable seat total** — Redstor reports active, inactive and shared seats separately but publishes no chargeable figure, so billing has to be worked out from your own agreement and Redstor's fair use rules rather than read directly.
 - **Restore status codes are not documented** — Redstor publishes no meaning for the numeric restore status values, so they appear as a raw number rather than a health colour. Backup status codes are documented and do show as colours. On a company with no restore activity, the stream lists accounts with no status against them.
 - **No groups or collections** — Redstor's grouping features are not available through the API and cannot be reported on.
-- **Only direct customers are included** — your Partner company and the customers directly beneath it are indexed; deeper reseller-of-reseller chains are not followed.
+- **Only direct customers are included** — your Partner company and the customers directly beneath it are indexed; deeper reseller-of-reseller chains are not followed. The Estate streams' customer rollup only reaches as far as this same direct-customer set.
+- **Estate Consumption has no per-product breakdown** — unlike Company Consumption, Redstor's consumption summary endpoint returns one total per company, not one row per product.
 - **Subject to Redstor's fair use throttling** — RedAPI is rate limited and the limits are not published, so very large estates may import slowly.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in Redstor.
