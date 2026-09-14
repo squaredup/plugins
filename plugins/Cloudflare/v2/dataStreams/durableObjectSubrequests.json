@@ -1,0 +1,59 @@
+{
+    "name": "durableObjectSubrequests",
+    "displayName": "Durable Object Subrequests",
+    "description": "Outbound uncached fetch subrequest body size for a Durable Object namespace",
+    "tags": [
+        "Workers",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$namespaceId:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){durableObjectsSubrequestsAdaptiveGroups(limit:10000,filter:{namespaceId:$namespaceId,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){sum{requestBodySizeUncached}dimensions{datetime}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "namespaceId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.durableObjectsSubrequestsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Durable Object Namespace"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sum.requestBodySizeUncached",
+            "displayName": "Uncached Subrequest Body Size",
+            "shape": "bytes",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ]
+}

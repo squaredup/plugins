@@ -1,0 +1,146 @@
+{
+    "name": "aiGatewayRequests",
+    "displayName": "AI Gateway Requests",
+    "description": "Request volume, token usage, cost and latency for an AI Gateway",
+    "tags": [
+        "AI",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$gateway:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){aiGatewayRequestsAdaptiveGroups(limit:10000,filter:{gateway:$gateway,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count dimensions{date {{breakdown}}} sum{cost tokensIn tokensOut totalTokens cachedRequests erroredRequests} quantiles{durationMsP50 durationMsP95}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "gateway": "{{object.name}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.aiGatewayRequestsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare AI Gateway"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "model",
+            "options": [
+                {
+                    "value": "model",
+                    "label": "Model"
+                },
+                {
+                    "value": "provider",
+                    "label": "Provider"
+                },
+                {
+                    "value": "statusCode",
+                    "label": "Status Code"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.model",
+            "visible": false
+        },
+        {
+            "name": "dimensions.provider",
+            "visible": false
+        },
+        {
+            "name": "dimensions.statusCode",
+            "visible": false
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "computed": true,
+            "valueExpression": "{{ $['dimensions.model'] || $['dimensions.provider'] || $['dimensions.statusCode'] || 'Unknown' }}",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.cost",
+            "displayName": "Cost",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "sum.tokensIn",
+            "displayName": "Tokens In",
+            "shape": "number"
+        },
+        {
+            "name": "sum.tokensOut",
+            "displayName": "Tokens Out",
+            "shape": "number"
+        },
+        {
+            "name": "sum.totalTokens",
+            "displayName": "Total Tokens",
+            "shape": "number"
+        },
+        {
+            "name": "sum.cachedRequests",
+            "displayName": "Cached Requests",
+            "shape": "number"
+        },
+        {
+            "name": "sum.erroredRequests",
+            "displayName": "Errored Requests",
+            "shape": "number"
+        },
+        {
+            "name": "quantiles.durationMsP50",
+            "displayName": "Median Duration (P50)",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "quantiles.durationMsP95",
+            "displayName": "P95 Duration",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days"
+    ]
+}
