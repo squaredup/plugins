@@ -30,12 +30,25 @@
                 "value": "{{timeframe.end}}"
             },
             {
-                "key": "query.search_depth",
+                "key": "query.num_traces",
                 "value": "{{limit}}"
+            },
+            {
+                "key": "query.operation_name",
+                "value": "{{operation || null}}"
+            },
+            {
+                "key": "query.duration_min",
+                "value": "{{minDurationMs ? minDurationMs + 'ms' : null}}"
             }
         ],
         "headers": [],
-        "postRequestScript": "traces.js"
+        "postRequestScript": "traces.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "error.message"
+        }
     },
     "ui": [
         {
@@ -44,6 +57,20 @@
             "type": "number",
             "defaultValue": 20,
             "min": 1
+        },
+        {
+            "name": "operation",
+            "label": "Operation",
+            "type": "text",
+            "placeholder": "Leave empty for all operations",
+            "help": "Selects the traces that contain this operation, then returns every span in them — so the results still include spans named differently."
+        },
+        {
+            "name": "minDurationMs",
+            "label": "Minimum duration (ms)",
+            "type": "number",
+            "min": 0,
+            "help": "Returns only traces whose root span ran at least this long."
         }
     ],
     "metadata": [
