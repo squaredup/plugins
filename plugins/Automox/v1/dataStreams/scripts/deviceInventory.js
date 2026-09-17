@@ -1,9 +1,10 @@
 // dataStreams/scripts/deviceInventory.js
 //
-// The inventory response nests through arbitrarily-named groups
-// (category -> sub_categories -> named group -> data[]), so walk generically
-// rather than hardcoding group names - flatten every "data" array found into
-// one row per attribute.
+// httpRequestScopedSingle calls this once per device, so `data` is that one
+// device's raw response body (not an array of responses). It nests through
+// arbitrarily-named groups (category -> sub_categories -> named group ->
+// data[]), so walk generically rather than hardcoding group names - flatten
+// every "data" array found into one row per attribute.
 const rows = [];
 
 function walk(node, path) {
@@ -30,8 +31,6 @@ function walk(node, path) {
     }
 }
 
-for (const item of data || []) {
-    walk(item && item.categories, []);
-}
+walk(data && data.categories, []);
 
 result = rows;
