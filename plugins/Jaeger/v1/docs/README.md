@@ -32,7 +32,12 @@ Pre-aggregated is the default, and is what an existing configuration behaves as 
 
 ## Service Performance Monitoring
 
-**Call Rate**, **Error Rate** and **Latency** read Jaeger's [Service Performance Monitoring](https://www.jaegertracing.io/docs/latest/spm/) endpoints. These only work if your Jaeger deployment has a metrics storage backend configured — span metrics produced by the OpenTelemetry Collector's `spanmetrics` connector, stored in Prometheus, with the Jaeger Query service pointed at it. If SPM is not enabled, these three streams return the error Jaeger itself reports and the other streams are unaffected.
+**Call Rate**, **Error Rate** and **Latency** read Jaeger's [Service Performance Monitoring](https://www.jaegertracing.io/docs/latest/spm/) endpoints, which need a metrics backend configured on the Jaeger Query service. Jaeger supports two ways of providing one, and these streams work with either:
+
+- **Pre-computed into a PromQL-compatible store** — the OpenTelemetry Collector's `spanmetrics` connector derives RED metrics from spans and writes them to Prometheus (or any other PromQL-compatible backend), which Jaeger Query then reads.
+- **Computed directly from trace storage** — on Elasticsearch and OpenSearch, Jaeger Query calculates the metrics at query time from the traces it already holds, with no connector and no separate metrics store. Point `jaeger_query.storage.metrics` at the same backend as `traces`.
+
+If neither is configured, these three streams return the error Jaeger itself reports and the other streams are unaffected.
 
 Each of the three accepts a **Split by operation** parameter, which returns one series per operation instead of one for the service as a whole. **Service Latency** also takes a **Quantile** — the RED Metrics perspective charts 0.5, 0.95 and 0.99 side by side, since a single quantile can't distinguish a slower median from a heavier tail.
 
