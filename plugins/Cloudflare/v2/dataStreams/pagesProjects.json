@@ -1,0 +1,126 @@
+{
+    "name": "pagesProjects",
+    "displayName": "Pages Projects",
+    "description": "Cloudflare Pages projects in an account with their production branch and latest deployment",
+    "tags": [
+        "Pages"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "accounts/{{object.rawId}}/pages/projects",
+        "postRequestScript": "pagesProjects.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "10"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "result"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Account"
+            ]
+        }
+    },
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "sourceId",
+            "displayName": "Source ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "sourceId",
+            "sourceType": "Cloudflare Pages Project"
+        },
+        {
+            "name": "accountId",
+            "displayName": "Account ID",
+            "shape": "string"
+        },
+        {
+            "name": "subdomain",
+            "displayName": "Subdomain",
+            "shape": "string"
+        },
+        {
+            "name": "domains",
+            "displayName": "Domains",
+            "shape": "string"
+        },
+        {
+            "name": "primaryDomain",
+            "displayName": "Primary Domain",
+            "shape": "string"
+        },
+        {
+            "name": "productionBranch",
+            "displayName": "Production Branch",
+            "shape": "string"
+        },
+        {
+            "name": "latestDeploymentStatus",
+            "displayName": "Latest Deployment",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "error": [
+                            "failure",
+                            "canceled"
+                        ],
+                        "warning": [
+                            "idle",
+                            "active",
+                            "queued",
+                            "building"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "latestDeploymentOn",
+            "displayName": "Last Deployed",
+            "shape": "date"
+        },
+        {
+            "name": "createdOn",
+            "displayName": "Created",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}

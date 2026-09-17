@@ -1,0 +1,70 @@
+{
+    "name": "accessLogins",
+    "displayName": "Access Logins",
+    "description": "Daily Zero Trust login attempts for an Access application by identity provider, country and outcome",
+    "tags": ["Security", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$appId:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){accessLoginRequestsAdaptiveGroups(limit:10000,filter:{appId:$appId,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count dimensions{date identityProvider isSuccessfulLogin country hasWarpEnabled}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "appId": "{{object.rawId}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.accessLoginRequestsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Access Application"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.identityProvider",
+            "displayName": "Identity Provider",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "dimensions.isSuccessfulLogin",
+            "displayName": "Successful",
+            "shape": "boolean"
+        },
+        {
+            "name": "dimensions.country",
+            "displayName": "Country",
+            "shape": "string"
+        },
+        {
+            "name": "dimensions.hasWarpEnabled",
+            "displayName": "WARP Enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "count",
+            "displayName": "Logins",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last7days"]
+}

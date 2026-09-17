@@ -1,0 +1,106 @@
+{
+    "name": "workerInvocations",
+    "displayName": "Worker Invocations",
+    "description": "Request, error and CPU time metrics for a Worker script",
+    "tags": [
+        "Workers",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$scriptName:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){workersInvocationsAdaptive(limit:10000,filter:{scriptName:$scriptName,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){sum{requests errors subrequests}quantiles{cpuTimeP50 cpuTimeP99}dimensions{datetime status scriptName}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "scriptName": "{{object.name}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.workersInvocationsAdaptive",
+        "expandInnerObjects": true,
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Worker"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.errors",
+            "displayName": "Errors",
+            "shape": "number"
+        },
+        {
+            "name": "sum.subrequests",
+            "displayName": "Subrequests",
+            "shape": "number"
+        },
+        {
+            "name": "quantiles.cpuTimeP50",
+            "displayName": "CPU Time P50 (raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "cpuTimeP50Ms",
+            "displayName": "CPU Time P50",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.cpuTimeP50']) / 1000 }}",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "quantiles.cpuTimeP99",
+            "displayName": "CPU Time P99 (raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "cpuTimeP99Ms",
+            "displayName": "CPU Time P99",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.cpuTimeP99']) / 1000 }}",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "dimensions.status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "errorRate",
+            "displayName": "Error Rate",
+            "computed": true,
+            "valueExpression": "{{ Number($['sum.requests']) > 0 ? Math.round(10000 * Number($['sum.errors']) / Number($['sum.requests'])) / 100 : 0 }}",
+            "shape": ["percent", { "decimalPlaces": 2 }]
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ]
+}

@@ -1,0 +1,78 @@
+{
+    "name": "pagesFunctionsInvocations",
+    "displayName": "Pages Functions Invocations",
+    "description": "Requests, errors and CPU time for the Pages Functions running in an account, by function",
+    "tags": ["Pages", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){pagesFunctionsInvocationsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){sum{requests errors subrequests}quantiles{cpuTimeP50 cpuTimeP99}dimensions{datetime scriptName status}}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.pagesFunctionsInvocationsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Account"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.scriptName",
+            "displayName": "Function",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "dimensions.status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        { "name": "sum.errors", "displayName": "Errors", "shape": "number" },
+        {
+            "name": "sum.subrequests",
+            "displayName": "Subrequests",
+            "shape": "number"
+        },
+        { "name": "quantiles.cpuTimeP50", "visible": false },
+        { "name": "quantiles.cpuTimeP99", "visible": false },
+        {
+            "name": "cpuTimeP50Ms",
+            "displayName": "CPU Time P50",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.cpuTimeP50']) / 1000 }}",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "cpuTimeP99Ms",
+            "displayName": "CPU Time P99",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.cpuTimeP99']) / 1000 }}",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

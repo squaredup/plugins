@@ -1,0 +1,95 @@
+{
+    "name": "queueMessageOperations",
+    "displayName": "Queue Message Operations",
+    "description": "Message write, read and delete operations on a queue with their outcome and lag time",
+    "tags": ["Queues", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$queueId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){queueMessageOperationsAdaptiveGroups(limit:10000,filter:{queueId:$queueId,datetime_geq:$start,datetime_leq:$end},orderBy:[datetimeHour_ASC]){count sum{billableOperations bytes}avg{lagTime retryCount}max{messageSize}dimensions{datetimeHour actionType outcome consumerType}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "queueId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.queueMessageOperationsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Queue"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetimeHour",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.actionType",
+            "displayName": "Operation",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "dimensions.outcome",
+            "displayName": "Outcome",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["success"],
+                        "error": ["fail", "dlq"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "dimensions.consumerType",
+            "displayName": "Consumer Type",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Operations",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.billableOperations",
+            "displayName": "Billable Operations",
+            "shape": "number"
+        },
+        {
+            "name": "sum.bytes",
+            "displayName": "Bytes",
+            "shape": "bytes"
+        },
+        {
+            "name": "avg.lagTime",
+            "displayName": "Lag Time",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "avg.retryCount",
+            "displayName": "Avg Retries",
+            "shape": ["number", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "max.messageSize",
+            "displayName": "Max Message Size",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

@@ -1,0 +1,81 @@
+{
+    "name": "zoneFirewallEvents",
+    "displayName": "Zone Firewall Events",
+    "description": "Firewall event counts for a zone grouped by action and a selectable dimension",
+    "tags": ["Zone", "Security"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){firewallEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count dimensions{action {{breakdown}} }}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "zoneFirewallEvents.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "source",
+            "options": [
+                { "value": "ruleId", "label": "Rule" },
+                { "value": "source", "label": "Service" },
+                { "value": "clientCountryName", "label": "Country" },
+                { "value": "clientRequestHTTPHost", "label": "Host" },
+                { "value": "userAgent", "label": "User Agent" },
+                { "value": "clientRequestPath", "label": "Path" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "action",
+            "displayName": "Action",
+            "shape": "string"
+        },
+        {
+            "name": "actionState",
+            "displayName": "Severity",
+            "computed": true,
+            "valueExpression": "{{ $['action'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["block", "drop"],
+                        "warning": ["challenge", "managed_challenge", "jschallenge"],
+                        "success": ["allow", "skip", "log"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "events",
+            "displayName": "Events",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours"]
+}
