@@ -35,7 +35,7 @@ The out-of-the-box dashboards include an estate-wide **Overview** plus a perspec
 - **Player Profile** — current profile and ratings for a player, one row per player.
 - **Teams** — teams a player belongs to, one row per team; used only to discover which teams to track.
 - **Player Rating History** — rating over time per chess variant for a player.
-- **Player Activity** — daily game and puzzle win/loss/draw counts for a player.
+- **Recent Player Activity** — daily game and puzzle win/loss/draw counts for a player.
 - **Player Recent Games** — recent games for a player, with opponent, result, and opening.
 - **Team Members** — current member list for a team.
 
@@ -52,5 +52,5 @@ The out-of-the-box dashboards include an estate-wide **Overview** plus a perspec
 - **Large teams' member lists can time out** — `GET /api/team/{id}/users` is throttled by Lichess at roughly 50 members/second regardless of caller, and the platform allows a data stream up to 25 seconds to complete. In practice, a team with more than roughly 1,200 members will time out on the **Members** tile; smaller teams are unaffected.
 - **Rating history has no server-side time filtering** — the underlying endpoint always returns a player's complete history; the dashboard timeframe picker narrows it down after the fact, so very short windows (e.g. last hour) will typically show no data even for active players.
 - **Recent games are capped at 200 per request** to stay within response size limits — very active players' full game history isn't available in one tile.
-- **Activity history is a fixed rolling window** — the Player Activity stream reflects roughly the last 20 days with recorded activity and has no timeframe picker.
+- **Activity history is a fixed rolling window** — the Recent Player Activity stream reflects roughly the last 20 days with recorded activity and has no timeframe picker.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in Lichess.
