@@ -1,12 +1,14 @@
 // Process NinjaOne ticketing board data
 const items = (data && data.data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
 
-// SquaredUp timeframe (Unix seconds). If substitution doesn't happen the
-// parseInt yields NaN and hasTimeframe is false — filter is skipped and all
-// rows pass through.
-const startTime = parseInt('{{timeframe.unixStart}}');
-const endTime = parseInt('{{timeframe.unixEnd}}');
-const hasTimeframe = !isNaN(startTime) && !isNaN(endTime);
+// context.timeframe.unixStart/unixEnd still resolve to a default 24-hour window
+// when the tile is set to "None", so the enum has to be checked explicitly —
+// reading the unix values alone would apply a silent 24-hour filter to a
+// request the user asked to be unfiltered.
+const tf = context.timeframe || {};
+const hasTimeframe = tf.enum !== 'none' && typeof tf.unixStart === 'number' && typeof tf.unixEnd === 'number';
+const startTime = tf.unixStart;
+const endTime = tf.unixEnd;
 
 /**
  * Recursively converts NinjaOne Unix timestamps (seconds) to ISO strings.

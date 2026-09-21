@@ -2,7 +2,7 @@
     "name": "software",
     "displayName": "Software",
     "tags": ["Security"],
-    "description": "Installed software inventory",
+    "description": "Installed software inventory (timeframe filters on install date)",
     "baseDataSourceName": "httpRequestScoped",
     "config": {
         "httpMethod": "get",
@@ -26,7 +26,16 @@
         "endpointPath": "/v2/queries/software",
         "postRequestScript": "software.js",
         "pathToData": "results",
-        "getArgs": [],
+        "getArgs": [
+            {
+                "key": "installedAfter",
+                "value": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' ? null : timeframe.start}}"
+            },
+            {
+                "key": "installedBefore",
+                "value": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' ? null : timeframe.end}}"
+            }
+        ],
         "headers": []
     },
     "matches": {
@@ -81,5 +90,19 @@
             "pattern": ".*"
         }
     ],
-    "timeframes": false
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true
 }
