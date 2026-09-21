@@ -3,8 +3,9 @@ devices and sensors, with current status, channel readings, historic sensor data
 [PRTG HTTP API](https://www.paessler.com/manuals/prtg/http_api).
 
 > ⚠️ **This plugin uses the PRTG API v1** — `/api/table.json`, `/api/historicdata.json` and
-> `/api/getstatus.htm`. Any PRTG version that supports API keys will work, including PRTG Network Monitor,
-> PRTG Enterprise Monitor and PRTG Hosted Monitor, and you do **not** need to enable the new UI or API v2.
+> `/api/getstatus.htm`. It works against PRTG Network Monitor, PRTG Enterprise Monitor and PRTG Hosted
+> Monitor, and you do **not** need to enable the new UI or API v2. Any version supporting API keys is
+> expected to work; this plugin was built and tested against PRTG 26.3.122.1665.
 > See [Why this plugin uses API v1](#why-this-plugin-uses-api-v1) for the reasoning.
 
 ## Setup
@@ -109,8 +110,10 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 - **Date ranges follow the API account's time zone.** See the **PRTG time zone** field above. The zone is a
   property of the PRTG *account* the key belongs to, and Paessler
   [document no per-request override](https://helpdesk.paessler.com/en/support/solutions/articles/76000073098-output-of-api-table-json-content-messages-contains-datetime-is-it-in-gmt-utc-filter-dstart) — there is no
-  UTC parameter and no relative ranges — so the zone has to be supplied. API v2 does not help; it exposes no
-  time zone endpoint at all. The zone is also used to convert **Sensor History** timestamps to UTC, because
+  UTC parameter and no relative ranges — so the zone has to be supplied. (API v2 would remove the problem
+  entirely, since it returns ISO 8601 in UTC throughout, but it cannot yet run this plugin — see
+  [Why this plugin uses API v1](#why-this-plugin-uses-api-v1).) The zone is also used to convert
+  **Sensor History** timestamps to UTC, because
   that endpoint reports times only as local text with no UTC equivalent — so the wrong zone shifts both the
   range queried *and* the times plotted. An unrecognised zone name falls back to UTC rather than failing the
   request.
@@ -119,10 +122,10 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
   **Server Time Zone**, and saving the configuration warns when it disagrees with the zone you picked. That
   offset cannot replace the setting, though: it describes only the present moment, whereas **Sensor History**
   covers up to 30 days and needs the daylight saving transitions an IANA name carries.
-- **Very large installations may hit a response size limit.** Each object type is fetched in a single
-  request rather than page by page. In practice the sensor import is the binding constraint and should
-  comfortably handle around 10,000 sensors, which is also Paessler's own recommended maximum per core
-  server. Larger installations may fail to import sensors.
+- **Very large installations may still hit a response size limit.** Probes, groups, devices and sensors are
+  fetched page by page, 500 rows per request, so there is no per-request ceiling on how many objects can be
+  imported. The combined result is still subject to the platform's overall response size limit, so an estate
+  far beyond Paessler's recommended maximum of 10,000 sensors per core server may fail to import.
 - **Sensor History is limited to 30 days**, and beyond a week it is averaged hourly. Finer buckets over a
   long range return more rows than the platform's response size limit allows, so when you have not chosen an
   **Averaging interval** the plugin asks PRTG for hourly figures on ranges longer than seven days. Choosing
@@ -157,44 +160,13 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 ## Why this plugin uses API v1
 
 PRTG also has a newer [API v2](https://www.paessler.com/support/prtg/api/v2/overview/index.html), and where
-it is stable it is the better API: ISO 8601 timestamps rather than Excel-style serial numbers, typed status
-enumerations rather than numeric codes, native latitude and longitude, a sensor status summary embedded in
-every probe, group and device, and a `path` array giving each object its place in the tree. It cannot yet
-run this plugin, for three separate reasons.
+it is stable it is the better API: ISO 8601 timestamps in UTC rather than Excel-style serial numbers in the
+account's local time, typed status enumerations rather than numeric codes, native latitude and longitude, a
+sensor status summary embedded in every probe, group and device, and a `path` array giving each object its
+place in the tree. Adopting it would remove the **PRTG time zone** setting from this plugin entirely. It
+still cannot run this plugin, for three reasons, in descending order of how binding they are.
 
-### 1. Endpoints this plugin needs that API v2 does not have
-
-Checked against the published
-[API v2 OpenAPI specification](https://www.paessler.com/support/prtg/api/v2/oas/prtg.api.yaml):
-
-| What the plugin needs | API v1 | API v2 |
-| --------------------- | ------ | ------ |
-| List every probe, group, device and sensor, for indexing | `table.json?content=…&count=50000` — one request per type | Only `GET /experimental/{probes,groups,devices,sensors}`. The non-experimental equivalents are deprecated, and the stable endpoints are single-object `GET /{type}/{id}` lookups. Capped at 3,000 objects per request. |
-| Everything beneath one probe, group or device | `table.json?content=sensors&id=…` — PRTG walks the subtree | Only through the experimental `filter` parameter on those experimental list endpoints. |
-| Channel readings for one sensor | `table.json?content=channels&id=…` | `GET /sensors/{id}/data` — **stable, and better than API v1.** |
-| Historic readings over an arbitrary window | `historicdata.json?sdate=&edate=&avg=` — any range, and a choice of raw, 5-minute, hourly or daily buckets | `GET /experimental/timeseries/{id}/{type}`, where `type` is one of four fixed windows: `live` (4 hours), `short` (2 days), `medium` (60 days), `long` (365 days). No arbitrary range and no averaging control. |
-| PRTG log entries over a timeframe | `table.json?content=messages&filter_dstart=&filter_dend=` | **Nothing.** The specification contains no log, message or event endpoint. |
-| Installation-wide sensor counts, version and edition | `getstatus.htm?id=0` — one request | `GET /sensor-status-summary` and `GET /version` are stable and cover most of it, and the experimental `/license` covers the edition — but that is three requests instead of one, and the new-message count, new-alarm count and server clock have no equivalent. |
-| The PRTG account's time zone | `getstatus.htm?id=0` → `UserTimeZone` | **Nothing.** The word "timezone" does not appear in the specification. |
-
-On API v2, then, the **Log** data stream could not be built at all, **Sensor History** could not follow a
-dashboard timeframe, and the time zone check performed when you save the configuration would not be
-possible.
-
-### 2. What remains is marked experimental
-
-Paessler define an experimental endpoint as one that "might change between releases", and API v2 has
-already moved: the plain `/probes`, `/groups`, `/devices`, `/sensors` and `/channels` endpoints are
-deprecated in favour of `/experimental/…` ones, the original `/experimental/timeseries/{id}` is deprecated
-in favour of `/experimental/timeseries/{id}/{type}`, `/experimental/channels` is simultaneously deprecated
-*and* experimental, and the API was substantially reworked in PRTG 24.3.100. Every object list this plugin
-indexes would sit on an endpoint Paessler reserve the right to change.
-
-API v1 carries the lower churn risk today, not the higher one. It is not deprecated, it has no announced
-end of life, and Paessler's own API v2 reference still says that if you cannot achieve your objective with
-API v2 you can use API v1 instead.
-
-### 3. API v2 is not available everywhere API v1 is
+### 1. API v2 is not available everywhere API v1 is
 
 Per Paessler's [guidance on the new UI and API v2](https://helpdesk.paessler.com/en/support/solutions/articles/76000063881-i-want-to-use-the-new-ui-and-api-v2-what-do-i-need-to-know-),
 API v2 is not available on PRTG Hosted Monitor at all, clusters are not supported, and on an existing
@@ -202,18 +174,54 @@ installation it stays off until an administrator enables it under **Setup → Ac
 which needs ports 1615, 1616 and 23580 free on the PRTG server. It is only on by default for installations
 created since PRTG 25.2.106.
 
-A low-code plugin has a single base URL and a single authentication configuration, so using API v2 even for
-part of the data would make all of that a prerequisite for using the plugin at all, and would end Hosted
-Monitor support. The one stream that would benefit — Sensor Channels — is not worth that trade.
+A low-code plugin has a single base URL and a single authentication configuration, so building on API v2 —
+even for part of the data — would make all of that a prerequisite for using the plugin at all, and would end
+Hosted Monitor support outright. This is the binding constraint, and it is not about what the API can do but
+about who would be able to use it.
+
+### 2. Endpoints this plugin needs that API v2 does not have
+
+Checked against the published
+[API v2 OpenAPI specification](https://www.paessler.com/support/prtg/api/v2/oas/prtg.api.yaml):
+
+| What the plugin needs | API v1 | API v2 |
+| --------------------- | ------ | ------ |
+| List every probe, group, device and sensor, for indexing | `table.json?content=…` — one request per type | `GET /experimental/objects` returns all four from one paged endpoint, channels included. 3,000 is the per-request page size rather than a ceiling, and responses carry RFC 5988 `Link` headers for the next page. **Better than API v1.** |
+| Everything beneath one probe, group or device | `table.json?content=sensors&id=…` — PRTG walks the subtree | The same endpoint's `filter` supports `parentid`, plus `children`, `descendants` and `ancestors` prefixes. Equivalent. |
+| Channel readings for one sensor | `table.json?content=channels&id=…` | `GET /sensors/{id}/data` — **stable, and better than API v1.** |
+| Historic readings over an arbitrary window | `historicdata.json?sdate=&edate=&avg=` — any range, and a choice of raw, 5-minute, hourly or daily buckets | The supported `GET /experimental/timeseries/{id}/{type}` offers four fixed windows only: `live` (4 hours), `short` (2 days), `medium` (60 days), `long` (365 days). Arbitrary `from`/`to` exist only on `GET /experimental/timeseries/{id}`, which Paessler have deprecated and say will be removed. Neither form has an averaging control. |
+| PRTG log entries over a timeframe | `table.json?content=messages&filter_dstart=&filter_dend=` | **Nothing.** The specification contains no log, message or event endpoint at any maturity level. |
+| Installation-wide sensor counts, version and edition | `getstatus.htm?id=0` — one request | `GET /sensor-status-summary` and `GET /version` are stable and cover most of it, and the experimental `/license` covers the edition — but that is three requests instead of one, and the new-message count and new-alarm count have no equivalent. |
+
+Object indexing and channel readings are therefore not the obstacle — API v2 handles both, and handles them
+better. Two things are. The **Log** data stream has no endpoint to build on at all. And **Sensor History**
+could only follow a dashboard timeframe by building on an endpoint Paessler have already marked for removal,
+and would lose the averaging interval that keeps a long range inside the response size limit.
+
+### 3. What remains is marked experimental
+
+Paessler define an experimental endpoint as one that "might change between releases", and API v2 has already
+moved: the plain `/objects`, `/probes`, `/groups`, `/devices`, `/sensors` and `/channels` endpoints are all
+deprecated in favour of `/experimental/…` ones, and `/experimental/timeseries/{id}` is deprecated in favour
+of `/experimental/timeseries/{id}/{type}`. The specification carries 26 deprecated operations, every one of
+them stamped with the same release — PRTG 24.3.100, where the API was substantially reworked. Every object
+list this plugin indexes would sit on an endpoint Paessler reserve the right to change.
+
+API v1 carries the lower churn risk today. It is not deprecated, it has no announced end of life, and
+Paessler's own API v2 reference still says that if you cannot achieve your objective with API v2 you can use
+API v1 instead. Paessler have said they plan to deactivate the classic web interface and API v1 once the new
+UI and API v2 are stable and feature complete, and to give advance notice of that period — so this is a
+question of when rather than whether. No date has been given, and Paessler still describe API v2 as not yet
+feature complete.
 
 ### When this should be revisited
 
 A separate PRTG plugin built on API v2 becomes worth having once:
 
 1. API v2 exposes a log or messages endpoint that can be filtered by date;
-2. historic data can be requested for an arbitrary start and end time, with a choice of averaging interval;
-3. the probe, group, device and sensor list endpoints leave `/experimental/` without being deprecated, and
-   offer either a subtree filter or a page size that makes indexing tens of thousands of sensors practical;
+2. historic data can be requested for an arbitrary start and end time on a non-deprecated endpoint, with a
+   choice of averaging interval;
+3. `/experimental/objects` leaves `/experimental/` without being deprecated in turn;
 4. API v2 reaches PRTG Hosted Monitor, or dropping Hosted Monitor support becomes an accepted trade.
 
 The first two are hard blockers; the rest are cost. Because moving off API v1 would break existing users,
