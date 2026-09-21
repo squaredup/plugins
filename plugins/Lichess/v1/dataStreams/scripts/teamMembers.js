@@ -7,7 +7,7 @@
 // (defensively) an array of them.
 const body = response.body;
 
-result =
+const members =
     typeof body === "string"
         ? body
               .split("\n")
@@ -19,3 +19,8 @@ result =
           : body
             ? [body]
             : [];
+
+result = members.map((member) => ({
+    ...member,
+    url: `https://lichess.org/@/${encodeURIComponent(member.id)}`,
+}));

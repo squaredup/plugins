@@ -49,7 +49,7 @@ The out-of-the-box dashboards include an estate-wide **Overview** plus a perspec
 ## Known limitations
 
 - **Teams are discovered through tracked players, not by ID** — Lichess has no API to fetch an arbitrary team by ID in bulk, so only teams that a tracked player actually belongs to are imported; there's no way to track a team with no tracked members.
-- **Large teams' member lists can time out** — `GET /api/team/{id}/users` is throttled by Lichess at roughly 50 members/second regardless of caller, and the platform allows a data stream up to 25 seconds to complete. In practice, a team with more than roughly 1,200 members will time out on the **Members** tile; smaller teams are unaffected.
+- **Large teams' member lists can time out** — the platform allows a data stream up to 25 seconds to complete, and `GET /api/team/{id}/users` for a very large team's full member list can exceed that on the **Members** tile.
 - **Rating history has no server-side time filtering** — the underlying endpoint always returns a player's complete history; the dashboard timeframe picker narrows it down after the fact, so very short windows (e.g. last hour) will typically show no data even for active players.
 - **Recent games are capped at 200 per request** to stay within response size limits — very active players' full game history isn't available in one tile.
 - **Activity history is a fixed rolling window** — the Recent Player Activity stream reflects roughly the last 20 days with recorded activity and has no timeframe picker.

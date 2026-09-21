@@ -14,6 +14,10 @@ const usernames = (
     .map((s) => s.trim())
     .filter(Boolean);
 
+if (usernames.length === 0) {
+    throw new Error("Usernames is required. Please configure at least one Lichess username.");
+}
+
 result = usernames.map((username) => ({
     id: username.toLowerCase(),
     username,
