@@ -8,10 +8,9 @@
 // from this endpoint's response; per-player profile data is fetched by the
 // dependent playerProfile step/stream instead.
 const usernames = (
-    (context.dataSources[0] && context.dataSources[0].usernames) || ""
+    (context.dataSources[0] && context.dataSources[0].usernames) || []
 )
-    .split(",")
-    .map((s) => s.trim())
+    .map((entry) => (entry.value || "").trim())
     .filter(Boolean);
 
 if (usernames.length === 0) {

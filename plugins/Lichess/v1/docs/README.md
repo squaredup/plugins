@@ -15,7 +15,7 @@ You will need a Lichess **personal API access token**.
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ----------------- | -------- |
 | **API token** | Authenticates every request via the `Authorization: Bearer` header. | Lichess → [**Preferences → API access tokens**](https://lichess.org/account/oauth/token). | Yes |
-| **Usernames** | Comma-separated list of Lichess usernames to track as **Lichess Player** objects. Any team a tracked player belongs to is imported as a **Lichess Team** object automatically — Lichess has no API to look up an arbitrary team by ID directly. | The username as it appears in the player's profile URL, e.g. `lichess.org/@/DrNykterstein` → `DrNykterstein`. | Yes |
+| **Usernames** | Lichess usernames to track as **Lichess Player** objects, added one at a time as chips. Any team a tracked player belongs to is imported as a **Lichess Team** object automatically — Lichess has no API to look up an arbitrary team by ID directly. | The username as it appears in the player's profile URL, e.g. `lichess.org/@/DrNykterstein` → `DrNykterstein`. | Yes |
 
 On save, the plugin validates the token by fetching your Lichess account profile; an invalid or expired token fails setup with an authentication error.
 
