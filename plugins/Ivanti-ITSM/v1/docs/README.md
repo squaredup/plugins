@@ -25,7 +25,7 @@ A key only works for the tenant it was created in, and optionally for the IP add
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ---------------- | -------- |
-| **Tenant URL** | The address of the Ivanti instance, with no path. The plugin appends `/api/odata/businessobject/…` itself. | The address bar when you are signed in to Ivanti, for example `https://yourtenant.saasiteu.com`. | Yes |
+| **Tenant URL** | The address of the Ivanti instance. For an on-premises instance, include the virtual directory, for example `https://help.example.com/HEAT`. The plugin appends `/api/odata/businessobject/…` itself. | The address bar when you are signed in to Ivanti, for example `https://yourtenant.saasiteu.com`. | Yes |
 | **REST API key** | Sent as the `Authorization: rest_api_key=…` header on every request. | Configuration console → **Configure > Security Controls > API Keys** → the key's **Reference ID**. | Yes |
 | **Page limit** | The most records Ivanti returns in one request. Every stream pages at this size, so no request ever exceeds it. | Set by an Ivanti administrator for the tenant — ask them for the value. It is 100 unless they have raised it. | No (defaults to 100) |
 | **Configuration item filter** | An OData `$filter` limiting which configuration items are imported, for example `Status eq 'Active'`. | — | No |
