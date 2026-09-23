@@ -1,0 +1,301 @@
+{
+    "name": "serviceRequests",
+    "displayName": "Service Requests",
+    "description": "Service requests, one row per record, with status, urgency and ownership",
+    "tags": [
+        "Tickets",
+        "Service Management"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{dataSource.apiPath || 'odata'}}/businessobject/servicereqs",
+        "getArgs": [
+            {
+                "key": "$top",
+                "value": "{{maxRecords || dataSource.maxRecords || 99}}"
+            },
+            {
+                "key": "$filter",
+                "value": "{{ [(typeof timeframe !== 'undefined' && timeframe.enum !== 'none') ? `${dateField || 'CreatedDateTime'} ge ${new Date(timeframe.start).toISOString().split('.')[0]}Z and ${dateField || 'CreatedDateTime'} le ${new Date(timeframe.end).toISOString().split('.')[0]}Z` : null, (Array.isArray(status) && status.length) ? status.map((v => (v && typeof v === 'object') ? (v.value != null ? v.value : v.label) : v)).filter(v => v != null && v !== '').map(v => `Status eq '${String(v).split(\"'\").join(\"''\")}'`).join(' or ') || null : null, (Array.isArray(team) && team.length) ? team.map(t => (t && typeof t === 'object') ? (t.name != null ? t.name : t.displayName) : t).filter(v => v != null && v !== '').map(v => `OwnerTeam eq '${String(v).split(\"'\").join(\"''\")}'`).join(' or ') || null : null, typeof filter !== 'undefined' ? filter : null].filter(Boolean).map((c, i, a) => (a.length > 1 && c.indexOf(' or ') !== -1) ? '(' + c + ')' : c).join(' and ') || null }}"
+            },
+            {
+                "key": "$select",
+                "value": "{{ typeof select !== 'undefined' ? select : null }}"
+            },
+            {
+                "key": "$orderby",
+                "value": "{{ (typeof orderBy !== 'undefined' && orderBy) || 'CreatedDateTime desc' }}"
+            }
+        ],
+        "pathToData": "value",
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/odataError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "switch",
+            "name": "dateField",
+            "label": "Timeframe applies to",
+            "defaultValue": "CreatedDateTime",
+            "help": "Which date the selected timeframe filters on. Set the timeframe to **None** to ignore dates and return the current backlog.",
+            "options": [
+                {
+                    "value": "CreatedDateTime",
+                    "label": "Created"
+                },
+                {
+                    "value": "LastModDateTime",
+                    "label": "Last modified"
+                },
+                {
+                    "value": "ResolvedDateTime",
+                    "label": "Resolved"
+                },
+                {
+                    "value": "ClosedDateTime",
+                    "label": "Closed"
+                }
+            ],
+            "tileEditorStep": [
+                "Timeframe"
+            ]
+        },
+        {
+            "type": "autocomplete",
+            "name": "status",
+            "label": "Status",
+            "isMulti": true,
+            "isClearable": true,
+            "allowCustomValues": true,
+            "help": "Filters in Ivanti rather than in the browser, so it also keeps large result sets under the record ceiling. Type a value to use a status this tenant has added.",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "Logged",
+                        "label": "Logged"
+                    },
+                    {
+                        "value": "Active",
+                        "label": "Active"
+                    },
+                    {
+                        "value": "Waiting for Approval",
+                        "label": "Waiting for Approval"
+                    },
+                    {
+                        "value": "Fulfilled",
+                        "label": "Fulfilled"
+                    },
+                    {
+                        "value": "Cancelled",
+                        "label": "Cancelled"
+                    },
+                    {
+                        "value": "Closed",
+                        "label": "Closed"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Team"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Additional filter",
+            "placeholder": "Category eq 'Hardware'",
+            "help": "Appended to the filter this tile already builds, using the OData `$filter` syntax."
+        },
+        {
+            "type": "text",
+            "name": "select",
+            "label": "Field(s)",
+            "placeholder": "RecId,Subject,Status,CreatedDateTime",
+            "help": "Limits the response to these fields. Worth setting for a business object with many fields, where the full payload is slow or too large. A field name that does not exist fails the whole request."
+        },
+        {
+            "type": "text",
+            "name": "orderBy",
+            "label": "Order by",
+            "placeholder": "CreatedDateTime desc",
+            "help": "Ivanti applies this before the record ceiling, so it decides which records a truncated result keeps. Uses the OData `$orderby` syntax."
+        },
+        {
+            "type": "number",
+            "name": "maxRecords",
+            "label": "Maximum records",
+            "help": "Ivanti rejects a request above the tenant page limit outright - the default limit is 100 and only an administrator can raise it. Narrow the status, team or timeframe filters instead.",
+            "validation": {
+                "min": 1,
+                "max": 1000,
+                "valueAsNumber": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Subject",
+            "displayName": "Subject",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "ServiceReqNumber",
+            "displayName": "Request Number",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "Status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "Urgency",
+            "displayName": "Urgency",
+            "shape": "string"
+        },
+        {
+            "name": "Service",
+            "displayName": "Service",
+            "shape": "string"
+        },
+        {
+            "name": "Owner",
+            "displayName": "Owner",
+            "shape": "string"
+        },
+        {
+            "name": "OwnerTeam",
+            "displayName": "Owner Team",
+            "shape": "string"
+        },
+        {
+            "name": "ProfileFullName",
+            "displayName": "Customer",
+            "shape": "string"
+        },
+        {
+            "name": "LoginId",
+            "displayName": "Customer Login",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "Source",
+            "displayName": "Source",
+            "shape": "string"
+        },
+        {
+            "name": "CreatedDateTime",
+            "displayName": "Created",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "LastModDateTime",
+            "displayName": "Last Modified",
+            "shape": "date"
+        },
+        {
+            "name": "ResolvedDateTime",
+            "displayName": "Resolved",
+            "shape": "date"
+        },
+        {
+            "name": "ClosedDateTime",
+            "displayName": "Closed",
+            "shape": "date"
+        },
+        {
+            "name": "ageDays",
+            "displayName": "Age (days)",
+            "computed": true,
+            "valueExpression": "{{ $['CreatedDateTime'] ? Math.floor((Date.now() - new Date($['CreatedDateTime']).getTime()) / 86400000) : null }}",
+            "shape": "number"
+        },
+        {
+            "name": "IsInFinalState",
+            "displayName": "Closed Out",
+            "shape": "boolean",
+            "visible": false
+        },
+        {
+            "name": "SLA",
+            "displayName": "SLA",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "IsVIP",
+            "displayName": "VIP",
+            "shape": "boolean",
+            "visible": false
+        },
+        {
+            "name": "TotalTimeSpent",
+            "displayName": "Time Spent",
+            "shape": "minutes",
+            "visible": false
+        },
+        {
+            "name": "Symptom",
+            "displayName": "Description",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "Resolution",
+            "displayName": "Resolution",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "CreatedBy",
+            "displayName": "Created By",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "RecId",
+            "displayName": "Record ID",
+            "shape": "guid",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "CreatedDateTime",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

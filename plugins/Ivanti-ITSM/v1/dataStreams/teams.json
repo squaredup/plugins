@@ -1,0 +1,106 @@
+{
+    "name": "teams",
+    "displayName": "Teams",
+    "description": "Ticket-owning teams, one row per team",
+    "tags": [
+        "Organization",
+        "Service Management"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{dataSource.apiPath || 'odata'}}/businessobject/{{dataSource.teamBusinessObject || 'standarduserteams'}}",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ typeof filter !== 'undefined' ? filter : null }}"
+            }
+        ],
+        "pathToData": "value",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "$top",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "value"
+                },
+                "base": 0
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "$skip"
+            }
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/odataError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Additional filter",
+            "placeholder": "Status eq 'Active'",
+            "help": "Restricts which teams are returned, using the OData `$filter` syntax."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Team",
+            "displayName": "Team",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "TeamEmail",
+            "displayName": "Team Email",
+            "shape": "string"
+        },
+        {
+            "name": "TeamManager",
+            "displayName": "Manager",
+            "shape": "string"
+        },
+        {
+            "name": "TeamManagerEmail",
+            "displayName": "Manager Email",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "IsServiceDesk",
+            "displayName": "Service Desk",
+            "shape": "boolean"
+        },
+        {
+            "name": "TeamLevel",
+            "displayName": "Level",
+            "shape": "string"
+        },
+        {
+            "name": "LastModDateTime",
+            "displayName": "Last Modified",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "RecId",
+            "displayName": "Record ID",
+            "shape": "guid",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

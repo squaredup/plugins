@@ -1,0 +1,74 @@
+{
+    "name": "businessObjectRecords",
+    "displayName": "Business Object Records",
+    "description": "Records from any Ivanti business object, including customer-defined ones, with all fields returned",
+    "tags": ["Advanced", "Service Management"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{dataSource.apiPath || 'odata'}}/businessobject/{{businessObject}}",
+        "getArgs": [
+            {
+                "key": "$top",
+                "value": "{{maxRecords || dataSource.maxRecords || 99}}"
+            },
+            { "key": "$filter", "value": "{{ typeof filter !== 'undefined' ? filter : null }}" },
+            { "key": "$select", "value": "{{ typeof select !== 'undefined' ? select : null }}" },
+            { "key": "$orderby", "value": "{{ typeof orderBy !== 'undefined' ? orderBy : null }}" }
+        ],
+        "pathToData": "value",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/odataError.js"
+        }
+    },
+    "matches": "none",
+    "manualConfigApply": true,
+    "ui": [
+        {
+            "type": "text",
+            "name": "businessObject",
+            "label": "Business object name",
+            "placeholder": "incidents",
+            "help": "The business object name as used in the API, which is always the object name with an `s` on the end - `incidents`, `tasks`, `alerts`, `employees`. A customer-defined object follows the same rule.",
+            "validation": {
+                "required": true,
+                "pattern": {
+                    "value": "^[A-Za-z0-9_]+$",
+                    "message": "Use the API name of the business object, e.g. incidents"
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Filter",
+            "placeholder": "Status eq 'Active'",
+            "help": "Uses the OData `$filter` syntax."
+        },
+        {
+            "type": "text",
+            "name": "select",
+            "label": "Field(s)",
+            "placeholder": "RecId,Subject,Status",
+            "help": "Limits the response to these fields, which is worth doing for objects with many columns. A field name that does not exist fails the whole request."
+        },
+        {
+            "type": "text",
+            "name": "orderBy",
+            "label": "Order by",
+            "placeholder": "CreatedDateTime desc",
+            "help": "Uses the OData `$orderby` syntax."
+        },
+        {
+            "type": "number",
+            "name": "maxRecords",
+            "label": "Maximum records",
+            "help": "Ivanti returns at most 1000 records in one request.",
+            "validation": { "min": 1, "max": 1000, "valueAsNumber": true }
+        }
+    ],
+    "metadata": [{ "pattern": ".*" }],
+    "timeframes": false
+}
