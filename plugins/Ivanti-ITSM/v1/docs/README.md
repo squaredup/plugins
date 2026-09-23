@@ -73,7 +73,7 @@ Both import steps are optional, so a tenant that has renamed or restricted one o
 
 ## Adapting to a customized tenant
 
-Ivanti tenants routinely rename fields, add statuses and define their own business objects. Three things absorb that without a code change:
+Ivanti tenants routinely rename fields, add statuses and define their own business objects. The following absorb that without a code change:
 
 - **Status filters accept custom values.** The status list on each ticket tile is a suggestion — type any status this tenant uses and it is sent to the API as written.
 - **What counts as "open" is a status list, not a flag.** The out-of-the-box tiles define open by excluding `Resolved`, `Closed` and `Cancelled` (plus `Fulfilled` for requests and `Implemented`/`Rejected` for changes). If this tenant retires tickets into some other status, add it to the tile's **Additional filter** as `Status ne '<that status>'`, or the tile will count abandoned tickets as open. Ivanti's own `IsInFinalState` field is not a substitute: it cannot be filtered on, and it reads `false` on cancelled records.
