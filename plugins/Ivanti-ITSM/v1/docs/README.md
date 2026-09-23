@@ -80,7 +80,7 @@ Ivanti tenants routinely rename fields, add statuses and define their own busine
 - **The additional filter field** on every tile takes a raw OData `$filter`, so you can filter on fields the plugin does not know about. It is combined with whatever the tile already filters on using `and`.
 - **Business Object Records** reads any object by its API name. The API name is the business object name with an `s` on the end — `incidents`, `tasks`, `alerts`, `employees` — and the same rule applies to customer-defined objects.
 
-If **Team business object** needs changing, confirm the object first: compare the `OwnerTeam` values actually in use on tickets against the names in the candidate object. Contact groups are a common wrong answer - in a stock tenant they hold advisory and approval boards rather than ticket-owning teams.
+If **Team business object** needs changing, confirm the object first: compare the `OwnerTeam` values actually in use on tickets against the names in the candidate object. Contact groups are a common wrong answer - in a stock tenant they hold advisory and approval boards rather than ticket-owning teams. If the object has no `Team` field, imported teams have no name, and Team-scoped tiles deliberately show no tickets rather than falling back to every team's.
 
 ## Known limitations
 
