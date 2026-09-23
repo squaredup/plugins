@@ -10,7 +10,7 @@
         "getArgs": [
             {
                 "key": "$top",
-                "value": "{{maxRecords || dataSource.maxRecords || 99}}"
+                "value": "{{ Math.min((typeof maxRecords !== 'undefined' && Number(maxRecords)) || (Number(dataSource.pageLimit) || 100), (Number(dataSource.pageLimit) || 100)) }}"
             },
             { "key": "$filter", "value": "{{ typeof filter !== 'undefined' ? filter : null }}" },
             { "key": "$select", "value": "{{ typeof select !== 'undefined' ? select : null }}" },
@@ -65,8 +65,8 @@
             "type": "number",
             "name": "maxRecords",
             "label": "Maximum records",
-            "help": "Ivanti returns at most 1000 records in one request.",
-            "validation": { "min": 1, "max": 1000, "valueAsNumber": true }
+            "help": "Defaults to the page limit set on the data source, and is capped at it - a higher value is reduced to the limit rather than failing. Narrow the filter to see different records.",
+            "validation": { "min": 1, "valueAsNumber": true }
         }
     ],
     "metadata": [{ "pattern": ".*" }],
