@@ -1,0 +1,62 @@
+{
+    "name": "cacheReserveOperations",
+    "displayName": "Cache Reserve Operations",
+    "description": "Cache Reserve read, write and delete operation counts for a zone grouped by a selectable dimension",
+    "tags": ["Zone", "Cache"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){cacheReserveOperationsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){sum{requests}dimensions{datetime {{breakdown}}}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "cacheReserveOperations.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "operationClass",
+            "options": [
+                { "value": "operationClass", "label": "Operation Type" },
+                { "value": "actionStatus", "label": "Outcome" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "operationCount",
+            "displayName": "Operation Count",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

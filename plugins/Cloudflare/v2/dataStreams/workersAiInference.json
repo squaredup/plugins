@@ -1,0 +1,78 @@
+{
+    "name": "workersAiInference",
+    "displayName": "Workers AI Inference",
+    "description": "Inference request counts, token usage and latency for Workers AI grouped by a selectable dimension",
+    "tags": ["Workers", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){aiInferenceAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count sum{totalInputTokens totalOutputTokens totalInferenceTimeMs}dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "workersAiInference.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Account"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "modelId",
+            "options": [
+                { "value": "modelId", "label": "Model" },
+                { "value": "requestSource", "label": "Request Source" },
+                { "value": "errorCode", "label": "Error Code" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "inputTokens",
+            "displayName": "Input Tokens",
+            "shape": "number"
+        },
+        {
+            "name": "outputTokens",
+            "displayName": "Output Tokens",
+            "shape": "number"
+        },
+        {
+            "name": "avgDurationMs",
+            "displayName": "Avg Inference Time",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

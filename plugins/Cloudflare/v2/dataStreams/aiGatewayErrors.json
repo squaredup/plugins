@@ -1,0 +1,71 @@
+{
+    "name": "aiGatewayErrors",
+    "displayName": "AI Gateway Errors",
+    "description": "Error counts for an AI Gateway broken down by model or provider",
+    "tags": ["AI"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$gateway:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){aiGatewayErrorsAdaptiveGroups(limit:10000,filter:{gateway:$gateway,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "gateway": "{{object.name}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.aiGatewayErrorsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare AI Gateway"]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "model",
+            "options": [
+                { "value": "model", "label": "Model" },
+                { "value": "provider", "label": "Provider" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        { "name": "dimensions.model", "visible": false },
+        { "name": "dimensions.provider", "visible": false },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "computed": true,
+            "valueExpression": "{{ $['dimensions.model'] || $['dimensions.provider'] || 'Unknown' }}",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Errors",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}

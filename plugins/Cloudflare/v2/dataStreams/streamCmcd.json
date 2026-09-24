@@ -1,0 +1,83 @@
+{
+    "name": "streamCmcd",
+    "displayName": "Stream Playback Quality",
+    "description": "Daily playback quality metrics for a Cloudflare Stream video, grouped by a selectable dimension",
+    "tags": ["Media"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$videoId:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){streamCMCDAdaptiveGroups(limit:10000,filter:{videoId:$videoId,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count avg{bufferStarvationDuration initialBufferStarvationDuration encodedBitrate} dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "videoId": "{{object.rawId}}",
+                "start": "{{timeframe.start.split('T')[0]}}",
+                "end": "{{timeframe.end.split('T')[0]}}"
+            }
+        },
+        "postRequestScript": "streamCmcd.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Stream Video"]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "country",
+            "options": [
+                { "value": "country", "label": "Country" },
+                { "value": "resolution", "label": "Resolution" },
+                { "value": "streamType", "label": "Stream Type" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "sampleCount",
+            "displayName": "Sample Count",
+            "shape": "number"
+        },
+        {
+            "name": "avgBufferingDurationMs",
+            "displayName": "Avg Buffering Duration",
+            "shape": "milliseconds",
+            "role": "value"
+        },
+        {
+            "name": "avgStartupBufferingDurationMs",
+            "displayName": "Avg Startup Buffering Duration",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "avgEncodedBitrate",
+            "displayName": "Avg Encoded Bitrate",
+            "shape": "number"
+        }
+    ],
+    "timeframes": ["last24hours", "last7days"]
+}

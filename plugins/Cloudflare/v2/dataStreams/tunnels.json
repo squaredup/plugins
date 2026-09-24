@@ -1,0 +1,114 @@
+{
+    "name": "tunnels",
+    "displayName": "Tunnels",
+    "description": "Cloudflare Tunnels in an account with their connection status",
+    "tags": [
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "accounts/{{object.rawId}}/cfd_tunnel",
+        "getArgs": [
+            {
+                "key": "is_deleted",
+                "value": "false"
+            }
+        ],
+        "postRequestScript": "tunnels.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "result"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Account"
+            ]
+        }
+    },
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "sourceId",
+            "displayName": "Source ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "tunnelName",
+            "displayName": "Tunnel",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "sourceId",
+            "sourceType": "Cloudflare Tunnel"
+        },
+        {
+            "name": "accountId",
+            "displayName": "Account ID",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "healthy"
+                        ],
+                        "warning": [
+                            "degraded",
+                            "inactive"
+                        ],
+                        "error": [
+                            "down"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "tunnelType",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "activeConnections",
+            "displayName": "Active Connections",
+            "shape": "number"
+        },
+        {
+            "name": "createdOn",
+            "displayName": "Created",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}
