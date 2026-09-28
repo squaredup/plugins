@@ -3,131 +3,116 @@
 // yields "Free Space C:", a ping sensor "Response Time"). A declared-column data
 // stream cannot express that, so unpivot to one row per channel per interval.
 //
-// Timestamps come from the `datetime` string. historicdata.json also returns a
-// `datetime_raw` OLE date, but only when `usecaption` is omitted — a mode that
-// collapses every channel into one unnamed `value` column — and it carries the
-// bucket end rather than its start, so neither form is usable here (checked
-// against PRTG 26.3.122.1665).
+// This reads historicdata.csv rather than historicdata.json because only the CSV
+// (and XML) carries both the channel names and `Date Time(RAW)`, a UTC OLE date.
+// The JSON form either names every channel `value` or, with `usecaption`, drops
+// the raw date and leaves only local wall-clock text. With a UTC timestamp on
+// every row, nothing here needs to know the PRTG account's time zone.
 //
-// `datetime` is a local wall clock, so convert it to UTC with the configured
-// zone, or this stream sits an hour or more from `Last Check` and the Log stream
-// on the same dashboard. IANA names contain only [A-Za-z0-9_+/-]; stripping
-// other characters stops a quote in a custom value terminating the literal below.
-const TIME_ZONE =
-    '{{ (function(){ var v = dataSource.serverTimeZone; var tz = Array.isArray(v) ? (v[0] && v[0].value) : v; return String(tz || "UTC").replace(/[^A-Za-z0-9_+\/-]/g, "") || "UTC"; })() }}';
+// `Date Time(RAW)` is the reading time for raw data, but the bucket *end* for
+// averaged data, so the bucket start is found by subtracting the averaging
+// interval (checked against PRTG 26.3.122.1665 for 5-minute, hourly and daily
+// buckets).
+//
+// The request window is sent widened by 12 hours before and 14 hours after,
+// because PRTG reads `sdate`/`edate` in the account's zone, which can be anywhere
+// from UTC-12 to UTC+14. Rows outside the real timeframe are dropped here.
 
-// PRTG formats `datetime` in the account's regional setting, so the shape varies
-// by installation. Parse the known forms explicitly rather than leaning on
-// `new Date(str)`, which rejects the European form outright and would otherwise
-// resolve the others against the *host* time zone instead of PRTG's.
-// Returns a wall-clock instant expressed as if UTC, or null if unrecognised.
-const parseNaive = (text) => {
-    // M/D/YYYY h:mm:ss AM|PM
-    let m = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})(?:\s*([AaPp])\.?[Mm]\.?)?$/);
-    if (m) {
-        let hour = Number(m[4]);
-        if (m[7]) {
-            if (hour === 12) hour = 0;
-            if (m[7].toUpperCase() === 'P') hour += 12;
+const MAX_RANGE = 30 * 86400000;
+
+// Same rule as the `avg` getArg in sensorHistory.json.
+const toMs = (v) => (typeof v === 'number' ? (v < 1e12 ? v * 1000 : v) : new Date(v).getTime());
+const tf = (context && context.timeframe) || {};
+const end = toMs(tf.end);
+const start = Math.max(toMs(tf.start), end - MAX_RANGE);
+const average = context && context.config ? context.config.average : undefined;
+const avgSeconds = Number(average || (toMs(tf.end) - toMs(tf.start) > 604800000 ? 3600 : 300)) || 0;
+const bucketMs = avgSeconds * 1000;
+
+// OLE automation date (days since 1899-12-30, UTC) to epoch milliseconds.
+const oleToMs = (raw) => Math.round((Number(raw) - 25569) * 86400000);
+
+// Minimal CSV reader: quoted fields, doubled quotes inside them, and whichever
+// delimiter follows the first header field (PRTG quotes every field).
+const parseCsv = (text) => {
+    const firstQuote = text.indexOf('"', 1);
+    const delimiter = firstQuote > 0 && text[firstQuote + 1] && text[firstQuote + 1] !== '"' ? text[firstQuote + 1] : ',';
+    const rows = [];
+    let row = [];
+    let field = '';
+    let quoted = false;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (quoted) {
+            if (ch === '"') {
+                if (text[i + 1] === '"') {
+                    field += '"';
+                    i++;
+                } else {
+                    quoted = false;
+                }
+            } else {
+                field += ch;
+            }
+        } else if (ch === '"') {
+            quoted = true;
+        } else if (ch === delimiter) {
+            row.push(field);
+            field = '';
+        } else if (ch === '\n' || ch === '\r') {
+            if (ch === '\r' && text[i + 1] === '\n') i++;
+            row.push(field);
+            rows.push(row);
+            row = [];
+            field = '';
+        } else {
+            field += ch;
         }
-        return Date.UTC(Number(m[3]), Number(m[1]) - 1, Number(m[2]), hour, Number(m[5]), Number(m[6]));
     }
-    // D.M.YYYY HH:mm:ss
-    m = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
-    if (m) return Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4]), Number(m[5]), Number(m[6]));
-    // YYYY-MM-DD HH:mm:ss
-    m = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2}):(\d{2})/);
-    if (m) return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6]));
-    return null;
-};
-
-// Offset (ms) that `zone` was running at the given instant. Read via
-// formatToParts rather than a formatted string, so nothing depends on how a
-// given ICU build separates the date from the time. Returns null if the parts
-// do not come back as numbers, so no caller can reach `new Date(NaN)`.
-const offsetAt = (instant, zone) => {
-    const parts = new Intl.DateTimeFormat('en-GB', {
-        timeZone: zone,
-        hourCycle: 'h23',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    }).formatToParts(new Date(instant));
-
-    const p = {};
-    for (const part of parts) p[part.type] = part.value;
-
-    const wall = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), Number(p.hour), Number(p.minute), Number(p.second));
-    return isFinite(wall) ? wall - instant : null;
-};
-
-// Interpret a naive wall-clock instant as a time in `zone` and return real UTC.
-// Applied twice so a reading near a DST transition resolves against the offset
-// actually in force rather than the one on the other side of it.
-const wallClockToUtc = (naive, zone) => {
-    const first = offsetAt(naive, zone);
-    if (first === null) return null;
-    const second = offsetAt(naive - first, zone);
-    return second === null ? null : naive - second;
-};
-
-// `datetime` is either a single stamp ("8/20/2026 9:04:15 PM", when avg=0) or a
-// bucket range ("8/24/2026 11:00:00 AM - 11:05:00 AM"). Take the bucket start.
-const parseWhen = (raw) => {
-    const text = String(raw || '');
-    const start = text.includes(' - ') ? text.split(' - ')[0].trim() : text.trim();
-
-    const naive = parseNaive(start);
-    if (naive === null || !isFinite(naive)) return null;
-
-    let utc = naive;
-    try {
-        const converted = wallClockToUtc(naive, TIME_ZONE);
-        // Unrecognised zone or unusable parts — fall back to treating the wall
-        // clock as UTC, matching the request side's own fallback.
-        if (converted !== null) utc = converted;
-    } catch (e) {
-        utc = naive;
+    if (field !== '' || row.length) {
+        row.push(field);
+        rows.push(row);
     }
-
-    return isFinite(utc) ? new Date(utc).toISOString() : null;
+    return rows;
 };
 
-// "100 %" -> 100. Test for null/undefined rather than falsiness so a genuine
-// zero reports as 0% rather than as no reading at all.
-const parseCoverage = (raw) => {
-    if (raw === null || raw === undefined) return null;
-    const num = parseFloat(String(raw).replace('%', '').trim());
-    return isNaN(num) ? null : num;
-};
+// historicdata answers HTTP 200 with the bare text "Not enough monitoring data"
+// when the window holds no retained readings, so check for the header first.
+const body = response && typeof response.body === 'string' ? response.body : '';
+const table = body.startsWith('"') ? parseCsv(body) : [];
+const header = table[0] || [];
 
-// historicdata.json answers HTTP 200 with the bare text "Not enough monitoring
-// data" when the window holds no retained readings, so `data` is not always an object.
-const rows = (data && typeof data === 'object' && data.histdata) || [];
+// Each channel appears as a "Name" / "Name(RAW)" pair; read the raw half.
+const rawIndex = {};
+header.forEach((name, i) => {
+    if (name.endsWith('(RAW)')) rawIndex[name.slice(0, -5)] = i;
+});
+const timeIndex = rawIndex['Date Time'];
+const coverageIndex = rawIndex['Coverage'];
+const channels = Object.keys(rawIndex).filter((name) => name !== 'Date Time' && name !== 'Coverage');
+
 const out = [];
+for (const cells of table.slice(1)) {
+    // Skips the trailing "Averages (of N values)" row, whose second cell is text.
+    const raw = cells[timeIndex];
+    if (raw === undefined || raw === '' || isNaN(Number(raw))) continue;
 
-for (const row of rows) {
-    const timestamp = parseWhen(row.datetime);
-    if (!timestamp) continue;
+    const reported = oleToMs(raw);
+    const bucketStart = reported - bucketMs;
+    // Keep any bucket that overlaps the timeframe; a raw reading is a point.
+    if (bucketMs > 0 ? reported <= start || bucketStart >= end : reported < start || reported > end) continue;
 
-    const coverage = parseCoverage(row.coverage);
+    const timestamp = new Date(bucketStart).toISOString();
+    const coverageRaw = coverageIndex === undefined ? '' : cells[coverageIndex];
+    const coverage = coverageRaw === '' || coverageRaw === undefined || isNaN(Number(coverageRaw)) ? null : Number(coverageRaw) / 100;
 
-    for (const [channel, raw] of Object.entries(row)) {
-        if (channel === 'datetime' || channel === 'coverage') continue;
-        // Only present when `usecaption` is omitted, which this stream never
-        // does — cheap insurance against them surfacing as channels.
-        if (channel.endsWith('_raw')) continue;
-
-        // Intervals with no coverage come back as empty strings — drop them so
-        // they leave a genuine gap in the chart rather than plotting as zero.
-        if (raw === '' || raw === null || raw === undefined) continue;
-
-        const value = Number(raw);
+    for (const channel of channels) {
+        const cell = cells[rawIndex[channel]];
+        // Intervals with no coverage come back empty — drop them so they leave
+        // a genuine gap in the chart rather than plotting as zero.
+        if (cell === undefined || cell === '') continue;
+        const value = Number(cell);
         if (isNaN(value)) continue;
-
         out.push({ timestamp, channel, value, coverage });
     }
 }

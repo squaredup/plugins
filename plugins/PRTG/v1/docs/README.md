@@ -2,7 +2,7 @@ Monitor your [PRTG Network Monitor](https://www.paessler.com/prtg) installation 
 devices and sensors, with current status, channel readings, historic sensor data and the PRTG log — via the
 [PRTG HTTP API](https://www.paessler.com/manuals/prtg/http_api).
 
-> ⚠️ **This plugin uses the PRTG API v1** — `/api/table.json`, `/api/historicdata.json` and
+> ⚠️ **This plugin uses the PRTG API v1** — `/api/table.json`, `/api/historicdata.csv` and
 > `/api/getstatus.htm`. It works against PRTG Network Monitor, PRTG Enterprise Monitor and PRTG Hosted
 > Monitor, and you do **not** need to enable the new UI or API v2. Any version supporting API keys is
 > expected to work; this plugin was built and tested against PRTG 26.3.122.1665.
@@ -22,16 +22,6 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 6. Click **OK**, then copy the generated key immediately — PRTG will not show it again. If you lose it,
    delete the key and create a new one.
 7. Paste the key into the **API key** field, and your PRTG address into **PRTG URL**.
-8. Set **PRTG time zone** to the time zone of the account whose key you just created — it is shown in PRTG
-   under **Setup → Account Settings → My Account → Time Zone**. Saving checks your answer against the zone
-   PRTG reports, so a mismatch is flagged there and then.
-
-> **Tip: give SquaredUp its own PRTG account, set to UTC.** PRTG has no per-request time zone parameter —
-> every response uses the time zone of the account the key belongs to. Change that account's time zone to
-> **UTC** in PRTG, create the key there, and answer `UTC` here: daylight saving stops mattering, and nobody
-> editing their personal time zone can silently shift your dashboards. Note this means genuinely setting the
-> PRTG account to UTC — answering `UTC` for an account still on another zone is the mismatch the save-time
-> check exists to catch.
 
 ## Configuration fields
 
@@ -39,19 +29,10 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------- |
 | **PRTG URL**                       | The base address of your PRTG web interface — for example `https://prtg.example.com` or `https://yourname.my-prtg.com`. Include the sub-path if PRTG sits behind a reverse proxy, but no query string.           | The address bar of your PRTG web interface.                              | Yes      |
 | **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter — PRTG rejects the key in an `Authorization` header.                                    | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
-| **PRTG time zone**                 | The time zone of the PRTG account whose API key you supplied, as an IANA name such as `Europe/London`. Only affects **Sensor History** and **Log**. Defaults to UTC. | PRTG → **Setup → Account Settings → My Account → Time Zone**.            | No       |
 | **Ignore certificate errors**      | Skips TLS certificate validation. Only enable for an on-premise PRTG server using a self-signed certificate.                                               | —                                                                       | No       |
 
-On save, the plugin calls PRTG's status endpoint twice: once to confirm the URL and key — a failure there
-means the URL is unreachable or the key is invalid, expired, or deleted — and once to compare **PRTG time
-zone** against the zone PRTG says it is using. A zone mismatch is a warning rather than a failure, so it
-will not stop you connecting.
-
-> ⚠️ **Get the time zone right.** PRTG interprets date ranges in its *own* time zone rather than UTC, so the
-> wrong zone shifts **Sensor History** and **Log** — and on short timeframes can make them look empty.
-> Everything else is unaffected. Note that PRTG labels a zone by its *standard* offset, so a UK server shown
-> as "(UTC+00:00) … London" is really running an hour ahead during British Summer Time — pick
-> `Europe/London` rather than `UTC` and daylight saving is handled for you.
+On save, the plugin calls PRTG's status endpoint to confirm the URL and key. A failure there means the URL
+is unreachable or the key is invalid, expired, or deleted.
 
 ## What this plugin monitors
 
@@ -107,21 +88,14 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
   code-based plugins, not low-code ones like this. The PRTG hierarchy is therefore expressed as properties
   (`parentId`, `deviceName`, `groupName`, `probeName`) and through dashboard scoping and drilldown, rather
   than as traversable parent/child links in the graph.
-- **Date ranges follow the API account's time zone.** See the **PRTG time zone** field above. The zone is a
-  property of the PRTG *account* the key belongs to, and Paessler
-  [document no per-request override](https://helpdesk.paessler.com/en/support/solutions/articles/76000073098-output-of-api-table-json-content-messages-contains-datetime-is-it-in-gmt-utc-filter-dstart) — there is no
-  UTC parameter and no relative ranges — so the zone has to be supplied. (API v2 would remove the problem
-  entirely, since it returns ISO 8601 in UTC throughout, but it cannot yet run this plugin — see
-  [Why this plugin uses API v1](#why-this-plugin-uses-api-v1).) The zone is also used to convert
-  **Sensor History** timestamps to UTC, because
-  that endpoint reports times only as local text with no UTC equivalent — so the wrong zone shifts both the
-  range queried *and* the times plotted. An unrecognised zone name falls back to UTC rather than failing the
-  request.
-
-  PRTG does report the zone it is using, as a fixed offset — the **System Status** data stream surfaces it as
-  **Server Time Zone**, and saving the configuration warns when it disagrees with the zone you picked. That
-  offset cannot replace the setting, though: it describes only the present moment, whereas **Sensor History**
-  covers up to 30 days and needs the daylight saving transitions an IANA name carries.
+- **Log counts on past windows can include extra entries against the cap.** PRTG reads date ranges in the
+  time zone of the account the key belongs to, and Paessler
+  [document no per-request override](https://helpdesk.paessler.com/en/support/solutions/articles/76000073098-output-of-api-table-json-content-messages-contains-datetime-is-it-in-gmt-utc-filter-dstart).
+  So that you never have to tell the plugin that zone, **Log** and **Sensor History** widen each request
+  to cover every possible offset (12 hours before, 14 hours after), then trim the results to the exact
+  timeframe using the UTC timestamps PRTG includes on every row. Times are always correct. The one side
+  effect: **Log** asks PRTG for at most 5,000 entries, and on a timeframe that ends in the past, up to 14
+  hours of newer entries count towards that limit before they are trimmed away.
 - **Very large installations may still hit a response size limit.** Probes, groups, devices and sensors are
   fetched page by page, 500 rows per request, so there is no per-request ceiling on how many objects can be
   imported. The combined result is still subject to the platform's overall response size limit, so an estate
@@ -160,11 +134,11 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 ## Why this plugin uses API v1
 
 PRTG also has a newer [API v2](https://www.paessler.com/support/prtg/api/v2/overview/index.html), and where
-it is stable it is the better API: ISO 8601 timestamps in UTC rather than Excel-style serial numbers in the
-account's local time, typed status enumerations rather than numeric codes, native latitude and longitude, a
+it is stable it is the better API: ISO 8601 timestamps rather than Excel-style serial dates alongside
+local-time text, typed status enumerations rather than numeric codes, native latitude and longitude, a
 sensor status summary embedded in every probe, group and device, and a `path` array giving each object its
-place in the tree. Adopting it would remove the **PRTG time zone** setting from this plugin entirely. It
-still cannot run this plugin, for three reasons, in descending order of how binding they are.
+place in the tree. It still cannot run this plugin, for three reasons, in descending order of how binding
+they are.
 
 ### 1. API v2 is not available everywhere API v1 is
 
@@ -189,7 +163,7 @@ Checked against the published
 | List every probe, group, device and sensor, for indexing | `table.json?content=…` — one request per type | `GET /experimental/objects` returns all four from one paged endpoint, channels included. 3,000 is the per-request page size rather than a ceiling, and responses carry RFC 5988 `Link` headers for the next page. **Better than API v1.** |
 | Everything beneath one probe, group or device | `table.json?content=sensors&id=…` — PRTG walks the subtree | The same endpoint's `filter` supports `parentid`, plus `children`, `descendants` and `ancestors` prefixes. Equivalent. |
 | Channel readings for one sensor | `table.json?content=channels&id=…` | `GET /sensors/{id}/data` — **stable, and better than API v1.** |
-| Historic readings over an arbitrary window | `historicdata.json?sdate=&edate=&avg=` — any range, and a choice of raw, 5-minute, hourly or daily buckets | The supported `GET /experimental/timeseries/{id}/{type}` offers four fixed windows only: `live` (4 hours), `short` (2 days), `medium` (60 days), `long` (365 days). Arbitrary `from`/`to` exist only on `GET /experimental/timeseries/{id}`, which Paessler have deprecated and say will be removed. Neither form has an averaging control. |
+| Historic readings over an arbitrary window | `historicdata.csv?sdate=&edate=&avg=` — any range, and a choice of raw, 5-minute, hourly or daily buckets | The supported `GET /experimental/timeseries/{id}/{type}` offers four fixed windows only: `live` (4 hours), `short` (2 days), `medium` (60 days), `long` (365 days). Arbitrary `from`/`to` exist only on `GET /experimental/timeseries/{id}`, which Paessler have deprecated and say will be removed. Neither form has an averaging control. |
 | PRTG log entries over a timeframe | `table.json?content=messages&filter_dstart=&filter_dend=` | **Nothing.** The specification contains no log, message or event endpoint at any maturity level. |
 | Installation-wide sensor counts, version and edition | `getstatus.htm?id=0` — one request | `GET /sensor-status-summary` and `GET /version` are stable and cover most of it, and the experimental `/license` covers the edition — but that is three requests instead of one, and the new-message count and new-alarm count have no equivalent. |
 
