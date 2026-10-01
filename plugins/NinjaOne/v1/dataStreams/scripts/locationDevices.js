@@ -32,3 +32,7 @@ result = items
             locationId: converted.locationId ? converted.locationId.toString() : null
         };
     });
+
+// Cursor must track the raw (unfiltered) API page, not the location-filtered result,
+// or pages of devices belonging to other locations would be skipped.
+pagingContext = items.length ? items[items.length - 1].id : undefined;

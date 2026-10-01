@@ -5,5 +5,9 @@ result = items.map(item => ({
     id: item.id ? item.id.toString() : null,
     organizationId: item.id ? item.id.toString() : null,
     // Add parent.id for scoped child requests (LCP convention)
-    'parent.id': item.id ? item.id.toString() : null 
+    'parent.id': item.id ? item.id.toString() : null
 }));
+
+// NinjaOne's /v2/organizations response is a bare array with no next-page token, so the
+// cursor is derived here (last id in the raw page) and set directly as pagingContext.
+pagingContext = items.length ? items[items.length - 1].id : undefined;

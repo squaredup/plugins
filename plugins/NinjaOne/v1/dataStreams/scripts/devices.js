@@ -29,3 +29,7 @@ result = items.map(item => {
         locationId: converted.locationId ? converted.locationId.toString() : null
     };
 });
+
+// NinjaOne's /v2/devices response is a bare array with no next-page token, so the cursor
+// is derived here (last id in the raw page) and set directly as pagingContext.
+pagingContext = items.length ? items[items.length - 1].id : undefined;
