@@ -1,7 +1,5 @@
 Monitor your service desk in SquaredUp — incidents, service requests, changes, problems, knowledge articles and the CMDB — using the [Ivanti Neurons for ITSM](https://www.ivanti.com/products/itsm) [REST API](https://docs.ivanti.com/neurons-for-itsm/admin-user-help/enu/latest/rest-api). The plugin works against both the cloud service and an on-premises Ivanti Service Manager instance.
 
-> ⚠️ This plugin is read-only. It never creates, updates, closes or deletes anything in Ivanti.
-
 > ⚠️ Ivanti business objects are heavily customizable, so field and object names vary between tenants. The plugin ships with the out-of-the-box names; see [Adapting to a customized tenant](#adapting-to-a-customized-tenant) if yours differ.
 
 ## Before you start
