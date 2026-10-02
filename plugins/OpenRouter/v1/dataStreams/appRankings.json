@@ -1,0 +1,238 @@
+{
+    "name": "appRankings",
+    "displayName": "App Rankings",
+    "description": "Top public apps on OpenRouter by tokens processed, most popular or trending (from OpenRouter's public apps marketplace)",
+    "tags": [
+        "Usage"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "datasets/app-rankings",
+        "paging": {
+            "mode": "none"
+        },
+        "getArgs": [
+            {
+                "key": "start_date",
+                "value": "{{timeframe.start.substring(0, 10)}}"
+            },
+            {
+                "key": "end_date",
+                "value": "{{timeframe.end.substring(0, 10)}}"
+            },
+            {
+                "key": "sort",
+                "value": "{{ typeof rankBy !== 'undefined' && rankBy ? rankBy : 'popular' }}"
+            },
+            {
+                "key": "category",
+                "value": "{{ (c => ['coding', 'creative', 'productivity', 'entertainment'].includes(c) ? c : null)(typeof category !== 'undefined' ? category : null) }}"
+            },
+            {
+                "key": "subcategory",
+                "value": "{{ (c => c && !['coding', 'creative', 'productivity', 'entertainment'].includes(c) ? c : null)(typeof category !== 'undefined' ? category : null) }}"
+            },
+            {
+                "key": "limit",
+                "value": "100"
+            }
+        ],
+        "headers": [],
+        "postRequestScript": "appRankings.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "rank",
+            "displayName": "Rank",
+            "shape": "number"
+        },
+        {
+            "name": "app_id",
+            "displayName": "App ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "app_name",
+            "displayName": "App",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "total_tokens",
+            "displayName": "Total Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "total_requests",
+            "displayName": "Total Requests",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "asOf",
+            "displayName": "As Of",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "citation",
+            "displayName": "Citation",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ],
+    "options": {
+        "minimumRequestIntervalSeconds": 86400
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "rankBy",
+            "label": "Rank by",
+            "defaultValue": "popular",
+            "options": [
+                {
+                    "value": "popular",
+                    "label": "Most tokens"
+                },
+                {
+                    "value": "trending",
+                    "label": "Trending"
+                }
+            ],
+            "help": "**Trending** ranks apps by token growth over the previous three periods of the same length, so it may return fewer apps"
+        },
+        {
+            "type": "autocomplete",
+            "name": "category",
+            "label": "Category",
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Coding",
+                        "options": [
+                            {
+                                "value": "coding",
+                                "label": "All coding"
+                            },
+                            {
+                                "value": "cli-agent",
+                                "label": "CLI agents"
+                            },
+                            {
+                                "value": "ide-extension",
+                                "label": "IDE extensions"
+                            },
+                            {
+                                "value": "cloud-agent",
+                                "label": "Cloud agents"
+                            },
+                            {
+                                "value": "programming-app",
+                                "label": "Programming apps"
+                            },
+                            {
+                                "value": "native-app-builder",
+                                "label": "Native app builders"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Creative",
+                        "options": [
+                            {
+                                "value": "creative",
+                                "label": "All creative"
+                            },
+                            {
+                                "value": "creative-writing",
+                                "label": "Creative writing"
+                            },
+                            {
+                                "value": "video-gen",
+                                "label": "Video generation"
+                            },
+                            {
+                                "value": "image-gen",
+                                "label": "Image generation"
+                            },
+                            {
+                                "value": "audio-gen",
+                                "label": "Audio generation"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Productivity",
+                        "options": [
+                            {
+                                "value": "productivity",
+                                "label": "All productivity"
+                            },
+                            {
+                                "value": "writing-assistant",
+                                "label": "Writing assistants"
+                            },
+                            {
+                                "value": "general-chat",
+                                "label": "General chat"
+                            },
+                            {
+                                "value": "personal-agent",
+                                "label": "Personal agents"
+                            },
+                            {
+                                "value": "legal",
+                                "label": "Legal"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Entertainment",
+                        "options": [
+                            {
+                                "value": "entertainment",
+                                "label": "All entertainment"
+                            },
+                            {
+                                "value": "roleplay",
+                                "label": "Roleplay"
+                            },
+                            {
+                                "value": "game",
+                                "label": "Games"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

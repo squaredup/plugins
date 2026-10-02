@@ -1,5 +1,6 @@
 // One row per task classification, with its macro-category label and the
-// task's most used model. Shares are fractions (0-1) of sampled traffic.
+// task's most used model, plus the as-of date and citation OpenRouter requires.
+// Shares are fractions (0-1) of sampled traffic.
 const body = data?.data ?? {};
 const categoryLabels = Object.fromEntries((body.macro_categories ?? []).map((c) => [c.key, c.label]));
 
@@ -16,5 +17,6 @@ result = (body.classifications ?? []).map((c) => {
         topModel: topModel?.id ?? null,
         topModelUsageShare: topModel?.tag_usage_share ?? null,
         asOf: body.as_of,
+        citation: `Source: OpenRouter (openrouter.ai/rankings), as of ${body.as_of}. Licensed under CC BY 4.0.`,
     };
 });

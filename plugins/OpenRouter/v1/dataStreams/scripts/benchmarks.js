@@ -5,6 +5,14 @@ const aaIndices = [
     ['agentic_index', 'Agentic Index'],
 ];
 
+// Attribution OpenRouter requires per source when republishing scores
+const citations = {
+    'artificial-analysis': 'Source: Artificial Analysis (artificialanalysis.ai) via OpenRouter (openrouter.ai/rankings). Licensed under CC BY 4.0.',
+    'design-arena': 'Source: Design Arena (www.designarena.ai) via OpenRouter (openrouter.ai/rankings). Licensed under CC BY 4.0.',
+    openrouter: 'Source: OpenRouter evals (openrouter.ai) via OpenRouter (openrouter.ai/rankings). Licensed under CC BY 4.0.',
+};
+const asOf = data?.meta?.as_of;
+
 const rows = [];
 
 for (const r of data?.data ?? []) {
@@ -12,6 +20,8 @@ for (const r of data?.data ?? []) {
         source: r.source,
         model: r.model_permaslug,
         modelName: r.display_name,
+        asOf,
+        citation: citations[r.source],
     };
 
     if (r.source === 'artificial-analysis') {
