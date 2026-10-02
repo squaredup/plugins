@@ -1,7 +1,7 @@
 {
     "name": "usage",
     "displayName": "Usage",
-    "description": "Spend, requests, and tokens over time, optionally grouped by model, provider, workspace, API key, or app (requires a management key)",
+    "description": "Spend, requests, tokens, latency, and throughput over time, optionally grouped by model, provider, workspace, API key, or app (requires a management key)",
     "tags": [
         "Usage",
         "Cost"
@@ -15,76 +15,162 @@
         },
         "getArgs": [],
         "headers": [],
-        "postBody": "{{ (() => { const iso = (d) => new Date(d).toISOString().slice(0, 19) + 'Z'; const days = (new Date(timeframe.end) - new Date(timeframe.start)) / 864e5; const granularity = days <= 2 ? 'hour' : days <= 31 ? 'day' : days <= 92 ? 'week' : 'month'; const selected = typeof filterObjects !== 'undefined' && Array.isArray(filterObjects) ? filterObjects : []; const one = (v) => (Array.isArray(v) ? v[0] : v); const idsOf = (type, ...props) => [...new Set(selected.filter((o) => one(o.sourceType) === type).flatMap((o) => props.map((p) => one(o[p]))).filter(Boolean))]; const rules = [ ['model', idsOf('Model', 'rawId', 'canonical_slug')], ['workspace', idsOf('Workspace', 'rawId')], ['api_key_id', idsOf('API Key', 'rawId')] ]; const filters = rules.filter(([, values]) => values.length).map(([field, value]) => ({ field, operator: 'in', value })); return JSON.stringify({ metrics: [typeof metric !== 'undefined' && metric ? metric : 'total_usage'], dimensions: typeof groupBy !== 'undefined' && groupBy ? [groupBy] : [], filters, granularity, time_range: { start: iso(timeframe.start), end: iso(timeframe.end) } }); })() }}",
+        "postBody": "{{ (() => { const iso = (d) => new Date(d).toISOString().slice(0, 19) + 'Z'; const days = (new Date(timeframe.end) - new Date(timeframe.start)) / 864e5; const granularity = days <= 2 ? 'hour' : days <= 31 ? 'day' : days <= 92 ? 'week' : 'month'; const selected = typeof filterObjects !== 'undefined' && Array.isArray(filterObjects) ? filterObjects : []; const one = (v) => (Array.isArray(v) ? v[0] : v); const idsOf = (type, ...props) => [...new Set(selected.filter((o) => one(o.sourceType) === type).flatMap((o) => props.map((p) => one(o[p]))).filter(Boolean))]; const rules = [ ['model', idsOf('Model', 'rawId', 'canonical_slug')], ['provider', idsOf('Provider', 'name')], ['workspace', idsOf('Workspace', 'rawId')], ['api_key_id', idsOf('API Key', 'rawId')] ]; const filters = rules.filter(([, values]) => values.length).map(([field, value]) => ({ field, operator: 'in', value })); return JSON.stringify({ metrics: [typeof metric !== 'undefined' && metric ? metric : 'total_usage'], dimensions: typeof groupBy !== 'undefined' && groupBy ? [groupBy] : [], filters, granularity, time_range: { start: iso(timeframe.start), end: iso(timeframe.end) } }); })() }}",
         "postRequestScript": "usage.js"
     },
     "matches": "none",
     "ui": [
         {
-            "type": "choiceChips",
+            "type": "autocomplete",
             "name": "metric",
             "label": "Metric",
             "defaultValue": "total_usage",
+            "help": "Select a metric, or enter any metric from [OpenRouter's analytics metrics](https://openrouter.ai/docs/api/api-reference/analytics/get-available-analytics-metrics-and-dimensions). Performance metrics are limited to 31 days.",
             "validation": {
                 "required": true
             },
-            "options": [
-                {
-                    "value": "total_usage",
-                    "label": "Spend (USD)"
-                },
-                {
-                    "value": "request_count",
-                    "label": "Requests"
-                },
-                {
-                    "value": "tokens_total",
-                    "label": "Total tokens"
-                },
-                {
-                    "value": "tokens_prompt",
-                    "label": "Prompt tokens"
-                },
-                {
-                    "value": "tokens_completion",
-                    "label": "Completion tokens"
-                },
-                {
-                    "value": "reasoning_tokens",
-                    "label": "Reasoning tokens"
-                },
-                {
-                    "value": "cache_hit_rate",
-                    "label": "Cache hit rate"
-                }
-            ]
+            "allowCustomValues": true,
+            "isMulti": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Cost",
+                        "options": [
+                            {
+                                "value": "total_usage",
+                                "label": "Spend (USD)"
+                            },
+                            {
+                                "value": "byok_usage",
+                                "label": "BYOK spend (USD)"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Requests and tokens",
+                        "options": [
+                            {
+                                "value": "request_count",
+                                "label": "Requests"
+                            },
+                            {
+                                "value": "tokens_total",
+                                "label": "Total tokens"
+                            },
+                            {
+                                "value": "tokens_prompt",
+                                "label": "Prompt tokens"
+                            },
+                            {
+                                "value": "tokens_completion",
+                                "label": "Completion tokens"
+                            },
+                            {
+                                "value": "reasoning_tokens",
+                                "label": "Reasoning tokens"
+                            },
+                            {
+                                "value": "cached_tokens",
+                                "label": "Cached tokens"
+                            },
+                            {
+                                "value": "cache_hit_rate",
+                                "label": "Cache hit rate"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Performance (31 days max)",
+                        "options": [
+                            {
+                                "value": "p50_latency",
+                                "label": "Latency p50 (ms)"
+                            },
+                            {
+                                "value": "p90_latency",
+                                "label": "Latency p90 (ms)"
+                            },
+                            {
+                                "value": "p50_total_time_to_first_token",
+                                "label": "Time to first token p50 (ms)"
+                            },
+                            {
+                                "value": "p90_total_time_to_first_token",
+                                "label": "Time to first token p90 (ms)"
+                            },
+                            {
+                                "value": "p50_throughput",
+                                "label": "Throughput p50 (tokens/s)"
+                            }
+                        ]
+                    }
+                ]
+            }
         },
         {
-            "type": "choiceChips",
+            "type": "autocomplete",
             "name": "groupBy",
             "label": "Group by",
-            "options": [
-                {
-                    "value": "model",
-                    "label": "Model"
-                },
-                {
-                    "value": "provider",
-                    "label": "Provider (31 days max)"
-                },
-                {
-                    "value": "workspace",
-                    "label": "Workspace"
-                },
-                {
-                    "value": "api_key_id",
-                    "label": "API key"
-                },
-                {
-                    "value": "app",
-                    "label": "App"
-                }
-            ]
+            "help": "Select a dimension, or enter any dimension from [OpenRouter's analytics dimensions](https://openrouter.ai/docs/api/api-reference/analytics/get-available-analytics-metrics-and-dimensions). Request details are limited to 31 days.",
+            "allowCustomValues": true,
+            "isMulti": false,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Any timeframe",
+                        "options": [
+                            {
+                                "value": "model",
+                                "label": "Model"
+                            },
+                            {
+                                "value": "workspace",
+                                "label": "Workspace"
+                            },
+                            {
+                                "value": "api_key_id",
+                                "label": "API key"
+                            },
+                            {
+                                "value": "app",
+                                "label": "App"
+                            },
+                            {
+                                "value": "user",
+                                "label": "User"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Request details (31 days max)",
+                        "options": [
+                            {
+                                "value": "provider",
+                                "label": "Provider"
+                            },
+                            {
+                                "value": "origin",
+                                "label": "Origin"
+                            },
+                            {
+                                "value": "country",
+                                "label": "Country"
+                            },
+                            {
+                                "value": "finish_reason",
+                                "label": "Finish reason"
+                            },
+                            {
+                                "value": "streamed",
+                                "label": "Streamed"
+                            }
+                        ]
+                    }
+                ]
+            }
         },
         {
             "type": "objects",
@@ -95,6 +181,7 @@
                     "type": "oneOf",
                     "values": [
                         "Model",
+                        "Provider",
                         "Workspace",
                         "API Key"
                     ]

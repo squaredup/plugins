@@ -1,7 +1,7 @@
 {
     "name": "modelProviders",
     "displayName": "Model Providers",
-    "description": "Providers serving a model, with price, uptime, latency, and throughput (last 30 minutes)",
+    "description": "Providers serving a model, with status, price, uptime, latency, and throughput (last 5 minutes to 1 day)",
     "tags": [
         "Models",
         "Performance"
@@ -37,6 +37,19 @@
             "displayName": "Provider",
             "shape": "string",
             "role": "label"
+        },
+        {
+            "name": "status",
+            "visible": false,
+            "displayName": "Status Code",
+            "shape": "number"
+        },
+        {
+            "name": "health",
+            "displayName": "Status",
+            "shape": "state",
+            "computed": true,
+            "valueExpression": "{{ (s => s == null || s === '' ? 'unknown' : (n => n === 0 ? 'success' : n >= -3 ? 'warning' : 'error')(Number(s)))($['status']) }}"
         },
         {
             "name": "tag",
@@ -104,6 +117,36 @@
             "valueExpression": "{{ (v => v == null || v === '' || Number(v) < 0 ? null : Number(v) * 1e6)($['pricing.completion']) }}"
         },
         {
+            "name": "pricing.input_cache_read",
+            "visible": false,
+            "displayName": "Cache Read Price (per Token)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 8
+                }
+            ]
+        },
+        {
+            "name": "cacheReadPrice",
+            "displayName": "Cache Read Price ($/1M Tokens)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 2
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ (v => v == null || v === '' || Number(v) < 0 ? null : Number(v) * 1e6)($['pricing.input_cache_read']) }}"
+        },
+        {
+            "name": "uptime_last_5m",
+            "displayName": "Uptime (5m)",
+            "shape": "percent"
+        },
+        {
             "name": "uptime_last_30m",
             "displayName": "Uptime (30m)",
             "shape": "percent"
@@ -119,8 +162,18 @@
             "shape": "milliseconds"
         },
         {
+            "name": "latency_last_30m.p75",
+            "displayName": "Latency p75",
+            "shape": "milliseconds"
+        },
+        {
             "name": "latency_last_30m.p90",
             "displayName": "Latency p90",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "latency_last_30m.p99",
+            "displayName": "Latency p99",
             "shape": "milliseconds"
         },
         {

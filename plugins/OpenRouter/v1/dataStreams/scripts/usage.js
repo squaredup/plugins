@@ -1,5 +1,6 @@
-// Normalises analytics rows: the time key is named after the granularity
-// (date__day, date__hour, ...) and large counts arrive as strings.
+// Normalises analytics rows: the time key is suffixed with the granularity
+// (date__day, or created_at__day for raw-view fields like latency and provider)
+// and large counts arrive as strings.
 const body = data?.data ?? {};
 const metric = context.config.metric || 'total_usage';
 const groupBy = context.config.groupBy;
@@ -10,7 +11,7 @@ if (body.metadata?.truncated) {
     );
 }
 
-const dateKey = (row) => Object.keys(row).find((k) => k.startsWith('date__'));
+const dateKey = (row) => Object.keys(row).find((k) => /__(minute|hour|day|week|month)$/.test(k));
 
 result = (body.data ?? [])
     .map((row) => {
