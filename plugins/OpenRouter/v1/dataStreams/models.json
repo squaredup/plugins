@@ -1,0 +1,204 @@
+{
+    "name": "models",
+    "displayName": "Models",
+    "description": "Models available through OpenRouter, with pricing, context length, and benchmark scores",
+    "tags": [
+        "Models"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "models",
+        "paging": {
+            "mode": "none"
+        },
+        "getArgs": [],
+        "headers": [],
+        "expandInnerObjects": true,
+        "postRequestScript": "models.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Model ID",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "author",
+            "displayName": "Author",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ $['id'].split('/')[0] }}"
+        },
+        {
+            "name": "canonical_slug",
+            "displayName": "Canonical Slug",
+            "shape": "string"
+        },
+        {
+            "name": "context_length",
+            "displayName": "Context Length",
+            "shape": "number"
+        },
+        {
+            "name": "inputPrice",
+            "displayName": "Input Price ($/1M Tokens)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 2
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ (v => v == null || v === '' || Number(v) < 0 ? null : Number(v) * 1e6)($['pricing.prompt']) }}"
+        },
+        {
+            "name": "outputPrice",
+            "displayName": "Output Price ($/1M Tokens)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 2
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ (v => v == null || v === '' || Number(v) < 0 ? null : Number(v) * 1e6)($['pricing.completion']) }}"
+        },
+        {
+            "name": "cacheReadPrice",
+            "displayName": "Cache Read Price ($/1M Tokens)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 2
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ (v => v == null || v === '' || Number(v) < 0 ? null : Number(v) * 1e6)($['pricing.input_cache_read']) }}"
+        },
+        {
+            "name": "top_provider.max_completion_tokens",
+            "displayName": "Max Completion Tokens",
+            "shape": "number"
+        },
+        {
+            "name": "inputModalities",
+            "displayName": "Input Modalities",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ JSON.parse($['architecture.input_modalities'] || '[]').join(', ') }}"
+        },
+        {
+            "name": "outputModalities",
+            "displayName": "Output Modalities",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ JSON.parse($['architecture.output_modalities'] || '[]').join(', ') }}"
+        },
+        {
+            "name": "benchmarks.artificial_analysis.intelligence_index",
+            "displayName": "Intelligence Index",
+            "shape": "number"
+        },
+        {
+            "name": "benchmarks.artificial_analysis.coding_index",
+            "displayName": "Coding Index",
+            "shape": "number"
+        },
+        {
+            "name": "benchmarks.artificial_analysis.agentic_index",
+            "displayName": "Agentic Index",
+            "shape": "number"
+        },
+        {
+            "name": "knowledge_cutoff",
+            "displayName": "Knowledge Cutoff",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": [
+                "date",
+                {
+                    "inputPattern": "t"
+                }
+            ]
+        },
+        {
+            "name": "expiration_date",
+            "displayName": "Expiration Date",
+            "shape": "string"
+        },
+        {
+            "name": "pricing.prompt",
+            "visible": false,
+            "displayName": "Input Price (per Token)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 8
+                }
+            ]
+        },
+        {
+            "name": "pricing.completion",
+            "visible": false,
+            "displayName": "Output Price (per Token)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 8
+                }
+            ]
+        },
+        {
+            "name": "pricing.input_cache_read",
+            "visible": false,
+            "displayName": "Cache Read Price (per Token)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 8
+                }
+            ]
+        },
+        {
+            "name": "architecture.input_modalities",
+            "visible": false
+        },
+        {
+            "name": "architecture.output_modalities",
+            "visible": false
+        }
+    ],
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "objects",
+            "name": "models",
+            "label": "Model(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Model"
+                    ]
+                }
+            }
+        }
+    ]
+}

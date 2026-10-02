@@ -1,0 +1,343 @@
+{
+    "name": "API Key",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [
+        "{{variables.[API Key]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "d64c1f90-53a1-442e-9f73-f3d17435b749",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "metadata": [
+                            {
+                                "name": "expiryStatus",
+                                "displayName": "Expiry Status",
+                                "computed": true,
+                                "valueExpression": "{{{{raw}}}}{{ (v => { if (!v) return 'success'; const days = (new Date(v) - Date.now()) / 864e5; return days < 1 ? 'error' : days < 5 ? 'warning' : 'success'; })([].concat($['expires_at'])[0]) }}{{{{/raw}}}}",
+                                "shape": [
+                                    "state",
+                                    {
+                                        "map": {
+                                            "error": [
+                                                "error"
+                                            ],
+                                            "warning": [
+                                                "warning"
+                                            ],
+                                            "success": [
+                                                "success"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[API Keys]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[API Key]}}"
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": [
+                                    "name",
+                                    "workspace_id",
+                                    "disabled",
+                                    "created_at",
+                                    "expires_at",
+                                    "expiryStatus"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "links",
+                                    "type",
+                                    "label",
+                                    "sourceId",
+                                    "sourceType",
+                                    "sourceName",
+                                    "rawId"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a69c68dd-2968-4ac8-acc6-a224d85d7c37",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend Over Time",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "metric": "total_usage",
+                            "filterObjects": {
+                                "scope": "{{scopes.[API Keys]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[API Key]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "none",
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "Spend ($)",
+                                "showYAxisLabel": true,
+                                "showTrendLine": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "19cc22f9-e6fd-4c23-bd89-7e925a85849a",
+                "x": 1,
+                "y": 2,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests Over Time",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "metric": "request_count",
+                            "filterObjects": {
+                                "scope": "{{scopes.[API Keys]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[API Key]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "none",
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "Requests",
+                                "showYAxisLabel": true,
+                                "showTrendLine": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5c1cfeba-46df-41a0-aebc-9fcfb2a35a81",
+                "x": 0,
+                "y": 4,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend By Model",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "metric": "total_usage",
+                            "groupBy": "model",
+                            "filterObjects": {
+                                "scope": "{{scopes.[API Keys]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[API Key]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "group",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "value"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "value_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        },
+                        "metadata": [
+                            {
+                                "name": "value_sum",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "group_uniqueValues",
+                                "yAxisData": [
+                                    "value_sum"
+                                ],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "Model",
+                                "yAxisLabel": "Spend ($)",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "horizontal",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": {
+                                    "type": "auto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

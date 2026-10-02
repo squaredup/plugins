@@ -1,0 +1,138 @@
+{
+    "name": "modelProviders",
+    "displayName": "Model Providers",
+    "description": "Providers serving a model, with price, uptime, latency, and throughput (last 30 minutes)",
+    "tags": [
+        "Models",
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "models/{{object.rawId}}/endpoints",
+        "paging": {
+            "mode": "none"
+        },
+        "getArgs": [],
+        "headers": [],
+        "pathToData": "data.endpoints",
+        "expandInnerObjects": true
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Model"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "model_name",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "provider_name",
+            "displayName": "Provider",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "tag",
+            "displayName": "Tag",
+            "shape": "string"
+        },
+        {
+            "name": "quantization",
+            "displayName": "Quantization",
+            "shape": "string"
+        },
+        {
+            "name": "context_length",
+            "displayName": "Context Length",
+            "shape": "number"
+        },
+        {
+            "name": "pricing.prompt",
+            "visible": false,
+            "displayName": "Input Price (per Token)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 8
+                }
+            ]
+        },
+        {
+            "name": "inputPrice",
+            "displayName": "Input Price ($/1M Tokens)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 2
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ (v => v == null || v === '' || Number(v) < 0 ? null : Number(v) * 1e6)($['pricing.prompt']) }}"
+        },
+        {
+            "name": "pricing.completion",
+            "visible": false,
+            "displayName": "Output Price (per Token)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 8
+                }
+            ]
+        },
+        {
+            "name": "outputPrice",
+            "displayName": "Output Price ($/1M Tokens)",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 2
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ (v => v == null || v === '' || Number(v) < 0 ? null : Number(v) * 1e6)($['pricing.completion']) }}"
+        },
+        {
+            "name": "uptime_last_30m",
+            "displayName": "Uptime (30m)",
+            "shape": "percent"
+        },
+        {
+            "name": "uptime_last_1d",
+            "displayName": "Uptime (1d)",
+            "shape": "percent"
+        },
+        {
+            "name": "latency_last_30m.p50",
+            "displayName": "Latency p50",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "latency_last_30m.p90",
+            "displayName": "Latency p90",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "throughput_last_30m.p50",
+            "displayName": "Throughput p50 (Tokens/s)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

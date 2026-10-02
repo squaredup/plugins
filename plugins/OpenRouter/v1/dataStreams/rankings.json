@@ -1,0 +1,159 @@
+{
+    "name": "rankings",
+    "displayName": "Model Rankings",
+    "description": "Top models by tokens processed across all OpenRouter traffic (daily, from OpenRouter's public rankings dataset)",
+    "tags": [
+        "Models",
+        "Usage"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "datasets/rankings-daily",
+        "paging": {
+            "mode": "none"
+        },
+        "getArgs": [
+            {
+                "key": "start_date",
+                "value": "{{timeframe.start.substring(0, 10)}}"
+            },
+            {
+                "key": "end_date",
+                "value": "{{timeframe.end.substring(0, 10)}}"
+            },
+            {
+                "key": "period",
+                "value": "{{period || null}}"
+            },
+            {
+                "key": "category",
+                "value": "{{category || null}}"
+            }
+        ],
+        "headers": [],
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "period",
+            "label": "Period",
+            "options": [
+                {
+                    "value": "day",
+                    "label": "Day"
+                },
+                {
+                    "value": "week",
+                    "label": "Week"
+                },
+                {
+                    "value": "month",
+                    "label": "Month"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "category",
+            "label": "Category",
+            "options": [
+                {
+                    "value": "programming",
+                    "label": "Programming"
+                },
+                {
+                    "value": "roleplay",
+                    "label": "Roleplay"
+                },
+                {
+                    "value": "marketing",
+                    "label": "Marketing"
+                },
+                {
+                    "value": "marketing/seo",
+                    "label": "Marketing / SEO"
+                },
+                {
+                    "value": "technology",
+                    "label": "Technology"
+                },
+                {
+                    "value": "science",
+                    "label": "Science"
+                },
+                {
+                    "value": "translation",
+                    "label": "Translation"
+                },
+                {
+                    "value": "legal",
+                    "label": "Legal"
+                },
+                {
+                    "value": "finance",
+                    "label": "Finance"
+                },
+                {
+                    "value": "health",
+                    "label": "Health"
+                },
+                {
+                    "value": "trivia",
+                    "label": "Trivia"
+                },
+                {
+                    "value": "academia",
+                    "label": "Academia"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "model_permaslug",
+            "displayName": "Model",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "author",
+            "displayName": "Author",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ $['model_permaslug']?.split('/')[0] }}"
+        },
+        {
+            "name": "total_tokens",
+            "displayName": "Total Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ],
+    "options": {
+        "minimumRequestIntervalSeconds": 86400
+    }
+}
