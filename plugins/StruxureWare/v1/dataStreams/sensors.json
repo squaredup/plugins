@@ -1,0 +1,85 @@
+{
+    "name": "sensors",
+    "displayName": "Sensors",
+    "description": "Current reading and status of every sensor, optionally filtered by device and sensor kind",
+    "tags": ["Sensor", "Environment", "Power"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/devices/sensors",
+        "postRequestScript": "sensors.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/dceError.js" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s) (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["Device"] }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "kind",
+            "label": "Sensor kind(s) (optional)",
+            "isMulti": true,
+            "isClearable": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "TEMPERATURE", "label": "Temperature" },
+                    { "value": "DIFF_TEMP", "label": "Temperature difference" },
+                    { "value": "HUMIDITY", "label": "Humidity" },
+                    { "value": "DEW_POINT", "label": "Dew point" },
+                    { "value": "AIRFLOW", "label": "Airflow" },
+                    { "value": "CURRENT", "label": "Current" },
+                    { "value": "AMP_DETECTOR", "label": "Current (amp detector)" },
+                    { "value": "VOLTAGE", "label": "Voltage" },
+                    { "value": "POWER_WATTS", "label": "Power (W)" },
+                    { "value": "POWER_KWATTS", "label": "Power (kW)" },
+                    { "value": "POWER_VA", "label": "Apparent power (VA)" },
+                    { "value": "POWER_KVA", "label": "Apparent power (kVA)" },
+                    { "value": "ENERGY_KWH", "label": "Energy (kWh)" },
+                    { "value": "KWATT_HOUR", "label": "Energy (kW hour)" },
+                    { "value": "DOOR", "label": "Door" },
+                    { "value": "MOTION_SENSOR", "label": "Motion" },
+                    { "value": "DRY_CONTACT", "label": "Dry contact" },
+                    { "value": "COMMUNICATION_SENSOR", "label": "Communication" },
+                    { "value": "STATE", "label": "State" },
+                    { "value": "NUMBER", "label": "Number" }
+                ]
+            }
+        }
+    ],
+    "metadata": [
+        { "sourceId": "guid", "sourceType": "Sensor", "name": "label", "displayName": "Sensor", "shape": "string", "role": "label" },
+        { "name": "deviceName", "displayName": "Device", "sourceId": "deviceGuid", "sourceType": "Device", "objectPropertyPath": "name" },
+        { "name": "numericValue", "displayName": "Value", "shape": "number", "role": "value" },
+        { "name": "units", "displayName": "Units", "shape": "string", "role": "unitLabel" },
+        { "name": "value", "displayName": "Reading", "shape": "string" },
+        {
+            "name": "severityText",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Information", "Informational", "Normal", "OK", "None"],
+                        "warning": ["Warning"],
+                        "error": ["Error", "Critical", "Failure"]
+                    }
+                }
+            ]
+        },
+        { "name": "kind", "displayName": "Kind", "shape": "string" },
+        { "name": "sensorType", "displayName": "Sensor Type", "shape": "string" },
+        { "name": "location", "displayName": "Location", "shape": "string" },
+        { "name": "guid", "displayName": "Sensor ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "deviceGuid", "displayName": "Device ID", "shape": "string", "visible": false },
+        { "name": "rawValue", "displayName": "Raw Value", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

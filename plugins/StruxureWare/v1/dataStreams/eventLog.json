@@ -1,0 +1,41 @@
+{
+    "name": "eventLog",
+    "displayName": "Event Log",
+    "description": "Data Center Expert event log messages within the timeframe (newest 1,000)",
+    "tags": ["Events", "Logs"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/eventlogmessages",
+        "getArgs": [
+            { "key": "startTime", "value": "{{ String(new Date(timeframe.start).getTime()) }}" },
+            { "key": "endTime", "value": "{{ String(new Date(timeframe.end).getTime()) }}" },
+            { "key": "sortOrder", "value": "desc" },
+            { "key": "maxNum", "value": "1000" }
+        ],
+        "errorHandling": { "type": "script", "script": "errorHandling/dceError.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timeStamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp",
+            "valueExpression": "{{ typeof $['timeStamp'] === 'number' && $['timeStamp'] > 0 ? new Date($['timeStamp']).toISOString() : null }}"
+        },
+        { "name": "message", "displayName": "Message", "shape": "string", "role": "label" },
+        { "name": "severity", "displayName": "Severity", "shape": "number" },
+        {
+            "name": "categories",
+            "displayName": "Categories",
+            "shape": "string",
+            "valueExpression": "{{ ($['categories'] || []).map(c => c.label || c.name).filter(Boolean).join(', ') }}"
+        },
+        { "name": "remoteUser", "displayName": "User", "shape": "string" },
+        { "name": "remoteAddr", "displayName": "Remote Address", "shape": "string" },
+        { "name": "requestUri", "displayName": "Request URI", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "Message ID", "shape": "number", "role": "id", "visible": false }
+    ],
+    "timeframes": true
+}
