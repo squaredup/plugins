@@ -429,9 +429,139 @@
                 }
             },
             {
-                "i": "55c667d9-63af-4556-962d-87a6325df855",
+                "i": "c6b79b6d-a751-4eaa-ac22-7721b5dfba27",
                 "x": 0,
                 "y": 7,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Model Usage",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug AS slug,\n        sourceId AS id,\n        name\n    FROM Models\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    m.id,\n    COALESCE(m.name, u.slug) AS name,\n    u.slug,\n    u.spend,\n    u.requests,\n    u.costPerRequest,\n    u.promptTokens,\n    u.completionTokens\nFROM Usage u\nLEFT JOIN by_slug m ON m.slug = u.slug\nORDER BY u.spend DESC",
+                            "tables": [
+                                {
+                                    "tableName": "Usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[modelUsage]}}",
+                                            "name": "modelUsage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Models]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "sourceId": "id",
+                                "sourceType": "Model",
+                                "name": "name"
+                            },
+                            {
+                                "name": "slug",
+                                "displayName": "Model Slug",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "spend",
+                                "displayName": "Spend",
+                                "shape": "usd",
+                                "role": "value"
+                            },
+                            {
+                                "name": "requests",
+                                "displayName": "Requests",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "costPerRequest",
+                                "displayName": "Cost Per Request",
+                                "shape": [
+                                    "usd",
+                                    {
+                                        "decimalPlaces": 6
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "promptTokens",
+                                "displayName": "Prompt Tokens",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "completionTokens",
+                                "displayName": "Completion Tokens",
+                                "shape": "number"
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "name",
+                                    "spend",
+                                    "requests",
+                                    "costPerRequest",
+                                    "promptTokens",
+                                    "completionTokens"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "slug"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "55c667d9-63af-4556-962d-87a6325df855",
+                "x": 0,
+                "y": 10,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -525,7 +655,7 @@
             {
                 "i": "7c94001a-4946-45e0-8d08-08f2b89153ef",
                 "x": 2,
-                "y": 7,
+                "y": 10,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -605,7 +735,7 @@
             {
                 "i": "da913ee7-05b2-4ce2-b11a-64b91f9d1537",
                 "x": 0,
-                "y": 10,
+                "y": 13,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -707,7 +837,7 @@
             {
                 "i": "3bf76eb4-561e-4bae-a971-ba12c6c6d216",
                 "x": 2,
-                "y": 10,
+                "y": 13,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -795,7 +925,7 @@
             {
                 "i": "d596864a-98e3-466c-ba4d-cd59ee6f7f01",
                 "x": 0,
-                "y": 13,
+                "y": 16,
                 "w": 4,
                 "h": 3,
                 "moved": false,

@@ -15,7 +15,7 @@
         },
         "getArgs": [],
         "headers": [],
-        "postBody": "{{ (() => { const iso = (d) => new Date(d).toISOString().slice(0, 19) + 'Z'; const days = (new Date(timeframe.end) - new Date(timeframe.start)) / 864e5; const granularity = days <= 2 ? 'hour' : days <= 31 ? 'day' : days <= 92 ? 'week' : 'month'; const selected = typeof filterObjects !== 'undefined' && Array.isArray(filterObjects) ? filterObjects : []; const one = (v) => (Array.isArray(v) ? v[0] : v); const idsOf = (type, ...props) => [...new Set(selected.filter((o) => one(o.sourceType) === type).flatMap((o) => props.map((p) => one(o[p]))).filter(Boolean))]; const rules = [ ['model', idsOf('Model', 'rawId', 'canonical_slug')], ['provider', idsOf('Provider', 'name')], ['workspace', idsOf('Workspace', 'rawId')], ['api_key_id', idsOf('API Key', 'rawId')] ]; const filters = rules.filter(([, values]) => values.length).map(([field, value]) => ({ field, operator: 'in', value })); return JSON.stringify({ metrics: [typeof metric !== 'undefined' && metric ? metric : 'total_usage'], dimensions: typeof groupBy !== 'undefined' && groupBy ? [groupBy] : [], filters, granularity, time_range: { start: iso(timeframe.start), end: iso(timeframe.end) } }); })() }}",
+        "postBody": "{{ (() => { const iso = (d) => new Date(d).toISOString().slice(0, 19) + 'Z'; const days = (new Date(timeframe.end) - new Date(timeframe.start)) / 864e5; const granularity = days <= 2 ? 'hour' : days <= 31 ? 'day' : days <= 92 ? 'week' : 'month'; const selected = typeof filterObjects !== 'undefined' && Array.isArray(filterObjects) ? filterObjects : []; const one = (v) => (Array.isArray(v) ? v[0] : v); const idsOf = (type, ...props) => [...new Set(selected.filter((o) => one(o.sourceType) === type).flatMap((o) => props.map((p) => one(o[p]))).filter(Boolean))]; const rules = [ ['model', idsOf('Model', 'rawId', 'canonical_slug')], ['provider', idsOf('Provider', 'name')], ['workspace', idsOf('Workspace', 'rawId')], ['api_key_id', idsOf('API Key', 'rawId')] ]; const filters = rules.filter(([, values]) => values.length).map(([field, value]) => ({ field, operator: 'in', value })); const selectedMetric = typeof metric !== 'undefined' && metric ? metric : 'total_usage'; return JSON.stringify({ metrics: selectedMetric === 'cost_per_million_tokens' ? ['total_usage', 'tokens_total'] : [selectedMetric], dimensions: typeof groupBy !== 'undefined' && groupBy ? [groupBy] : [], filters, granularity, time_range: { start: iso(timeframe.start), end: iso(timeframe.end) } }); })() }}",
         "postRequestScript": "usage.js"
     },
     "matches": "none",
@@ -44,6 +44,10 @@
                             {
                                 "value": "byok_usage",
                                 "label": "BYOK spend (USD)"
+                            },
+                            {
+                                "value": "cost_per_million_tokens",
+                                "label": "Cost per 1M tokens (USD)"
                             }
                         ]
                     },
@@ -193,7 +197,12 @@
         {
             "name": "date",
             "displayName": "Date",
-            "shape": "date",
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ],
             "role": "timestamp"
         },
         {

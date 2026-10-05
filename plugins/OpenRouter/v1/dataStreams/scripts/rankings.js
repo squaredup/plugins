@@ -3,7 +3,9 @@
 // into one "Other" row, matching how openrouter.ai/rankings charts its top
 // models. Without it, rows pass through. Every row then gets the as-of date
 // and citation OpenRouter requires.
-const rows = data?.data ?? [];
+
+// total_tokens arrives as a decimal string
+const rows = (data?.data ?? []).map((r) => ({ ...r, total_tokens: Number(r.total_tokens) }));
 const top = Number(context.config.top);
 
 if (!(top > 0)) {
@@ -13,7 +15,7 @@ if (!(top > 0)) {
 
     for (const r of rows) {
         const period = byDate[r.date] ?? (byDate[r.date] = []);
-        period.push({ ...r, total_tokens: Number(r.total_tokens) });
+        period.push(r);
     }
 
     result = [];

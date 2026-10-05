@@ -34,13 +34,14 @@ On save, the plugin checks the key in two steps. An invalid, disabled, or expire
 - **Provider performance** — current status, price, uptime, latency, and throughput for each provider serving a model.
 - **Benchmarks and rankings** — scores from Artificial Analysis, Design Arena, and OpenRouter's own evals, OpenRouter's public leaderboard of the most used models, what share of OpenRouter traffic goes to each kind of task, what a coding-agent session typically costs, and which public apps use OpenRouter most.
 
-The out-of-the-box dashboards include an account **Overview**; **Model Comparison** and **OpenRouter Ecosystem** dashboards covering models, apps, task types, and providers across all of OpenRouter, which work with a standard API key; and a perspective for each **Model**, **Provider**, **Workspace**, and **API Key** (spend tiles need a management key). The Model perspective includes a current view of each provider's status, price, and throughput.
+The out-of-the-box dashboards include an account **Overview**; **Model Comparison** and **Ecosystem** dashboards covering models, apps, task types, and providers across all of OpenRouter, which work with a standard API key; and a perspective for each **Model**, **Provider**, **Workspace**, and **API Key** (spend tiles need a management key). The Model perspective includes a current view of each provider's status, price, and throughput, and your spend and cost per 1M tokens on each provider.
 
 ## Data streams
 
-- **Usage** — spend, requests, tokens, cache hit rate, latency, time to first token, or throughput over time, optionally grouped by model, provider, workspace, API key, app, user, origin, country, finish reason, or streamed, and optionally filtered to selected models, providers, workspaces, or API keys. Any other OpenRouter analytics metric or dimension can be typed in. Account-wide. Management key only.
+- **Usage** — spend, cost per 1M tokens, requests, tokens, cache hit rate, latency, time to first token, or throughput over time, optionally grouped by model, provider, workspace, API key, app, user, origin, country, finish reason, or streamed, and optionally filtered to selected models, providers, workspaces, or API keys. Any other OpenRouter analytics metric or dimension can be typed in. Account-wide. Management key only.
+- **Model Usage** — spend, requests, cost per request, and prompt and completion tokens for every model over the timeframe, keyed by canonical slug. OpenRouter reports `:batch` variants under the same slug as their base model, so their usage is combined. The overview dashboard joins this to the imported models for names and drilldown. Account-wide. Management key only.
 - **API Keys** — API keys in a workspace with spend and limits. Per workspace. Management key only.
-- **Workspaces** — workspaces in the account. Account-wide. Management key only.
+- **Workspaces** — workspaces in the account with their default models, provider sort, disabled server tools, whether BYOK spend counts toward budgets, and logging and broadcast settings, optionally filtered to selected workspaces. Account-wide. Management key only.
 - **Credits** — credits purchased, used, and remaining. Account-wide.
 - **Models** — every model on OpenRouter with pricing ($ per 1M tokens), context length, modalities, and Artificial Analysis index scores, optionally filtered to selected models.
 - **Providers** — every provider on OpenRouter, with headquarters and datacenter countries (by name), and status, privacy, and terms links.
@@ -60,17 +61,18 @@ The out-of-the-box dashboards include an account **Overview**; **Model Compariso
 | **Workspace** | `GET /workspaces`               | A workspace in the account. Management key only.                         |
 | **API Key**   | `GET /keys` (per workspace)     | An API key in a workspace, including its expiry date. Management key only. |
 
-**Relationships:** each API Key records the ID of its Workspace.
+Each API Key stores the ID of its Workspace as a property; no graph relationship is created between them.
 
 With a standard API key, only models and providers are imported; the workspace and API key import steps are skipped with a warning.
 
 ## Known limitations
 
 - **Benchmarks, rankings, app rankings, task classifications, and session costs refresh at most once a day** — OpenRouter limits these endpoints to 500 requests a day per account, so the plugin caches them for 24 hours.
-- **Rankings licence** — rankings, app ranking, task classification, session cost, and benchmark data is published by OpenRouter under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each row of these streams has a hidden **Citation** column with the exact attribution OpenRouter requires, and a hidden **As Of** date. The **Model Comparison**, **OpenRouter Ecosystem**, and **Model** dashboards credit the data already; show the citation on any dashboard you build from it.
+- **Rankings licence** — rankings, app ranking, task classification, session cost, and benchmark data is published by OpenRouter under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each row of these streams has a hidden **Citation** column with the exact attribution OpenRouter requires, and a hidden **As Of** date. The **Model Comparison**, **Ecosystem**, and **Model** dashboards credit the data already; show the citation on any dashboard you build from it.
 - **Not every model has benchmark scores** — Artificial Analysis scores cover fewer than half of models; the rest show blank.
 - **Usage history** can be queried up to a year back. Latency, time to first token, throughput, and grouping by **Provider**, **Origin**, **Country**, **Finish reason**, or **Streamed** are limited to 31 days; longer timeframes return an error.
 - **Usage timeframes start at 12 hours** — data is bucketed by hour, day, week, or month to suit the range; periods with no activity are left out rather than shown as zero.
+- **Cost per 1M tokens is blended** — it's spend divided by all tokens, including cached and reasoning tokens, so it reflects your mix of traffic rather than a provider's list price.
 - **Large usage queries may be truncated** — the stream warns when this happens; narrow the timeframe or filter to specific objects.
 - **Model rankings start at 7 days** — the data is daily. Use case and language segments are weekly estimates from sampled traffic, so they're shown weekly even when **Day** is selected.
 - **Task classifications cover the last 7 days only** — they come from a sample of OpenRouter traffic, so only shares are available, not request or token counts.
