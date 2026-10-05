@@ -49,6 +49,8 @@ This plugin provides the following data streams for monitoring your NinjaOne env
 - **Antivirus Status** - Antivirus product status and definition updates
 - **Antivirus Threats** - Detected antivirus threats with quarantine status
 - **OS Patches** - OS patch compliance with pending, failed, and installed status
+- **OS Patch Installs** - OS patch installation history with successful and failed installs, filtered by install time
+- **OS Patch Installs (Organization)** - OS patch installation history for devices in a specific organization (scoped to Organization)
 - **Software Patches** - Third-party software patch compliance (Chrome, Adobe, etc.)
 - **Volumes** - Disk volumes with capacity, free space, and BitLocker status
 - **Backup Usage** - Backup storage usage by organization and location

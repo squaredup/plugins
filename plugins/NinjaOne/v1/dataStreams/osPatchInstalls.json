@@ -1,0 +1,130 @@
+{
+    "name": "osPatchInstalls",
+    "displayName": "OS Patch Installs",
+    "tags": ["Security"],
+    "description": "OS patch installation history including successful and failed installs (timeframe filters on when each install was attempted)",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "cursor.name"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "cursor"
+            }
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "/v2/queries/os-patch-installs",
+        "postRequestScript": "osPatchInstalls.js",
+        "getArgs": [
+            {
+                "key": "installedAfter",
+                "value": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' ? null : timeframe.start}}"
+            },
+            {
+                "key": "installedBefore",
+                "value": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' ? null : timeframe.end}}"
+            }
+        ],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["FAILED", "failed"],
+                        "warning": [],
+                        "success": ["INSTALLED", "installed"],
+                        "unknown": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "name",
+            "displayName": "Patch Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": "string"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "kbNumber",
+            "displayName": "KB Number",
+            "shape": "string"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "installedAt",
+            "displayName": "Installed At",
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ]
+        },
+        {
+            "name": "timestamp",
+            "displayName": "Collection Time",
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ]
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "dashboard"
+}
