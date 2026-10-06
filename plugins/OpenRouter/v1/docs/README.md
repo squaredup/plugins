@@ -43,7 +43,7 @@ The out-of-the-box dashboards include an account **Overview**; **Model Compariso
 - **API Keys** — API keys in a workspace with spend and limits. Per workspace. Management key only.
 - **Workspaces** — workspaces in the account with their default models, provider sort, disabled server tools, whether BYOK spend counts toward budgets, and logging and broadcast settings, optionally filtered to selected workspaces. Account-wide. Management key only.
 - **Credits** — credits purchased, used, and remaining. Account-wide.
-- **Models** — every model on OpenRouter with pricing ($ per 1M tokens), context length, modalities, and Artificial Analysis index scores, optionally filtered to selected models.
+- **Models** — every model on OpenRouter with pricing ($ per 1M tokens), context length, modalities, Artificial Analysis index scores, and affordability scores (0 to 100, higher is cheaper), optionally filtered to selected models. Prices score on a log scale from 100 at $0.01 per 1M tokens to 0 at the **Affordability ceiling** parameter ($1,000 by default, minimum $1).
 - **Providers** — every provider on OpenRouter, with headquarters and datacenter countries (by name), and status, privacy, and terms links.
 - **Model Providers** — providers serving a model, with status, price (including cache reads), uptime over the last 5 minutes, 30 minutes, and day, and latency (p50 to p99) and throughput over the last 30 minutes. Per model.
 - **Benchmarks** — model benchmark scores from Artificial Analysis, Design Arena, and OpenRouter evals, one row per model and benchmark.
