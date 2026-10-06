@@ -128,11 +128,17 @@ for (const item of channel.item || []) {
     const { headline, clouds } = parseTitle(text(item.title), link);
     const cloudNames = clouds.map((c) => c.cloud);
 
-    if (sourceClouds.length > 0 && !cloudNames.some((c) => sourceClouds.includes(c))) continue;
+    // A cloud must pass both the data-source and the tile filter, so a multi-cloud post never
+    // emits or labels its row with a cloud the user filtered out.
+    const matching = clouds.filter(
+        (c) =>
+            (sourceClouds.length === 0 || sourceClouds.includes(c.cloud)) &&
+            (wantedClouds.length === 0 || wantedClouds.includes(c.cloud))
+    );
+    if (matching.length === 0 && (sourceClouds.length > 0 || wantedClouds.length > 0)) continue;
 
     const type = TYPES[text(item.category)] || text(item.category);
     if (wantedTypes.length > 0 && !wantedTypes.includes(String(type).toLowerCase())) continue;
-    if (wantedClouds.length > 0 && !cloudNames.some((c) => wantedClouds.includes(c))) continue;
 
     const published = toDate(text(item.pubDate));
     const startTime = toDate(text(item.startTime));
@@ -209,7 +215,7 @@ for (const item of channel.item || []) {
     };
 
     if (oneRowPerCloud) {
-        for (const c of clouds) {
+        for (const c of matching) {
             rows.push({
                 ...base,
                 id: `${base.id}-${c.cloud}`,
@@ -221,8 +227,8 @@ for (const item of channel.item || []) {
     } else {
         rows.push({
             ...base,
-            cloud: cloudNames[0],
-            product: cloudNames.length > 0 ? productOf(cloudNames[0]) : 'Other',
+            cloud: matching.length > 0 ? matching[0].cloud : undefined,
+            product: matching.length > 0 ? productOf(matching[0].cloud) : 'Other',
             fedrampLevel: levels.length > 0 ? levels.join(', ') : undefined
         });
     }
