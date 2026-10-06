@@ -1,7 +1,5 @@
 Visualize your [NetBox](https://netboxlabs.com/oss/netbox/) source of truth in SquaredUp: device and site inventory, IP prefix capacity, rack space and elevations, power feeds, data quality gaps, circuits, and the change log. Data comes from the [NetBox REST API](https://netboxlabs.com/docs/netbox/integrations/rest-api/) and the [NetBox GraphQL API](https://netboxlabs.com/docs/netbox/integrations/graphql-api/).
 
-The plugin works with **NetBox Community**, **NetBox Enterprise**, and **NetBox Cloud**. All three expose the same APIs, so no edition-specific setup is needed. NetBox records the intended state of your network, not live health, so the dashboards show inventory, capacity and lifecycle rather than up/down status.
-
 ## Setup
 
 You need the address of your NetBox instance and an **API token** for a user that can view the objects you want in SquaredUp.
@@ -31,6 +29,8 @@ When you save, the plugin checks two things:
 2. It reads the list of sites. A warning here means the token's user can't view DCIM objects.
 
 ## What this plugin monitors
+
+The plugin works with **NetBox Community**, **NetBox Enterprise**, and **NetBox Cloud**. All three expose the same APIs, so no edition-specific setup is needed. NetBox records the intended state of your network, not live health, so the dashboards show inventory, capacity and lifecycle rather than up/down status.
 
 - **Inventory**: sites, racks, devices, virtual machines, circuits and IP addresses. This covers status, role, manufacturer, model, platform, tenant and location.
 - **IP capacity**: prefix utilization, calculated the same way as NetBox. Containers count their child prefixes, pools count their full size, and prefixes marked as utilized count as full. VLAN group utilization is also shown.
