@@ -62,7 +62,7 @@ for (const item of channel.item || []) {
     const status = text(item.Status);
     const start = toDate(text(item.startTime));
     const end = toDate(text(item.endTime));
-    const resolved = text(item.ResolvedDate);
+    const resolved = toDate(text(item.ResolvedDate));
     const pub = toDate(text(item.pubDate));
 
     let phase;
