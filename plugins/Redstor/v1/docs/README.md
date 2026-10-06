@@ -1,6 +1,6 @@
 Monitor your [Redstor](https://www.redstor.com) Partner account in SquaredUp — customer companies, seat and storage consumption, backup and restore health, and product subscriptions — via the [RedAPI](https://www.redstor.com/our-technology/integrations/redapi/).
 
-> ⚠️ RedAPI is only available to **Partner Admin** users on current Redstor pricing plans — Company Admins and legacy-plan accounts cannot use it. This plugin does not cover Redstor's older Storage Platform REST API.
+> ⚠️ RedAPI is only available to **Partner Admin** users on current Redstor pricing plans — Company Admins and legacy-plan accounts cannot use it. This data source does not cover Redstor's older Storage Platform REST API.
 
 ## Setup
 
@@ -21,9 +21,9 @@ You will need a RedAPI **service account** with its Client ID and private key, p
 | **Client ID** | Identifies the RedAPI service account used to authenticate. | RedApp → **RedAPI → Service accounts** → your service account's key. | Yes |
 | **Private key** | The JSON Web Key (JWK) paired with the Client ID; signs the request used to obtain access tokens. | Downloaded when the service account's key was created. | Yes |
 
-On save, the plugin authenticates and calls your company's profile; an invalid Company ID, Client ID, or Private key fails setup with an authentication error.
+On save, the data source authenticates and calls your company's profile; an invalid Company ID, Client ID, or Private key fails setup with an authentication error.
 
-## What this plugin monitors
+## What this data source contains
 
 - **Customer companies** — your Partner company and the customers beneath it.
 - **Seat usage and billing exposure** — active, inactive and shared seats, licensed users, data protected and fair use overage, broken down by product for each company.
@@ -73,7 +73,7 @@ Start with the **Estate** streams for an at-a-glance view across your whole Part
 | **Service** | `GET /products` | A workload within a product, such as Exchange, OneDrive, SharePoint or Teams within O365. |
 | **Edition** | `GET /products` | An edition of a product, such as Premium. |
 
-**Relationships:** each Account belongs to its parent Company.
+**Relationships:** each Account belongs to its parent Company, and each customer Company belongs to its parent Company.
 
 Seats are not indexed as objects, because Redstor reports them as counts rather than as individually addressable records. They appear in **Company Consumption**.
 
@@ -89,4 +89,4 @@ Seats are not indexed as objects, because Redstor reports them as counts rather 
 - **Only direct customers are included** — your Partner company and the customers directly beneath it are indexed; deeper reseller-of-reseller chains are not followed. The Estate streams' customer rollup only reaches as far as this same direct-customer set.
 - **Estate Consumption has no per-product breakdown** — unlike Company Consumption, Redstor's consumption summary endpoint returns one total per company, not one row per product.
 - **Subject to Redstor's fair use throttling** — RedAPI is rate limited and the limits are not published, so very large estates may import slowly.
-- **Read-only** — the plugin never creates, modifies, or deletes anything in Redstor.
+- **Read-only** — the data source never creates, modifies, or deletes anything in Redstor.
