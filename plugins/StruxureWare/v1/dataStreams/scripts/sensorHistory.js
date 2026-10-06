@@ -2,15 +2,23 @@
 // timeValuePairs, so flatten to one row per reading.
 //
 // The API returns every stored reading with no aggregation option. Over long timeframes and
-// several sensors that easily exceeds the ~6MB stream response limit, so once the row count
-// passes MAX_ROWS each sensor's numeric readings are averaged into equal time buckets.
+// several sensors that easily exceeds the ~6MB stream response limit, so the output is capped
+// at MAX_ROWS in total. Each sensor gets a share of that budget: numeric readings beyond it
+// are averaged into equal time buckets, and state readings are reduced to their changes (then
+// evenly sampled if there are still too many).
 const MAX_ROWS = 20000;
 
 const toIso = (ms) => (typeof ms === "number" && ms > 0 ? new Date(ms).toISOString() : null);
 
-const sensors = (Array.isArray(data) ? data : []).filter(Boolean);
-const totalReadings = sensors.reduce((n, s) => n + (s.timeValuePairs || []).length, 0);
-const perSensorLimit = Math.max(50, Math.floor(MAX_ROWS / Math.max(1, sensors.length)));
+const sensors = (Array.isArray(data) ? data : [])
+    .filter(Boolean)
+    .map((sensor) => ({
+        sensor,
+        numeric: String(sensor.sensorType || "").startsWith("NUMBER"),
+        pairs: (sensor.timeValuePairs || [])
+            .filter((p) => p && typeof p.time === "number")
+            .sort((a, b) => a.time - b.time)
+    }));
 
 const rowFor = (sensor, time, value, valueText, severityText) => ({
     time: toIso(time),
@@ -45,26 +53,25 @@ const numberOf = (text) => {
     return Number.isNaN(n) ? null : n;
 };
 
-result = sensors.flatMap((sensor) => {
-    const pairs = (sensor.timeValuePairs || [])
-        .filter((p) => p && typeof p.time === "number")
-        .sort((a, b) => a.time - b.time);
-    const numeric = String(sensor.sensorType || "").startsWith("NUMBER");
+// Picks `limit` evenly spaced items, always keeping the first and last.
+const evenlySample = (items, limit) => {
+    if (items.length <= limit) return items;
+    if (limit <= 1) return items.slice(-limit);
+    const step = (items.length - 1) / (limit - 1);
+    return Array.from({ length: limit }, (_, i) => items[Math.round(i * step)]);
+};
 
-    if (totalReadings <= MAX_ROWS || pairs.length <= perSensorLimit || !numeric) {
-        return pairs.map((p) =>
-            rowFor(sensor, p.time, numeric ? numberOf(p.value) : null, p.value, p.severityText)
-        );
-    }
-
+const averageIntoBuckets = ({ sensor, pairs }, limit) => {
     const start = pairs[0].time;
     const span = Math.max(1, pairs[pairs.length - 1].time - start);
-    const bucketMs = Math.ceil(span / perSensorLimit);
+    const bucketMs = span / limit;
     const buckets = new Map();
     for (const p of pairs) {
         const value = numberOf(p.value);
         if (value === null) continue;
-        const key = Math.floor((p.time - start) / bucketMs);
+        // The last reading sits exactly on the end of the span, so clamp it into the final
+        // bucket rather than opening one more than the limit allows.
+        const key = Math.min(limit - 1, Math.floor((p.time - start) / bucketMs));
         const bucket = buckets.get(key) || { sum: 0, count: 0, last: p };
         bucket.sum += value;
         bucket.count += 1;
@@ -73,6 +80,43 @@ result = sensors.flatMap((sensor) => {
     }
     return [...buckets.entries()].map(([key, b]) => {
         const avg = b.sum / b.count;
-        return rowFor(sensor, start + key * bucketMs, avg, avg.toFixed(2), b.last.severityText);
+        return rowFor(sensor, Math.round(start + key * bucketMs), avg, avg.toFixed(2), b.last.severityText);
     });
-});
+};
+
+const sampleStates = ({ sensor, pairs }, limit) => {
+    // Keep the last reading too, so the chart runs to the end of the timeframe rather than
+    // stopping at the most recent change.
+    const changes = pairs.filter(
+        (p, i) =>
+            i === 0 ||
+            i === pairs.length - 1 ||
+            p.value !== pairs[i - 1].value ||
+            p.severityText !== pairs[i - 1].severityText
+    );
+    return evenlySample(changes, limit).map((p) => rowFor(sensor, p.time, null, p.value, p.severityText));
+};
+
+// Share the budget smallest-first, so sensors needing fewer rows than an equal share hand
+// their unused allowance on to the larger ones. The total can never exceed MAX_ROWS.
+let remaining = MAX_ROWS;
+const rowsBySensor = new Map();
+[...sensors]
+    .sort((a, b) => a.pairs.length - b.pairs.length)
+    .forEach((entry, i, ordered) => {
+        const limit = Math.floor(remaining / (ordered.length - i));
+        let rows;
+        if (limit <= 0 || entry.pairs.length === 0) {
+            rows = [];
+        } else if (entry.pairs.length <= limit) {
+            rows = entry.pairs.map((p) =>
+                rowFor(entry.sensor, p.time, entry.numeric ? numberOf(p.value) : null, p.value, p.severityText)
+            );
+        } else {
+            rows = entry.numeric ? averageIntoBuckets(entry, limit) : sampleStates(entry, limit);
+        }
+        remaining -= rows.length;
+        rowsBySensor.set(entry, rows);
+    });
+
+result = sensors.flatMap((entry) => rowsBySensor.get(entry));
