@@ -1,0 +1,150 @@
+{
+    "name": "rackUtilization",
+    "displayName": "Rack Utilization",
+    "description": "Rack unit space used and available per rack, counting both faces",
+    "tags": [
+        "Capacity",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql/",
+        "headers": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+        ],
+        "postBody": {
+            "query": "query($offset: Int) { rack_list(pagination: { limit: 500, offset: $offset }{{ (() => { const ids = (v) => ((typeof v !== 'undefined' && v) || []).map((o) => String([].concat(o.rawId)[0]).replace(/[^0-9]/g, '')).filter(Boolean); const s = ids(typeof site !== 'undefined' ? site : null); const r = ids(typeof rack !== 'undefined' ? rack : null); const f = []; if (s.length) f.push('site: { id: { in_list: [' + s.join(', ') + '] } }'); if (r.length) f.push('id: { in_list: [' + r.join(', ') + '] }'); return f.length ? ', filters: { ' + f.join(', ') + ' }' : ''; })() }}) { id name u_height starting_unit site { id name } location { name } devices { id position face device_type { u_height is_full_depth } } } }",
+            "variables": {
+                "offset": 0
+            }
+        },
+        "paging": {
+            "mode": "offset",
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data.rack_list"
+                }
+            },
+            "out": {
+                "realm": "body",
+                "path": "variables.offset"
+            }
+        },
+        "postRequestScript": "rackUtilization.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "rack",
+            "label": "Rack (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Rack"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "rack",
+            "displayName": "Rack",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "site",
+            "displayName": "Site",
+            "shape": "string"
+        },
+        {
+            "name": "location",
+            "displayName": "Location",
+            "shape": "string"
+        },
+        {
+            "name": "uHeight",
+            "displayName": "Height (U)",
+            "shape": "number"
+        },
+        {
+            "name": "usedUnits",
+            "displayName": "Used (U)",
+            "shape": "number"
+        },
+        {
+            "name": "availableUnits",
+            "displayName": "Available (U)",
+            "shape": "number"
+        },
+        {
+            "name": "utilization",
+            "displayName": "Utilization",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "frontUsed",
+            "displayName": "Front Used (U)",
+            "shape": "number"
+        },
+        {
+            "name": "rearUsed",
+            "displayName": "Rear Used (U)",
+            "shape": "number"
+        },
+        {
+            "name": "deviceCount",
+            "displayName": "Devices",
+            "shape": "number"
+        },
+        {
+            "name": "rackId",
+            "visible": false
+        },
+        {
+            "sourceId": "rackId",
+            "sourceType": "Rack",
+            "name": "rack"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "utilization",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": false
+}

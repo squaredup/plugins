@@ -1,0 +1,175 @@
+{
+    "name": "prefixes",
+    "displayName": "Prefixes",
+    "description": "All IP prefixes with VRF, scope, status, role and pool settings",
+    "tags": [
+        "IPAM",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/ipam/prefixes/",
+        "getArgs": [
+            {
+                "key": "fields",
+                "value": "id,display,display_url,prefix,family,vrf,scope_type,scope,status,role,tenant,vlan,is_pool,mark_utilized,_depth,children,description,created,last_updated,custom_fields"
+            },
+            {
+                "key": "site_id",
+                "value": "{{ (typeof site !== 'undefined' && site && site.length) ? site.map(s => [].concat(s.rawId)[0]) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "prefix",
+            "displayName": "Prefix",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "family.label",
+            "displayName": "Family",
+            "shape": "string"
+        },
+        {
+            "name": "vrf.name",
+            "displayName": "VRF",
+            "shape": "string"
+        },
+        {
+            "name": "vrf.id",
+            "visible": false
+        },
+        {
+            "name": "status.label",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "status.value",
+            "visible": false
+        },
+        {
+            "name": "role.name",
+            "displayName": "Role",
+            "shape": "string"
+        },
+        {
+            "name": "tenant.name",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "scope.name",
+            "displayName": "Scope",
+            "shape": "string"
+        },
+        {
+            "name": "scope_type",
+            "visible": false
+        },
+        {
+            "name": "vlan.display",
+            "displayName": "VLAN",
+            "shape": "string"
+        },
+        {
+            "name": "is_pool",
+            "displayName": "Pool",
+            "shape": "boolean"
+        },
+        {
+            "name": "mark_utilized",
+            "displayName": "Marked Utilized",
+            "shape": "boolean"
+        },
+        {
+            "name": "_depth",
+            "displayName": "Depth",
+            "shape": "number"
+        },
+        {
+            "name": "children",
+            "displayName": "Child Prefixes",
+            "shape": "number"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "display_url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Prefix",
+            "name": "prefix"
+        },
+        {
+            "pattern": "^custom_fields[.].*"
+        }
+    ],
+    "timeframes": false
+}
