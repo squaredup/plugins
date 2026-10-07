@@ -628,7 +628,17 @@
                                     "desc"
                                 ]
                             ]
-                        }
+                        },
+                        "metadata": [
+                            {
+                                "name": "limitStatus",
+                                "displayName": "Limit Status",
+                                "shape": "string",
+                                "visible": false,
+                                "computed": true,
+                                "valueExpression": "{{{{raw}}}}{{ (u => u > 95 ? 'error' : u > 80 ? 'warning' : '')($['limit'] > 0 && $['limit_remaining'] != null ? 100 * ($['limit'] - $['limit_remaining']) / $['limit'] : 0) }}{{{{/raw}}}}"
+                            }
+                        ]
                     },
                     "scope": {
                         "scope": "{{scopes.[Workspaces]}}",
@@ -700,6 +710,14 @@
                                         }
                                     },
                                     {
+                                        "field": "limitUsed",
+                                        "title": "Limit Used",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
                                         "field": "limit_reset",
                                         "title": "Limit Reset",
                                         "renderer": {
@@ -717,7 +735,15 @@
                                     }
                                 ]
                             },
-                            "style": {}
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "limitStatus",
+                                    "colors": {
+                                        "warning": "rgba(245,158,11,0.15)",
+                                        "error": "rgba(239,68,68,0.15)"
+                                    }
+                                }
+                            }
                         }
                     },
                     "visualisation": {
@@ -733,6 +759,7 @@
                                     "usage",
                                     "limit",
                                     "limit_remaining",
+                                    "limitUsed",
                                     "limit_reset",
                                     "disabled"
                                 ],
@@ -740,7 +767,8 @@
                                     "hash",
                                     "workspace_id",
                                     "created_at",
-                                    "expires_at"
+                                    "expires_at",
+                                    "limitStatus"
                                 ]
                             }
                         }
