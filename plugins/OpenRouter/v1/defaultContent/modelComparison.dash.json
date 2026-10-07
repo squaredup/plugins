@@ -2,17 +2,23 @@
     "name": "Model Comparison",
     "schemaVersion": "1.5",
     "timeframe": "last30days",
+    "variables": [
+        "{{variables.[Compared Models]}}"
+    ],
     "dashboard": {
         "_type": "layout/grid",
-        "columns": 6,
+        "columns": 4,
         "version": 1,
         "contents": [
             {
-                "i": "0c29cf9b-46f4-478d-98c4-25a07523750b",
+                "i": "23cffe4d-9415-4150-b3ca-18786feac31b",
                 "x": 0,
                 "y": 0,
-                "w": 6,
-                "h": 4,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Models",
@@ -22,18 +28,171 @@
                         "{{configId}}"
                     ],
                     "dataStream": {
-                        "id": "{{dataStreams.[models]}}",
-                        "name": "models",
-                        "pluginConfigId": "{{configId}}",
-                        "sort": {
-                            "by": [
-                                [
-                                    "benchmarks.artificial_analysis.intelligence_index",
-                                    "desc"
-                                ]
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT\n    s.sourceId AS id,\n    m.name,\n    m.author,\n    m.inputPrice,\n    m.outputPrice,\n    m.cacheReadPrice,\n    m.context_length AS contextLength,\n    m.\"top_provider.max_completion_tokens\" AS maxCompletionTokens,\n    m.inputModalities,\n    m.outputModalities,\n    m.\"benchmarks.artificial_analysis.intelligence_index\" AS intelligenceIndex,\n    m.\"benchmarks.artificial_analysis.coding_index\" AS codingIndex,\n    m.\"benchmarks.artificial_analysis.agentic_index\" AS agenticIndex,\n    m.knowledge_cutoff AS knowledgeCutoff,\n    m.created,\n    m.expiration_date AS expirationDate\nFROM Models m\nJOIN Selected s ON m.id = s.rawId\nORDER BY m.name",
+                            "tables": [
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Selected",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Model Comparison]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Compared Models]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[Compared Models]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
                             ]
-                        }
+                        },
+                        "metadata": [
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "sourceId": "id",
+                                "sourceType": "Model",
+                                "name": "name"
+                            },
+                            {
+                                "name": "author",
+                                "displayName": "Author",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "inputPrice",
+                                "displayName": "Input Price ($/1M Tokens)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "outputPrice",
+                                "displayName": "Output Price ($/1M Tokens)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "cacheReadPrice",
+                                "displayName": "Cache Read Price ($/1M Tokens)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "contextLength",
+                                "displayName": "Context Length",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "maxCompletionTokens",
+                                "displayName": "Max Completion Tokens",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "inputModalities",
+                                "displayName": "Input Modalities",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "outputModalities",
+                                "displayName": "Output Modalities",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "intelligenceIndex",
+                                "displayName": "Intelligence Index",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "codingIndex",
+                                "displayName": "Coding Index",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "agenticIndex",
+                                "displayName": "Agentic Index",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "knowledgeCutoff",
+                                "displayName": "Knowledge Cutoff",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "timeZone": "Etc/UTC"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "created",
+                                "displayName": "Created",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "inputPattern": "t"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "expirationDate",
+                                "displayName": "Expiration Date",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "timeZone": "Etc/UTC"
+                                    }
+                                ]
+                            }
+                        ]
                     },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
@@ -44,722 +203,255 @@
                                     "author",
                                     "inputPrice",
                                     "outputPrice",
-                                    "context_length",
-                                    "benchmarks.artificial_analysis.intelligence_index",
-                                    "benchmarks.artificial_analysis.coding_index",
-                                    "benchmarks.artificial_analysis.agentic_index"
-                                ],
-                                "hiddenColumns": [
-                                    "id",
-                                    "canonical_slug",
                                     "cacheReadPrice",
-                                    "top_provider.max_completion_tokens",
+                                    "contextLength",
+                                    "maxCompletionTokens",
                                     "inputModalities",
                                     "outputModalities",
-                                    "knowledge_cutoff",
+                                    "intelligenceIndex",
+                                    "codingIndex",
+                                    "agenticIndex",
+                                    "knowledgeCutoff",
                                     "created",
-                                    "expiration_date",
-                                    "pricing.prompt",
-                                    "pricing.completion",
-                                    "pricing.input_cache_read",
-                                    "inputAffordability",
-                                    "outputAffordability",
-                                    "cacheReadAffordability",
-                                    "architecture.input_modalities",
-                                    "architecture.output_modalities"
-                                ]
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "3eec66c4-de77-40ee-b403-37620ac6ec6b",
-                "x": 0,
-                "y": 4,
-                "w": 2,
-                "h": 3,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Cost Per Task For Top GPQA Models",
-                    "description": "By Accuracy",
-                    "timeframe": "none",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[benchmarks]}}",
-                        "name": "benchmarks",
-                        "pluginConfigId": "{{configId}}",
-                        "dataSourceConfig": {
-                            "source": "openrouter"
-                        },
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "benchmark",
-                                    "operation": "equals",
-                                    "value": "gpqa_diamond"
-                                },
-                                {
-                                    "column": "metric",
-                                    "operation": "equals",
-                                    "value": "accuracy"
-                                }
-                            ]
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "score",
-                                    "desc"
-                                ]
-                            ],
-                            "top": 15
-                        }
-                    },
-                    "visualisation": {
-                        "type": "data-stream-bar-chart",
-                        "config": {
-                            "data-stream-bar-chart": {
-                                "xAxisData": "modelName",
-                                "yAxisData": [
-                                    "avgCostPerTask"
+                                    "expirationDate"
                                 ],
-                                "xAxisGroup": "none",
-                                "xAxisLabel": "Model",
-                                "yAxisLabel": "Avg Cost Per Task (USD)",
-                                "showXAxisLabel": true,
-                                "showYAxisLabel": true,
-                                "showLegend": false,
-                                "legendPosition": "bottom",
-                                "showGrid": true,
-                                "horizontalLayout": "horizontal",
-                                "displayMode": "actual",
-                                "showTotals": false,
-                                "showValue": false,
-                                "grouping": false,
-                                "range": {
-                                    "type": "auto"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "df0c3dda-bfa5-48a0-babf-ed96590b4be2",
-                "x": 2,
-                "y": 4,
-                "w": 2,
-                "h": 3,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Top Models For Website Design (Elo)",
-                    "description": "By Elo Rating (Design Arena)",
-                    "timeframe": "none",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[benchmarks]}}",
-                        "name": "benchmarks",
-                        "pluginConfigId": "{{configId}}",
-                        "dataSourceConfig": {
-                            "source": "design-arena"
-                        },
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "benchmark",
-                                    "operation": "equals",
-                                    "value": "website"
-                                },
-                                {
-                                    "column": "metric",
-                                    "operation": "equals",
-                                    "value": "elo"
-                                }
-                            ]
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "score",
-                                    "desc"
-                                ]
-                            ],
-                            "top": 15
-                        }
-                    },
-                    "visualisation": {
-                        "type": "data-stream-bar-chart",
-                        "config": {
-                            "data-stream-bar-chart": {
-                                "xAxisData": "modelName",
-                                "yAxisData": [
-                                    "score"
+                                "hiddenColumns": [
+                                    "id"
                                 ],
-                                "xAxisGroup": "none",
-                                "xAxisLabel": "Model",
-                                "yAxisLabel": "Elo",
-                                "showXAxisLabel": true,
-                                "showYAxisLabel": true,
-                                "showLegend": false,
-                                "legendPosition": "bottom",
-                                "showGrid": true,
-                                "horizontalLayout": "horizontal",
-                                "displayMode": "actual",
-                                "showTotals": false,
-                                "showValue": false,
-                                "grouping": false,
-                                "range": {
-                                    "type": "auto"
-                                }
+                                "rowLinkColumnName": "name"
                             }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "3609a3d6-a8ff-470d-8333-20744922db53",
-                "x": 4,
-                "y": 4,
-                "w": 2,
-                "h": 3,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Top Models By Intelligence Index",
-                    "description": "By Index Score (Artificial Analysis)",
-                    "timeframe": "none",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[benchmarks]}}",
-                        "name": "benchmarks",
-                        "pluginConfigId": "{{configId}}",
-                        "dataSourceConfig": {
-                            "source": "artificial-analysis"
-                        },
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "benchmark",
-                                    "operation": "equals",
-                                    "value": "Intelligence Index"
-                                },
-                                {
-                                    "column": "metric",
-                                    "operation": "equals",
-                                    "value": "index"
-                                }
-                            ]
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "score",
-                                    "desc"
-                                ]
-                            ],
-                            "top": 15
-                        }
-                    },
-                    "visualisation": {
-                        "type": "data-stream-bar-chart",
-                        "config": {
-                            "data-stream-bar-chart": {
-                                "xAxisData": "modelName",
-                                "yAxisData": [
-                                    "score"
-                                ],
-                                "xAxisGroup": "none",
-                                "xAxisLabel": "Model",
-                                "yAxisLabel": "Intelligence Index",
-                                "showXAxisLabel": true,
-                                "showYAxisLabel": true,
-                                "showLegend": false,
-                                "legendPosition": "bottom",
-                                "showGrid": true,
-                                "horizontalLayout": "horizontal",
-                                "displayMode": "actual",
-                                "showTotals": false,
-                                "showValue": false,
-                                "grouping": false,
-                                "range": {
-                                    "type": "auto"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "bdbfd6a7-4bbe-4eab-91b5-6908a10344d7",
-                "x": 0,
-                "y": 7,
-                "w": 3,
-                "h": 3,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Most Used Models On OpenRouter",
-                    "description": "",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[rankings]}}",
-                        "name": "rankings",
-                        "pluginConfigId": "{{configId}}",
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "model_permaslug",
-                                    "operation": "notequals",
-                                    "value": "other"
-                                }
-                            ]
-                        },
-                        "group": {
-                            "by": [
-                                [
-                                    "model_permaslug",
-                                    "uniqueValues"
-                                ]
-                            ],
-                            "aggregate": [
-                                {
-                                    "type": "sum",
-                                    "names": [
-                                        "total_tokens"
-                                    ]
-                                }
-                            ]
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "total_tokens_sum",
-                                    "desc"
-                                ]
-                            ],
-                            "top": 10
-                        },
-                        "metadata": [
-                            {
-                                "name": "total_tokens_sum",
-                                "shape": [
-                                    "number",
-                                    {
-                                        "decimalPlaces": 0,
-                                        "thousandsSeparator": true
-                                    }
-                                ]
-                            },
-                            {
-                                "pattern": ".*"
-                            }
-                        ]
-                    },
-                    "visualisation": {
-                        "type": "data-stream-bar-chart",
-                        "config": {
-                            "data-stream-bar-chart": {
-                                "xAxisData": "model_permaslug_uniqueValues",
-                                "yAxisData": [
-                                    "total_tokens_sum"
-                                ],
-                                "xAxisGroup": "none",
-                                "xAxisLabel": "Model",
-                                "yAxisLabel": "Tokens",
-                                "showXAxisLabel": true,
-                                "showYAxisLabel": true,
-                                "showLegend": false,
-                                "legendPosition": "bottom",
-                                "showGrid": true,
-                                "horizontalLayout": "horizontal",
-                                "displayMode": "actual",
-                                "showTotals": false,
-                                "showValue": false,
-                                "grouping": false,
-                                "range": {
-                                    "type": "auto"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "22bac160-9e66-4597-b230-270811258056",
-                "x": 3,
-                "y": 7,
-                "w": 3,
-                "h": 3,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "OpenRouter Token Share By Author",
-                    "description": "",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[rankings]}}",
-                        "name": "rankings",
-                        "pluginConfigId": "{{configId}}",
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "model_permaslug",
-                                    "operation": "notequals",
-                                    "value": "other"
-                                }
-                            ]
-                        },
-                        "group": {
-                            "by": [
-                                [
-                                    "author",
-                                    "uniqueValues"
-                                ]
-                            ],
-                            "aggregate": [
-                                {
-                                    "type": "sum",
-                                    "names": [
-                                        "total_tokens"
-                                    ]
-                                }
-                            ]
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "total_tokens_sum",
-                                    "desc"
-                                ]
-                            ]
-                        },
-                        "metadata": [
-                            {
-                                "name": "total_tokens_sum",
-                                "shape": [
-                                    "number",
-                                    {
-                                        "decimalPlaces": 0,
-                                        "thousandsSeparator": true
-                                    }
-                                ]
-                            },
-                            {
-                                "pattern": ".*"
-                            }
-                        ]
-                    },
-                    "visualisation": {
-                        "type": "data-stream-donut-chart",
-                        "config": {
-                            "data-stream-donut-chart": {
-                                "valueColumn": "total_tokens_sum",
-                                "labelColumn": "author_uniqueValues",
-                                "hideCenterValue": false,
-                                "showValuesAsPercentage": true,
-                                "legendPosition": "auto",
-                                "legendMode": "table"
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "071c926f-0d3c-4192-962f-d191aa03dcbc",
-                "x": 0,
-                "y": 10,
-                "w": 6,
-                "h": 4,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Top Models On OpenRouter By Week (This Year)",
-                    "description": "Each week's 20 most used models across OpenRouter, by tokens. All other models in that week are combined into Other.",
-                    "timeframe": "thisYear",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[rankings]}}",
-                        "name": "rankings",
-                        "pluginConfigId": "{{configId}}",
-                        "dataSourceConfig": {
-                            "period": "week",
-                            "top": 20
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "date",
-                                    "asc"
-                                ]
-                            ]
                         }
                     },
                     "vizSpec": {
                         "version": "1.0",
                         "visualization": {
-                            "chartType": "bar",
+                            "chartType": "richTable",
                             "encoding": {
-                                "x": {
-                                    "field": "date",
-                                    "type": "temporal",
-                                    "title": "Week"
-                                },
-                                "y": {
-                                    "field": "total_tokens",
-                                    "type": "quantitative",
-                                    "aggregate": "sum",
-                                    "title": "Tokens"
-                                },
-                                "series": {
-                                    "field": "model_permaslug",
-                                    "type": "nominal",
-                                    "title": "Model"
-                                }
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Model",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "author",
+                                        "title": "Author",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "inputPrice",
+                                        "title": "Input Price ($/1M Tokens)",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "outputPrice",
+                                        "title": "Output Price ($/1M Tokens)",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "cacheReadPrice",
+                                        "title": "Cache Read Price ($/1M Tokens)",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "contextLength",
+                                        "title": "Context Length",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "maxCompletionTokens",
+                                        "title": "Max Completion Tokens",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "inputModalities",
+                                        "title": "Input Modalities",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "outputModalities",
+                                        "title": "Output Modalities",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "intelligenceIndex",
+                                        "title": "Intelligence Index",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2
+                                        }
+                                    },
+                                    {
+                                        "field": "codingIndex",
+                                        "title": "Coding Index",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2
+                                        }
+                                    },
+                                    {
+                                        "field": "agenticIndex",
+                                        "title": "Agentic Index",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2
+                                        }
+                                    }
+                                ]
                             },
-                            "style": {
-                                "cartesianStack": "on",
-                                "legendPosition": "bottom"
-                            }
-                        }
-                    },
-                    "visualisation": {
-                        "type": "data-stream-line-graph",
-                        "config": {
-                            "data-stream-line-graph": {
-                                "xAxisColumn": "date",
-                                "yAxisColumn": [
-                                    "total_tokens"
-                                ],
-                                "seriesColumn": "model_permaslug",
-                                "showLegend": true,
-                                "legendPosition": "bottom",
-                                "yAxisLabel": "Tokens",
-                                "showYAxisLabel": true,
-                                "showTrendLine": false
-                            }
+                            "style": {}
                         }
                     }
                 }
             },
             {
-                "i": "a3384d79-77a8-49c0-bb08-62d6744303e1",
+                "i": "ea3b78fb-bb19-4538-a408-5d066f96ab52",
                 "x": 0,
-                "y": 14,
-                "w": 6,
-                "h": 4,
+                "y": 3,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Top Model By Task",
-                    "description": "",
+                    "title": "Benchmarks Vs Price",
+                    "description": "Higher is better on every axis. Affordability scores price per 1M tokens on a log scale, from 100 at $0.01 or less to 0 at $1,000 or more.",
                     "timeframe": "none",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
                     "dataStream": {
-                        "id": "{{dataStreams.[taskClassifications]}}",
-                        "name": "taskClassifications",
-                        "pluginConfigId": "{{configId}}",
-                        "sort": {
-                            "by": [
-                                [
-                                    "usageShare",
-                                    "desc"
-                                ]
-                            ]
-                        }
-                    },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": [
-                                    "task",
-                                    "category",
-                                    "usageShare",
-                                    "topModel",
-                                    "topModelUsageShare",
-                                    "asOf"
-                                ],
-                                "hiddenColumns": [
-                                    "tag",
-                                    "tokenShare",
-                                    "citation"
-                                ]
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "37f6bcdf-02a2-4c2a-861d-c9515d1c2092",
-                "x": 0,
-                "y": 18,
-                "w": 6,
-                "h": 8,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Claude Code Cost Per Session",
-                    "description": "Median cost of one Claude Code session routed through OpenRouter, by model and session length. Users can pick any model on OpenRouter, so many aren't Anthropic's.",
-                    "timeframe": "none",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[sessionCost]}}",
-                        "name": "sessionCost",
-                        "pluginConfigId": "{{configId}}",
+                        "id": "datastream-sql",
                         "dataSourceConfig": {
-                            "harness": "claude-code"
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "sessionLengthOrder",
-                                    "asc"
-                                ],
-                                [
-                                    "median_session_cost_usd",
-                                    "asc"
-                                ]
-                            ]
-                        }
-                    },
-                    "vizSpec": {
-                        "version": "1.0",
-                        "visualization": {
-                            "chartType": "scatter",
-                            "encoding": {
-                                "x": {
-                                    "field": "model_permaslug",
-                                    "type": "nominal",
-                                    "title": "Model"
+                            "version": "2.0",
+                            "sql": "SELECT\n    s.sourceId AS id,\n    m.name,\n    m.\"benchmarks.artificial_analysis.intelligence_index\" AS intelligenceIndex,\n    m.\"benchmarks.artificial_analysis.coding_index\" AS codingIndex,\n    m.\"benchmarks.artificial_analysis.agentic_index\" AS agenticIndex,\n    m.inputAffordability,\n    m.outputAffordability,\n    m.cacheReadAffordability\nFROM Models m\nJOIN Selected s ON m.id = s.rawId\nORDER BY m.name",
+                            "tables": [
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
                                 },
-                                "y": {
-                                    "field": "median_session_cost_usd",
-                                    "type": "quantitative",
-                                    "title": "Median Session Cost ($)"
-                                },
-                                "color": {
-                                    "field": "sessionLength",
-                                    "type": "nominal",
-                                    "title": "Session Length"
+                                {
+                                    "tableName": "Selected",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Model Comparison]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Compared Models]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[Compared Models]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
                                 }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
                             },
-                            "style": {
-                                "legendPosition": "bottom",
-                                "cartesianYAxisScale": "log",
-                                "cartesianXAxisLabelRotation": 45,
-                                "cartesianXAxisTickDensity": "dense",
-                                "cartesianShowYAxisTitle": true,
-                                "cartesianYAxisTitle": "Median Session Cost ($, log scale)",
-                                "cartesianShowVerticalGridLines": true
-                            }
-                        }
-                    },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": [
-                                    "model_permaslug",
-                                    "sessionLength",
-                                    "median_session_cost_usd",
-                                    "app_name"
-                                ],
-                                "hiddenColumns": [
-                                    "app_slug",
-                                    "turn_range",
-                                    "sessionLengthOrder",
-                                    "asOf",
-                                    "citation"
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "intelligenceIndex",
+                                "displayName": "Intelligence Index",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "codingIndex",
+                                "displayName": "Coding Index",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "agenticIndex",
+                                "displayName": "Agentic Index",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "inputAffordability",
+                                "displayName": "Input Affordability",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "outputAffordability",
+                                "displayName": "Output Affordability",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "cacheReadAffordability",
+                                "displayName": "Cache Read Affordability",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
                                 ]
                             }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "56d4d9f8-9cc4-4852-9306-2997d9e87000",
-                "x": 0,
-                "y": 26,
-                "w": 6,
-                "h": 8,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Top Agentic Models Compared",
-                    "description": "Higher is better on every axis. Affordability scores price per 1M tokens on a log scale, from 100 at $0.01 or less to 0 at $1,000 or more. Change the ceiling with the Affordability ceiling parameter.",
-                    "timeframe": "none",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
                     ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[models]}}",
-                        "name": "models",
-                        "pluginConfigId": "{{configId}}",
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [
-                                {
-                                    "column": "benchmarks.artificial_analysis.agentic_index",
-                                    "operation": "greaterthan",
-                                    "value": "0"
-                                },
-                                {
-                                    "column": "benchmarks.artificial_analysis.intelligence_index",
-                                    "operation": "greaterthan",
-                                    "value": "0"
-                                },
-                                {
-                                    "column": "benchmarks.artificial_analysis.coding_index",
-                                    "operation": "greaterthan",
-                                    "value": "0"
-                                },
-                                {
-                                    "column": "name",
-                                    "operation": "notcontains",
-                                    "value": "(batch)"
-                                },
-                                {
-                                    "column": "name",
-                                    "operation": "notcontains",
-                                    "value": "(free)"
-                                }
-                            ]
-                        },
-                        "sort": {
-                            "by": [
-                                [
-                                    "benchmarks.artificial_analysis.agentic_index",
-                                    "desc"
-                                ],
-                                [
-                                    "benchmarks.artificial_analysis.intelligence_index",
-                                    "desc"
-                                ],
-                                [
-                                    "benchmarks.artificial_analysis.coding_index",
-                                    "desc"
-                                ]
-                            ],
-                            "top": 10
-                        }
-                    },
                     "vizSpec": {
                         "version": "1.0",
                         "visualization": {
@@ -772,17 +464,17 @@
                                 },
                                 "axes": [
                                     {
-                                        "field": "benchmarks.artificial_analysis.intelligence_index",
+                                        "field": "intelligenceIndex",
                                         "type": "quantitative",
                                         "title": "Intelligence Index"
                                     },
                                     {
-                                        "field": "benchmarks.artificial_analysis.coding_index",
+                                        "field": "codingIndex",
                                         "type": "quantitative",
                                         "title": "Coding Index"
                                     },
                                     {
-                                        "field": "benchmarks.artificial_analysis.agentic_index",
+                                        "field": "agenticIndex",
                                         "type": "quantitative",
                                         "title": "Agentic Index"
                                     },
@@ -815,34 +507,8 @@
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
-                                "columnOrder": [
-                                    "name",
-                                    "author",
-                                    "benchmarks.artificial_analysis.intelligence_index",
-                                    "benchmarks.artificial_analysis.coding_index",
-                                    "benchmarks.artificial_analysis.agentic_index",
-                                    "inputPrice",
-                                    "outputPrice",
-                                    "cacheReadPrice"
-                                ],
                                 "hiddenColumns": [
-                                    "id",
-                                    "canonical_slug",
-                                    "cacheReadPrice",
-                                    "top_provider.max_completion_tokens",
-                                    "inputModalities",
-                                    "outputModalities",
-                                    "knowledge_cutoff",
-                                    "created",
-                                    "expiration_date",
-                                    "pricing.prompt",
-                                    "pricing.completion",
-                                    "pricing.input_cache_read",
-                                    "inputAffordability",
-                                    "outputAffordability",
-                                    "cacheReadAffordability",
-                                    "architecture.input_modalities",
-                                    "architecture.output_modalities"
+                                    "id"
                                 ]
                             }
                         }
@@ -850,18 +516,981 @@
                 }
             },
             {
-                "i": "679f0166-77c4-47c1-9ae5-7e4c1721f718",
+                "i": "e8e0ca65-ced6-4265-b2ac-74fea2e224f0",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Artificial Analysis Indices",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug,\n        sourceId,\n        name\n    FROM Selected\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.name,\n    b.benchmark,\n    b.score\nFROM Benchmarks b\nJOIN by_slug s ON b.model = s.canonical_slug\nWHERE b.source = 'artificial-analysis'\nORDER BY b.benchmark, s.name",
+                            "tables": [
+                                {
+                                    "tableName": "Benchmarks",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[benchmarks]}}",
+                                            "name": "benchmarks",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Selected",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Model Comparison]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Compared Models]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[Compared Models]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "benchmark",
+                                "displayName": "Benchmark",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "score",
+                                "displayName": "Score",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "benchmark",
+                                "yAxisData": [
+                                    "score"
+                                ],
+                                "xAxisGroup": "name",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "Index",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": true,
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": true,
+                                "range": {
+                                    "type": "auto"
+                                }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "benchmark",
+                                    "type": "nominal",
+                                    "title": "Benchmark"
+                                },
+                                "y": {
+                                    "field": "score",
+                                    "type": "quantitative",
+                                    "title": "Score"
+                                },
+                                "series": {
+                                    "field": "name",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "off",
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Index"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e4a900b8-db8c-4f61-ab49-a272d80fdd2f",
                 "x": 0,
-                "y": 34,
-                "w": 6,
+                "y": 8,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Design Arena Elo",
+                    "description": "Elo rating by design category. Higher is better.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug,\n        sourceId,\n        name\n    FROM Selected\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.name,\n    b.benchmark,\n    b.score\nFROM Benchmarks b\nJOIN by_slug s ON b.model = s.canonical_slug\nWHERE b.source = 'design-arena' AND b.metric = 'elo'\nORDER BY b.benchmark, s.name",
+                            "tables": [
+                                {
+                                    "tableName": "Benchmarks",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[benchmarks]}}",
+                                            "name": "benchmarks",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Selected",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Model Comparison]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Compared Models]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[Compared Models]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "benchmark",
+                                "displayName": "Category",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "score",
+                                "displayName": "Elo",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "benchmark",
+                                "yAxisData": [
+                                    "score"
+                                ],
+                                "xAxisGroup": "name",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "Elo",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": true,
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": true,
+                                "range": {
+                                    "type": "custom",
+                                    "maximum": 1600,
+                                    "minimum": 900
+                                }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "benchmark",
+                                    "type": "nominal",
+                                    "title": "Category"
+                                },
+                                "y": {
+                                    "field": "score",
+                                    "type": "quantitative",
+                                    "title": "Elo"
+                                },
+                                "series": {
+                                    "field": "name",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "off",
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Elo",
+                                "cartesianYAxisMin": 900,
+                                "cartesianYAxisMax": 1600
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4bf8b04e-889d-4518-b96c-491fe668c142",
+                "x": 2,
+                "y": 8,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Session Cost By Harness",
+                    "description": "Median cost of one 10–49 turn coding-agent session, by model and harness.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug,\n        sourceId,\n        name\n    FROM Selected\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.name,\n    c.app_name AS harness,\n    c.median_session_cost_usd AS cost\nFROM SessionCost c\nJOIN by_slug s ON c.model_permaslug = s.canonical_slug\nWHERE c.turn_range = '10-49-turns'\nORDER BY s.name, c.app_name",
+                            "tables": [
+                                {
+                                    "tableName": "SessionCost",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[sessionCost]}}",
+                                            "name": "sessionCost",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Selected",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Model Comparison]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Compared Models]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[Compared Models]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "harness",
+                                "displayName": "Harness",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "cost",
+                                "displayName": "Median Session Cost",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 4
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scatter",
+                            "encoding": {
+                                "x": {
+                                    "field": "name",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                },
+                                "y": {
+                                    "field": "cost",
+                                    "type": "quantitative",
+                                    "title": "Median Session Cost ($)"
+                                },
+                                "color": {
+                                    "field": "harness",
+                                    "type": "nominal",
+                                    "title": "Harness"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianYAxisScale": "log",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Median Session Cost ($, log scale)",
+                                "cartesianShowVerticalGridLines": true,
+                                "cartesianXAxisLabelRotation": 45,
+                                "cartesianXAxisTickDensity": "dense"
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {}
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2c1f928b-b7a2-48d2-ac16-e100b0f74f21",
+                "x": 0,
+                "y": 13,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "OpenRouter Evals",
+                    "description": "Results from OpenRouter's own evals. The metric differs by benchmark, so scores aren't comparable across rows.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug,\n        sourceId,\n        name\n    FROM Selected\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.sourceId AS id,\n    s.name,\n    b.benchmark,\n    b.metric,\n    b.score,\n    b.tasks,\n    b.avgCostPerTask,\n    b.avgDurationMs\nFROM Benchmarks b\nJOIN by_slug s ON b.model = s.canonical_slug\nWHERE b.source = 'openrouter'\nORDER BY b.score DESC",
+                            "tables": [
+                                {
+                                    "tableName": "Benchmarks",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[benchmarks]}}",
+                                            "name": "benchmarks",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Selected",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Model Comparison]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Compared Models]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[Compared Models]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "sourceId": "id",
+                                "sourceType": "Model",
+                                "name": "name"
+                            },
+                            {
+                                "name": "benchmark",
+                                "displayName": "Benchmark",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "score",
+                                "displayName": "Score",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "tasks",
+                                "displayName": "Tasks",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "avgCostPerTask",
+                                "displayName": "Avg Cost per Task",
+                                "shape": "usd"
+                            },
+                            {
+                                "name": "avgDurationMs",
+                                "displayName": "Avg Duration",
+                                "shape": "milliseconds"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "name",
+                                    "benchmark",
+                                    "metric",
+                                    "score",
+                                    "tasks",
+                                    "avgCostPerTask",
+                                    "avgDurationMs"
+                                ],
+                                "hiddenColumns": [
+                                    "id"
+                                ],
+                                "rowLinkColumnName": "name"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Model",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "benchmark",
+                                        "title": "Benchmark",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "metric",
+                                        "title": "Metric",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "score",
+                                        "title": "Score",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2
+                                        }
+                                    },
+                                    {
+                                        "field": "tasks",
+                                        "title": "Tasks",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "avgCostPerTask",
+                                        "title": "Avg Cost per Task",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "avgDurationMs",
+                                        "title": "Avg Duration",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f835faa9-edd8-4bbb-8f89-659d4eadd362",
+                "x": 0,
+                "y": 17,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Throughput By Provider",
+                    "description": "Median tokens per second over the last 30 minutes.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[modelProviders]}}",
+                        "name": "modelProviders",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "throughput_last_30m.p50",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Model Comparison]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Compared Models]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "tag",
+                                "yAxisData": [
+                                    "throughput_last_30m.p50"
+                                ],
+                                "xAxisGroup": "model_name",
+                                "xAxisLabel": "Endpoint",
+                                "yAxisLabel": "Tokens/s",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": true,
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": true,
+                                "range": {
+                                    "type": "auto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "88a7859f-3bb2-42ba-9a83-9beaaae99d05",
+                "x": 2,
+                "y": 17,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Latency By Provider",
+                    "description": "Median latency over the last 30 minutes.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[modelProviders]}}",
+                        "name": "modelProviders",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "latency_last_30m.p50",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Model Comparison]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Compared Models]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "tag",
+                                "yAxisData": [
+                                    "latency_last_30m.p50"
+                                ],
+                                "xAxisGroup": "model_name",
+                                "xAxisLabel": "Endpoint",
+                                "yAxisLabel": "Latency (ms)",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": true,
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": true,
+                                "range": {
+                                    "type": "auto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cd3d1575-854e-4b32-bdf0-501ddf31ae99",
+                "x": 0,
+                "y": 22,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Your Spend (Last 30 Days)",
+                    "description": "Your own spend on each model through your OpenRouter account.",
+                    "timeframe": "last30days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "metric": "total_usage",
+                            "groupBy": "model",
+                            "filterObjects": {
+                                "scope": "{{scopes.[Model Comparison]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compared Models]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "group",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "Spend ($)",
+                                "showYAxisLabel": true,
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date",
+                                    "type": "temporal",
+                                    "title": "Date"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Spend ($)"
+                                },
+                                "series": {
+                                    "field": "group",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Spend ($)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "97618c1f-a773-45f4-bba5-ccd2afa7526a",
+                "x": 2,
+                "y": 22,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Your Cost Per 1M Tokens (Last 30 Days)",
+                    "description": "Your own cost per million tokens on each model.",
+                    "timeframe": "last30days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "metric": "cost_per_million_tokens",
+                            "groupBy": "model",
+                            "filterObjects": {
+                                "scope": "{{scopes.[Model Comparison]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compared Models]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 4
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Compared Models]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "group",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "Cost per 1M tokens ($)",
+                                "showYAxisLabel": true,
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date",
+                                    "type": "temporal",
+                                    "title": "Date"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Cost per 1M tokens ($)"
+                                },
+                                "series": {
+                                    "field": "group",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Cost per 1M tokens ($)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e26858ee-6975-4e02-b7ee-c8b2b46614b0",
+                "x": 0,
+                "y": 26,
+                "w": 4,
                 "h": 1,
+                "moved": false,
+                "static": false,
+                "z": 0,
                 "config": {
                     "_type": "tile/text",
                     "title": "",
                     "description": "",
                     "visualisation": {
                         "config": {
-                            "content": "Benchmarks: Artificial Analysis ([artificialanalysis.ai](https://artificialanalysis.ai)), Design Arena ([www.designarena.ai](https://www.designarena.ai)), and OpenRouter evals ([openrouter.ai](https://openrouter.ai)), via OpenRouter ([openrouter.ai/rankings](https://openrouter.ai/rankings)).  \nRankings, tasks, and session cost: OpenRouter ([openrouter.ai/rankings](https://openrouter.ai/rankings)). Task data is as of the **As Of** date in the Top Model By Task table; session cost is refreshed weekly.  \nLicensed under CC BY 4.0.",
+                            "content": "Benchmarks: Artificial Analysis ([artificialanalysis.ai](https://artificialanalysis.ai)), Design Arena ([www.designarena.ai](https://www.designarena.ai)), and OpenRouter evals ([openrouter.ai](https://openrouter.ai)), via OpenRouter ([openrouter.ai/rankings](https://openrouter.ai/rankings)).  \nSession cost: OpenRouter ([openrouter.ai/rankings](https://openrouter.ai/rankings)), refreshed weekly.  \nLicensed under CC BY 4.0.",
                             "fontSize": 12,
                             "align": "left",
                             "autoSize": true

@@ -29,12 +29,12 @@ On save, the plugin checks the key in two steps. An invalid, disabled, or expire
 - **Spend and usage** — spend, requests, tokens, latency, and throughput over time, broken down by model, provider, workspace, API key, or app.
 - **API keys** — spend today, this week, and this month for each key, against its credit limit, plus an expiry warning.
 - **Account credits** — credits purchased, used, and remaining.
-- **Model comparison** — pricing, context length, modalities, and Artificial Analysis benchmark scores for every model on OpenRouter.
+- **Models** — pricing, context length, modalities, and Artificial Analysis benchmark scores for every model on OpenRouter.
 - **Providers** — every provider serving models on OpenRouter, with headquarters and datacenter locations.
 - **Provider performance** — current status, price, uptime, latency, and throughput for each provider serving a model.
 - **Benchmarks and rankings** — scores from Artificial Analysis, Design Arena, and OpenRouter's own evals, OpenRouter's public leaderboard of the most used models, what share of OpenRouter traffic goes to each kind of task, what a coding-agent session typically costs, and which public apps use OpenRouter most.
 
-The out-of-the-box dashboards include an account **Overview**; **Model Comparison** and **Ecosystem** dashboards covering models, apps, task types, and providers across all of OpenRouter, which work with a standard API key; and a perspective for each **Model**, **Provider**, **Workspace**, and **API Key** (spend tiles need a management key). The Model perspective includes a current view of each provider's status, price, and throughput, and your spend and cost per 1M tokens on each provider.
+The out-of-the-box dashboards include an account **Overview**; **Model Leaderboards** and **Ecosystem** dashboards covering models, apps, task types, and providers across all of OpenRouter, which work with a standard API key; a **Model Comparison** dashboard that compares any models you pick side by side on price, benchmarks, providers, session cost, and your own usage (the usage tiles need a management key); and a perspective for each **Model**, **Provider**, **Workspace**, and **API Key** (spend tiles need a management key). The Model perspective includes a current view of each provider's status, price, and throughput, and your spend and cost per 1M tokens on each provider.
 
 ## Data streams
 
@@ -68,7 +68,7 @@ With a standard API key, only models and providers are imported; the workspace a
 ## Known limitations
 
 - **Benchmarks, rankings, app rankings, task classifications, and session costs refresh at most once a day** — OpenRouter limits these endpoints to 500 requests a day per account, so the plugin caches them for 24 hours.
-- **Rankings licence** — rankings, app ranking, task classification, session cost, and benchmark data is published by OpenRouter under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each row of these streams has a hidden **Citation** column with the exact attribution OpenRouter requires, and a hidden **As Of** date. The **Model Comparison**, **Ecosystem**, and **Model** dashboards credit the data already; show the citation on any dashboard you build from it.
+- **Rankings licence** — rankings, app ranking, task classification, session cost, and benchmark data is published by OpenRouter under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each row of these streams has a hidden **Citation** column with the exact attribution OpenRouter requires, and a hidden **As Of** date. The **Model Leaderboards**, **Model Comparison**, **Ecosystem**, and **Model** dashboards credit the data already; show the citation on any dashboard you build from it.
 - **Not every model has benchmark scores** — Artificial Analysis scores cover fewer than half of models; the rest show blank.
 - **Usage history** can be queried up to a year back. Latency, time to first token, throughput, and grouping by **Provider**, **Origin**, **Country**, **Finish reason**, or **Streamed** are limited to 31 days; longer timeframes return an error.
 - **Usage timeframes start at 12 hours** — data is bucketed by hour, day, week, or month to suit the range; periods with no activity are left out rather than shown as zero.
