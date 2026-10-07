@@ -536,7 +536,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug AS slug,\n        sourceId AS id,\n        name\n    FROM Models\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    m.id,\n    COALESCE(m.name, u.slug) AS name,\n    u.slug,\n    u.spend,\n    u.requests,\n    u.costPerRequest,\n    u.promptTokens,\n    u.completionTokens\nFROM Usage u\nLEFT JOIN by_slug m ON m.slug = u.slug\nORDER BY u.spend DESC",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug AS slug,\n        id,\n        name\n    FROM Models\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(id), id) = 1\n)\nSELECT\n    m.id,\n    CASE WHEN m.id IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(m.id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' END AS url,\n    COALESCE(m.name, u.slug) AS name,\n    u.slug,\n    u.spend,\n    u.requests,\n    u.costPerRequest,\n    u.promptTokens,\n    u.completionTokens\nFROM Usage u\nLEFT JOIN by_slug m ON m.slug = u.slug\nORDER BY u.spend DESC",
                             "tables": [
                                 {
                                     "tableName": "Usage",
@@ -554,13 +554,13 @@
                                 {
                                     "tableName": "Models",
                                     "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
                                         "dataStream": {
-                                            "id": "datastream-properties",
-                                            "name": "properties"
-                                        },
-                                        "scope": {
-                                            "scope": "{{scopes.[Models]}}",
-                                            "workspace": "{{workspaceId}}"
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
                                         },
                                         "timeframe": "none"
                                     }
@@ -575,15 +575,16 @@
                                 "visible": false
                             },
                             {
+                                "name": "url",
+                                "displayName": "Model Link",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
                                 "name": "name",
                                 "displayName": "Model",
                                 "shape": "string",
                                 "role": "label"
-                            },
-                            {
-                                "sourceId": "id",
-                                "sourceType": "Model",
-                                "name": "name"
                             },
                             {
                                 "name": "slug",
@@ -631,10 +632,11 @@
                             "encoding": {
                                 "columns": [
                                     {
-                                        "field": "name",
+                                        "field": "url",
                                         "title": "Model",
                                         "renderer": {
-                                            "type": "text"
+                                            "type": "link",
+                                            "labelField": "name"
                                         }
                                     },
                                     {
@@ -699,7 +701,8 @@
                                 ],
                                 "hiddenColumns": [
                                     "id",
-                                    "slug"
+                                    "slug",
+                                    "url"
                                 ]
                             }
                         }

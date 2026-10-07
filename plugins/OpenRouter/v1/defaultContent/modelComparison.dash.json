@@ -31,7 +31,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "SELECT\n    s.sourceId AS id,\n    m.name,\n    m.author,\n    m.inputPrice,\n    m.outputPrice,\n    m.cacheReadPrice,\n    m.context_length AS contextLength,\n    m.\"top_provider.max_completion_tokens\" AS maxCompletionTokens,\n    m.inputModalities,\n    m.outputModalities,\n    m.\"benchmarks.artificial_analysis.intelligence_index\" AS intelligenceIndex,\n    m.\"benchmarks.artificial_analysis.coding_index\" AS codingIndex,\n    m.\"benchmarks.artificial_analysis.agentic_index\" AS agenticIndex,\n    m.knowledge_cutoff AS knowledgeCutoff,\n    m.created,\n    m.expiration_date AS expirationDate\nFROM Models m\nJOIN Selected s ON m.id = s.rawId\nORDER BY m.name",
+                            "sql": "SELECT\n    s.rawId AS id,\n    CASE WHEN s.rawId IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(s.rawId, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' END AS url,\n    m.name,\n    m.author,\n    m.inputPrice,\n    m.outputPrice,\n    m.cacheReadPrice,\n    m.context_length AS contextLength,\n    m.\"top_provider.max_completion_tokens\" AS maxCompletionTokens,\n    m.inputModalities,\n    m.outputModalities,\n    m.\"benchmarks.artificial_analysis.intelligence_index\" AS intelligenceIndex,\n    m.\"benchmarks.artificial_analysis.coding_index\" AS codingIndex,\n    m.\"benchmarks.artificial_analysis.agentic_index\" AS agenticIndex,\n    m.knowledge_cutoff AS knowledgeCutoff,\n    m.created,\n    m.expiration_date AS expirationDate\nFROM Models m\nJOIN Selected s ON m.id = s.rawId\nORDER BY m.name",
                             "tables": [
                                 {
                                     "tableName": "Models",
@@ -75,15 +75,16 @@
                                 "visible": false
                             },
                             {
+                                "name": "url",
+                                "displayName": "Model Link",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
                                 "name": "name",
                                 "displayName": "Model",
                                 "shape": "string",
                                 "role": "label"
-                            },
-                            {
-                                "sourceId": "id",
-                                "sourceType": "Model",
-                                "name": "name"
                             },
                             {
                                 "name": "author",
@@ -216,9 +217,9 @@
                                     "expirationDate"
                                 ],
                                 "hiddenColumns": [
-                                    "id"
-                                ],
-                                "rowLinkColumnName": "name"
+                                    "id",
+                                    "url"
+                                ]
                             }
                         }
                     },
@@ -229,10 +230,11 @@
                             "encoding": {
                                 "columns": [
                                     {
-                                        "field": "name",
+                                        "field": "url",
                                         "title": "Model",
                                         "renderer": {
-                                            "type": "text"
+                                            "type": "link",
+                                            "labelField": "name"
                                         }
                                     },
                                     {
@@ -949,7 +951,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug,\n        sourceId,\n        name\n    FROM Selected\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.sourceId AS id,\n    s.name,\n    b.benchmark,\n    b.metric,\n    b.score,\n    b.tasks,\n    b.avgCostPerTask,\n    b.avgDurationMs\nFROM Benchmarks b\nJOIN by_slug s ON b.model = s.canonical_slug\nWHERE b.source = 'openrouter'\nORDER BY b.score DESC",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug,\n        sourceId,\n        rawId,\n        name\n    FROM Selected\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.rawId AS id,\n    CASE WHEN s.rawId IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(s.rawId, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' END AS url,\n    s.name,\n    b.benchmark,\n    b.metric,\n    b.score,\n    b.tasks,\n    b.avgCostPerTask,\n    b.avgDurationMs\nFROM Benchmarks b\nJOIN by_slug s ON b.model = s.canonical_slug\nWHERE b.source = 'openrouter'\nORDER BY b.score DESC",
                             "tables": [
                                 {
                                     "tableName": "Benchmarks",
@@ -993,15 +995,16 @@
                                 "visible": false
                             },
                             {
+                                "name": "url",
+                                "displayName": "Model Link",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
                                 "name": "name",
                                 "displayName": "Model",
                                 "shape": "string",
                                 "role": "label"
-                            },
-                            {
-                                "sourceId": "id",
-                                "sourceType": "Model",
-                                "name": "name"
                             },
                             {
                                 "name": "benchmark",
@@ -1058,9 +1061,9 @@
                                     "avgDurationMs"
                                 ],
                                 "hiddenColumns": [
-                                    "id"
-                                ],
-                                "rowLinkColumnName": "name"
+                                    "id",
+                                    "url"
+                                ]
                             }
                         }
                     },
@@ -1071,10 +1074,11 @@
                             "encoding": {
                                 "columns": [
                                     {
-                                        "field": "name",
+                                        "field": "url",
                                         "title": "Model",
                                         "renderer": {
-                                            "type": "text"
+                                            "type": "link",
+                                            "labelField": "name"
                                         }
                                     },
                                     {
