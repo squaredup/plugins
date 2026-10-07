@@ -2,12 +2,12 @@ Monitor your [OpenRouter](https://openrouter.ai) spend, usage, and API keys in S
 
 ## Setup
 
-You will need an OpenRouter **management key** for full access. A standard API key also works, but only for model, benchmark, ranking, and credit data.
+You will need an OpenRouter **management key** for full access. A standard API key also works, but without workspace, API key, usage, and performance data.
 
 | Key type | What works |
 | -------- | ---------- |
-| **Management key** | Everything: models, benchmarks, rankings, credits, workspaces, API keys, and usage. |
-| **Standard API key** | Models, benchmarks, rankings, and credits. Workspaces, API keys, and usage are unavailable. |
+| **Management key** | Everything. |
+| **Standard API key** | Models, providers, model providers, benchmarks, rankings, app rankings, session cost, task classifications, and credits. Workspaces, API keys, usage, and performance are unavailable. |
 
 Management keys can read and manage account, workspace, API key, and usage data, but cannot be used to call models. This plugin only reads data; it never creates, modifies, or deletes anything in OpenRouter.
 
@@ -22,7 +22,7 @@ Management keys can read and manage account, workspace, API key, and usage data,
 | ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------- |
 | **API key** | A management key (recommended) or standard API key, sent as a Bearer token. | OpenRouter → **Settings → Management Keys** (or **Settings → API Keys**).         | Yes      |
 
-On save, the plugin checks the key in two steps. An invalid, disabled, or expired key fails setup. A valid standard API key passes with a warning that workspaces, API keys, and usage need a management key.
+On save, the plugin checks the key in two steps. An invalid, disabled, or expired key fails setup. A valid standard API key passes with a warning that workspaces, API keys, usage, and performance need a management key.
 
 ## What this plugin monitors
 
@@ -34,7 +34,7 @@ On save, the plugin checks the key in two steps. An invalid, disabled, or expire
 - **Provider performance** — current status, price, uptime, latency, and throughput for each provider serving a model.
 - **Benchmarks and rankings** — scores from Artificial Analysis, Design Arena, and OpenRouter's own evals, OpenRouter's public leaderboard of the most used models, what share of OpenRouter traffic goes to each kind of task, what a coding-agent session typically costs, and which public apps use OpenRouter most.
 
-The out-of-the-box dashboards include an account **Overview**; **Model Leaderboards** and **Ecosystem** dashboards covering models, apps, task types, and providers across all of OpenRouter, which work with a standard API key; a **Model Comparison** dashboard that compares any models you pick side by side on price, benchmarks, providers, session cost, and your own usage (the usage tiles need a management key); and a perspective for each **Model**, **Provider**, **Workspace**, and **API Key** (spend tiles need a management key). The Model perspective includes a current view of each provider's status, price, and throughput, and your spend and cost per 1M tokens on each provider.
+The out-of-the-box dashboards include an account **Overview**; **Model Leaderboards** and **Ecosystem** dashboards covering models, apps, task types, and providers across all of OpenRouter, which work with a standard API key; a **Model Comparison** dashboard that compares any models you pick side by side on price, benchmarks, providers, session cost, and your own usage (the usage tiles need a management key); and a perspective for each **Model**, **Provider**, **Workspace**, and **API Key** (spend and latency tiles need a management key). The Model perspective includes a current view of each provider's status, price, and throughput, and your spend and cost per 1M tokens on each provider.
 
 ## Data streams
 
