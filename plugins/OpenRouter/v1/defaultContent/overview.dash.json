@@ -536,7 +536,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug AS slug,\n        id,\n        name\n    FROM Models\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(id), id) = 1\n)\nSELECT\n    m.id,\n    CASE WHEN m.id IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(m.id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' END AS url,\n    COALESCE(m.name, u.slug) AS name,\n    u.slug,\n    u.spend,\n    u.requests,\n    u.costPerRequest,\n    u.promptTokens,\n    u.completionTokens\nFROM Usage u\nLEFT JOIN by_slug m ON m.slug = u.slug\nORDER BY u.spend DESC",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug AS slug,\n        id,\n        name\n    FROM Models\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(id), id) = 1\n)\nSELECT\n    m.id,\n    -- Models missing from the models stream (e.g. stealth models) link to their OpenRouter page\n    CASE WHEN m.id IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(m.id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' ELSE 'https://openrouter.ai/' || u.slug END AS url,\n    COALESCE(m.name, u.slug) AS name,\n    u.slug,\n    u.spend,\n    u.requests,\n    u.costPerRequest,\n    u.promptTokens,\n    u.completionTokens\nFROM Usage u\nLEFT JOIN by_slug m ON m.slug = u.slug\nORDER BY u.spend DESC",
                             "tables": [
                                 {
                                     "tableName": "Usage",
