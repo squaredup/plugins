@@ -826,7 +826,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "WITH by_slug AS (\n    SELECT\n        canonical_slug,\n        sourceId,\n        name\n    FROM Selected\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.name,\n    c.app_name AS harness,\n    c.median_session_cost_usd AS cost\nFROM SessionCost c\nJOIN by_slug s ON c.model_permaslug = s.canonical_slug\nWHERE c.turn_range = '10-49-turns'\nORDER BY s.name, c.app_name",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        permaslug,\n        sourceId,\n        name\n    FROM Selected\n    -- Datasets key models by permaslug; a :batch model shares its base's, so keep one\n    QUALIFY row_number() OVER (PARTITION BY permaslug ORDER BY length(sourceId), sourceId) = 1\n)\nSELECT\n    s.name,\n    c.app_name AS harness,\n    c.median_session_cost_usd AS cost\nFROM SessionCost c\nJOIN by_slug s ON c.model_permaslug = s.permaslug\nWHERE c.turn_range = '10-49-turns'\nORDER BY s.name, c.app_name",
                             "tables": [
                                 {
                                     "tableName": "SessionCost",
