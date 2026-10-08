@@ -11,7 +11,7 @@
             { "key": "facet", "value": "host_info" },
             {
                 "key": "filter",
-                "value": "{{(function(){var parts=[];var sel=(typeof scope!=='undefined'?scope:[])||[];var unwrap=function(v){return Array.isArray(v)?v[0]:v;};if(sel.length){var dev=[],grp=[];sel.forEach(function(o){var id=unwrap(o.rawId);if(o.type==='CrowdStrike Host Group'){grp.push(id);}else{dev.push(id);}});if(dev.length)parts.push(\"aid:[\"+dev.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");if(grp.length)parts.push(\"host_info.groups:[\"+grp.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");}var st=(typeof status!=='undefined'?status:[])||[];if(st.length)parts.push(\"status:[\"+st.map(function(s){return \"'\"+(s.value||s)+\"'\";}).join(\",\")+\"]\");return parts.length?parts.join(\"+\"):null;})()}}"
+                "value": "{{ (typeof scope === 'undefined' || !scope ? [] : [ [\"aid\", scope.filter(o => o.type !== 'CrowdStrike Host Group')], [\"host_info.groups\", scope.filter(o => o.type === 'CrowdStrike Host Group')] ].filter(p => p[1].length).map(p => p[0] + \":[\" + p[1].map(o => \"'\" + [].concat(o.rawId)[0] + \"'\").join(\",\") + \"]\")).concat((typeof status === 'undefined' || !status || !status.length ? [] : [ \"status:[\" + status.map(s => \"'\" + (s.value || s) + \"'\").join(\",\") + \"]\" ])).join(\"+\") || null }}"
             }
         ],
         "paging": {

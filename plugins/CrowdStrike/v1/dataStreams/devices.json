@@ -10,7 +10,7 @@
         "getArgs": [
             {
                 "key": "filter",
-                "value": "{{(function(){var sel=(typeof scope!=='undefined'?scope:[])||[];if(!sel.length)return null;var unwrap=function(v){return Array.isArray(v)?v[0]:v;};var dev=[],grp=[];sel.forEach(function(o){var id=unwrap(o.rawId);if(o.type==='CrowdStrike Host Group'){grp.push(id);}else{dev.push(id);}});var parts=[];if(dev.length)parts.push(\"device_id:[\"+dev.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");if(grp.length)parts.push(\"group_ids:[\"+grp.map(function(i){return \"'\"+i+\"'\";}).join(\",\")+\"]\");return parts.length?parts.join(\"+\"):null;})()}}"
+                "value": "{{ (typeof scope === 'undefined' || !scope ? [] : [ [\"device_id\", scope.filter(o => o.type !== 'CrowdStrike Host Group')], [\"group_ids\", scope.filter(o => o.type === 'CrowdStrike Host Group')] ].filter(p => p[1].length).map(p => p[0] + \":[\" + p[1].map(o => \"'\" + [].concat(o.rawId)[0] + \"'\").join(\",\") + \"]\")).join(\"+\") || null }}"
             }
         ],
         "paging": {
