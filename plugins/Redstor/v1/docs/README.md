@@ -17,13 +17,8 @@ You will need a RedAPI **service account** with its Client ID and private key, p
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ---------------- | -------- |
-<<<<<<< HEAD
-| **Company ID** | The Redstor Partner company's ID. Scopes every API call to this company and its direct customers. | RedApp > **Company Settings**. | Yes |
+| **Company ID** | Your Redstor company's ID. You can find this in the Redstor application. | RedApp > **Company Settings**. | Yes |
 | **Client ID** | Identifies the RedAPI service account used to authenticate. | RedApp > **RedAPI > Service accounts** > the service account's key. | Yes |
-=======
-| **Company ID** | Your Redstor company's ID. You can find this in the Redstor application | RedApp → **Company Settings**. | Yes |
-| **Client ID** | Identifies the RedAPI service account used to authenticate. | RedApp → **RedAPI → Service accounts** → your service account's key. | Yes |
->>>>>>> 597e93a (Reword Company ID description in Redstor README)
 | **Private key** | The JSON Web Key (JWK) paired with the Client ID; signs the request used to obtain access tokens. | Downloaded when the service account's key was created. | Yes |
 
 On save, the data source authenticates and calls the configured company's profile; an invalid Company ID, Client ID, or Private key fails setup with an authentication error.
