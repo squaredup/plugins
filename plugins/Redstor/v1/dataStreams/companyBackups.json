@@ -1,0 +1,35 @@
+{
+    "name": "companyBackups",
+    "displayName": "Company Backups",
+    "description": "Recent backup operation status history per account for a company",
+    "tags": ["Backup"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/backups/status/accounts",
+        "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "postRequestScript": "companyBackups.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Company"] } },
+    "metadata": [
+        { "name": "accountName", "displayName": "Account", "shape": "string", "role": "label" },
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        {
+            "name": "status",
+            "displayName": "Status Code",
+            "shape": "number",
+            "help": "0 = Failed, 1 = Completed successfully, 2 = Completed with warnings, 3 = Completed with errors"
+        },
+        { "name": "message", "displayName": "Message", "shape": "string" },
+        { "name": "errorCount", "displayName": "Error Count", "shape": "number" },
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false },
+        { "name": "accountId", "displayName": "Account ID", "shape": "guid", "visible": false }
+    ],
+    "timeframes": false
+}
