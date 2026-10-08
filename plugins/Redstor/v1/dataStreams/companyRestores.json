@@ -27,7 +27,21 @@
             "objectPropertyPath": "name"
         },
         { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
-        { "name": "status", "displayName": "Status Code", "shape": "number" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "valueExpression": "{{ ({ 0: 'Failed', 1: 'Completed successfully', 2: 'Completed with warnings', 3: 'Completed with errors' })[$['status']] ?? $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Completed successfully"],
+                        "warning": ["Completed with warnings"],
+                        "error": ["Completed with errors", "Failed"]
+                    }
+                }
+            ]
+        },
         { "name": "productId", "displayName": "Service ID", "shape": "number", "visible": false },
         { "name": "accountId", "displayName": "Account ID", "shape": "guid", "visible": false },
         { "name": "companyId", "displayName": "Company ID", "shape": "guid", "visible": false },
