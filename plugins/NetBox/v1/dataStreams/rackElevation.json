@@ -1,0 +1,171 @@
+{
+    "name": "rackElevation",
+    "displayName": "Rack Elevation",
+    "description": "Rack units from top to bottom with the device, role, type and manufacturer at each unit",
+    "tags": [
+        "Inventory",
+        "Capacity"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql/",
+        "headers": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+        ],
+        "postBody": {
+            "query": "query($offset: Int) { rack_list(pagination: { limit: 100, offset: $offset }{{ (() => { const ids = (v) => ((typeof v !== 'undefined' && v) || []).map((o) => String([].concat(o.rawId)[0]).replace(/[^0-9]/g, '')).filter(Boolean); const s = ids(typeof site !== 'undefined' ? site : null); const r = ids(typeof rack !== 'undefined' ? rack : null); const f = []; if (s.length) f.push('site: { id: { in_list: [' + s.join(', ') + '] } }'); if (r.length) f.push('id: { in_list: [' + r.join(', ') + '] }'); return f.length ? ', filters: { ' + f.join(', ') + ' }' : ''; })() }}) { id name u_height starting_unit desc_units site { name } devices { id name position face role { name slug } device_type { model u_height is_full_depth manufacturer { name } } parent_bay { id } } } }",
+            "variables": {
+                "offset": 0
+            }
+        },
+        "postRequestScript": "rackElevation.js",
+        "paging": {
+            "mode": "offset",
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data.rack_list"
+                }
+            },
+            "out": {
+                "realm": "body",
+                "path": "variables.offset"
+            }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "rack",
+            "label": "Rack (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Rack"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "role",
+            "label": "Role (optional)",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "deviceRoles",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "rack",
+            "displayName": "Rack",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "site",
+            "displayName": "Site",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "number"
+        },
+        {
+            "name": "unitsLabel",
+            "displayName": "Device Units",
+            "shape": "string"
+        },
+        {
+            "name": "device",
+            "displayName": "Device",
+            "shape": "string"
+        },
+        {
+            "name": "role",
+            "displayName": "Role",
+            "shape": "string"
+        },
+        {
+            "name": "deviceType",
+            "displayName": "Device Type",
+            "shape": "string"
+        },
+        {
+            "name": "manufacturer",
+            "displayName": "Manufacturer",
+            "shape": "string"
+        },
+        {
+            "name": "face",
+            "displayName": "Face",
+            "shape": "string"
+        },
+        {
+            "name": "deviceHeight",
+            "displayName": "Height (U)",
+            "shape": "number"
+        },
+        {
+            "name": "isTopUnit",
+            "displayName": "Top Unit",
+            "shape": "boolean"
+        },
+        {
+            "name": "occupied",
+            "displayName": "Occupied",
+            "shape": "boolean"
+        },
+        {
+            "name": "order",
+            "displayName": "Row Order",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "rackId",
+            "visible": false
+        },
+        {
+            "name": "deviceId",
+            "visible": false
+        },
+        {
+            "sourceId": "rackId",
+            "sourceType": "Rack",
+            "name": "rack"
+        },
+        {
+            "sourceId": "deviceId",
+            "sourceType": "Device",
+            "name": "device"
+        }
+    ],
+    "timeframes": false
+}

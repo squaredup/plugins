@@ -1,0 +1,150 @@
+{
+    "name": "circuits",
+    "displayName": "Circuits",
+    "description": "All circuits with provider, type, status, commit rate and contract dates",
+    "tags": [
+        "Network",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/circuits/circuits/",
+        "getArgs": [
+            {
+                "key": "fields",
+                "value": "id,cid,display,display_url,provider,provider_account,type,status,tenant,install_date,termination_date,commit_rate,description,termination_a,termination_z,created,last_updated,custom_fields"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                },
+                "base": 0
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "cid",
+            "displayName": "Circuit ID",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "provider.name",
+            "displayName": "Provider",
+            "shape": "string"
+        },
+        {
+            "name": "provider_account.name",
+            "displayName": "Provider Account",
+            "shape": "string"
+        },
+        {
+            "name": "type.name",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "status.label",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "status.value",
+            "visible": false
+        },
+        {
+            "name": "tenant.name",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "commit_rate",
+            "displayName": "Commit Rate",
+            "shape": "kilobitspersecond"
+        },
+        {
+            "name": "termination_a.termination.display",
+            "displayName": "Termination A",
+            "shape": "string"
+        },
+        {
+            "name": "termination_z.termination.display",
+            "displayName": "Termination Z",
+            "shape": "string"
+        },
+        {
+            "name": "install_date",
+            "displayName": "Install Date",
+            "shape": "date"
+        },
+        {
+            "name": "termination_date",
+            "displayName": "Termination Date",
+            "shape": "date"
+        },
+        {
+            "name": "daysUntilTermination",
+            "displayName": "Days Until Termination",
+            "shape": "number",
+            "computed": true,
+            "valueExpression": "{{ typeof $['termination_date'] === 'string' && $['termination_date'] ? Math.ceil((new Date($['termination_date']).getTime() - Date.now()) / 86400000) : null }}"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "display_url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Circuit",
+            "name": "cid"
+        },
+        {
+            "pattern": "^custom_fields[.].*"
+        }
+    ],
+    "timeframes": false
+}

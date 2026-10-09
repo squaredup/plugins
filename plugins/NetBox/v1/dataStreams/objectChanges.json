@@ -1,0 +1,209 @@
+{
+    "name": "objectChanges",
+    "displayName": "Change Log",
+    "description": "Changes recorded in the NetBox change log with user, action and object",
+    "tags": [
+        "Audit",
+        "Changes"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/core/object-changes/",
+        "getArgs": [
+            {
+                "key": "fields",
+                "value": "id,time,user_name,request_id,action,changed_object_type,changed_object_id,object_repr,message"
+            },
+            {
+                "key": "time_after",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "time_before",
+                "value": "{{timeframe.end}}"
+            },
+            {
+                "key": "action",
+                "value": "{{typeof action !== 'undefined' && action ? action : null}}"
+            },
+            {
+                "key": "changed_object_type",
+                "value": "{{(typeof object !== 'undefined' && object && object[0]) ? ({ 'Site': 'dcim.site', 'Rack': 'dcim.rack', 'Device': 'dcim.device', 'Virtual Machine': 'virtualization.virtualmachine', 'Prefix': 'ipam.prefix', 'Circuit': 'circuits.circuit' })[[].concat(object[0].sourceType)[0]] || null : (typeof objectType !== 'undefined' && objectType ? objectType : null)}}"
+            },
+            {
+                "key": "changed_object_id",
+                "value": "{{(typeof object !== 'undefined' && object && object[0]) ? [].concat(object[0].rawId)[0] : null}}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "object",
+            "label": "Object (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site",
+                        "Rack",
+                        "Device",
+                        "Virtual Machine",
+                        "Prefix",
+                        "Circuit"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "action",
+            "label": "Action",
+            "options": [
+                {
+                    "value": "create",
+                    "label": "Created"
+                },
+                {
+                    "value": "update",
+                    "label": "Updated"
+                },
+                {
+                    "value": "delete",
+                    "label": "Deleted"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "objectType",
+            "label": "Object type",
+            "options": [
+                {
+                    "value": "dcim.site",
+                    "label": "Site"
+                },
+                {
+                    "value": "dcim.rack",
+                    "label": "Rack"
+                },
+                {
+                    "value": "dcim.device",
+                    "label": "Device"
+                },
+                {
+                    "value": "virtualization.virtualmachine",
+                    "label": "Virtual Machine"
+                },
+                {
+                    "value": "ipam.prefix",
+                    "label": "Prefix"
+                },
+                {
+                    "value": "circuits.circuit",
+                    "label": "Circuit"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "time",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "user_name",
+            "displayName": "User",
+            "shape": "string"
+        },
+        {
+            "name": "action.label",
+            "displayName": "Action",
+            "shape": "string"
+        },
+        {
+            "name": "action.value",
+            "visible": false
+        },
+        {
+            "name": "changed_object_type",
+            "displayName": "Object Type",
+            "shape": "string",
+            "formatExpression": "{{ ({ 'dcim.site': 'Site', 'dcim.rack': 'Rack', 'dcim.device': 'Device', 'virtualization.virtualmachine': 'Virtual Machine', 'ipam.prefix': 'Prefix', 'circuits.circuit': 'Circuit' })[$['changed_object_type']] || $['changed_object_type'] }}"
+        },
+        {
+            "name": "objectTypeName",
+            "displayName": "Object Type Name",
+            "shape": "string",
+            "computed": true,
+            "visible": false,
+            "valueExpression": "{{ (() => { const t = $['changed_object_type']; if (typeof t !== 'string') { return null; } const known = { 'dcim.site': 'Site', 'dcim.rack': 'Rack', 'dcim.device': 'Device', 'virtualization.virtualmachine': 'Virtual Machine', 'ipam.prefix': 'Prefix', 'circuits.circuit': 'Circuit' }; return known[t] || t.split('.').pop().replace(/^./, (c) => c.toUpperCase()); })() }}"
+        },
+        {
+            "name": "object_repr",
+            "displayName": "Object",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "message",
+            "displayName": "Message",
+            "shape": "string"
+        },
+        {
+            "name": "changed_object_id",
+            "visible": false
+        },
+        {
+            "name": "request_id",
+            "visible": false
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "time",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ]
+}
