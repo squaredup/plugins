@@ -1,9 +1,9 @@
 ---
 name: build-plugin
-description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
+description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment, with an optional pull request to contribute it to the community. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "1.0.0"
+    version: "1.1.0"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -53,6 +53,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
 - [ ] **Phase 9** — Finalize `docs/README.md`, then final validate and deploy → [readme.md](references/readme.md); invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
+- [ ] **Phase 10 (optional)** — Ask whether to contribute the plugin back; only on a yes, review it for secrets and organisation-specific data, then raise a pull request using the matching template → [contribute.md](references/contribute.md)
 
 ---
 
@@ -322,3 +323,18 @@ Write `custom_types.json` — for this and other reusable patterns (built-in pro
 Then invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
 
 **Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale)), the deployed tenant's objects are **stale** — they still match the **old** definition and won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger + poll one more import (the [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) trigger/wait steps) so the deployed objects match the shipped definition. Skip only if no import definition or import stream has changed since the last import.
+
+---
+
+## Phase 10 (optional): Contribute the plugin back
+
+Once the final deploy has landed, **ask the user** with `AskUserQuestion` whether they'd like to contribute the plugin to the community by raising a pull request against `squaredup/plugins`. Always ask — even in autonomous mode, and even if the user waived the Phase 2 approval gate — and never raise a PR without an explicit yes. If they decline, the build is complete.
+
+On a yes, follow [contribute.md](references/contribute.md) step by step. In outline:
+
+1. Check the preconditions — `gh` logged in, a clone of `squaredup/plugins`, new plugin vs change, push access vs fork.
+2. Run the **sensitivity review**: secrets, organisation-specific hosts and IDs, people and company names, and internal tools — in the files _and_ the branch's history — and resolve every finding with the user.
+3. Encourage screenshots, with a checklist for keeping tenant data out of them.
+4. Branch from `main`, stage only the plugin folder (plus an optional `CODEOWNERS` line), and confirm the PR touches a single plugin.
+5. Fill in the matching PR template from what this build actually produced.
+6. Show the user the files, title and description, and push and open the PR only once they approve.

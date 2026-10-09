@@ -17,7 +17,7 @@ Three skills live in `.claude/skills/`. They carry the actual procedures — rea
 
 | Skill | Use it when |
 | --- | --- |
-| `build-plugin` | Building a new plugin, or adding streams to an existing one. Nine phases from API exploration to a deployed, tested plugin with dashboards. |
+| `build-plugin` | Building a new plugin, or adding streams to an existing one. Nine phases from API exploration to a deployed, tested plugin with dashboards, then an optional pull request to contribute it here. |
 | `deploy-plugin` | Validating or deploying a plugin, or working out the right version bump. |
 | `convert-dashboard` | Turning an exported platform dashboard JSON into plugin default content. |
 
