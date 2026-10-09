@@ -332,9 +332,10 @@ Once the final deploy has landed, **ask the user** with `AskUserQuestion` whethe
 
 On a yes, follow [contribute.md](references/contribute.md) step by step. In outline:
 
-1. Check the preconditions — `gh` logged in, a clone of `squaredup/plugins`, new plugin vs change, push access vs fork.
+1. Check the preconditions — the GitHub CLI (or a git-and-browser fallback without it), a clone of `squaredup/plugins`, new plugin vs change, push access vs fork.
 2. Run the **sensitivity review**: secrets, organisation-specific hosts and IDs, people and company names, and internal tools — in the files _and_ the branch's history — and resolve every finding with the user.
 3. Encourage screenshots, with a checklist for keeping tenant data out of them.
 4. Branch from `main`, stage only the plugin folder (plus an optional `CODEOWNERS` line), and confirm the PR touches a single plugin.
-5. Fill in the matching PR template from what this build actually produced.
+5. Fill in the matching PR template from what this build actually produced, and ask the user to agree to the Code of Conduct — tick that box only on an explicit yes.
 6. Show the user the files, title and description, and push and open the PR only once they approve.
+7. Tell the user what happens next: automated checks, CodeRabbit review, SquaredUp team review, then merge and release to all SquaredUp users.

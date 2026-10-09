@@ -25,12 +25,28 @@ A plugin built for an internal-only system (a home-grown API, a single company's
 Confirm each before touching git. Stop and tell the user what's missing if any fails.
 
 1. **Phase 9 is done** — the final `squaredup validate --json` passes and the final deploy succeeded. CI runs the same validation and blocks the PR on the same errors.
-2. **GitHub CLI** — `gh auth status` succeeds. If `gh` isn't installed or logged in, ask the user to install it and run `! gh auth login`; don't try to work around it with tokens.
+2. **GitHub CLI** — run `gh auth status`. If it succeeds, continue. If `gh` is installed but not logged in, ask the user to run `! gh auth login`. If `gh` isn't installed, ask with `AskUserQuestion`:
+    - `Install the GitHub CLI (recommended)` → point them to [cli.github.com](https://cli.github.com) (`winget install --id GitHub.cli` on Windows, `brew install gh` on macOS, or their Linux package manager), then `! gh auth login`, and re-run `gh auth status`.
+    - `Continue without it` → follow the [without the GitHub CLI](#without-the-github-cli) path wherever a step below uses `gh`. It needs `git` able to push to GitHub, and the user finishes the PR in their browser.
+
+    Never ask for, paste or store a GitHub token to work around a missing login.
 3. **A clone of `squaredup/plugins`** — run `git remote -v` in the working directory. If it isn't a clone of `squaredup/plugins` (the skill may have been installed with `npx skills add` into an unrelated folder), fork-and-clone into a fresh directory (`gh repo fork squaredup/plugins --clone`) and copy the finished `plugins/<PluginName>/v<N>/` folder into it.
 4. **New plugin or change?** — `git fetch origin main`, then `git ls-tree -d origin/main plugins/<PluginName>`. Absent on `main` → **new plugin**; present → **change to an existing plugin**. This decides the template (step 6) and the version rule:
     - New plugin: `metadata.json` stays at `<major>.0.0` matching its `v<major>` folder.
     - Change: `version` must be higher than on `main` — invoke `deploy-plugin` for the bump if Phase 9 didn't.
 5. **Push access** — `gh repo view squaredup/plugins --json viewerPermission`. `WRITE`, `MAINTAIN` or `ADMIN` → push a branch to `squaredup/plugins` directly. Anything else → push to the user's fork (`gh repo fork squaredup/plugins --remote`, which adds it as a remote) and open the PR from there.
+
+### Without the GitHub CLI
+
+Each `gh` step has a git-and-browser equivalent:
+
+| Step | Instead of `gh` |
+| --- | --- |
+| Clone (precondition 3) | The user forks at [github.com/squaredup/plugins/fork](https://github.com/squaredup/plugins/fork) (or skips forking if they have write access), then `git clone` that repository |
+| Push access (precondition 5) | Push to `origin` in step 7. A `403` or `Permission denied` means no write access: ask the user to fork in the browser, then `git remote add fork https://github.com/<login>/plugins.git` and push there instead |
+| Open the PR (step 7) | Give the user a link to the compare page instead of running `gh pr create` — see step 7 |
+
+If `git push` fails on authentication (not permissions), stop: the user needs working git credentials for GitHub, and installing `gh` and running `gh auth login` is the simplest way to get them.
 
 ## 3. Sensitivity review
 
@@ -111,9 +127,18 @@ Keep every heading and checklist in the template's order and fill each section f
 | Test plan / Testing | What was **actually** run against a live, authenticated deployment: the Checkpoint A auth probe, the Checkpoint B import (object types and counts), each data stream's PASS report from Phases 5–6, and the default dashboards rendering. The template says "Validation is not testing" — don't offer `squaredup validate` as the test plan |
 | Known limitations | The finalised **Known limitations** section of `docs/README.md` (Phase 9) |
 | Type of change / Breaking changes / Documentation | The real diff. A removed or renamed data stream, or significantly changed UI parameters, is breaking and needs a new major version folder — see [REVIEW.md](../../../../REVIEW.md#versioning) |
-| Checklist | Tick only items you have verified (single plugin, logo, dashboards, README, naming checked against REVIEW.md, no secrets — step 3). **Leave "I agree to the Code of Conduct" unticked unless the user tells you they agree** — it's their agreement, not yours |
+| Checklist | Tick only items you have verified (single plugin, logo, dashboards, README, naming checked against REVIEW.md, no secrets — step 3). The Code of Conduct item is ticked only as described below |
 
 Take the HTML comment prompts out once a section is filled. Don't add sections the template doesn't have, and don't put tenant details, internal links or anything step 3 removed back into the description.
+
+### Code of Conduct
+
+The checklist's "I agree to the Code of Conduct" is the user's agreement, so **ask them for it explicitly** — a yes to contributing, or to any earlier question, is not agreement. Link [`CODE_OF_CONDUCT.md`](../../../../CODE_OF_CONDUCT.md) (offer to summarise it if they want), then ask with `AskUserQuestion`:
+
+- `I agree to the Code of Conduct` → tick the box
+- `I don't agree` → leave it unticked and stop: the README says contributing means agreeing to it, so don't raise the PR. Tell the user the plugin is still deployed in their tenant.
+
+Tick the box **only** on that explicit `I agree`. Any other answer (including "Other" or a question) is not agreement — answer it and ask again.
 
 **Title**: `Add <displayName> plugin` for a new plugin, matching existing PRs; a short imperative summary for a change.
 
@@ -136,13 +161,27 @@ gh pr create --repo squaredup/plugins --base main \
 
 `<owner>` is `squaredup` when pushing directly, or the user's GitHub login when pushing to their fork.
 
-## 8. Hand over
+**Without the GitHub CLI**, push with `git` as above, then give the user this link to open the PR in their browser (URL-encode the title):
 
-Give the user the PR URL, then tell them:
+```text
+https://github.com/squaredup/plugins/compare/main...<owner>:plugins/<PluginName>?expand=1&title=<title>
+```
+
+Print the PR description for them to paste into the description box — don't put it in the URL, which is too long for a full template — and tell them to use the arrow next to **Create pull request** if they wanted a draft. Ask them to share the PR URL once it's created.
+
+## 8. Hand over — what happens next
+
+Give the user the PR URL and remind them of anything still theirs to do:
 
 - **Add screenshots now** if they chose to — edit the PR description on GitHub and drag the vetted images under the screenshot headings.
-- **Tick the Code of Conduct box** themselves if it's still unticked.
-- **What CI will do** — `pr-run.yaml` checks the PR touches one plugin and the version is valid, runs `squaredup validate`, and deploys the plugin to a shared organisation; results appear as a comment on the PR. A community moderator then reviews it against [REVIEW.md](../../../../REVIEW.md).
-- Review feedback is addressed by pushing to the same branch. A new plugin stays at `<major>.0.0` through every review round; a change needs only one version bump for the whole PR.
+
+Then show them what happens next, in this order:
+
+1. **Automated checks** — CI checks the PR changes a single plugin with a valid version, validates it, and deploys it to a shared SquaredUp organisation for testing. The results appear as a comment on the PR.
+2. **CodeRabbit review** — CodeRabbit automatically reviews the PR and leaves feedback as comments. Address each one by pushing a fix to the same branch or replying to explain why not — they can ask you for help with either.
+3. **SquaredUp team review** — a member of the SquaredUp team reviews the plugin against [REVIEW.md](../../../../REVIEW.md), may ask for changes, and approves it when it's ready.
+4. **Merged and released** — once approved, the PR is merged and the plugin is released, making it available to all SquaredUp users.
+
+Review changes go on the same branch. A new plugin stays at `<major>.0.0` through every review round; a change needs only one version bump for the whole PR.
 
 Don't push further commits, respond to reviews or close the PR unless the user asks.
