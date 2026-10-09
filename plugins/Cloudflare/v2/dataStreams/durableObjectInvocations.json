@@ -1,0 +1,110 @@
+{
+    "name": "durableObjectInvocations",
+    "displayName": "Durable Object Invocations",
+    "description": "Request, error and wall time metrics for a Durable Object namespace",
+    "tags": ["Workers", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$namespaceId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){durableObjectsInvocationsAdaptiveGroups(limit:10000,filter:{namespaceId:$namespaceId,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){sum{requests errors responseBodySize wallTime}quantiles{wallTimeP50 wallTimeP90 wallTimeP99}dimensions{datetime status}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "namespaceId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.durableObjectsInvocationsAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Durable Object Namespace"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.errors",
+            "displayName": "Errors",
+            "shape": "number"
+        },
+        {
+            "name": "sum.responseBodySize",
+            "displayName": "Response Body Size",
+            "shape": "bytes"
+        },
+        {
+            "name": "quantiles.wallTimeP50",
+            "displayName": "Wall Time P50 (raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "wallTimeP50Ms",
+            "displayName": "Wall Time P50",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.wallTimeP50']) / 1000 }}",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "quantiles.wallTimeP90",
+            "displayName": "Wall Time P90 (raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "wallTimeP90Ms",
+            "displayName": "Wall Time P90",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.wallTimeP90']) / 1000 }}",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "quantiles.wallTimeP99",
+            "displayName": "Wall Time P99 (raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "wallTimeP99Ms",
+            "displayName": "Wall Time P99",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.wallTimeP99']) / 1000 }}",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "dimensions.status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "errorRate",
+            "displayName": "Error Rate",
+            "computed": true,
+            "valueExpression": "{{ Number($['sum.requests']) > 0 ? Math.round(10000 * Number($['sum.errors']) / Number($['sum.requests'])) / 100 : 0 }}",
+            "shape": ["percent", { "decimalPlaces": 2 }]
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

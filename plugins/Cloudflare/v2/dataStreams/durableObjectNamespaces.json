@@ -1,0 +1,88 @@
+{
+    "name": "durableObjectNamespaces",
+    "displayName": "Durable Object Namespaces",
+    "description": "Durable Object namespaces defined in a Cloudflare account",
+    "tags": [
+        "Workers",
+        "Storage"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "accounts/{{object.rawId}}/workers/durable_objects/namespaces",
+        "postRequestScript": "durableObjectNamespaces.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "result"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Account"
+            ]
+        }
+    },
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "sourceId",
+            "displayName": "Source ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "namespaceName",
+            "displayName": "Namespace",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "sourceId",
+            "sourceType": "Cloudflare Durable Object Namespace"
+        },
+        {
+            "name": "accountId",
+            "displayName": "Account ID",
+            "shape": "string"
+        },
+        {
+            "name": "scriptName",
+            "displayName": "Worker",
+            "shape": "string"
+        },
+        {
+            "name": "className",
+            "displayName": "Class",
+            "shape": "string"
+        },
+        {
+            "name": "usesSqlite",
+            "displayName": "SQLite Backed",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

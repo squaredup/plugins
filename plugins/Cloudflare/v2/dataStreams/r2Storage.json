@@ -1,0 +1,61 @@
+{
+    "name": "r2Storage",
+    "displayName": "R2 Storage",
+    "description": "Stored object count and payload size for an R2 bucket over time",
+    "tags": ["Storage"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$bucketName:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){r2StorageAdaptiveGroups(limit:10000,filter:{bucketName:$bucketName,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){max{objectCount payloadSize metadataSize uploadCount}dimensions{datetime}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "bucketName": "{{object.name}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.r2StorageAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare R2 Bucket"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "max.payloadSize",
+            "displayName": "Payload Size",
+            "shape": "bytes",
+            "role": "value"
+        },
+        {
+            "name": "max.metadataSize",
+            "displayName": "Metadata Size",
+            "shape": "bytes"
+        },
+        {
+            "name": "max.objectCount",
+            "displayName": "Objects",
+            "shape": "number"
+        },
+        {
+            "name": "max.uploadCount",
+            "displayName": "Uploads",
+            "shape": "number"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

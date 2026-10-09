@@ -1,0 +1,87 @@
+{
+    "name": "zoneHealthChecks",
+    "displayName": "Health Checks",
+    "description": "Standalone health check results for a zone",
+    "tags": ["Zone", "Availability"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "zones/{{object.rawId}}/healthchecks",
+        "pathToData": "result",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "per_page", "value": "50" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "result" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        { "name": "address", "displayName": "Address", "shape": "string" },
+        { "name": "type", "displayName": "Type", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["healthy"],
+                        "error": ["unhealthy"],
+                        "warning": ["suspended", "unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "failure_reason",
+            "displayName": "Failure Reason",
+            "shape": "string"
+        },
+        { "name": "suspended", "displayName": "Suspended", "shape": "boolean" },
+        { "name": "interval", "displayName": "Interval", "shape": "seconds" },
+        { "name": "timeout", "displayName": "Timeout", "shape": "seconds" },
+        {
+            "name": "consecutive_fails",
+            "displayName": "Consecutive Fails",
+            "shape": "number"
+        },
+        {
+            "name": "consecutive_successes",
+            "displayName": "Consecutive Successes",
+            "shape": "number"
+        },
+        {
+            "name": "check_regions",
+            "displayName": "Regions",
+            "valueExpression": "{{ Array.isArray($['check_regions']) ? $['check_regions'].join(', ') : ($['check_regions'] || '') }}",
+            "shape": "string"
+        },
+        {
+            "name": "id",
+            "displayName": "Health Check ID",
+            "shape": "string",
+            "visible": false
+        },
+        { "name": "created_on", "displayName": "Created", "shape": "date" },
+        { "name": "modified_on", "displayName": "Modified", "shape": "date" }
+    ],
+    "timeframes": false
+}

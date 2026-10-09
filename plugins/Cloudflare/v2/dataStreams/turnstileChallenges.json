@@ -1,0 +1,63 @@
+{
+    "name": "turnstileChallenges",
+    "displayName": "Turnstile Challenges",
+    "description": "Turnstile challenge counts for a widget grouped by a selectable dimension",
+    "tags": ["Security"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$siteKey:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){turnstileAdaptiveGroups(limit:5000,filter:{siteKey:$siteKey,datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "siteKey": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "turnstileChallenges.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Turnstile Widget"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "eventType",
+            "options": [
+                { "value": "eventType", "label": "Event Type" },
+                { "value": "action", "label": "Action" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "challenges",
+            "displayName": "Challenges",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days"]
+}
