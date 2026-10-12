@@ -21,13 +21,13 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
    are unnecessary.
 6. Click **OK**, then copy the generated key immediately — PRTG will not show it again. If you lose it,
    delete the key and create a new one.
-7. Paste the key into the **API key** field, and your PRTG address into **PRTG URL**.
+7. Paste the key into the **API key** field, and your PRTG address into **URL**.
 
 ## Configuration fields
 
 | Field                              | What it is                                                                                                                                                | Where to find it                                                        | Required |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------- |
-| **PRTG URL**                       | The base address of your PRTG web interface — for example `https://prtg.example.com` or `https://yourname.my-prtg.com`. Include the sub-path if PRTG sits behind a reverse proxy, but no query string.           | The address bar of your PRTG web interface.                              | Yes      |
+| **URL**                            | The base address of your PRTG web interface — for example `https://prtg.example.com` or `https://yourname.my-prtg.com`. Include the sub-path if PRTG sits behind a reverse proxy, but no query string.           | The address bar of your PRTG web interface.                              | Yes      |
 | **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter — PRTG rejects the key in an `Authorization` header.                                    | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
 | **Ignore certificate errors**      | Skips TLS certificate validation. Only enable for an on-premise PRTG server using a self-signed certificate.                                               | —                                                                       | No       |
 
