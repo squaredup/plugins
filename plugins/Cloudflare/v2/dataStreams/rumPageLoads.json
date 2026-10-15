@@ -1,0 +1,71 @@
+{
+    "name": "rumPageLoads",
+    "displayName": "Web Analytics Page Loads",
+    "description": "Page load and visit counts for a zone's Web Analytics (RUM) traffic grouped by a selectable dimension",
+    "tags": ["Zone", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$requestHost:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumPageloadEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end,requestHost_like:$requestHost},orderBy:[count_DESC]){count sum{visits} dimensions{date {{breakdown}} }}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}",
+                "requestHost": "{{'%' + object.name}}"
+            }
+        },
+        "postRequestScript": "rumPageLoads.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "countryName",
+            "options": [
+                { "value": "countryName", "label": "Country" },
+                { "value": "deviceType", "label": "Device Type" },
+                { "value": "userAgentBrowser", "label": "Browser" },
+                { "value": "refererHost", "label": "Referer Host" },
+                { "value": "requestPath", "label": "Path" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "pageViews",
+            "displayName": "Page Views",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "visits",
+            "displayName": "Visits",
+            "shape": "number"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

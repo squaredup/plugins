@@ -1,0 +1,77 @@
+{
+    "name": "auditLogs",
+    "displayName": "Audit Logs",
+    "description": "Audit log action counts for an account grouped by a selectable dimension",
+    "tags": [
+        "Account",
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){auditLogsGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "auditLogs.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Account"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "actionType",
+            "options": [
+                { "value": "actionType", "label": "Action" },
+                { "value": "actorEmail", "label": "Actor" },
+                { "value": "resourceType", "label": "Resource Type" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "actionCount",
+            "displayName": "Action Count",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}

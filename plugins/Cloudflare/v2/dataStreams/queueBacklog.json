@@ -1,0 +1,51 @@
+{
+    "name": "queueBacklog",
+    "displayName": "Queue Backlog",
+    "description": "Average number of messages and bytes waiting in a queue over time",
+    "tags": ["Queues"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$queueId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){queueBacklogAdaptiveGroups(limit:10000,filter:{queueId:$queueId,datetime_geq:$start,datetime_leq:$end},orderBy:[datetimeHour_ASC]){avg{messages bytes}dimensions{datetimeHour}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "queueId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.queueBacklogAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Queue"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetimeHour",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "avg.messages",
+            "displayName": "Messages Backlogged",
+            "shape": ["number", { "decimalPlaces": 1 }],
+            "role": "value"
+        },
+        {
+            "name": "avg.bytes",
+            "displayName": "Backlog Size",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+}

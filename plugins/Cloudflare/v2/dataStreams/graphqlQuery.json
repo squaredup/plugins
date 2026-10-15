@@ -1,0 +1,69 @@
+{
+    "name": "graphqlQuery",
+    "displayName": "GraphQL Query",
+    "description": "Rows returned by a user-supplied Cloudflare GraphQL Analytics query",
+    "tags": [
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "manualConfigApply": true,
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "{{query}}",
+            "variables": "{{ Object.assign(typeof timeframe !== 'undefined' && timeframe && timeframe.start ? { start: timeframe.start, end: timeframe.end, startDate: timeframe.start.split('T')[0], endDate: timeframe.end.split('T')[0] } : {}, typeof variables === 'string' ? JSON.parse(variables || '{}') : (variables || {})) }}"
+        },
+        "postRequestScript": "graphqlQuery.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "code",
+            "name": "query",
+            "label": "GraphQL query",
+            "language": "graphql",
+            "help": "A query for the Cloudflare GraphQL Analytics API. These variables are always sent and can be declared in the query: `$start` / `$end` (`Time!`, ISO 8601, the selected timeframe) and `$startDate` / `$endDate` (`Date!`, `YYYY-MM-DD`). Cloudflare's scalar names are case sensitive - `string!` is lower case, `Time!` and `Date!` are not. Each analytics node has its own maximum query window and retention (as little as 1 day on some nodes), which is why only short timeframes are offered - for a longer or fixed window, select the **None** timeframe and write the dates into the query's own filter. See the [Cloudflare GraphQL Analytics docs](https://developers.cloudflare.com/analytics/graphql-api/).",
+            "defaultValue": "query ($start: Time!, $end: Time!) {\n  viewer {\n    zones(limit: 1) {\n      httpRequests1hGroups(\n        limit: 1000\n        filter: { datetime_geq: $start, datetime_leq: $end }\n        orderBy: [datetime_ASC]\n      ) {\n        dimensions {\n          datetime\n        }\n        sum {\n          requests\n          bytes\n          cachedRequests\n          threats\n        }\n        uniq {\n          uniques\n        }\n      }\n    }\n  }\n}",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "code",
+            "name": "variables",
+            "label": "Variables",
+            "language": "json",
+            "help": "Extra GraphQL variables as a JSON object, for example `{ \"zoneTag\": \"<zone id>\" }` or `{ \"accountTag\": \"<account id>\" }`. These are merged with the built-in `start`, `end`, `startDate` and `endDate` variables; a value set here of the same name wins.",
+            "defaultValue": {}
+        },
+        {
+            "type": "text",
+            "name": "pathToData",
+            "label": "Path to rows",
+            "placeholder": "data.viewer.zones.0.httpRequests1hGroups",
+            "help": "Dot path to the array of rows in the query response, for example `data.viewer.zones.0.httpRequests1hGroups`. Nested fields in each row become dot-notation columns such as `sum.requests`. If the path is wrong, the error lists the array paths the response actually contains.",
+            "defaultValue": "data.viewer.zones.0.httpRequests1hGroups",
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "pattern": ".*"
+        }
+    ],
+    "supportsNoneTimeframe": true,
+    "timeframes": [
+        "none",
+        "last1hour",
+        "last12hours",
+        "last24hours"
+    ]
+}

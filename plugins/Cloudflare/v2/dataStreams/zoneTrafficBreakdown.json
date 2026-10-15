@@ -1,0 +1,71 @@
+{
+    "name": "zoneTrafficBreakdown",
+    "displayName": "Zone Traffic Breakdown",
+    "description": "HTTP request counts, bytes and visits for a zone grouped by a selectable dimension",
+    "tags": ["Zone", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){httpRequestsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count sum{edgeResponseBytes visits} dimensions{ {{breakdown}} }}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "zoneTrafficBreakdown.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "clientCountryName",
+            "options": [
+                { "value": "clientCountryName", "label": "Country" },
+                { "value": "edgeResponseStatus", "label": "Status Code" },
+                { "value": "cacheStatus", "label": "Cache Status" },
+                { "value": "clientRequestHTTPHost", "label": "Host" },
+                { "value": "clientDeviceType", "label": "Device Type" },
+                { "value": "clientRequestHTTPProtocol", "label": "HTTP Protocol" },
+                { "value": "edgeResponseContentTypeName", "label": "Content Type" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "bytes",
+            "displayName": "Bytes",
+            "shape": "bytes"
+        },
+        {
+            "name": "visits",
+            "displayName": "Visits",
+            "shape": "number"
+        }
+    ],
+    "timeframes": ["last12hours", "last24hours", "last7days"]
+}

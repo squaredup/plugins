@@ -1,0 +1,69 @@
+{
+    "name": "dnsFirewallAnalytics",
+    "displayName": "DNS Firewall Analytics",
+    "description": "DNS Firewall cluster query counts and median processing time for an account grouped by a selectable dimension",
+    "tags": ["Security", "DNS"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){dnsFirewallAnalyticsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count quantiles{processingTimeUsP50} dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "dnsFirewallAnalytics.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Account"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "responseCode",
+            "options": [
+                { "value": "responseCode", "label": "Response Code" },
+                { "value": "queryType", "label": "Query Type" },
+                { "value": "responseReason", "label": "Response Reason" },
+                { "value": "clusterName", "label": "Cluster" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "queries",
+            "displayName": "Queries",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "medianProcessingTimeMs",
+            "displayName": "Median Processing Time",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}

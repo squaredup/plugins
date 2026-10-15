@@ -1,0 +1,64 @@
+{
+    "name": "zoneDnsRecords",
+    "displayName": "DNS Records",
+    "description": "DNS records configured on a Cloudflare zone",
+    "tags": ["Zone", "DNS"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "zones/{{object.rawId}}/dns_records",
+        "pathToData": "result",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "per_page", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "result" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Record ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        { "name": "type", "displayName": "Type", "shape": "string" },
+        { "name": "content", "displayName": "Content", "shape": "string" },
+        {
+            "name": "ttl",
+            "displayName": "TTL",
+            "shape": "seconds",
+            "formatExpression": "{{ $['ttl'] === 1 ? 'Auto' : $['ttl'] }}"
+        },
+        { "name": "proxied", "displayName": "Proxied", "shape": "boolean" },
+        { "name": "comment", "displayName": "Comment", "shape": "string" },
+        {
+            "name": "tags",
+            "displayName": "Tags",
+            "valueExpression": "{{ Array.isArray($['tags']) ? $['tags'].join(', ') : ($['tags'] || '') }}",
+            "shape": "string"
+        },
+        { "name": "created_on", "displayName": "Created", "shape": "date" },
+        { "name": "modified_on", "displayName": "Modified", "shape": "date" }
+    ],
+    "timeframes": false
+}

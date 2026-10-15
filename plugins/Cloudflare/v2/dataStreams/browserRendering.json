@@ -1,0 +1,93 @@
+{
+    "name": "browserRendering",
+    "displayName": "Browser Rendering",
+    "description": "Browser Rendering session count and duration for an account",
+    "tags": ["Compute", "AI"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){browserRenderingEventsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count avg{avgConcurrentSessions} min{earliestBrowserStartTime} max{latestBrowserEndTime} dimensions{date sessionId {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "browserRendering.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Account"]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "clientLibrary",
+            "options": [
+                { "value": "clientLibrary", "label": "Client Library" },
+                { "value": "recordingMode", "label": "Recording Mode" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sessionId",
+            "displayName": "Session ID",
+            "shape": "string"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "count",
+            "displayName": "Events",
+            "shape": "number"
+        },
+        {
+            "name": "durationMs",
+            "displayName": "Session Duration",
+            "shape": "milliseconds",
+            "role": "value"
+        },
+        {
+            "name": "avgConcurrentSessions",
+            "displayName": "Avg Concurrent Sessions",
+            "shape": "number"
+        },
+        {
+            "name": "startTime",
+            "displayName": "Session Start",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "endTime",
+            "displayName": "Session End",
+            "shape": "date",
+            "visible": false
+        }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}

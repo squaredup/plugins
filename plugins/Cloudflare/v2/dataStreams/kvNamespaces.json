@@ -1,0 +1,77 @@
+{
+    "name": "kvNamespaces",
+    "displayName": "KV Namespaces",
+    "description": "Workers KV namespaces in a Cloudflare account",
+    "tags": [
+        "Storage"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "accounts/{{object.rawId}}/storage/kv/namespaces",
+        "postRequestScript": "kvNamespaces.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "result"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Account"
+            ]
+        }
+    },
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "sourceId",
+            "displayName": "Source ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "namespaceTitle",
+            "displayName": "Namespace",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "sourceId",
+            "sourceType": "Cloudflare KV Namespace"
+        },
+        {
+            "name": "accountId",
+            "displayName": "Account ID",
+            "shape": "string"
+        },
+        {
+            "name": "supportsUrlEncoding",
+            "displayName": "Supports URL Encoding",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,64 @@
+{
+    "name": "zonePageShield",
+    "displayName": "Page Shield Reports",
+    "description": "Page Shield script and connection monitoring events for a zone grouped by a selectable dimension",
+    "tags": ["Zone", "Security"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){pageShieldReportsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count dimensions{date {{breakdown}}}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "zonePageShield.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "resourceType",
+            "options": [
+                { "value": "resourceType", "label": "Resource Type" },
+                { "value": "urlHost", "label": "Resource Host" },
+                { "value": "cspDirective", "label": "CSP Directive" },
+                { "value": "action", "label": "Action" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "events",
+            "displayName": "Events",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last24hours", "last7days"]
+}

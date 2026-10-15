@@ -1,0 +1,94 @@
+{
+    "name": "d1Queries",
+    "displayName": "D1 Query Insights",
+    "description": "Query counts, rows touched and duration for queries against a D1 database",
+    "tags": [
+        "Database",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$databaseId:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){d1QueriesAdaptiveGroups(limit:10000,filter:{databaseId:$databaseId,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){count sum{rowsRead rowsWritten rowsReturned}quantiles{queryDurationMsP50 queryDurationMsP95 queryDurationMsP99}dimensions{datetime databaseRole}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "databaseId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "pathToData": "data.viewer.accounts.0.d1QueriesAdaptiveGroups",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare D1 Database"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "count",
+            "displayName": "Query Count",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.rowsRead",
+            "displayName": "Rows Read",
+            "shape": "number"
+        },
+        {
+            "name": "sum.rowsWritten",
+            "displayName": "Rows Written",
+            "shape": "number"
+        },
+        {
+            "name": "sum.rowsReturned",
+            "displayName": "Rows Returned",
+            "shape": "number"
+        },
+        {
+            "name": "quantiles.queryDurationMsP50",
+            "displayName": "Query Duration P50",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "quantiles.queryDurationMsP95",
+            "displayName": "Query Duration P95",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "quantiles.queryDurationMsP99",
+            "displayName": "Query Duration P99",
+            "shape": ["milliseconds", { "decimalPlaces": 2 }]
+        },
+        {
+            "name": "dimensions.databaseRole",
+            "displayName": "Database Role",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ]
+}
