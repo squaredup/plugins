@@ -70,9 +70,7 @@ A **data stream** has its own `ui` array — the **tile-editor parameters** show
 }
 ```
 
-**`ignoreCertificateErrors`** — don't add this. The platform adds an "Ignore certificate errors" toggle to every plugin built on WebAPI, and passes the value to the WebAPI base plugin, so you don't need a ui.json field or a `base.config` mapping.
-
-Declaring a field named `ignoreCertificateErrors`, or setting the key in `base.config`, stops the platform adding its toggle. This only hides the option on the form: a value the user supplies (for example through the API) still overrides `base.config`. So only do it for an API where offering the option makes no sense:
+**`ignoreCertificateErrors`** — don't add this. The platform adds an "Ignore certificate errors" toggle to every plugin built on WebAPI, and passes the value to the WebAPI base plugin, so you don't need a ui.json field or a `base.config` mapping. Declaring a field named `ignoreCertificateErrors`, or setting the key in `base.config`, stops the platform adding its toggle. This only hides the option on the form: a value the user supplies (for example through the API) still overrides `base.config`. So only do it for an API where offering the option makes no sense:
 
 ```json
 "base": {

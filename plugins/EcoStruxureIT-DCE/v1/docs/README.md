@@ -9,7 +9,7 @@ You will need a Data Center Expert **user account** and network access to the se
 1. Sign in to the Data Center Expert client as an administrator and create (or choose) a user for SquaredUp. Give it access to the **device groups** you want to monitor. The plugin only reads data, so a view-only user is enough.
 2. Check the REST API is available by browsing to `https://<your-dce-server>/isxg/dce-rest-api.html`. You should see the **DCE REST API UI** page. Optionally, click **Authorize** and sign in with the new user to confirm the credentials work.
 3. In SquaredUp, enter the server address in **Server URL**, and the user's credentials in **Username** and **Password**.
-4. If the server uses a self-signed certificate (the default for Data Center Expert), tick **Ignore certificate errors**.
+4. If the server uses a self-signed certificate (the default for Data Center Expert), turn on **Ignore certificate errors**.
 
 ## Configuration fields
 
@@ -18,7 +18,7 @@ You will need a Data Center Expert **user account** and network access to the se
 | **Server URL** | Address of the Data Center Expert server, for example `https://dce.example.com`. The `/isxg` REST API path is added automatically. | The address you use to open the Data Center Expert web interface. | Yes |
 | **Username** | Data Center Expert user the plugin signs in as. | Data Center Expert client → user management. | Yes |
 | **Password** | Password for that user. | Set when the user is created. | Yes |
-| **Ignore certificate errors** | Skips HTTPS certificate checks. | Tick this when the server uses a self-signed certificate. | No |
+| **Ignore certificate errors** | Skips HTTPS certificate checks. | Turn this on when the server uses a self-signed certificate. | No |
 | **OAuth client ID** | OAuth client sent when requesting an access token. Leave blank unless sign-in fails (see below). | See [If sign-in fails](#if-sign-in-fails). | No |
 | **OAuth client secret** | Secret for the OAuth client above. | See [If sign-in fails](#if-sign-in-fails). | No |
 

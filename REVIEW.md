@@ -67,6 +67,7 @@ When suggesting changes:
 
 - Generally prefer API tokens or OAuth where possible, flag usage of username/password unless the API offers no alternative.
 - Check that only strictly required fields are marked as `required: true`. Advanced options should never block first-time success.
+- Flag any field named `ignoreCertificateErrors`, and any `ignoreCertificateErrors` mapping in `base.config` in metadata.json. The platform adds this toggle to every plugin built on WebAPI. The only exception is a literal `false` in `base.config`, which deliberately hides it.
 - For each field in the array:
     - displayName - First word uppercase, then lowercase (e.g. “Table name", or "API key"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
     - name - Should typically be the camel-cased version of the displayName.

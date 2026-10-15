@@ -22,7 +22,7 @@ The token inherits the permissions of the user that owns it. Objects the user ca
 | **Token version** | The NetBox API token format. **v2** sends `Authorization: Bearer nbt_<key>.<token>`. **v1** sends `Authorization: Token <token>`. | v2 tokens require NetBox 4.5 or later. | Yes |
 | **Token** | The API token. For v2, paste the full value NetBox shows (`Bearer nbt_<key>.<secret>`). The `Bearer` prefix is optional. For v1, paste the 40-character token. | NetBox → user menu → **API Tokens**. | Yes |
 | **Key** | The public key of a v2 token. Only needed if **Token** contains just the secret, without the `nbt_<key>.` prefix. Shown only when **Token version** is v2. | NetBox → user menu → **API Tokens**. | No |
-| **Ignore certificate errors** | Skips TLS certificate validation. Only tick this for self-managed instances that use a self-signed or private CA certificate (common on new NetBox Enterprise installs). | n/a | No |
+| **Ignore certificate errors** | Skips TLS certificate validation. Only turn this on for self-managed instances that use a self-signed or private CA certificate (common on new NetBox Enterprise installs). | n/a | No |
 
 When you save, the plugin checks two things:
 1. It calls the NetBox status endpoint. A failure here means the address is unreachable, the token is invalid, expired or disabled, or the token's **Allowed IPs** blocks SquaredUp.
