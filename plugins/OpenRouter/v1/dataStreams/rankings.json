@@ -1,0 +1,269 @@
+{
+    "name": "rankings",
+    "displayName": "Model Rankings",
+    "description": "Top models by tokens processed across all OpenRouter traffic (daily, from OpenRouter's public rankings dataset)",
+    "tags": [
+        "Models",
+        "Usage"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "datasets/rankings-daily",
+        "paging": {
+            "mode": "none"
+        },
+        "getArgs": [
+            {
+                "key": "start_date",
+                "value": "{{timeframe.start.substring(0, 10)}}"
+            },
+            {
+                "key": "end_date",
+                "value": "{{timeframe.end.substring(0, 10)}}"
+            },
+            {
+                "key": "period",
+                "value": "{{ typeof segment === 'string' && /^(category|language):/.test(segment) && (typeof period !== 'string' || !period || period === 'day') ? 'week' : typeof period === 'string' && period ? period : null }}"
+            },
+            {
+                "key": "category",
+                "value": "{{ typeof segment === 'string' && segment.startsWith('category:') ? segment.slice(9) : null }}"
+            },
+            {
+                "key": "language_type",
+                "value": "{{ typeof segment === 'string' && segment.startsWith('language:') ? segment.slice(9) : null }}"
+            },
+            {
+                "key": "modality",
+                "value": "{{ typeof segment === 'string' && segment.startsWith('modality:') ? segment.slice(9) : null }}"
+            },
+            {
+                "key": "context_bucket",
+                "value": "{{ typeof segment === 'string' && segment.startsWith('context:') ? segment.slice(8) : null }}"
+            }
+        ],
+        "headers": [],
+        "postRequestScript": "rankings.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "period",
+            "label": "Period",
+            "defaultValue": "day",
+            "options": [
+                {
+                    "value": "day",
+                    "label": "Day"
+                },
+                {
+                    "value": "week",
+                    "label": "Week"
+                },
+                {
+                    "value": "month",
+                    "label": "Month"
+                }
+            ]
+        },
+        {
+            "type": "autocomplete",
+            "name": "segment",
+            "label": "Segment (optional)",
+            "isMulti": false,
+            "isClearable": true,
+            "help": "Shows weekly estimates for **Use case** and **Language** segments, so a **Day** period is shown weekly",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "label": "Use case (estimated)",
+                        "options": [
+                            {
+                                "value": "category:programming",
+                                "label": "Programming"
+                            },
+                            {
+                                "value": "category:roleplay",
+                                "label": "Roleplay"
+                            },
+                            {
+                                "value": "category:marketing",
+                                "label": "Marketing"
+                            },
+                            {
+                                "value": "category:marketing/seo",
+                                "label": "Marketing / SEO"
+                            },
+                            {
+                                "value": "category:technology",
+                                "label": "Technology"
+                            },
+                            {
+                                "value": "category:science",
+                                "label": "Science"
+                            },
+                            {
+                                "value": "category:translation",
+                                "label": "Translation"
+                            },
+                            {
+                                "value": "category:legal",
+                                "label": "Legal"
+                            },
+                            {
+                                "value": "category:finance",
+                                "label": "Finance"
+                            },
+                            {
+                                "value": "category:health",
+                                "label": "Health"
+                            },
+                            {
+                                "value": "category:trivia",
+                                "label": "Trivia"
+                            },
+                            {
+                                "value": "category:academia",
+                                "label": "Academia"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Language (estimated)",
+                        "options": [
+                            {
+                                "value": "language:natural",
+                                "label": "Natural language"
+                            },
+                            {
+                                "value": "language:programming",
+                                "label": "Programming languages"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Modality",
+                        "options": [
+                            {
+                                "value": "modality:text",
+                                "label": "Text output"
+                            },
+                            {
+                                "value": "modality:image_output",
+                                "label": "Image output"
+                            },
+                            {
+                                "value": "modality:image",
+                                "label": "Image input"
+                            },
+                            {
+                                "value": "modality:audio",
+                                "label": "Audio input"
+                            },
+                            {
+                                "value": "modality:tool_calling",
+                                "label": "Tool calling"
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Context length",
+                        "options": [
+                            {
+                                "value": "context:1K",
+                                "label": "1K tokens"
+                            },
+                            {
+                                "value": "context:10K",
+                                "label": "10K tokens"
+                            },
+                            {
+                                "value": "context:100K",
+                                "label": "100K tokens"
+                            },
+                            {
+                                "value": "context:1M",
+                                "label": "1M tokens"
+                            },
+                            {
+                                "value": "context:10M",
+                                "label": "10M tokens"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "type": "number",
+            "name": "top",
+            "label": "Top models per period (optional)",
+            "help": "Keep the models with the most tokens in each period and combine the rest into **Other**"
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "model_permaslug",
+            "displayName": "Model",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "author",
+            "displayName": "Author",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ $['model_permaslug']?.split('/')[0] }}"
+        },
+        {
+            "name": "total_tokens",
+            "displayName": "Total Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "asOf",
+            "displayName": "As Of",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "citation",
+            "displayName": "Citation",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ],
+    "options": {
+        "minimumRequestIntervalSeconds": 86400
+    }
+}

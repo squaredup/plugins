@@ -1,0 +1,708 @@
+{
+    "name": "Maintenance & Advisories",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "ce63e2d8-4d24-4f58-b5e0-d52252fb6a77",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Upcoming & In Progress Maintenance",
+                    "description": "Maintenance windows happening now or scheduled",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[posts]}}",
+                        "name": "posts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "type": [
+                                "Maintenance"
+                            ]
+                        },
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "phase",
+                                    "operation": "equals",
+                                    "value": "Active"
+                                },
+                                {
+                                    "column": "phase",
+                                    "operation": "equals",
+                                    "value": "Upcoming"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "startTime",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "link",
+                                        "title": "Title",
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "title"
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 120
+                                    },
+                                    {
+                                        "field": "clouds",
+                                        "title": "Clouds",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "separator": ", "
+                                        },
+                                        "width": 260
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Start Time",
+                                        "renderer": {
+                                            "type": "date"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "endTime",
+                                        "title": "End Time",
+                                        "renderer": {
+                                            "type": "date"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "durationMinutes",
+                                        "title": "Duration",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " min"
+                                        },
+                                        "align": "right",
+                                        "width": 110
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "startTime",
+                                    "direction": "asc"
+                                }
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "state",
+                                    "title",
+                                    "status",
+                                    "clouds",
+                                    "startTime",
+                                    "endTime",
+                                    "durationMinutes",
+                                    "link"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "type",
+                                    "eventType",
+                                    "phase",
+                                    "cloud",
+                                    "product",
+                                    "fedrampLevel",
+                                    "published",
+                                    "resolvedTime",
+                                    "lastUpdated",
+                                    "timeToResolveMinutes",
+                                    "howFound",
+                                    "nextUpdate",
+                                    "customerImpact",
+                                    "workaround",
+                                    "summary",
+                                    "updateCount",
+                                    "latestUpdate"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f28693bc-0770-401c-abe0-abc5926ea2cc",
+                "x": 0,
+                "y": 3,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Maintenance By Cloud",
+                    "description": "Maintenance windows in the timeframe affecting each cloud",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[posts]}}",
+                        "name": "posts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "type": [
+                                "Maintenance"
+                            ],
+                            "oneRowPerCloud": true,
+                            "dateField": "eventWindow"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "cloud",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "cloud_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Cloud"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Maintenance Windows"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "cloud_uniqueValues",
+                                "yAxisData": [
+                                    "count"
+                                ],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": false,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "horizontal",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": {
+                                    "type": "auto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b56facb9-6fc5-4d91-93a0-d10ec5448e84",
+                "x": 1,
+                "y": 3,
+                "w": 3,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Maintenance History",
+                    "description": "Maintenance windows that overlap the timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[posts]}}",
+                        "name": "posts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "type": [
+                                "Maintenance"
+                            ],
+                            "dateField": "eventWindow"
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "startTime",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "link",
+                                        "title": "Title",
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "title"
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 120
+                                    },
+                                    {
+                                        "field": "clouds",
+                                        "title": "Clouds",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "separator": ", "
+                                        },
+                                        "width": 260
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Start Time",
+                                        "renderer": {
+                                            "type": "date"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "endTime",
+                                        "title": "End Time",
+                                        "renderer": {
+                                            "type": "date"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "durationMinutes",
+                                        "title": "Duration",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " min"
+                                        },
+                                        "align": "right",
+                                        "width": 110
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "startTime",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "state",
+                                    "title",
+                                    "status",
+                                    "clouds",
+                                    "startTime",
+                                    "endTime",
+                                    "durationMinutes",
+                                    "link"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "type",
+                                    "eventType",
+                                    "phase",
+                                    "cloud",
+                                    "product",
+                                    "fedrampLevel",
+                                    "published",
+                                    "resolvedTime",
+                                    "lastUpdated",
+                                    "timeToResolveMinutes",
+                                    "howFound",
+                                    "nextUpdate",
+                                    "customerImpact",
+                                    "workaround",
+                                    "summary",
+                                    "updateCount",
+                                    "latestUpdate"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "88c53f5e-f0be-4d02-ba62-6acb7695d2ef",
+                "x": 0,
+                "y": 7,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Open Advisories",
+                    "description": "Advisories that are still active",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[posts]}}",
+                        "name": "posts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "type": [
+                                "Advisory"
+                            ]
+                        },
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "phase",
+                                    "operation": "equals",
+                                    "value": "Active"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "published",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "link",
+                                        "title": "Title",
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "title"
+                                        }
+                                    },
+                                    {
+                                        "field": "eventType",
+                                        "title": "Event Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "clouds",
+                                        "title": "Clouds",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "separator": ", "
+                                        },
+                                        "width": 260
+                                    },
+                                    {
+                                        "field": "published",
+                                        "title": "Published",
+                                        "renderer": {
+                                            "type": "date"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "summary",
+                                        "title": "Summary",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "published",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "title",
+                                    "eventType",
+                                    "clouds",
+                                    "published",
+                                    "summary",
+                                    "link"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "type",
+                                    "status",
+                                    "phase",
+                                    "state",
+                                    "cloud",
+                                    "product",
+                                    "fedrampLevel",
+                                    "startTime",
+                                    "endTime",
+                                    "resolvedTime",
+                                    "lastUpdated",
+                                    "durationMinutes",
+                                    "timeToResolveMinutes",
+                                    "howFound",
+                                    "nextUpdate",
+                                    "customerImpact",
+                                    "workaround",
+                                    "updateCount",
+                                    "latestUpdate"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8932cf8a-c136-47cb-b4c5-ec14ef69b396",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Advisories",
+                    "description": "Advisories published in the timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[posts]}}",
+                        "name": "posts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "type": [
+                                "Advisory"
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "published",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "link",
+                                        "title": "Title",
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "title"
+                                        }
+                                    },
+                                    {
+                                        "field": "eventType",
+                                        "title": "Event Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "clouds",
+                                        "title": "Clouds",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "separator": ", "
+                                        },
+                                        "width": 260
+                                    },
+                                    {
+                                        "field": "published",
+                                        "title": "Published",
+                                        "renderer": {
+                                            "type": "date"
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "summary",
+                                        "title": "Summary",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "published",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "state",
+                                    "title",
+                                    "eventType",
+                                    "clouds",
+                                    "published",
+                                    "summary",
+                                    "link"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "type",
+                                    "status",
+                                    "phase",
+                                    "cloud",
+                                    "product",
+                                    "fedrampLevel",
+                                    "startTime",
+                                    "endTime",
+                                    "resolvedTime",
+                                    "lastUpdated",
+                                    "durationMinutes",
+                                    "timeToResolveMinutes",
+                                    "howFound",
+                                    "nextUpdate",
+                                    "customerImpact",
+                                    "workaround",
+                                    "updateCount",
+                                    "latestUpdate"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

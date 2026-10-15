@@ -1,0 +1,58 @@
+{
+    "name": "partnerSubscriptions",
+    "displayName": "Partner Subscriptions",
+    "description": "Product subscriptions for the configured Partner company",
+    "tags": ["Usage"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/subscriptions",
+        "getArgs": [{ "key": "companyId", "value": "{{dataSource.entityIdentifier}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "results"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false },
+        { "name": "editionId", "displayName": "Edition ID", "shape": "number", "visible": false },
+        {
+            "name": "productName",
+            "displayName": "Product",
+            "sourceId": "productId",
+            "sourceType": "Product",
+            "objectPropertyPath": "name",
+            "role": "label"
+        },
+        {
+            "name": "editionName",
+            "displayName": "Edition",
+            "sourceId": "editionId",
+            "sourceType": "Edition",
+            "objectPropertyPath": "name"
+        },
+        { "name": "subscriptionId", "displayName": "Subscription ID", "shape": "guid" },
+        { "name": "isActive", "displayName": "Active", "shape": "boolean" },
+        {
+            "name": "trialStatus",
+            "displayName": "Trial Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Upgraded"],
+                        "unknown": ["NotUsed"],
+                        "warning": ["Trial"],
+                        "error": ["Expired"],
+                        "unmonitored": ["Removed"]
+                    }
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

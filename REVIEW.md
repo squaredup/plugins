@@ -104,6 +104,8 @@ When suggesting changes:
 ### Source types (indexDefinitions/)
 
 - Name source types after how they are referred to in the upstream product or API (e.g. `agent`, `device`). Do not prefix them with the plugin name (e.g. avoid `NinjaOne Device`). A separate friendly display name can be configured if needed (via custom_types.json).
+- objectMapping.properties - Never use `id`, `state`, or a `__`-prefixed name as a property name; they fail the import at graph write. Rename instead, e.g. `{ "status": "state" }`. `rawId`, `sourceId`, `sourceType`, `name` and `label` are silently overwritten, so mapping them does nothing.
+- pageSize - For APIs where a tenant can hold tens of thousands of objects, check the import stream's `pageSize` against both import limits: ~6MB per page and ~220 pages per import run. See the build-plugin skill's index-defs.md, "Large imports".
 
 ### Documentation - (docs/README.md)
 

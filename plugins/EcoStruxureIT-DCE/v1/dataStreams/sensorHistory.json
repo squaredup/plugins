@@ -1,0 +1,48 @@
+{
+    "name": "sensorHistory",
+    "displayName": "Sensor History",
+    "description": "Historical readings for the selected sensors over the timeframe",
+    "tags": ["Sensor", "Environment", "Power"],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/sensors/history",
+        "getArgs": [
+            { "key": "sensorGuid", "value": "{{ objects.map(o => o.rawId) }}" },
+            { "key": "startTime", "value": "{{ String(new Date(timeframe.start).getTime()) }}" },
+            { "key": "endTime", "value": "{{ String(new Date(timeframe.end).getTime()) }}" }
+        ],
+        "postRequestScript": "sensorHistory.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/dceError.js" }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Sensor"] }
+    },
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "value", "displayName": "Value", "shape": "number", "role": "value" },
+        { "name": "series", "displayName": "Sensor", "shape": "string", "role": "label" },
+        { "name": "units", "displayName": "Units", "shape": "string", "role": "unitLabel" },
+        { "name": "valueText", "displayName": "Reading", "shape": "string" },
+        {
+            "name": "severityText",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Information", "Informational", "Normal", "OK", "None"],
+                        "warning": ["Warning"],
+                        "error": ["Error", "Critical", "Failure"]
+                    }
+                }
+            ]
+        },
+        { "sourceId": "sensorGuid", "sourceType": "Sensor", "name": "sensorLabel", "displayName": "Sensor Name", "shape": "string" },
+        { "sourceId": "deviceGuid", "sourceType": "Device", "name": "deviceLabel", "displayName": "Device", "shape": "string" },
+        { "name": "kind", "displayName": "Kind", "shape": "string" },
+        { "name": "sensorGuid", "displayName": "Sensor ID", "shape": "string", "visible": false },
+        { "name": "deviceGuid", "displayName": "Device ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days"]
+}

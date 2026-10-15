@@ -1,0 +1,174 @@
+{
+    "name": "alarmHistory",
+    "displayName": "Alarm History",
+    "description": "Resolved alarms that started within the timeframe, optionally filtered by device",
+    "tags": [
+        "Alerts",
+        "Device"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/alarms/history",
+        "getArgs": [
+            {
+                "key": "startDateTime",
+                "value": "{{ String(new Date(timeframe.start).getTime()) }}"
+            },
+            {
+                "key": "endDateTime",
+                "value": "{{ String(new Date(timeframe.end).getTime()) }}"
+            }
+        ],
+        "postRequestScript": "alarms.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/dceError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "description",
+            "displayName": "Alarm",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "severityText",
+            "displayName": "Severity",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "Critical",
+                            "Failure",
+                            "Error"
+                        ],
+                        "warning": [
+                            "Warning"
+                        ],
+                        "unknown": [
+                            "Information",
+                            "Informational"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "startTime",
+            "displayName": "Started",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "resolveTime",
+            "displayName": "Resolved",
+            "shape": "date"
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": [
+                "seconds",
+                {
+                    "formatDuration": true
+                }
+            ]
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "sourceId": "deviceGuid",
+            "sourceType": "Device",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "sensorName",
+            "displayName": "Sensor",
+            "sourceId": "sensorGuid",
+            "sourceType": "Sensor",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "recommendedAction",
+            "displayName": "Recommended Action",
+            "shape": "string"
+        },
+        {
+            "name": "hidden",
+            "displayName": "Hidden",
+            "shape": "boolean"
+        },
+        {
+            "name": "alarmAlertSuppressed",
+            "displayName": "Alerts Suppressed",
+            "shape": "boolean"
+        },
+        {
+            "name": "manuallyResolvable",
+            "displayName": "Manually Resolvable",
+            "shape": "boolean",
+            "visible": false
+        },
+        {
+            "name": "commentCount",
+            "displayName": "Comments",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity Level",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "isxcGuid",
+            "displayName": "Alarm ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "deviceGuid",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "sensorGuid",
+            "displayName": "Sensor ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "startTime",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": true
+}

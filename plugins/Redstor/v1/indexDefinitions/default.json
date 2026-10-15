@@ -1,0 +1,84 @@
+{
+    "steps": [
+        {
+            "name": "companyProfile",
+            "dataStream": { "name": "companyProfile" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "companyId",
+                "name": "companyName",
+                "type": { "value": "Company" },
+                "properties": ["companyId", "type", "isEnabled", "parentCompanyId"]
+            }
+        },
+        {
+            "name": "companyCustomers",
+            "dataStream": { "name": "companyCustomers" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "companyId",
+                "name": "companyName",
+                "type": { "value": "Company" },
+                "properties": ["companyId", "type", "isEnabled", "parentCompanyId"]
+            }
+        },
+        {
+            "name": "products",
+            "dataStream": { "name": "products" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "productId",
+                "name": "productName",
+                "type": { "value": "Product" }
+            }
+        },
+        {
+            "name": "productServices",
+            "dataStream": { "name": "productServices" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "serviceId",
+                "name": "serviceName",
+                "type": { "value": "Service" },
+                "properties": ["productId", "productName"]
+            },
+            "dependsOn": ["products"]
+        },
+        {
+            "name": "productEditions",
+            "dataStream": { "name": "productEditions" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "editionId",
+                "name": "editionName",
+                "type": { "value": "Edition" },
+                "properties": ["productId", "productName", "hasTrial"]
+            },
+            "dependsOn": ["productServices"]
+        },
+        {
+            "name": "backupAccounts",
+            "dataStream": { "name": "backupAccounts" },
+            "scope": {
+                "query": "g.V().has(\"sourceType\", \"Company\")"
+            },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "accountId",
+                "name": "accountName",
+                "type": { "value": "Account" },
+                "properties": [
+                    "displayName",
+                    "serviceId",
+                    "serviceName",
+                    "productId",
+                    "productName",
+                    "storageRegion",
+                    "createOn",
+                    "companyId"
+                ]
+            },
+            "dependsOn": ["companyProfile", "companyCustomers"]
+        }
+    ]
+}

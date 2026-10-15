@@ -1,0 +1,188 @@
+{
+    "name": "checks",
+    "displayName": "Checks",
+    "description": "Current status, schedule and last ping of each check in the project",
+    "tags": ["Monitoring", "Status"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "checks/",
+        "getArgs": [
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? tag.flatMap((o) => o.rawId) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "checks.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "checks",
+            "label": "Filter by check",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Check"]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tag",
+            "label": "Filter by tag",
+            "help": "Returns only checks that have every selected tag.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Tag"]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Check ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["up"],
+                        "warning": ["grace"],
+                        "error": ["down"],
+                        "unmonitored": ["paused"],
+                        "unknown": ["new"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "started",
+            "displayName": "Running",
+            "shape": "boolean"
+        },
+        {
+            "name": "last_ping",
+            "displayName": "Last ping",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "next_ping",
+            "displayName": "Next ping due",
+            "shape": "date"
+        },
+        {
+            "name": "secondsSinceLastPing",
+            "displayName": "Time since last ping",
+            "computed": true,
+            "valueExpression": "{{ $['last_ping'] ? Math.max(0, Math.round((Date.now() - Date.parse($['last_ping'])) / 1000)) : null }}",
+            "shape": "seconds"
+        },
+        {
+            "name": "kind",
+            "displayName": "Kind",
+            "shape": "string"
+        },
+        {
+            "name": "timeout",
+            "displayName": "Period",
+            "shape": "seconds"
+        },
+        {
+            "name": "schedule",
+            "displayName": "Schedule",
+            "shape": "string"
+        },
+        {
+            "name": "tz",
+            "displayName": "Time zone",
+            "shape": "string"
+        },
+        {
+            "name": "grace",
+            "displayName": "Grace time",
+            "shape": "seconds"
+        },
+        {
+            "name": "tags",
+            "displayName": "Tags",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        {
+            "name": "slug",
+            "displayName": "Slug",
+            "shape": "string"
+        },
+        {
+            "name": "desc",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "description"
+        },
+        {
+            "name": "n_pings",
+            "displayName": "Total pings",
+            "shape": "number"
+        },
+        {
+            "name": "manual_resume",
+            "displayName": "Manual resume",
+            "shape": "boolean",
+            "visible": false
+        },
+        {
+            "name": "ping_url",
+            "displayName": "Ping URL",
+            "shape": "url",
+            "visible": false
+        },
+        {
+            "name": "update_url",
+            "displayName": "API URL",
+            "visible": false
+        },
+        {
+            "name": "uuid",
+            "displayName": "UUID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "badge_url",
+            "displayName": "Badge URL",
+            "visible": false
+        },
+        {
+            "name": "checkUrl",
+            "displayName": "Link",
+            "computed": true,
+            "valueExpression": "{{ $['update_url'] ? $['update_url'].replace(/[/]api[/]v[0-9]+[/]checks[/]/, '/checks/') + '/details/' : ($['badge_url'] ? $['badge_url'].replace(/[/]b[/].*$/, '') + '/cloaked/' + $['id'] + '/' : null) }}",
+            "shape": ["url", { "label": "Open in Healthchecks.io" }]
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Check",
+            "name": "name"
+        }
+    ],
+    "timeframes": false
+}

@@ -17,7 +17,7 @@ Three skills live in `.claude/skills/`. They carry the actual procedures — rea
 
 | Skill | Use it when |
 | --- | --- |
-| `build-plugin` | Building a new plugin, or adding streams to an existing one. Nine phases from API exploration to a deployed, tested plugin with dashboards. |
+| `build-plugin` | Building a new plugin, or adding streams to an existing one. Nine phases from API exploration to a deployed, tested plugin with dashboards, then an optional pull request to contribute it here. |
 | `deploy-plugin` | Validating or deploying a plugin, or working out the right version bump. |
 | `convert-dashboard` | Turning an exported platform dashboard JSON into plugin default content. |
 
@@ -61,7 +61,6 @@ What each file is, in rough order of how universal it is:
 | `icon.svg` / `icon.png` | The plugin logo. |
 | `configValidation.json` | The check run when a user saves their configuration, backed by a data stream. |
 | `custom_types.json` | Display names and icons for the object types the plugin imports. |
-| `cspell.json` | Per-plugin spellcheck word list, for product names the root list doesn't cover. |
 | `correlationRules/`, `preRequest.js`, `screenshots/` | Rare extras, used by one or two plugins each. |
 
 ## Tooling

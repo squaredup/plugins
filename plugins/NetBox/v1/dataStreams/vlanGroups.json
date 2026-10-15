@@ -1,0 +1,147 @@
+{
+    "name": "vlanGroups",
+    "displayName": "VLAN Groups",
+    "description": "VLAN groups with scope, VLAN ID ranges and utilization",
+    "tags": [
+        "IPAM",
+        "Capacity"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/ipam/vlan-groups/",
+        "getArgs": [
+            {
+                "key": "fields",
+                "value": "id,display,display_url,name,slug,scope_type,scope,tenant,vid_ranges,total_vlan_ids,vlan_count,utilization,description,last_updated,custom_fields"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "utilizationPct",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "display",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "scope_type",
+            "visible": false
+        },
+        {
+            "name": "scopeType",
+            "displayName": "Scope Type",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ typeof $['scope_type'] === 'string' && $['scope_type'] ? (({ site: 'Site', sitegroup: 'Site Group', region: 'Region', location: 'Location', rack: 'Rack', cluster: 'Cluster', clustergroup: 'Cluster Group' })[$['scope_type'].split('.').pop()] || $['scope_type']) : null }}"
+        },
+        {
+            "name": "scope.name",
+            "displayName": "Scope",
+            "shape": "string"
+        },
+        {
+            "name": "tenant.name",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "vid_ranges",
+            "visible": false
+        },
+        {
+            "name": "vidRanges",
+            "displayName": "VLAN ID Ranges",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (() => { let r = $['vid_ranges']; if (typeof r === 'string') { try { r = JSON.parse(r); } catch (e) { return null; } } return Array.isArray(r) ? r.map(x => x[0] === x[1] ? String(x[0]) : x[0] + '-' + x[1]).join(', ') : null; })() }}"
+        },
+        {
+            "name": "total_vlan_ids",
+            "displayName": "Total VLAN IDs",
+            "shape": "number"
+        },
+        {
+            "name": "vlan_count",
+            "displayName": "VLANs",
+            "shape": "number"
+        },
+        {
+            "name": "utilization",
+            "visible": false
+        },
+        {
+            "name": "utilizationPct",
+            "displayName": "Utilization",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ Number.isFinite(parseFloat($['utilization'])) ? parseFloat($['utilization']) : null }}"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "display_url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        },
+        {
+            "pattern": "^custom_fields[.].*"
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,39 @@
+{
+    "name": "alarmSummary",
+    "displayName": "Alarm Summary",
+    "description": "Count of active alarms by severity for each device group (including its sub-groups)",
+    "tags": ["Alerts", "Device Group"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/alarms/summary",
+        "postRequestScript": "alarmSummary.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/dceError.js" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "deviceGroup",
+            "label": "Device group(s) (optional)",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["Device Group"] }
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "deviceGroupName", "displayName": "Device Group", "sourceId": "deviceGroupGuid", "sourceType": "Device Group", "objectPropertyPath": "name", "role": "label" },
+        { "name": "criticalAlarmCount", "displayName": "Critical", "shape": "number" },
+        { "name": "warningAlarmCount", "displayName": "Warning", "shape": "number" },
+        { "name": "infoAlarmCount", "displayName": "Informational", "shape": "number" },
+        { "name": "totalAlarmCount", "displayName": "Total", "shape": "number", "role": "value" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": { "success": ["success"], "warning": ["warning"], "error": ["error"] } }]
+        },
+        { "name": "deviceGroupGuid", "displayName": "Device Group ID", "shape": "string", "role": "id", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["criticalAlarmCount", "desc"], ["warningAlarmCount", "desc"]] } },
+    "timeframes": false
+}

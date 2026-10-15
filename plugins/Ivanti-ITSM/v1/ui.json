@@ -1,0 +1,82 @@
+[
+    {
+        "type": "text",
+        "name": "tenantUrl",
+        "label": "Tenant URL",
+        "placeholder": "https://yourtenant.saasiteu.com",
+        "help": "The address you sign in to Ivanti with. The plugin appends `/api/odata/businessobject/...` itself.\n\nAn on-premises instance is usually installed under a virtual directory, so include it - for example `https://help.example.com/HEAT`.",
+        "validation": {
+            "required": true,
+            "pattern": {
+                "value": "^https://[^\\s/@?#]+(?:/[^\\s?#]*)?$",
+                "message": "Enter the https address of your Ivanti instance, e.g. https://yourtenant.saasiteu.com or https://help.example.com/HEAT"
+            }
+        }
+    },
+    {
+        "type": "password",
+        "name": "restApiKey",
+        "label": "REST API key",
+        "help": "Create in **Configure > Security Controls > API Keys** in the Configuration console. The key is the **Reference ID** of an API key, and inherits the role of the account it was created **On Behalf Of** - that account needs read access to the business objects you want to dashboard.",
+        "validation": {
+            "required": true
+        }
+    },
+    {
+        "type": "checkbox",
+        "name": "showAdvanced",
+        "label": "Show advanced options",
+        "value": "show"
+    },
+    {
+        "type": "fieldGroup",
+        "name": "advanced",
+        "visible": { "showAdvanced": "show" },
+        "fields": [
+            {
+                "type": "number",
+                "name": "pageLimit",
+                "label": "Page limit",
+                "defaultValue": 100,
+                "help": "The most records Ivanti returns in one request. An Ivanti administrator sets this for the tenant and it is 100 unless they have raised it - enter the value they confirm. Ivanti rejects any request above it, so every tile and import is kept at or below this number.",
+                "validation": {
+                    "min": 1,
+                    "pattern": { "value": "^[0-9]+$", "message": "Enter a whole number, e.g. 100" },
+                    "valueAsNumber": true
+                }
+            },
+            {
+                "type": "switch",
+                "name": "apiPath",
+                "label": "API version",
+                "defaultValue": "odata",
+                "help": "Version 2 adds bracketed filters, so a tile filtering on several statuses or teams at once needs it. Version 1 is present on every release and is the safe default.",
+                "options": [
+                    { "value": "odata", "label": "Version 1" },
+                    { "value": "odatav2", "label": "Version 2" }
+                ]
+            },
+            {
+                "type": "text",
+                "name": "teamBusinessObject",
+                "label": "Team business object",
+                "placeholder": "standarduserteams",
+                "defaultValue": "standarduserteams",
+                "help": "The business object ticket-owning teams are imported from. The default suits most tenants. The object must hold the team name in a field called `Team`, which is what tickets' `OwnerTeam` values are matched against. Do not point this at contact groups - those hold approval and advisory boards, not the teams that own tickets."
+            },
+            {
+                "type": "text",
+                "name": "ciFilter",
+                "label": "Configuration item filter",
+                "placeholder": "Status eq 'Active'",
+                "help": "Narrows which configuration items are imported, using the OData `$filter` syntax. Leave empty to import the whole CMDB."
+            },
+            {
+                "type": "checkbox",
+                "name": "ignoreCertificateErrors",
+                "label": "Ignore certificate errors",
+                "help": "Enable only for an on-premises instance presenting a self-signed or otherwise untrusted certificate."
+            }
+        ]
+    }
+]

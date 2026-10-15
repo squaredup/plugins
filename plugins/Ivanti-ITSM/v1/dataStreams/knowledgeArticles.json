@@ -1,0 +1,68 @@
+{
+    "name": "knowledgeArticles",
+    "displayName": "Knowledge Articles",
+    "description": "Knowledge base articles, one row per article, with status and category",
+    "tags": ["Resources", "Service Management"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{dataSource.apiPath || 'odata'}}/businessobject/FRS_Knowledges",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ typeof filter !== 'undefined' ? filter : null }}"
+            }
+        ],
+        "pathToData": "value",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "$top", "value": "{{ Math.max(1, Math.floor(Number(dataSource.pageLimit) || 100)) }}" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "value" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "$skip" }
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/odataError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Additional filter",
+            "placeholder": "Status eq 'Published'",
+            "help": "Restricts which articles are returned, using the OData `$filter` syntax."
+        }
+    ],
+    "metadata": [
+        { "name": "Title", "displayName": "Title", "shape": "string", "role": "label" },
+        { "name": "Subject", "displayName": "Subject", "shape": "string", "visible": false },
+        {
+            "name": "Status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Published", "Approved"],
+                        "warning": ["Draft", "Pending Approval", "In Review"],
+                        "error": ["Retired", "Rejected", "Archived"]
+                    }
+                }
+            ]
+        },
+        { "name": "Category", "displayName": "Category", "shape": "string" },
+        { "name": "LastModDateTime", "displayName": "Last Modified", "shape": "date", "role": "timestamp" },
+        { "name": "RecId", "displayName": "Record ID", "shape": "guid", "role": "id", "visible": false },
+        { "pattern": ".*" }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["LastModDateTime", "desc"]] }
+    },
+    "timeframes": false
+}

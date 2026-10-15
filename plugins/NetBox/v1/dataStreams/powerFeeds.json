@@ -1,0 +1,222 @@
+{
+    "name": "powerFeeds",
+    "displayName": "Power Feeds",
+    "description": "Power feeds with their rack, site, panel, electrical rating and available power",
+    "tags": [
+        "Power",
+        "Capacity"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql/",
+        "headers": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+        ],
+        "postBody": {
+            "query": "query PowerFeeds($offset: Int = 0) { power_feed_list(pagination: { offset: $offset, limit: 500 }{{ (typeof site !== 'undefined' && site && site.length) ? ', filters: { power_panel: { site: { id: { in_list: [' + site.map(s => Number([].concat(s.rawId)[0])).join(', ') + '] } } } }' : '' }}) { id name description status type supply phase voltage amperage max_utilization available_power mark_connected cable { id } tenant { name } rack { id name } power_panel { id name site { id name } } created last_updated custom_field_data } }"
+        },
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "none"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data.power_feed_list"
+                }
+            },
+            "out": {
+                "realm": "body",
+                "path": "variables.offset"
+            }
+        },
+        "postRequestScript": "powerFeeds.js",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "power_panel.site.name",
+            "displayName": "Site",
+            "shape": "string"
+        },
+        {
+            "name": "rack.name",
+            "displayName": "Rack",
+            "shape": "string"
+        },
+        {
+            "name": "power_panel.name",
+            "displayName": "Power Panel",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "visible": false
+        },
+        {
+            "name": "statusLabel",
+            "displayName": "Status",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ typeof $['status'] === 'string' ? $['status'].charAt(0).toUpperCase() + $['status'].slice(1).replace(/-/g, ' ') : null }}"
+        },
+        {
+            "name": "type",
+            "visible": false
+        },
+        {
+            "name": "typeLabel",
+            "displayName": "Type",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ typeof $['type'] === 'string' ? $['type'].charAt(0).toUpperCase() + $['type'].slice(1).replace(/-/g, ' ') : null }}"
+        },
+        {
+            "name": "supply",
+            "visible": false
+        },
+        {
+            "name": "supplyLabel",
+            "displayName": "Supply",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ typeof $['supply'] === 'string' ? $['supply'].toUpperCase() : null }}"
+        },
+        {
+            "name": "phase",
+            "visible": false
+        },
+        {
+            "name": "phaseLabel",
+            "displayName": "Phase",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ typeof $['phase'] === 'string' ? $['phase'].charAt(0).toUpperCase() + $['phase'].slice(1).replace(/-/g, ' ') : null }}"
+        },
+        {
+            "name": "voltage",
+            "displayName": "Voltage (V)",
+            "shape": "number"
+        },
+        {
+            "name": "amperage",
+            "displayName": "Amperage (A)",
+            "shape": "number"
+        },
+        {
+            "name": "max_utilization",
+            "displayName": "Max Utilization",
+            "shape": "percent"
+        },
+        {
+            "name": "available_power",
+            "visible": false
+        },
+        {
+            "name": "availableKva",
+            "displayName": "Available Power (kVA)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ typeof $['available_power'] === 'number' ? Math.round($['available_power'] / 10) / 100 : null }}"
+        },
+        {
+            "name": "mark_connected",
+            "visible": false
+        },
+        {
+            "name": "cable.id",
+            "visible": false
+        },
+        {
+            "name": "connected",
+            "displayName": "Connected",
+            "shape": "boolean",
+            "computed": true,
+            "valueExpression": "{{ $['mark_connected'] === true || typeof $['cable.id'] === 'string' }}"
+        },
+        {
+            "name": "tenant.name",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "rack.id",
+            "visible": false
+        },
+        {
+            "name": "power_panel.id",
+            "visible": false
+        },
+        {
+            "name": "power_panel.site.id",
+            "visible": false
+        },
+        {
+            "sourceId": "rack.id",
+            "sourceType": "Rack",
+            "name": "rack.name"
+        },
+        {
+            "sourceId": "power_panel.site.id",
+            "sourceType": "Site",
+            "name": "power_panel.site.name"
+        },
+        {
+            "pattern": "^custom_field_data[.].*"
+        }
+    ],
+    "timeframes": false
+}

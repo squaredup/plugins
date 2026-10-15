@@ -1,0 +1,283 @@
+{
+    "name": "devices",
+    "displayName": "Devices",
+    "description": "All devices with status, role, hardware, location, ownership and data quality flags",
+    "tags": [
+        "Inventory",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/dcim/devices/",
+        "getArgs": [
+            {
+                "key": "fields",
+                "value": "id,display,display_url,status,role,device_type,platform,site,location,rack,position,face,serial,asset_tag,tenant,primary_ip,oob_ip,cluster,parent_device,description,created,last_updated,custom_fields"
+            },
+            {
+                "key": "site_id",
+                "value": "{{ (typeof site !== 'undefined' && site && site.length) ? site.map(s => [].concat(s.rawId)[0]) : null }}"
+            },
+            {
+                "key": "rack_id",
+                "value": "{{ (typeof rack !== 'undefined' && rack && rack.length) ? rack.map(o => [].concat(o.rawId)[0]) : null }}"
+            },
+            {
+                "key": "role",
+                "value": "{{ (typeof role !== 'undefined' && role && role.length) ? [].concat(role).flatMap(r => (r && typeof r === 'object') ? [r.value] : String(r).split(',')).map(r => String(r).trim()).filter(Boolean) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "rack",
+            "label": "Rack (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Rack"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "role",
+            "label": "Role(s) (optional)",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "deviceRoles",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "display",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status.label",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "status.value",
+            "visible": false
+        },
+        {
+            "name": "role.name",
+            "displayName": "Role",
+            "shape": "string"
+        },
+        {
+            "name": "device_type.manufacturer.name",
+            "displayName": "Manufacturer",
+            "shape": "string"
+        },
+        {
+            "name": "device_type.model",
+            "displayName": "Device Type",
+            "shape": "string"
+        },
+        {
+            "name": "platform.name",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "site.name",
+            "displayName": "Site",
+            "shape": "string"
+        },
+        {
+            "name": "site.id",
+            "visible": false
+        },
+        {
+            "name": "site.url",
+            "visible": false,
+            "valueExpression": "{{ typeof $['site.id'] === 'number' ? String($['site.id']) : null }}"
+        },
+        {
+            "name": "location.name",
+            "displayName": "Location",
+            "shape": "string"
+        },
+        {
+            "name": "rack.name",
+            "displayName": "Rack",
+            "shape": "string"
+        },
+        {
+            "name": "rack.id",
+            "visible": false
+        },
+        {
+            "name": "rack.url",
+            "visible": false,
+            "valueExpression": "{{ typeof $['rack.id'] === 'number' ? String($['rack.id']) : null }}"
+        },
+        {
+            "name": "position",
+            "displayName": "Position (U)",
+            "shape": "number"
+        },
+        {
+            "name": "tenant.name",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "serial",
+            "displayName": "Serial Number",
+            "shape": "string"
+        },
+        {
+            "name": "asset_tag",
+            "displayName": "Asset Tag",
+            "shape": "string"
+        },
+        {
+            "name": "primary_ip.address",
+            "visible": false
+        },
+        {
+            "name": "primary_ip.display",
+            "displayName": "Primary IP",
+            "shape": "string",
+            "valueExpression": "{{ typeof $['primary_ip.address'] === 'string' && $['primary_ip.address'] ? $['primary_ip.address'].split('/')[0] : null }}"
+        },
+        {
+            "name": "oob_ip.address",
+            "displayName": "OOB IP",
+            "shape": "string"
+        },
+        {
+            "name": "cluster.name",
+            "displayName": "Cluster",
+            "shape": "string"
+        },
+        {
+            "name": "parent_device.name",
+            "displayName": "Parent Device",
+            "shape": "string"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "missingSerial",
+            "displayName": "Missing Serial",
+            "shape": "boolean",
+            "computed": true,
+            "valueExpression": "{{ !(typeof $['serial'] === 'string' && $['serial']) }}"
+        },
+        {
+            "name": "missingPrimaryIp",
+            "displayName": "Missing Primary IP",
+            "shape": "boolean",
+            "computed": true,
+            "valueExpression": "{{ !(typeof $['primary_ip.address'] === 'string' && $['primary_ip.address']) }}"
+        },
+        {
+            "name": "missingTenant",
+            "displayName": "Missing Tenant",
+            "shape": "boolean",
+            "computed": true,
+            "valueExpression": "{{ !(typeof $['tenant.name'] === 'string' && $['tenant.name']) }}"
+        },
+        {
+            "name": "missingPlatform",
+            "displayName": "Missing Platform",
+            "shape": "boolean",
+            "computed": true,
+            "valueExpression": "{{ !(typeof $['platform.name'] === 'string' && $['platform.name']) }}"
+        },
+        {
+            "name": "daysSinceUpdate",
+            "displayName": "Days Since Update",
+            "shape": "number",
+            "computed": true,
+            "valueExpression": "{{ typeof $['last_updated'] === 'string' && $['last_updated'] ? Math.floor((Date.now() - new Date($['last_updated']).getTime()) / 86400000) : null }}"
+        },
+        {
+            "name": "display_url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Device",
+            "name": "display"
+        },
+        {
+            "pattern": "^custom_fields[.].*"
+        }
+    ],
+    "timeframes": false
+}

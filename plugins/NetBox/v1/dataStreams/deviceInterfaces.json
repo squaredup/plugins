@@ -1,0 +1,205 @@
+{
+    "name": "deviceInterfaces",
+    "displayName": "Device Interfaces",
+    "description": "Interfaces on a device with type, state, speed, VLAN mode, cabling and connection",
+    "tags": [
+        "Network",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/dcim/interfaces/",
+        "getArgs": [
+            {
+                "key": "device_id",
+                "value": "{{ objects.map(o => o.rawId) }}"
+            },
+            {
+                "key": "fields",
+                "value": "id,display,display_url,device,name,label,type,enabled,mgmt_only,mtu,speed,duplex,mode,mac_address,primary_mac_address,lag,parent,untagged_vlan,tagged_vlans,vrf,cable,mark_connected,link_peers,connected_endpoints,connected_endpoints_reachable,count_ipaddresses,description,last_updated"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Device"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "pattern": "^(link_peers|connected_endpoints|tagged_vlans)[.].*",
+            "visible": false
+        },
+        {
+            "name": "display",
+            "visible": false
+        },
+        {
+            "name": "device.name",
+            "displayName": "Device",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "label",
+            "displayName": "Label",
+            "shape": "string"
+        },
+        {
+            "name": "type.label",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "enabled",
+            "displayName": "Enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "mgmt_only",
+            "displayName": "Management Only",
+            "shape": "boolean"
+        },
+        {
+            "name": "speed",
+            "displayName": "Speed",
+            "shape": "kilobitspersecond"
+        },
+        {
+            "name": "mtu",
+            "displayName": "MTU",
+            "shape": "number"
+        },
+        {
+            "name": "duplex.label",
+            "displayName": "Duplex",
+            "shape": "string"
+        },
+        {
+            "name": "mode.label",
+            "displayName": "VLAN Mode",
+            "shape": "string"
+        },
+        {
+            "name": "primary_mac_address.mac_address",
+            "visible": false
+        },
+        {
+            "name": "mac_address",
+            "displayName": "MAC Address",
+            "shape": "string",
+            "valueExpression": "{{ typeof $['primary_mac_address.mac_address'] === 'string' && $['primary_mac_address.mac_address'] ? $['primary_mac_address.mac_address'] : (typeof $['mac_address'] === 'string' && $['mac_address'] ? $['mac_address'] : null) }}"
+        },
+        {
+            "name": "lag.name",
+            "displayName": "LAG",
+            "shape": "string"
+        },
+        {
+            "name": "parent.name",
+            "displayName": "Parent Interface",
+            "shape": "string"
+        },
+        {
+            "name": "untagged_vlan.display",
+            "displayName": "Untagged VLAN",
+            "shape": "string"
+        },
+        {
+            "name": "taggedVlanCount",
+            "displayName": "Tagged VLANs",
+            "shape": "number",
+            "computed": true,
+            "valueExpression": "{{ Object.keys($).filter(k => k.startsWith('tagged_vlans.') && k.endsWith('.id') && k.split('.').length === 3 && typeof $[k] === 'number').length }}"
+        },
+        {
+            "name": "vrf.name",
+            "displayName": "VRF",
+            "shape": "string"
+        },
+        {
+            "name": "cable.id",
+            "visible": false
+        },
+        {
+            "name": "cabled",
+            "displayName": "Cabled",
+            "shape": "boolean",
+            "computed": true,
+            "valueExpression": "{{ typeof $['cable.id'] === 'number' }}"
+        },
+        {
+            "name": "connectedTo",
+            "displayName": "Connected To",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (() => { for (const p of ['connected_endpoints', 'link_peers']) { const out = []; for (let i = 0; i < 20; i++) { const n = $[p + '.' + i + '.name']; const d = $[p + '.' + i + '.display']; const label = typeof n === 'string' && n ? n : (typeof d === 'string' && d ? d : null); if (!label) continue; const dev = $[p + '.' + i + '.device.name']; out.push(typeof dev === 'string' && dev ? dev + ' ' + label : label); } if (out.length) return out.join(', '); } return null; })() }}"
+        },
+        {
+            "name": "connected_endpoints_reachable",
+            "displayName": "Reachable",
+            "shape": "boolean"
+        },
+        {
+            "name": "count_ipaddresses",
+            "displayName": "IP Addresses",
+            "shape": "number"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "display_url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

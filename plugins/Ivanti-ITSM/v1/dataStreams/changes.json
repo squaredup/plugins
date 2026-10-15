@@ -1,0 +1,312 @@
+{
+    "name": "changes",
+    "displayName": "Changes",
+    "description": "Change records, one row per record, with status, risk, schedule and ownership",
+    "tags": [
+        "Tickets",
+        "Service Management"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{dataSource.apiPath || 'odata'}}/businessobject/changes",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ [(typeof timeframe !== 'undefined' && timeframe.enum !== 'none') ? `${dateField || 'CreatedDateTime'} ge ${new Date(timeframe.start).toISOString().split('.')[0]}Z and ${dateField || 'CreatedDateTime'} le ${new Date(timeframe.end).toISOString().split('.')[0]}Z` : null, (Array.isArray(status) && status.length) ? status.map((v => (v && typeof v === 'object') ? (v.value != null ? v.value : v.label) : v)).filter(v => v != null && v !== '').map(v => `Status eq '${String(v).split(\"'\").join(\"''\")}'`).join(' or ') || null : null, (Array.isArray(team) && team.length) ? team.map(t => (t && typeof t === 'object') ? (t.name != null ? t.name : t.displayName) : t).filter(v => v != null && v !== '').map(v => `OwnerTeam eq '${String(v).split(\"'\").join(\"''\")}'`).join(' or ') || \"RecId eq ''\" : null, typeof filter !== 'undefined' ? filter : null].filter(Boolean).map((c, i, a) => (a.length > 1 && c.indexOf(' or ') !== -1) ? '(' + c + ')' : c).join(' and ') || null }}"
+            },
+            {
+                "key": "$select",
+                "value": "{{ typeof select !== 'undefined' ? select : null }}"
+            },
+            {
+                "key": "$orderby",
+                "value": "CreatedDateTime asc"
+            }
+        ],
+        "pathToData": "value",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "$top",
+                "value": "{{ Math.max(1, Math.floor(Number(dataSource.pageLimit) || 100)) }}"
+            },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "value"
+                },
+                "base": 0
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "$skip"
+            }
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/odataError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "switch",
+            "name": "dateField",
+            "label": "Timeframe applies to",
+            "defaultValue": "CreatedDateTime",
+            "help": "Which date the selected timeframe filters on. Set the timeframe to **None** to ignore dates and return the current backlog.",
+            "options": [
+                {
+                    "value": "CreatedDateTime",
+                    "label": "Created"
+                },
+                {
+                    "value": "LastModDateTime",
+                    "label": "Last modified"
+                },
+                {
+                    "value": "ClosedDateTime",
+                    "label": "Closed"
+                }
+            ],
+            "tileEditorStep": [
+                "Timeframe"
+            ]
+        },
+        {
+            "type": "autocomplete",
+            "name": "status",
+            "label": "Status",
+            "isMulti": true,
+            "isClearable": true,
+            "allowCustomValues": true,
+            "help": "Filters in Ivanti rather than in the browser, so it also cuts how many records the tile has to page through. Type a value to use a status this tenant has added.",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "Logged",
+                        "label": "Logged"
+                    },
+                    {
+                        "value": "Submitted",
+                        "label": "Submitted"
+                    },
+                    {
+                        "value": "Pending Approval",
+                        "label": "Pending Approval"
+                    },
+                    {
+                        "value": "Approved",
+                        "label": "Approved"
+                    },
+                    {
+                        "value": "Scheduled",
+                        "label": "Scheduled"
+                    },
+                    {
+                        "value": "Implemented",
+                        "label": "Implemented"
+                    },
+                    {
+                        "value": "Rejected",
+                        "label": "Rejected"
+                    },
+                    {
+                        "value": "Closed",
+                        "label": "Closed"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Team"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Additional filter",
+            "placeholder": "Category eq 'Hardware'",
+            "help": "Appended to the filter this tile already builds, using the OData `$filter` syntax."
+        },
+        {
+            "type": "text",
+            "name": "select",
+            "label": "Field(s)",
+            "placeholder": "RecId,Subject,Status,CreatedDateTime",
+            "help": "Limits the response to these fields. Worth setting for a business object with many fields, where the full payload is slow or too large. A field name that does not exist fails the whole request."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Subject",
+            "displayName": "Subject",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "ChangeNumber",
+            "displayName": "Change Number",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "Status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "Priority",
+            "displayName": "Priority",
+            "shape": "string"
+        },
+        {
+            "name": "Urgency",
+            "displayName": "Urgency",
+            "shape": "string"
+        },
+        {
+            "name": "Impact",
+            "displayName": "Impact",
+            "shape": "string"
+        },
+        {
+            "name": "RiskLevel",
+            "displayName": "Risk",
+            "shape": "string"
+        },
+        {
+            "name": "TypeOfChange",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "Category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "Service",
+            "displayName": "Service",
+            "shape": "string"
+        },
+        {
+            "name": "Owner",
+            "displayName": "Owner",
+            "shape": "string"
+        },
+        {
+            "name": "OwnerTeam",
+            "displayName": "Owner Team",
+            "shape": "string"
+        },
+        {
+            "name": "RequestorFullName",
+            "displayName": "Requestor",
+            "shape": "string"
+        },
+        {
+            "name": "Source",
+            "displayName": "Source",
+            "shape": "string"
+        },
+        {
+            "name": "ScheduledStartDate",
+            "displayName": "Scheduled Start",
+            "shape": "date"
+        },
+        {
+            "name": "ScheduledEndDate",
+            "displayName": "Scheduled End",
+            "shape": "date"
+        },
+        {
+            "name": "CreatedDateTime",
+            "displayName": "Created",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "LastModDateTime",
+            "displayName": "Last Modified",
+            "shape": "date"
+        },
+        {
+            "name": "ClosedDateTime",
+            "displayName": "Closed",
+            "shape": "date"
+        },
+        {
+            "name": "ageDays",
+            "displayName": "Age (days)",
+            "computed": true,
+            "valueExpression": "{{ $['CreatedDateTime'] ? Math.floor((Date.now() - new Date($['CreatedDateTime']).getTime()) / 86400000) : null }}",
+            "shape": "number"
+        },
+        {
+            "name": "FinalState",
+            "displayName": "Closed Out",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "TotalTimeSpent",
+            "displayName": "Time Spent",
+            "shape": "minutes",
+            "visible": false
+        },
+        {
+            "name": "Description",
+            "displayName": "Description",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "Resolution",
+            "displayName": "Resolution",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "CreatedBy",
+            "displayName": "Created By",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "RecId",
+            "displayName": "Record ID",
+            "shape": "guid",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "CreatedDateTime",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

@@ -1,0 +1,51 @@
+{
+    "name": "companyRestores",
+    "displayName": "Company Restores",
+    "description": "Current restore operation status per account for a company",
+    "tags": ["Restore"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/restores/status/accounts",
+        "getArgs": [{ "key": "companyId", "value": "{{object.rawId}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "results"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Company"] } },
+    "metadata": [
+        { "name": "accountName", "displayName": "Account", "shape": "string", "role": "label" },
+        {
+            "name": "serviceName",
+            "displayName": "Service",
+            "sourceId": "productId",
+            "sourceType": "Service",
+            "objectPropertyPath": "name"
+        },
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "valueExpression": "{{ ({ 0: 'Failed', 1: 'Completed successfully', 2: 'Completed with warnings', 3: 'Completed with errors' })[$['status']] ?? $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Completed successfully"],
+                        "warning": ["Completed with warnings"],
+                        "error": ["Completed with errors", "Failed"]
+                    }
+                }
+            ]
+        },
+        { "name": "productId", "displayName": "Service ID", "shape": "number", "visible": false },
+        { "name": "accountId", "displayName": "Account ID", "shape": "guid", "visible": false },
+        { "name": "companyId", "displayName": "Company ID", "shape": "guid", "visible": false },
+        { "name": "groupId", "displayName": "Group ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

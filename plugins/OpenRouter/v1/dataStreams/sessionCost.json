@@ -1,0 +1,184 @@
+{
+    "name": "sessionCost",
+    "displayName": "Session Cost",
+    "description": "Median cost of one coding-agent session by harness, model, and session length (from OpenRouter's public rankings, refreshed weekly)",
+    "tags": [
+        "Models",
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "datasets/session-cost",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data"
+                },
+                "base": 0
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "getArgs": [
+            {
+                "key": "app_slug",
+                "value": "{{harness || null}}"
+            },
+            {
+                "key": "turn_range",
+                "value": "{{turnRange || null}}"
+            }
+        ],
+        "headers": [],
+        "postRequestScript": "sessionCost.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "app_name",
+            "displayName": "Harness",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "app_slug",
+            "displayName": "Harness ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "model_permaslug",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "turn_range",
+            "displayName": "Session Length ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "sessionLength",
+            "displayName": "Session Length",
+            "shape": "string"
+        },
+        {
+            "name": "sessionLengthOrder",
+            "displayName": "Session Length Order",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "median_session_cost_usd",
+            "displayName": "Median Session Cost",
+            "shape": [
+                "currency",
+                {
+                    "code": "USD",
+                    "decimalPlaces": 4
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "asOf",
+            "displayName": "As Of",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "citation",
+            "displayName": "Citation",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "options": {
+        "minimumRequestIntervalSeconds": 86400
+    },
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "harness",
+            "label": "Harness",
+            "isMulti": false,
+            "isClearable": true,
+            "allowCustomValues": true,
+            "help": "Select a coding-agent harness, or enter the slug of another harness OpenRouter publishes",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "claude-code",
+                        "label": "Claude Code"
+                    },
+                    {
+                        "value": "codex",
+                        "label": "Codex"
+                    },
+                    {
+                        "value": "hermes-agent",
+                        "label": "Hermes Agent"
+                    },
+                    {
+                        "value": "kilo-code",
+                        "label": "Kilo Code"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "turnRange",
+            "label": "Session length",
+            "isMulti": false,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "1-turn",
+                        "label": "1 turn"
+                    },
+                    {
+                        "value": "2-9-turns",
+                        "label": "2\u20139 turns"
+                    },
+                    {
+                        "value": "10-49-turns",
+                        "label": "10\u201349 turns"
+                    },
+                    {
+                        "value": "50-plus-turns",
+                        "label": "50+ turns"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "objects",
+            "name": "models",
+            "label": "Model(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Model"
+                    ]
+                }
+            }
+        }
+    ]
+}
