@@ -105,6 +105,18 @@ When suggesting changes:
 
 - Name source types after how they are referred to in the upstream product or API (e.g. `agent`, `device`). Do not prefix them with the plugin name (e.g. avoid `NinjaOne Device`). A separate friendly display name can be configured if needed (via custom_types.json).
 
+### Correlation rules - (correlationRules/\*.json)
+
+- Filenames are the stable rule identity across plugin upgrades, so a rename deletes the old rule and every edge it created. Question any renamed file in a PR, and prefer kebab-case names describing the relationship (e.g. `relate-device-to-site.json`).
+- Four shapes are authorable, recognised from the fields present rather than declared: **Relate** (the default), **Bridge** (has a `bridge` leg), **Group** (`target` is an `objectGroup`), and **Merge** (`labels.forward` is exactly `"is"`). Merge collapses two objects into one rather than relating them, so treat an unexplained `"is"` label as a mistake unless the author is deliberately deduplicating.
+- displayName - Name the relationship source-first, e.g. "Node runs Pod", "Device reports to Site". Mandatory in practice: it is what identifies the rule in the product.
+- labels - Both `forward` and `reverse` should be present. `reverse` defaults to the forward label when omitted, which reads wrongly in one direction (e.g. "Node scheduled on Pod").
+- Join keys - Every `sourceProperty`/`targetProperty` must be `name`, `rawId`, `sourceType`, or a property the relevant import step maps in `objectMapping.properties`. A property the import doesn't map will validate cleanly and produce zero edges, so check the pairing against `indexDefinitions/` rather than the data stream columns.
+- types - Must match `objectTypes` in metadata.json exactly. Prefer one rule with a `types` array over several near-identical files for the same relationship.
+- Multiple conditions are AND-ed by default. Only expect `conditionLogic` when the author genuinely needs OR/parentheses, and check every condition index it references exists.
+- Format expressions - `sourceExpression`/`targetExpression` run per candidate object on every correlation run. Where the upstream data allows, prefer mapping a clean join key in the import over transforming one here.
+- Scope - Never accept `pluginId`, `configs`, `ruleType`, `schemaVersion`, `origin`, or condition `id`s in the file; all are stamped at deploy time. A plugin rule can only relate its own object types.
+
 ### Documentation - (docs/README.md)
 
 - Should not start with a level 1 heading. The product shows the plugin name above the rendered doc, so the README should open directly with a short overview paragraph and use level 2 headings (`##`) for its sections.
