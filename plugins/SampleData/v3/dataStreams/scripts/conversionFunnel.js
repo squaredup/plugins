@@ -129,8 +129,8 @@ const availability30d = (s) => {
 
 const days = Math.max(1 / 24, span / DAY);
 const visitors = 5200 * 0.78 * 60 * 24 * days;
+// Visitors are left out: at ~100x the next stage they flatten the funnel
 const stages = [
-    ["Visitors", 1],
     ["Signups", 0.011],
     ["Trials Started", 0.0072],
     ["Activated", 0.0041],

@@ -43,7 +43,7 @@ The out-of-the-box dashboards are **Executive Overview**, **Service Health (NOC)
 - **Tickets** — service desk tickets for each customer, with priority, status and SLA outcome.
 - **Customer SLAs** — SLA attainment, satisfaction, revenue and renewal date for each customer.
 - **Business Metrics** — visitors, signups, orders, order value, conversion rate and MRR over time. Not tied to any object.
-- **Conversion Funnel** — visitor-to-paid conversion stages for the selected timeframe. Not tied to any object.
+- **Conversion Funnel** — signup-to-paid conversion stages for the selected timeframe. Not tied to any object.
 
 ## What gets indexed
 
