@@ -1,0 +1,658 @@
+{
+    "name": "Service Health",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "f292fa91-b626-453a-acce-7b3427adbade",
+                "x": 0,
+                "y": 0,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "All Services",
+                    "description": "Current health of every service, grouped by tier",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-blocks",
+                        "config": {
+                            "data-stream-blocks": {
+                                "labelColumn": "service",
+                                "stateColumn": "state",
+                                "linkColumn": "none",
+                                "columns": 4
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "State"
+                                },
+                                "group": {
+                                    "field": "tier",
+                                    "type": "nominal",
+                                    "title": "Tier"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 6,
+                                "statusGridSecondaryTemplate": "{{requestsPerMin}} req/min"
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "state",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "state"
+                            ]
+                        },
+                        "frequency": 15
+                    }
+                }
+            },
+            {
+                "i": "e0eaaad6-4ad5-4c9c-8904-c4ca5bcd0982",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Services by State",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "state",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "count",
+                                "labelColumn": "state_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "state_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "State"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Services"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table",
+                                "mappedColors": {
+                                    "success": "#2fb344",
+                                    "warning": "#f59f00",
+                                    "error": "#d63939"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3295eaac-74eb-4bca-ab45-92d2d12476d1",
+                "x": 0,
+                "y": 3,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Service Dependencies",
+                    "description": "Requests per minute flowing between services",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceDependencies]}}",
+                        "name": "serviceDependencies",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sankey",
+                            "encoding": {
+                                "source": {
+                                    "field": "source",
+                                    "type": "nominal",
+                                    "title": "From"
+                                },
+                                "target": {
+                                    "field": "target",
+                                    "type": "nominal",
+                                    "title": "To"
+                                },
+                                "value": {
+                                    "field": "requestsPerMin",
+                                    "type": "quantitative",
+                                    "title": "Requests/min"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "781333fb-d365-4d6f-bfb4-9e557b9c42a2",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "p95 Latency by Hour",
+                    "description": "Average p95 latency per service per hour (UTC)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceMetrics]}}",
+                        "name": "serviceMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"service\", STRFTIME(\"h\", '%a %H:00') AS \"hour\", ROUND(AVG(\"latencyP95Ms\"), 0) AS \"latencyP95Ms\" FROM (SELECT \"service\", \"latencyP95Ms\", DATE_TRUNC('hour', \"timestamp\") AS \"h\" FROM \"dataset\") GROUP BY \"service\", \"h\" ORDER BY \"h\", \"service\"",
+                        "metadata": [
+                            {
+                                "name": "service",
+                                "displayName": "Service"
+                            },
+                            {
+                                "name": "hour",
+                                "displayName": "Hour (UTC)"
+                            },
+                            {
+                                "name": "latencyP95Ms",
+                                "displayName": "Latency p95",
+                                "shape": "milliseconds"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "heatmap",
+                            "encoding": {
+                                "x": {
+                                    "field": "hour",
+                                    "type": "nominal",
+                                    "title": "Hour (UTC)"
+                                },
+                                "y": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                },
+                                "color": {
+                                    "field": "latencyP95Ms",
+                                    "type": "quantitative",
+                                    "title": "Latency p95"
+                                }
+                            },
+                            "style": {
+                                "colorScheme": "health",
+                                "heatmapCellBorderWidth": 1,
+                                "cartesianXAxisLabelRotation": -45
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f2e1b025-09fc-4c33-9180-5d0d0387337a",
+                "x": 0,
+                "y": 7,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests per Minute",
+                    "description": "Throughput of every service, stacked",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceMetrics]}}",
+                        "name": "serviceMetrics",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "requestsPerMin"
+                                ],
+                                "seriesColumn": "service",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "requestsPerMin",
+                                    "type": "quantitative",
+                                    "title": "Requests/min"
+                                },
+                                "series": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianAreaGradient": true,
+                                "cartesianSymbol": "none",
+                                "legendPosition": "right"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b2335742-1817-42a9-a238-bd939cb44404",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Service Details",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "service",
+                                    "state",
+                                    "team",
+                                    "tier",
+                                    "region",
+                                    "latencyP95Ms",
+                                    "requestsPerMin",
+                                    "errorRatePercent",
+                                    "availabilityPercent",
+                                    "hosts"
+                                ],
+                                "hiddenColumns": [
+                                    "serviceId",
+                                    "provider",
+                                    "latitude",
+                                    "longitude",
+                                    "sloTargetPercent",
+                                    "errorBudgetRemainingPercent"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "service",
+                                        "title": "Service",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "team",
+                                        "title": "Team",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "tier",
+                                        "title": "Tier",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Tier 1": "#206bc4",
+                                                "Tier 2": "#4299e1",
+                                                "Tier 3": "#9ba3af"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "latencyP95Ms",
+                                        "title": "Latency p95",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " ms",
+                                            "thresholds": [
+                                                {
+                                                    "to": 300,
+                                                    "color": "#2fb344"
+                                                },
+                                                {
+                                                    "to": 600,
+                                                    "color": "#f59f00"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#d63939"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "requestsPerMin",
+                                        "title": "Requests/min",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#206bc4"
+                                        }
+                                    },
+                                    {
+                                        "field": "errorRatePercent",
+                                        "title": "Error rate",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": "%",
+                                            "thresholds": [
+                                                {
+                                                    "to": 0.5,
+                                                    "color": "#2fb344"
+                                                },
+                                                {
+                                                    "to": 2,
+                                                    "color": "#f59f00"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#d63939"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "availabilityPercent",
+                                        "title": "Availability (30 days)",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 3,
+                                            "suffix": "%"
+                                        }
+                                    },
+                                    {
+                                        "field": "hosts",
+                                        "title": "Hosts",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "state",
+                                    "colors": {
+                                        "error": "rgba(214,57,57,0.15)",
+                                        "warning": "rgba(245,159,0,0.15)"
+                                    }
+                                },
+                                "richTableSort": {
+                                    "field": "errorRatePercent",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6803de3e-c3e2-4a01-8edd-53c37ff0bfec",
+                "x": 0,
+                "y": 15,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Host Health",
+                    "description": "Current health of every host, grouped by region",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[hostHealth]}}",
+                        "name": "hostHealth",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Hosts]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-blocks",
+                        "config": {
+                            "data-stream-blocks": {
+                                "labelColumn": "host",
+                                "stateColumn": "state",
+                                "linkColumn": "none",
+                                "columns": 4
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "host",
+                                    "type": "nominal",
+                                    "title": "Host"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "State"
+                                },
+                                "group": {
+                                    "field": "region",
+                                    "type": "nominal",
+                                    "title": "Region"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 8,
+                                "statusGridSecondaryTemplate": "Disk {{diskPercent}}"
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "state",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "state"
+                            ]
+                        },
+                        "frequency": 15
+                    }
+                }
+            }
+        ]
+    }
+}
