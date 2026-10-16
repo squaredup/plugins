@@ -91,14 +91,21 @@ const iso = (t) => new Date(t).toISOString();
 
 // Objects the tile is scoped to; falls back to everything of that kind
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
+// Ids of other kinds (e.g. a Service scoping a host stream) are ignored here
 const scoped = (items) => {
-    const ids = new Set((context.objects || []).map((o) => unwrap(o.rawId)));
+    const known = new Set(items.map((i) => i.id));
+    const ids = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => known.has(id)));
     return ids.size ? items.filter((i) => ids.has(i.id)) : items;
 };
 const byId = (items) => Object.fromEntries(items.map((i) => [i.id, i]));
 const services = byId(model.services);
 const regions = byId(model.regions);
 const teams = byId(model.teams);
+
+// Host, deployment and ticket streams can also be scoped to services (the Service
+// perspective); rows are then narrowed to those services
+const serviceFilter = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => services[id]));
+const forService = (serviceId) => serviceFilter.size === 0 || serviceFilter.has(serviceId);
 
 // Golden signals for a service at time t
 const stress = (s, t) => Math.min(1, serviceImpact(s.id, t) + blip(s.id, t));
@@ -143,7 +150,7 @@ const hostState = (m) =>
     m.diskPercent >= 90 || m.cpuPercent >= 90 ? "error"
         : m.diskPercent >= 80 || m.cpuPercent >= 75 || m.memoryPercent >= 85 ? "warning"
           : "success";
-result = scoped(model.hosts).map((h, i) => {
+result = scoped(model.hosts).filter((h) => forService(h.service)).map((h, i) => {
     const m = metricsAt(h, NOW);
     const region = regions[h.region];
     return {

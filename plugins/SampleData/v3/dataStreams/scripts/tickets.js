@@ -91,14 +91,21 @@ const iso = (t) => new Date(t).toISOString();
 
 // Objects the tile is scoped to; falls back to everything of that kind
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
+// Ids of other kinds (e.g. a Service scoping a host stream) are ignored here
 const scoped = (items) => {
-    const ids = new Set((context.objects || []).map((o) => unwrap(o.rawId)));
+    const known = new Set(items.map((i) => i.id));
+    const ids = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => known.has(id)));
     return ids.size ? items.filter((i) => ids.has(i.id)) : items;
 };
 const byId = (items) => Object.fromEntries(items.map((i) => [i.id, i]));
 const services = byId(model.services);
 const regions = byId(model.regions);
 const teams = byId(model.teams);
+
+// Host, deployment and ticket streams can also be scoped to services (the Service
+// perspective); rows are then narrowed to those services
+const serviceFilter = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => services[id]));
+const forService = (serviceId) => serviceFilter.size === 0 || serviceFilter.has(serviceId);
 
 // Golden signals for a service at time t
 const stress = (s, t) => Math.min(1, serviceImpact(s.id, t) + blip(s.id, t));
@@ -184,11 +191,12 @@ for (const c of scoped(model.customers)) {
             const priority = pick(rand(`${key}:p`), priorities);
             const category = categoryList[Math.floor(rand(`${key}:c`) * categoryList.length)];
             const service = servicePool[Math.floor(rand(`${key}:s`) * servicePool.length)];
+            if (!forService(service.id)) continue;
             rows.push(ticket(c, key, opened, priority, category, service, 0.1 + Math.pow(rand(`${key}:res`), 2)));
         }
     }
     // Tickets raised by customers hit by the incident
-    if (incident.affectedCustomers.includes(c.id)) {
+    if (incident.affectedCustomers.includes(c.id) && forService(incident.service)) {
         const opened = incidentStart + (12 + rand(`${c.id}:inc`) * 25) * MIN;
         if (opened >= windowStart) {
             rows.push({
