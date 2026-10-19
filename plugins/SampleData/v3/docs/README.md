@@ -1,4 +1,4 @@
-Explore SquaredUp before connecting your own tools. This plugin creates **Lumora**, a fictional software company with services, hosts, release pipelines and customers, and fills a set of ready-made dashboards with realistic data.
+Explore SquaredUp before connecting your own tools. This plugin creates a fictional software company with services, hosts, release pipelines and customers, and fills a set of ready-made dashboards with realistic data.
 
 > ⚠️ All data is generated. Nothing here reflects a real system, and the plugin never connects to your environment.
 
@@ -13,8 +13,6 @@ There is nothing to configure.
 ## Configuration fields
 
 This plugin has no configuration fields.
-
-On save, the plugin loads the sample company model. If that fails, check that SquaredUp can reach `raw.githubusercontent.com`.
 
 ## What this plugin monitors
 
