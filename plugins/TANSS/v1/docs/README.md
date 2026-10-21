@@ -26,7 +26,7 @@ On save, the plugin checks the connection by listing technicians and then checks
 - **Technician workload**: tickets per technician, current availability, and working, pause and overtime totals.
 - **Time tracking**: clock-in, clock-out and pause events recorded by technicians.
 
-The out-of-the-box dashboards include a **TANSS Overview** plus a perspective for each **Technician** and **Company**.
+The out-of-the-box dashboards include an **Overview**, plus **Technician Workload** and **Company Tickets** perspectives.
 
 ## Data streams
 
