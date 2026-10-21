@@ -138,7 +138,7 @@ const rows = [];
 const today = Math.floor(NOW / DAY);
 for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
     const s = services[p.service];
-    for (let day = Math.floor(windowStart / DAY); day <= today; day++) {
+    for (let day = Math.floor(windowStart / DAY); day <= Math.min(today, Math.floor((windowEnd - 1) / DAY)); day++) {
         const weekday = new Date(day * DAY).getUTCDay();
         const rate = weekday === 0 || weekday === 6 ? p.deploysPerDay * 0.2 : p.deploysPerDay;
         const count = Math.floor(rate + rand(`${p.id}:count:${day}`));
@@ -146,7 +146,7 @@ for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
             const key = `${p.id}:${day}:${n}`;
             // Deploys land in working hours, 08:00-18:00 UTC
             const at = day * DAY + (8 + rand(`${key}:at`) * 10) * HOUR;
-            if (at < windowStart || at > NOW - 30 * MIN) continue;
+            if (at < windowStart || at > Math.min(windowEnd, NOW - 30 * MIN)) continue;
             const failed = rand(`${key}:fail`) < p.failureRate;
             const changeFailure = !failed && rand(`${key}:cf`) < p.failureRate * 0.6;
             rows.push({
@@ -169,7 +169,7 @@ for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
     }
     // The release that started the incident
     const releaseAt = incidentStart - 6 * MIN;
-    if (p.id === incident.pipeline && releaseAt >= windowStart) {
+    if (p.id === incident.pipeline && releaseAt >= windowStart && releaseAt <= windowEnd) {
         rows.push({
             timestamp: iso(releaseAt),
             deploymentId: `${p.id}-incident`,

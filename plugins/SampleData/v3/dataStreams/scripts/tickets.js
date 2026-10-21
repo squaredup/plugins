@@ -151,7 +151,7 @@ const pick = (r, list) => {
     }
     return list[list.length - 1];
 };
-const ticket = (c, key, opened, priority, category, service, resolveFactor) => {
+const ticket = (c, seq, key, opened, priority, category, service, resolveFactor) => {
     const resolution = priority.slaMinutes * resolveFactor;
     const age = (NOW - opened) / MIN;
     const resolved = age > resolution;
@@ -159,7 +159,7 @@ const ticket = (c, key, opened, priority, category, service, resolveFactor) => {
     const breached = elapsed > priority.slaMinutes;
     const status = resolved ? (age > resolution + 2 * DAY / MIN ? "Closed" : "Resolved") : age < 30 ? "New" : "In Progress";
     return {
-        ticketId: `LUM-${10000 + Math.floor(rand(key) * 89999)}`,
+        ticketId: `LUM-${seq}`,
         openedAt: iso(opened),
         customerId: c.id,
         customer: c.name,
@@ -178,7 +178,9 @@ const ticket = (c, key, opened, priority, category, service, resolveFactor) => {
 const rows = [];
 const today = Math.floor(NOW / DAY);
 for (const c of scoped(model.customers)) {
-    for (let day = Math.floor(windowStart / DAY); day <= today; day++) {
+    // Unique, stable ticket numbers: day, customer and per-day index
+    const ci = model.customers.indexOf(c);
+    for (let day = Math.floor(windowStart / DAY); day <= Math.min(today, Math.floor((windowEnd - 1) / DAY)); day++) {
         const weekday = new Date(day * DAY).getUTCDay();
         const rate = ratePerDay[c.plan] * (weekday === 0 || weekday === 6 ? 0.25 : 1);
         const count = Math.floor(rate + rand(`${c.id}:tickets:${day}`));
@@ -187,20 +189,20 @@ for (const c of scoped(model.customers)) {
             // Business-hours bias for the day x hour heatmap
             const hour = 7 + Math.floor(Math.pow(rand(`${key}:hour`), 0.9) * 12);
             const opened = day * DAY + hour * HOUR + rand(`${key}:min`) * HOUR;
-            if (opened < windowStart || opened > NOW) continue;
+            if (opened < windowStart || opened > Math.min(windowEnd, NOW)) continue;
             const priority = pick(rand(`${key}:p`), priorities);
             const category = categoryList[Math.floor(rand(`${key}:c`) * categoryList.length)];
             const service = servicePool[Math.floor(rand(`${key}:s`) * servicePool.length)];
             if (!forService(service.id)) continue;
-            rows.push(ticket(c, key, opened, priority, category, service, 0.1 + Math.pow(rand(`${key}:res`), 2)));
+            rows.push(ticket(c, (day % 10000) * 200 + ci * 10 + n, key, opened, priority, category, service, 0.1 + Math.pow(rand(`${key}:res`), 2)));
         }
     }
     // Tickets raised by customers hit by the incident
     if (incident.affectedCustomers.includes(c.id) && forService(incident.service)) {
         const opened = incidentStart + (12 + rand(`${c.id}:inc`) * 25) * MIN;
-        if (opened >= windowStart) {
+        if (opened >= windowStart && opened <= windowEnd) {
             rows.push({
-                ...ticket(c, `${c.id}:incident`, opened, priorities[0], "Performance", services[incident.service], 9),
+                ...ticket(c, (Math.floor(opened / DAY) % 10000) * 200 + ci * 10 + 9, `${c.id}:incident`, opened, priorities[0], "Performance", services[incident.service], 9),
                 category: "Payments Failing",
             });
         }

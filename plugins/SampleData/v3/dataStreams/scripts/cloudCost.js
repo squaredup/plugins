@@ -144,7 +144,7 @@ const rows = [];
 const today = Math.floor(NOW / DAY);
 for (const s of scoped(model.services)) {
     const dailyBudget = (s.monthlyCost * 1.08) / 30;
-    for (let day = Math.floor(windowStart / DAY); day <= today; day++) {
+    for (let day = Math.floor(windowStart / DAY); day <= Math.min(today, Math.floor((windowEnd - 1) / DAY)); day++) {
         // Search has a cost anomaly: an index rebuild left extra nodes running for the last 9 days
         const anomaly = s.id === "search-service" && day > today - 9 ? 1.65 : 1;
         // Today is a partial day
@@ -159,8 +159,8 @@ for (const s of scoped(model.services)) {
                 team: teams[s.team].name,
                 provider: s.provider,
                 category: c.name,
-                costUsd: round(((s.monthlyCost / 30) * c.share * compute * (0.9 + 0.2 * rand(key))) * partial),
-                budgetUsd: round(dailyBudget * c.share * partial),
+                costUsd: (s.monthlyCost / 30) * c.share * compute * (0.9 + 0.2 * rand(key)) * partial,
+                budgetUsd: dailyBudget * c.share * partial,
             });
         }
     }

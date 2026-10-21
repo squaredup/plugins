@@ -148,7 +148,7 @@ for (const h of scoped(model.hosts).filter((h) => forService(h.service))) {
             service: s.name,
             cpuPercent: round(Math.min(99, h.cpu * (0.8 + 0.4 * load(t)) * (1 + 0.25 * w) + 45 * k), 1),
             memoryPercent: round(Math.min(99, h.memory * (1 + 0.06 * w) + 12 * k), 1),
-            diskPercent: round(Math.min(99, h.disk + growth + 1.5 * w), 1),
+            diskPercent: round(Math.max(0, Math.min(99, h.disk + growth + 1.5 * w)), 1),
             networkMbps: round((s.requestsPerMin / 40) * load(t) * (1 + 0.3 * w) * (1 + k), 1),
         });
     }
