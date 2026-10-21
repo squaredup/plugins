@@ -1,0 +1,28 @@
+{
+    "name": "timeStatistics",
+    "displayName": "Time Statistics",
+    "description": "Working, pause and overtime totals per technician for the selected period",
+    "tags": ["Time Tracking"],
+    "baseDataSourceName": "httpRequestScoped",
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Technician"] } },
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth", "thisQuarter"],
+    "defaultTimeframe": "last7days",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "timestamps/statistics",
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.unixStart}}" },
+            { "key": "till", "value": "{{timeframe.unixEnd}}" },
+            { "key": "employeeIds", "value": "{{objects.map(o => o.rawId).join(',')}}" }
+        ],
+        "postRequestScript": "timeStatistics.js",
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.text" }
+    },
+    "metadata": [
+        { "name": "technicianId", "displayName": "Technician ID", "shape": "string", "visible": false },
+        { "name": "technicianName", "displayName": "Technician", "role": "label" },
+        { "sourceId": "technicianId", "sourceType": "Technician", "name": "technicianName" },
+        { "pattern": ".*" }
+    ]
+}

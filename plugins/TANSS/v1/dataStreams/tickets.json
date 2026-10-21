@@ -1,0 +1,78 @@
+{
+    "name": "tickets",
+    "displayName": "Tickets",
+    "description": "Open tickets from a TANSS ticket list (assigned, unassigned, repair, unidentified or project tickets)",
+    "tags": ["Tickets"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "matches": "none",
+    "timeframes": false,
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "tickets/{{list || 'technician'}}",
+        "postRequestScript": "tickets.js",
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.text" }
+    },
+    "ui": [
+        {
+            "type": "radio",
+            "name": "list",
+            "label": "Ticket list",
+            "defaultValue": "technician",
+            "options": [
+                { "value": "technician", "label": "Assigned to technicians" },
+                { "value": "general", "label": "Unassigned" },
+                { "value": "repair", "label": "Repair" },
+                { "value": "notIdentified", "label": "Not identified" },
+                { "value": "projects", "label": "Projects" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "company",
+            "label": "Company (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Company"] } }
+        },
+        {
+            "type": "objects",
+            "name": "technician",
+            "label": "Technician (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Technician"] } }
+        }
+    ],
+    "defaultShaping": { "sort": { "by": [["createdAt", "asc"]] } },
+    "metadata": [
+        { "name": "ticketId", "displayName": "Ticket ID", "shape": "string", "role": "id" },
+        { "name": "title", "displayName": "Title", "role": "label" },
+        { "name": "statusName", "displayName": "Status" },
+        { "name": "typeName", "displayName": "Type" },
+        { "name": "companyId", "displayName": "Company ID", "shape": "string", "visible": false },
+        { "name": "companyName", "displayName": "Company" },
+        { "sourceId": "companyId", "sourceType": "Company", "name": "companyName" },
+        { "name": "technicianId", "displayName": "Technician ID", "shape": "string", "visible": false },
+        { "name": "technicianName", "displayName": "Technician" },
+        { "sourceId": "technicianId", "sourceType": "Technician", "name": "technicianName" },
+        { "name": "createdAt", "displayName": "Created", "shape": "date" },
+        { "name": "deadline", "displayName": "Deadline", "shape": "date" },
+        { "name": "dueDate", "displayName": "Due Date", "shape": "date" },
+        {
+            "name": "ageDays",
+            "displayName": "Age (days)",
+            "computed": true,
+            "shape": "number",
+            "valueExpression": "{{ $['createdAt'] ? Math.floor((Date.now() - new Date($['createdAt']).getTime()) / 86400000) : null }}"
+        },
+        {
+            "name": "overdue",
+            "displayName": "Overdue",
+            "computed": true,
+            "valueExpression": "{{ $['deadline'] && new Date($['deadline']).getTime() < Date.now() ? 'Overdue' : 'On time' }}",
+            "shape": ["state", { "map": { "error": ["Overdue"], "success": ["On time"] } }]
+        },
+        { "name": "estimatedMinutes", "displayName": "Estimated Effort", "shape": "minutes" },
+        { "name": "statusId", "displayName": "Status ID", "shape": "string", "visible": false },
+        { "name": "typeId", "displayName": "Type ID", "shape": "string", "visible": false },
+        { "name": "isProject", "displayName": "Project", "shape": "boolean", "visible": false },
+        { "name": "isRepair", "displayName": "Repair", "shape": "boolean", "visible": false }
+    ]
+}

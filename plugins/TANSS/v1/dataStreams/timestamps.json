@@ -1,0 +1,38 @@
+{
+    "name": "timestamps",
+    "displayName": "Timestamps",
+    "description": "Clock-in, clock-out and pause events recorded by technicians",
+    "tags": ["Time Tracking"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "matches": "none",
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth"],
+    "defaultTimeframe": "last7days",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "timestamps",
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.unixStart}}" },
+            { "key": "till", "value": "{{timeframe.unixEnd}}" }
+        ],
+        "postRequestScript": "timestamps.js",
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.text" }
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "technician",
+            "label": "Technician (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Technician"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "technicianId", "displayName": "Technician ID", "shape": "string", "visible": false },
+        { "name": "technicianName", "displayName": "Technician", "role": "label" },
+        { "sourceId": "technicianId", "sourceType": "Technician", "name": "technicianName" },
+        { "name": "state", "displayName": "Event" },
+        { "name": "timestampId", "displayName": "Timestamp ID", "shape": "string", "visible": false },
+        { "pattern": ".*" }
+    ]
+}
