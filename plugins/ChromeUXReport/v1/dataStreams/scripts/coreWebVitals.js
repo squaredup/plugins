@@ -13,11 +13,12 @@ const record = data?.record || {};
 const key = record.key || {};
 const periodEnd = toDate(record.collectionPeriod?.lastDate);
 
+// A metric without a 75th percentile can't be rated, so it is left out rather than shown as Poor
 result = Object.entries(metrics)
-    .filter(([metricKey]) => record.metrics?.[metricKey])
+    .filter(([metricKey]) => Number.isFinite(Number(record.metrics?.[metricKey]?.percentiles?.p75)))
     .map(([metricKey, metric]) => {
         const values = record.metrics[metricKey];
-        const p75 = Number(values.percentiles?.p75);
+        const p75 = Number(values.percentiles.p75);
         const bins = values.histogram || [];
         return {
             target: key.url || key.origin,

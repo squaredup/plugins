@@ -26,7 +26,7 @@ result = Object.entries(metrics)
         return periods.map((period, i) => {
             const periodEnd = toDate(period.lastDate);
             // Weeks with too little traffic come back as null
-            if (p75s[i] === null || p75s[i] === undefined) return null;
+            if (!Number.isFinite(Number(p75s[i])) || p75s[i] === null) return null;
             if ((start && periodEnd < start) || (end && periodEnd > end)) return null;
             const p75 = Number(p75s[i]);
             return {
