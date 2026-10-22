@@ -14,3 +14,4 @@ result = (data.apps || []).map((a) => ({
     createdAt: a.created_at,
     updatedAt: a.updated_at
 }));
+

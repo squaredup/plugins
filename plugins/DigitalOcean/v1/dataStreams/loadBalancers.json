@@ -2,7 +2,10 @@
     "name": "loadBalancers",
     "displayName": "Load Balancers",
     "description": "Load balancers with their status, IP address, region, size and number of backend Droplets",
-    "tags": ["Network", "Inventory"],
+    "tags": [
+        "Network",
+        "Inventory"
+    ],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
@@ -10,33 +13,135 @@
         "postRequestScript": "loadBalancers.js",
         "paging": {
             "mode": "nextUrl",
-            "pageSize": { "realm": "queryArg", "path": "per_page", "value": "200" },
-            "in": { "realm": "payload", "path": "links.pages.next" }
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "200"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.pages.next"
+            }
         }
     },
     "matches": "none",
     "metadata": [
-        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
-        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
-        { "name": "status", "displayName": "Status", "shape": "string" },
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
         {
             "name": "health",
             "displayName": "Health",
             "computed": true,
             "valueExpression": "{{ $['status'] }}",
-            "shape": ["state", { "map": { "success": ["active"], "warning": ["new"], "error": ["errored"] } }]
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "active"
+                        ],
+                        "warning": [
+                            "new"
+                        ],
+                        "error": [
+                            "errored"
+                        ]
+                    }
+                }
+            ]
         },
-        { "name": "ip", "displayName": "IP Address", "shape": "string" },
-        { "name": "region", "displayName": "Region", "shape": "string" },
-        { "name": "type", "displayName": "Type", "shape": "string" },
-        { "name": "network", "displayName": "Network", "shape": "string" },
-        { "name": "size", "displayName": "Size", "shape": "string" },
-        { "name": "sizeUnit", "displayName": "Nodes", "shape": "number" },
-        { "name": "backendDroplets", "displayName": "Backend Droplets", "shape": "number" },
-        { "name": "targetTag", "displayName": "Target Tag", "shape": "string" },
-        { "name": "vpcUuid", "displayName": "VPC ID", "shape": "string", "visible": false },
-        { "name": "createdAt", "displayName": "Created", "shape": "date" },
-        { "sourceId": "id", "sourceType": "Load Balancer", "name": "name" }
+        {
+            "name": "ip",
+            "displayName": "IP Address",
+            "shape": "string"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "network",
+            "displayName": "Network",
+            "shape": "string"
+        },
+        {
+            "name": "size",
+            "displayName": "Size",
+            "shape": "string"
+        },
+        {
+            "name": "sizeUnit",
+            "displayName": "Nodes",
+            "shape": "number"
+        },
+        {
+            "name": "backendDroplets",
+            "displayName": "Backend Droplets",
+            "shape": "number"
+        },
+        {
+            "name": "primaryBackendDropletId",
+            "displayName": "Primary Backend Droplet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "targetTag",
+            "displayName": "Target Tag",
+            "shape": "string"
+        },
+        {
+            "name": "vpcUuid",
+            "displayName": "VPC ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Load Balancer",
+            "name": "name"
+        }
     ],
-    "timeframes": false
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "objects",
+            "name": "vpc",
+            "label": "VPC (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "VPC"
+                    ]
+                }
+            }
+        }
+    ]
 }

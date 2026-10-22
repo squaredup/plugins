@@ -19,3 +19,10 @@ result = (data.kubernetes_clusters || []).map((c) => {
         updatedAt: c.updated_at
     };
 });
+
+// Optional Project/VPC object pickers arrive at context.config.<name> as arrays whose rawId is a single-element array; empty means no filter
+const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
+for (const [param, column] of Object.entries({ vpc: "vpcUuid" })) {
+    const ids = new Set((context.config?.[param] || []).map((o) => unwrap(o.rawId)).filter(Boolean));
+    if (ids.size) result = result.filter((row) => ids.has(row[column]));
+}

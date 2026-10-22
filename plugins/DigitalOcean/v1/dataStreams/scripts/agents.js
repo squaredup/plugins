@@ -12,3 +12,10 @@ result = (data.agents || []).map((a) => ({
     createdAt: a.created_at,
     updatedAt: a.updated_at
 }));
+
+// Optional Project/VPC object pickers arrive at context.config.<name> as arrays whose rawId is a single-element array; empty means no filter
+const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
+for (const [param, column] of Object.entries({ project: "projectId" })) {
+    const ids = new Set((context.config?.[param] || []).map((o) => unwrap(o.rawId)).filter(Boolean));
+    if (ids.size) result = result.filter((row) => ids.has(row[column]));
+}
