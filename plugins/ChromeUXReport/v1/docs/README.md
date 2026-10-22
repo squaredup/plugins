@@ -32,7 +32,7 @@ If you also use the Google Search Console plugin, you can merge its pages with t
 3. Set the left node's **Type** to `CrUX Page` and the right node's **Type** to `page`, then click **Next**.
 4. Set both properties to `name`, then click **Preview** and **Save and run**.
 
-Both plugins name a page by its full URL, so pages listed the same way in your sitemap and in Search Console merge. The Core Web Vitals data streams then work on Search Console pages too.
+Both plugins name a page by its full URL, so pages listed the same way in your sitemap and in Search Console merge. The Core Web Vitals data streams then work on Search Console pages too. Without the rule, Search Console pages can still be picked in a tile, but they return no Core Web Vitals.
 
 ## What this plugin monitors
 
@@ -47,11 +47,11 @@ Both plugins name a page by its full URL, so pages listed the same way in your s
 
 The out-of-the-box dashboards are:
 
-- **Overview:** the latest 28-day snapshot, with the Core Web Vitals pass or fail assessment.
+- **Overview:** the latest 28-day snapshot, with the Core Web Vitals pass or fail assessment and what changed since last month.
 - **Trends:** 40 weeks of every metric.
-- **LCP diagnostics:** why LCP is slow and where the quick wins are.
-- **Competitors:** your website against each competitor.
-- **Key pages:** a leaderboard of your key pages.
+- **LCP diagnostics:** why LCP is slow and what to fix first.
+- **Competitors:** your website against each competitor, and who is improving.
+- **Key pages:** a leaderboard of your key pages, showing which ones have too little traffic to report.
 - **Page:** a perspective on any single page, against its whole website.
 
 ## Data streams
@@ -76,6 +76,6 @@ The out-of-the-box dashboards are:
 - **Up to 40 weeks of history:** the CrUX History API keeps 40 weekly periods, so longer timeframes aren't offered.
 - **One request per page:** each page in a tile is one API request, and CrUX allows about 150 requests a minute for each API key, so avoid tiles that cover hundreds of pages at once. Results are cached for 6 hours (24 hours for history), because CrUX only publishes new data daily and weekly, so busy dashboards don't add requests.
 - **Sitemaps:** only pages on the sitemap's own website are imported, up to **Maximum pages**. Child and nested sitemaps are followed, but one import reads at most about 200 sitemap files, so a site split into hundreds of small sitemaps is only partly imported. Point **Sitemap URL** at the child sitemap that lists your most important pages instead.
-- **Sites that block cloud servers:** some websites' bot protection refuses requests from cloud providers, so the sitemap fails with "Access Denied". Add the data source **Via relay agent** so requests come from your own network, or allowlist SquaredUp on the website's CDN.
-- **Changing the sitemap:** pages from a previous sitemap can stay listed until a later import clears them.
+- **Sites that block cloud servers:** some websites' bot protection refuses requests from cloud providers, so the sitemap fails with "Access Denied". Add the data source **Via relay agent** so requests come from your own network, which the website already trusts, or allowlist SquaredUp on the website's CDN.
+- **Changing the sitemap:** pages from the previous sitemap can stay listed for a short time after the next import, until SquaredUp clears them.
 - **Read-only:** the plugin only reads public CrUX data and your sitemap.
