@@ -1,0 +1,161 @@
+{
+    "name": "deploymentTargets",
+    "displayName": "Deployment Targets",
+    "description": "Deployment targets in a space with their current health status, roles and environments",
+    "tags": [
+        "Infrastructure",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/machines",
+        "getArgs": [
+            {
+                "key": "environmentIds",
+                "value": "{{ object.rawId.startsWith('Environments-') ? object.rawId : null }}"
+            },
+            {
+                "key": "ids",
+                "value": "{{ object.rawId.startsWith('Machines-') ? object.rawId : null }}"
+            },
+            {
+                "key": "tenantIds",
+                "value": "{{ object.rawId.startsWith('Tenants-') ? object.rawId : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "take",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "Items"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "skip"
+            }
+        },
+        "postRequestScript": "deploymentTargets.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Environment",
+                "Deployment Target",
+                "Tenant"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "Id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "Name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['IsDisabled'] ? 'Disabled' : $['HealthStatus'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Healthy"
+                        ],
+                        "warning": [
+                            "HasWarnings"
+                        ],
+                        "error": [
+                            "Unhealthy",
+                            "Unavailable"
+                        ],
+                        "unknown": [
+                            "Unknown"
+                        ],
+                        "unmonitored": [
+                            "Disabled"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "HealthStatus",
+            "displayName": "Health Status",
+            "shape": "string"
+        },
+        {
+            "name": "StatusSummary",
+            "displayName": "Status Summary",
+            "shape": "string"
+        },
+        {
+            "name": "IsDisabled",
+            "displayName": "Disabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "Roles",
+            "displayName": "Target Tags",
+            "shape": "string"
+        },
+        {
+            "name": "EnvironmentIds",
+            "displayName": "Environment IDs",
+            "shape": "string"
+        },
+        {
+            "name": "TenantIds",
+            "displayName": "Tenant IDs",
+            "shape": "string"
+        },
+        {
+            "name": "CommunicationStyle",
+            "displayName": "Communication Style",
+            "shape": "string"
+        },
+        {
+            "name": "OperatingSystem",
+            "displayName": "Operating System",
+            "shape": "string"
+        },
+        {
+            "name": "ShellName",
+            "displayName": "Shell",
+            "shape": "string"
+        },
+        {
+            "name": "SpaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "Id",
+            "sourceType": "Deployment Target",
+            "name": "Name"
+        }
+    ],
+    "timeframes": false
+}

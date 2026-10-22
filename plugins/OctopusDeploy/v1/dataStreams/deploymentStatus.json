@@ -1,0 +1,181 @@
+{
+    "name": "deploymentStatus",
+    "displayName": "Deployment Status",
+    "description": "Latest deployment of each project to each environment and tenant, for a space, project, environment or tenant",
+    "tags": [
+        "Deployments"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/dashboard",
+        "postRequestScript": "deploymentStatus.js",
+        "getArgs": [
+            {
+                "key": "projectId",
+                "value": "{{ object.rawId.startsWith('Projects-') ? object.rawId : null }}"
+            }
+        ]
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Project",
+                "Environment",
+                "Tenant"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "projectGroupName",
+            "displayName": "Project Group",
+            "shape": "string"
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "environmentName",
+            "displayName": "Environment",
+            "shape": "string"
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "releaseVersion",
+            "displayName": "Release",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Success"
+                        ],
+                        "warning": [
+                            "Canceled",
+                            "Cancelling",
+                            "AwaitingIntervention"
+                        ],
+                        "error": [
+                            "Failed",
+                            "TimedOut"
+                        ],
+                        "unknown": [
+                            "Queued",
+                            "Executing"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "completedTime",
+            "displayName": "Completed",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "startTime",
+            "displayName": "Started",
+            "shape": "date"
+        },
+        {
+            "name": "queueTime",
+            "displayName": "Queued",
+            "shape": "date"
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": "seconds"
+        },
+        {
+            "name": "hasWarningsOrErrors",
+            "displayName": "Has warnings or errors",
+            "shape": "boolean"
+        },
+        {
+            "name": "hasPendingInterruptions",
+            "displayName": "Awaiting manual intervention",
+            "shape": "boolean"
+        },
+        {
+            "name": "errorMessage",
+            "displayName": "Error message",
+            "shape": "string"
+        },
+        {
+            "name": "environmentSortOrder",
+            "displayName": "Environment sort order",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "environmentId",
+            "displayName": "Environment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "taskId",
+            "displayName": "Task ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "deploymentId",
+            "displayName": "Deployment ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "spaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "projectId",
+            "sourceType": "Project",
+            "name": "projectName"
+        },
+        {
+            "sourceId": "environmentId",
+            "sourceType": "Environment",
+            "name": "environmentName"
+        }
+    ],
+    "timeframes": false
+}
