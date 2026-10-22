@@ -9,9 +9,117 @@
         "version": 1,
         "contents": [
             {
-                "i": "c19ddf1e-129e-4886-b229-61afcf5a2fe5",
+                "i": "2a28453a-61ac-49aa-b65d-1665cf93c2c2",
                 "x": 0,
                 "y": 0,
+                "w": 12,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Coverage",
+                    "description": "Every key page with its loading speed (LCP) on phone, colored by rating. Grey pages do not have enough phone traffic for Google to report on yet.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT page,\n  coalesce(rating, 'unknown') AS state,\n  CASE WHEN p75 IS NULL THEN 'Not enough traffic' ELSE CASE WHEN c.metric = 'CLS' THEN printf('%.2f', c.p75) WHEN c.p75 >= 1000 THEN printf('%.2f s', c.p75 / 1000) ELSE printf('%d ms', CAST(round(c.p75) AS BIGINT)) END END AS lcp\nFROM (SELECT CASE WHEN regexp_replace(k.name, '^https?://[^/]+', '') = '' THEN '/' ELSE regexp_replace(k.name, '^https?://[^/]+', '') END AS page, p.rating, p.p75, p.metric\nFROM keys k\nLEFT JOIN pages p ON rtrim(p.target, '/') = rtrim(k.name, '/') AND p.metric = 'LCP') c\nORDER BY p75 IS NULL, p75 DESC",
+                            "tables": [
+                                {
+                                    "tableName": "keys",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "timeframe": "none",
+                                        "scope": {
+                                            "scope": "{{scopes.[Key pages]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "pages",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Key pages]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "page",
+                                "displayName": "Page",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "state",
+                                "displayName": "Rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcp",
+                                "displayName": "LCP",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "page",
+                                    "type": "nominal",
+                                    "title": "Page"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                },
+                                "value": {
+                                    "field": "lcp",
+                                    "type": "nominal",
+                                    "title": "LCP"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4d4c139c-1a2c-4d73-a6bd-14db587acfcb",
+                "x": 0,
+                "y": 2,
                 "w": 12,
                 "h": 4,
                 "moved": false,
@@ -20,7 +128,7 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Key pages",
-                    "description": "Each key page on phone over the last 28 days, worst LCP first. Better and worse compare the page with the whole site. Pages without enough phone traffic are left out.",
+                    "description": "Loading speed (LCP), responsiveness (INP) and visual stability (CLS) for each key page on phone, slowest loading first, as met or beaten by 3 in 4 visits. Better and Worse compare the page with the whole site; pages without enough phone traffic are listed under Coverage.",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
@@ -241,100 +349,6 @@
                                         }
                                     }
                                 ]
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "e23c6760-4d33-4d08-9e6c-afccac3cde18",
-                "x": 0,
-                "y": 4,
-                "w": 12,
-                "h": 3,
-                "moved": false,
-                "static": false,
-                "z": 0,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "LCP by key page",
-                    "description": "Each key page's 75th percentile LCP on phone over the last 28 days, colored by its rating.",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "timeframe": "none",
-                    "dataStream": {
-                        "id": "datastream-sql",
-                        "dataSourceConfig": {
-                            "version": "2.0",
-                            "sql": "SELECT CASE WHEN regexp_replace(target, '^https?://[^/]+', '') = '' THEN '/' ELSE regexp_replace(target, '^https?://[^/]+', '') END AS page, rating AS state, CASE WHEN pages.metric = 'CLS' THEN printf('%.2f', pages.p75) WHEN pages.p75 >= 1000 THEN printf('%.2f s', pages.p75 / 1000) ELSE printf('%d ms', CAST(round(pages.p75) AS BIGINT)) END AS lcp\nFROM pages WHERE metric = 'LCP'\nORDER BY p75 DESC",
-                            "tables": [
-                                {
-                                    "tableName": "pages",
-                                    "config": {
-                                        "activePluginConfigIds": [
-                                            "{{configId}}"
-                                        ],
-                                        "dataStream": {
-                                            "id": "{{dataStreams.[coreWebVitals]}}",
-                                            "name": "coreWebVitals",
-                                            "pluginConfigId": "{{configId}}",
-                                            "dataSourceConfig": {
-                                                "level": "page",
-                                                "formFactor": "PHONE"
-                                            }
-                                        },
-                                        "scope": {
-                                            "scope": "{{scopes.[Key pages]}}",
-                                            "workspace": "{{workspaceId}}"
-                                        },
-                                        "timeframe": "none"
-                                    }
-                                }
-                            ]
-                        },
-                        "metadata": [
-                            {
-                                "name": "page",
-                                "displayName": "Page",
-                                "shape": "string",
-                                "role": "label"
-                            },
-                            {
-                                "name": "state",
-                                "displayName": "Rating",
-                                "shape": "string"
-                            },
-                            {
-                                "name": "lcp",
-                                "displayName": "LCP",
-                                "shape": "string"
-                            }
-                        ]
-                    },
-                    "vizSpec": {
-                        "version": "1.0",
-                        "visualization": {
-                            "chartType": "statusGrid",
-                            "encoding": {
-                                "label": {
-                                    "field": "page",
-                                    "type": "nominal",
-                                    "title": "Page"
-                                },
-                                "status": {
-                                    "field": "state",
-                                    "type": "nominal",
-                                    "title": "Rating"
-                                },
-                                "value": {
-                                    "field": "lcp",
-                                    "type": "nominal",
-                                    "title": "LCP"
-                                }
-                            },
-                            "style": {
-                                "statusGridColumnsPerRow": 4
                             }
                         }
                     }
