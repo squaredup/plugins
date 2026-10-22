@@ -32,6 +32,12 @@ const normalize = (text) => {
     return url;
 };
 
+// The website is the domain of the Website field when it's set (for a sitemap kept on a CDN or
+// another host), otherwise the sitemap's own domain. It covers www and every other subdomain.
+const website = normalize(config.website);
+const siteHost = bareHost((website || configured).hostname);
+const onSite = (url) => url.hostname === siteHost || url.hostname.endsWith("." + siteHost);
+
 const incoming = context.pagingContext ? String(context.pagingContext) : "";
 // Defaults cover state written by an older version of this script during an upgrade
 const state = {
@@ -40,45 +46,30 @@ const state = {
     skip: 0,
     page: 0,
     imported: 0,
-    siteHost: null,
+    origins: {},
     ...(incoming.includes("#crux=") ? JSON.parse(decodeURIComponent(incoming.split("#crux=")[1])) : {})
 };
 const current = incoming ? incoming.split("#")[0] : configured.href;
 const page = state.page + 1;
 const seen = new Set([...(state.seen || []), fingerprint(configured.href), fingerprint(current)]);
 
-// The site is the sitemap's own domain and its subdomains, so a blog. or help. sitemap listed
-// first still belongs to it, while a neighbor on a shared host such as github.io does not
-const onSite = (url, host) => url.hostname === host || url.hostname.endsWith("." + host);
-
 const isIndex = Boolean(data?.sitemapindex);
 const entries = [...[].concat(data?.urlset?.url || []), ...[].concat(data?.sitemapindex?.sitemap || [])]
     .map((entry) => normalize(first(entry?.loc)))
     .filter(Boolean);
 
-const sitemapUrls = [];
-const pageUrls = [];
+const children = [];
+const sitePages = [];
 for (const url of entries) {
     // In a page list, only files named like sitemaps are sitemaps, so a feed.xml page stays a page
     const isSitemap = isIndex || /sitemap[^/]*\.xml(\.gz)?$/i.test(url.pathname);
-    (isSitemap ? sitemapUrls : pageUrls).push(url);
-}
-
-// A sitemap hosted on a CDN lists none of its own pages, so the site comes from the pages instead
-let siteHost = state.siteHost;
-if (!siteHost && pageUrls.length) {
-    const ownHost = bareHost(configured.hostname);
-    siteHost = pageUrls.some((url) => onSite(url, ownHost))
-        ? ownHost
-        : bareHost(new URL(_.maxBy(Object.entries(_.countBy(pageUrls, (url) => url.origin)), ([, count]) => count)[0]).hostname);
-}
-const followHost = siteHost || bareHost(configured.hostname);
-
-const children = [];
-for (const url of sitemapUrls) {
+    if (!isSitemap) {
+        if (onSite(url)) sitePages.push(url);
+        continue;
+    }
     const key = fingerprint(url.href);
     // Gzipped sitemaps can't be read here, so only plain XML sitemaps are followed
-    if ((url.hostname === configured.hostname || onSite(url, followHost)) && !/\.gz$/i.test(url.pathname) && !seen.has(key)) {
+    if ((url.hostname === configured.hostname || onSite(url)) && !/\.gz$/i.test(url.pathname) && !seen.has(key)) {
         children.push(url.href);
         seen.add(key);
     }
@@ -86,15 +77,9 @@ for (const url of sitemapUrls) {
 
 const rows = new Map();
 const keyPages = lines(config.keyPages).map(normalize).filter(Boolean);
-if (siteHost && !state.siteHost) {
-    // The website is the sitemap's own origin when the sitemap is on the site, otherwise the busiest one
-    const origins = _.countBy(pageUrls.filter((url) => onSite(url, siteHost)), (url) => url.origin);
-    const origin = onSite(configured, siteHost) ? configured.origin : _.maxBy(Object.keys(origins), (key) => origins[key]);
-    rows.set(origin, { url: origin, sourceType: "CrUX Origin" });
-}
 if (page === 1) {
     for (const competitor of lines(config.competitors).map(normalize)) {
-        if (competitor && !onSite(competitor, followHost)) {
+        if (competitor && !onSite(competitor)) {
             rows.set(competitor.origin, { url: competitor.origin, sourceType: "CrUX Competitor" });
         }
     }
@@ -105,11 +90,12 @@ if (page === 1) {
 }
 
 const keyPageHrefs = new Set(keyPages.map((url) => url.href));
-const sitePages = siteHost ? pageUrls.filter((url) => onSite(url, siteHost)) : [];
 const room = Math.max(0, maxPages - state.imported);
 const chunk = sitePages.slice(state.skip, state.skip + Math.min(PAGES_PER_CHUNK, room));
+const origins = { ...state.origins };
 for (const url of chunk) {
     rows.set(url.href, { url: url.href, sourceType: "CrUX Page", pageGroup: keyPageHrefs.has(url.href) ? "Key page" : "Other page" });
+    origins[url.origin] = (origins[url.origin] || 0) + 1;
 }
 result = [...rows.values()];
 const imported = state.imported + chunk.length;
@@ -122,9 +108,13 @@ if (state.skip + PAGES_PER_CHUNK < sitePages.length) {
 
 if (queue.length && page < MAX_IMPORT_PAGES && imported < maxPages) {
     const [next, ...rest] = queue;
-    const nextState = { queue: rest, seen: [...seen], skip: next.skip, page, imported, siteHost };
+    const nextState = { queue: rest, seen: [...seen], skip: next.skip, page, imported, origins };
     pagingContext = next.u + "#crux=" + encodeURIComponent(JSON.stringify(nextState));
 } else {
     pagingContext = undefined;
-    if (!siteHost) result.push({ url: configured.origin, sourceType: "CrUX Origin" });
+    // The whole-site figures use the origin most pages are on, so a sitemap on example.com that
+    // lists www.example.com pages still reports on www.example.com
+    const busiest = _.maxBy(Object.keys(origins), (key) => origins[key]);
+    const origin = website ? website.origin : busiest || configured.origin;
+    result.push({ url: origin, sourceType: "CrUX Origin" });
 }

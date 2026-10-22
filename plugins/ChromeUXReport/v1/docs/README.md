@@ -15,17 +15,19 @@ You will need a **Google API key** from a Google Cloud project with the Chrome U
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ---------------- | -------- |
-| **Sitemap URL** | The full URL of your website's XML sitemap or sitemap index. Every page it lists is imported, and the website is taken from its host. | The `Sitemap:` line in your site's `robots.txt`. | Yes |
+| **Sitemap URL** | The full URL of your website's XML sitemap or sitemap index. Every page it lists on your website's domain is imported. | The `Sitemap:` line in your site's `robots.txt`. | Yes |
+| **Website** | Your website's origin, for example `https://www.example.com`. Only needed when the sitemap is on a different host from your pages, such as a CDN or a `sitemaps.` subdomain. | The address bar of your home page. | No |
 | **Maximum pages** | The most pages to import, 50,000 by default. CrUX only has data for pages with enough Chrome traffic, so most sites don't need more. | Your choice. | Yes |
 | **Key pages** | The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key pages** dashboard and don't count toward **Maximum pages**. | Your analytics or Search Console's top pages. | No |
 | **Competitor websites** | The origin of each competitor to benchmark against, one per line, for example `https://www.competitor.com`. | Your choice. | No |
 | **Google API key** | Authenticates every request to the Chrome UX Report API. | Google Cloud Console > **APIs & Services** > **Credentials**. | Yes |
 
-On save, the plugin runs three checks:
+On save, the plugin runs four checks:
 
 - **API key:** a bad key or a disabled API stops setup.
-- **Sitemap:** it must open and list at least one page or plain XML sitemap, or setup stops with the reason, such as a 404 or a website that blocks cloud servers.
-- **Website data:** if CrUX holds no data for the sitemap's website yet, you only get a warning, because new or quiet sites appear in CrUX once they have enough Chrome traffic. A sitemap hosted on a CDN always shows this warning, which is safe to ignore.
+- **Sitemap:** it must open and list at least one page on your website or a plain XML sitemap, or setup stops with the reason, such as a 404, a website that blocks cloud servers, or pages on another host that need the **Website** field.
+- **Gzipped sitemaps:** if the sitemap lists `.xml.gz` sitemaps, you get a warning that their pages will be skipped.
+- **Website data:** if CrUX holds no data for your website yet, you only get a warning, because new or quiet sites appear in CrUX once they have enough Chrome traffic.
 
 ## Use with Google Search Console
 
@@ -68,7 +70,7 @@ The out-of-the-box dashboards are:
 
 | Object type | API source | Represents |
 | ----------- | ---------- | ---------- |
-| **CrUX Origin** | The sitemap's own origin, or for a sitemap hosted on a CDN, the origin most of its pages use | The website. |
+| **CrUX Origin** | The **Website** field, or otherwise the origin most imported pages use | The website, used by the whole-site tiles. |
 | **CrUX Page** | Each `<loc>` in the sitemap and every sitemap it links to, plus any **Key pages** | A page on the website. Key pages have the property `pageGroup` set to `Key page`. |
 | **CrUX Competitor** | **Competitor websites** | A competitor website. |
 
@@ -83,7 +85,7 @@ The out-of-the-box dashboards are:
 - **Sitemaps:**
   - Pages on your website's domain and its subdomains, such as `www.example.com` and `blog.example.com`, are imported, up to **Maximum pages**. Pages on other domains are left out. Key pages don't count toward the limit, and any key page you list is imported whatever its address.
   - Child and nested sitemaps are followed when they're on the sitemap's own host or your website's domain, such as `sitemaps.example.com`. Others are skipped, and each sitemap is read only once.
-  - A sitemap hosted on a CDN still works, because the website is then taken from the pages it lists. The website data check during setup warns in that case, which is safe to ignore.
+  - If your sitemap is on a CDN or another host, set the **Website** field so its pages are recognized as yours. Otherwise setup stops, because none of the listed pages are on the sitemap's domain.
   - Gzipped sitemaps (`.xml.gz`) can't be read and are skipped. If your index lists only gzipped files, point **Sitemap URL** at a plain XML sitemap.
   - One import makes at most about 200 requests. Each sitemap file is one request, and so is every 5,000 pages of a large file. A site split into hundreds of small sitemaps is only partly imported, so point **Sitemap URL** at the sitemap that lists your most important pages instead.
 - **Sites that block cloud servers:** some websites' bot protection refuses requests from cloud providers, so the sitemap fails with "Access Denied". Add the data source **Via relay agent** so requests come from your own network, which the website already trusts, or allowlist SquaredUp on the website's CDN.
