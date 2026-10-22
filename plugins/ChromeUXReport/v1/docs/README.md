@@ -21,7 +21,11 @@ You will need a **Google API key** from a Google Cloud project with the Chrome U
 | **Competitor websites** | The origin of each competitor to benchmark against, one per line, for example `https://www.competitor.com`. | Your choice. | No |
 | **Google API key** | Authenticates every request to the Chrome UX Report API. | Google Cloud Console > **APIs & Services** > **Credentials**. | Yes |
 
-On save, the plugin checks the API key, then checks that CrUX holds data for your website. A bad key or a disabled API stops setup. A website with no CrUX data yet only shows a warning, because new or quiet sites appear in CrUX once they have enough Chrome traffic.
+On save, the plugin runs three checks:
+
+- **API key:** a bad key or a disabled API stops setup.
+- **Sitemap:** it must open and list at least one page or plain XML sitemap, or setup stops with the reason, such as a 404 or a website that blocks cloud servers.
+- **Website data:** if CrUX holds no data for your website yet, you only get a warning, because new or quiet sites appear in CrUX once they have enough Chrome traffic.
 
 ## Use with Google Search Console
 
@@ -74,10 +78,11 @@ The out-of-the-box dashboards are:
 - **Data is a 28-day rolling window, not live:** current values cover the 28 days ending about two days ago, and history updates once a week. A fix shows fully after about four weeks, so pair this plugin with real-user monitoring or lab tests to see changes as they happen.
 - **No country breakdown:** the CrUX API doesn't split data by country.
 - **Up to 40 weeks of history:** the CrUX History API keeps 40 weekly periods, so longer timeframes aren't offered.
+- **No all-pages leaderboard:** CrUX has no way to ask for every page at once, and it reports no traffic figures, so ranking thousands of pages would take thousands of requests. The **Key pages** dashboard covers the pages you choose instead, and the **Page** dashboard opens any single page.
 - **One request per page:** each page in a tile is one API request, and CrUX allows about 150 requests a minute for each API key, so avoid tiles that cover hundreds of pages at once. Results are cached for 6 hours (24 hours for history), because CrUX only publishes new data daily and weekly, so busy dashboards don't add requests.
 - **Sitemaps:**
-  - Only pages on your website are imported, up to **Maximum pages**. Key pages don't count toward that limit.
-  - Child and nested sitemaps are followed when they're on your website's domain, including a CDN or `sitemaps.` subdomain. Sitemaps from other domains are skipped. If the sitemap itself is on a CDN, the website is taken from the pages it lists.
+  - The website is the origin most of the listed pages use, and only its pages are imported, up to **Maximum pages**. Pages on `http://` or on the domain without `www` count as a different website, so they're left out. Key pages don't count toward the limit, and any key page you list is imported whatever its address.
+  - Child and nested sitemaps are followed when they're on the sitemap's own host or a subdomain of your website, such as `sitemaps.example.com`. Others are skipped, and each sitemap is read only once. A sitemap hosted on a CDN still works, because the website is taken from the pages it lists.
   - Gzipped sitemaps (`.xml.gz`) can't be read and are skipped. If your index lists only gzipped files, point **Sitemap URL** at a plain XML sitemap.
   - One import makes at most about 200 requests. Each sitemap file is one request, and so is every 5,000 pages of a large file. A site split into hundreds of small sitemaps is only partly imported, so point **Sitemap URL** at the sitemap that lists your most important pages instead.
 - **Sites that block cloud servers:** some websites' bot protection refuses requests from cloud providers, so the sitemap fails with "Access Denied". Add the data source **Via relay agent** so requests come from your own network, which the website already trusts, or allowlist SquaredUp on the website's CDN.
