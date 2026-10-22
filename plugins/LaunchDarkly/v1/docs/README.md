@@ -53,7 +53,7 @@ The out-of-the-box dashboards include an account-wide **Overview** and **Usage**
 | **Environment** | `GET /api/v2/projects/{projectKey}/environments`  | An environment, such as Production, within a project.  |
 | **Flag**        | `GET /api/v2/flags/{projectKey}`                  | A feature flag (archived flags are not imported).      |
 
-**Relationships:** each Environment and Flag records the key of its parent Project. SDK keys and mobile keys are never imported.
+**Relationships:** each Environment and Flag is related to the Project it belongs to, so a project's environments and flags appear when you open it. SDK keys and mobile keys are never imported.
 
 ## Known limitations
 
