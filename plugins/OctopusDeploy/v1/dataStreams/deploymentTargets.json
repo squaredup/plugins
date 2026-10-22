@@ -1,7 +1,7 @@
 {
     "name": "deploymentTargets",
     "displayName": "Deployment Targets",
-    "description": "Deployment targets in a space with their current health status, roles and environments",
+    "description": "Deployment targets with their current health status, target tags, environments and agent versions",
     "tags": [
         "Infrastructure",
         "Health"
@@ -144,6 +144,44 @@
             "name": "ShellName",
             "displayName": "Shell",
             "shape": "string"
+        },
+        {
+            "name": "TentacleVersion",
+            "displayName": "Tentacle Version",
+            "shape": "string"
+        },
+        {
+            "name": "TentacleUpgrade",
+            "displayName": "Tentacle Upgrade",
+            "shape": "string"
+        },
+        {
+            "name": "HasLatestCalamari",
+            "displayName": "Latest Calamari",
+            "shape": "boolean"
+        },
+        {
+            "name": "agentStatus",
+            "displayName": "Agent Status",
+            "computed": true,
+            "valueExpression": "{{ $['TentacleUpgrade'] === 'Required' ? 'Upgrade required' : ($['TentacleUpgrade'] === 'Suggested' ? 'Upgrade suggested' : ($['HasLatestCalamari'] === false ? 'Calamari update' : 'Up to date')) }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Up to date"
+                        ],
+                        "warning": [
+                            "Upgrade suggested",
+                            "Calamari update"
+                        ],
+                        "error": [
+                            "Upgrade required"
+                        ]
+                    }
+                }
+            ]
         },
         {
             "name": "SpaceId",

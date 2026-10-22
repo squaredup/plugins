@@ -1,0 +1,137 @@
+{
+    "name": "certificates",
+    "displayName": "Certificates",
+    "description": "Certificates in the Octopus certificate library with their expiry dates and days remaining",
+    "tags": [
+        "Security",
+        "Infrastructure"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/certificates",
+        "getArgs": [
+            {
+                "key": "archived",
+                "value": "false"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "take",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "Items"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "skip"
+            }
+        },
+        "postRequestScript": "certificates.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Environment",
+                "Tenant"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "Id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "Name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "SubjectCommonName",
+            "displayName": "Subject",
+            "shape": "string"
+        },
+        {
+            "name": "IssuerCommonName",
+            "displayName": "Issuer",
+            "shape": "string"
+        },
+        {
+            "name": "NotAfter",
+            "displayName": "Expires",
+            "shape": "date"
+        },
+        {
+            "name": "NotBefore",
+            "displayName": "Valid From",
+            "shape": "date"
+        },
+        {
+            "name": "DaysUntilExpiry",
+            "displayName": "Days Until Expiry",
+            "shape": "number"
+        },
+        {
+            "name": "ExpiryStatus",
+            "displayName": "Expiry Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Valid"
+                        ],
+                        "warning": [
+                            "Expiring soon"
+                        ],
+                        "error": [
+                            "Expired"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "EnvironmentIds",
+            "displayName": "Environment IDs",
+            "shape": "string"
+        },
+        {
+            "name": "SelfSigned",
+            "displayName": "Self Signed",
+            "shape": "boolean"
+        },
+        {
+            "name": "HasPrivateKey",
+            "displayName": "Has Private Key",
+            "shape": "boolean"
+        },
+        {
+            "name": "Thumbprint",
+            "displayName": "Thumbprint",
+            "shape": "string"
+        },
+        {
+            "name": "SubjectAlternativeNames",
+            "displayName": "Subject Alternative Names",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}
