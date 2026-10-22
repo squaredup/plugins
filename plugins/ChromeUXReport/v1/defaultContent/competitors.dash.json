@@ -1,0 +1,377 @@
+{
+    "name": "Competitors",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "719c1c7f-bee6-4029-8572-599ac0fe26e1",
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Your site vs competitors",
+                    "description": "Core Web Vitals on phone over the last 28 days for your site and each competitor, competitors ordered by LCP. Empty until you add competitors to the data source.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT site, kind, assessment, lcp, lcpGood, inp, inpGood, cls, clsGood\nFROM (\n  SELECT replace(replace(target, 'https://', ''), 'http://', '') AS site, 'Your site' AS kind, 1 AS kindOrder, * FROM (SELECT target,\n    CASE WHEN bool_and(rating = 'success') FILTER (WHERE isCoreWebVital) THEN 'Passed' ELSE 'Failed' END AS assessment,\n    max(CASE WHEN metric = 'LCP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS lcp, max(CASE WHEN metric = 'LCP' THEN CAST(good AS DOUBLE) END) AS lcpGood,\n    max(CASE WHEN metric = 'INP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS inp, max(CASE WHEN metric = 'INP' THEN CAST(good AS DOUBLE) END) AS inpGood,\n    max(CASE WHEN metric = 'CLS' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS cls, max(CASE WHEN metric = 'CLS' THEN CAST(good AS DOUBLE) END) AS clsGood,\n    max(CASE WHEN metric = 'LCP' THEN p75 END) AS lcpSort\n  FROM own GROUP BY target)\n  UNION ALL\n  SELECT replace(replace(target, 'https://', ''), 'http://', '') AS site, 'Competitor' AS kind, 2 AS kindOrder, * FROM (SELECT target,\n    CASE WHEN bool_and(rating = 'success') FILTER (WHERE isCoreWebVital) THEN 'Passed' ELSE 'Failed' END AS assessment,\n    max(CASE WHEN metric = 'LCP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS lcp, max(CASE WHEN metric = 'LCP' THEN CAST(good AS DOUBLE) END) AS lcpGood,\n    max(CASE WHEN metric = 'INP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS inp, max(CASE WHEN metric = 'INP' THEN CAST(good AS DOUBLE) END) AS inpGood,\n    max(CASE WHEN metric = 'CLS' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS cls, max(CASE WHEN metric = 'CLS' THEN CAST(good AS DOUBLE) END) AS clsGood,\n    max(CASE WHEN metric = 'LCP' THEN p75 END) AS lcpSort\n  FROM competitors GROUP BY target)\n)\nORDER BY kindOrder, lcpSort",
+                            "tables": [
+                                {
+                                    "tableName": "own",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "competitors",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Competitors]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "site",
+                                "displayName": "Site",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "kind",
+                                "displayName": "Site type",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "assessment",
+                                "displayName": "Assessment",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcp",
+                                "displayName": "LCP",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcpGood",
+                                "displayName": "LCP good",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "inp",
+                                "displayName": "INP",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "inpGood",
+                                "displayName": "INP good",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "cls",
+                                "displayName": "CLS",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "clsGood",
+                                "displayName": "CLS good",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "site",
+                                        "title": "Site",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "kind",
+                                        "title": "Site type",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Your site": "#3B82F6",
+                                                "Competitor": "#9CA3AF"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "assessment",
+                                        "title": "Assessment",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Passed": "#0CCE6B",
+                                                "Failed": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "lcp",
+                                        "title": "LCP",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "lcpGood",
+                                        "title": "LCP good",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": "%"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "inp",
+                                        "title": "INP",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "inpGood",
+                                        "title": "INP good",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": "%"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "cls",
+                                        "title": "CLS",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "clsGood",
+                                        "title": "CLS good",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": "%"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a813a3cb-caaf-4422-8194-b21f871bd5f8",
+                "x": 0,
+                "y": 3,
+                "w": 12,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP trend by site",
+                    "description": "Largest Contentful Paint at the 75th percentile on phone for your site and each competitor. Each point is the 28 days ending that week.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT periodEnd, replace(replace(target, 'https://', ''), 'http://', '') AS site, p75 FROM own WHERE metric = 'LCP'\nUNION ALL\nSELECT periodEnd, replace(replace(target, 'https://', ''), 'http://', '') AS site, p75 FROM competitors WHERE metric = 'LCP'\nORDER BY periodEnd, site",
+                            "tables": [
+                                {
+                                    "tableName": "own",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "competitors",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Competitors]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "periodEnd",
+                                "displayName": "Week ending",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM yyyy"
+                                    }
+                                ],
+                                "role": "timestamp"
+                            },
+                            {
+                                "name": "site",
+                                "displayName": "Site",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "p75",
+                                "displayName": "75th percentile",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "periodEnd",
+                                    "type": "temporal",
+                                    "title": "Week ending"
+                                },
+                                "y": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile (ms)"
+                                },
+                                "series": {
+                                    "field": "site",
+                                    "type": "nominal",
+                                    "title": "Site"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom"
+                            },
+                            "markLines": [
+                                {
+                                    "value": 2500,
+                                    "label": "Good",
+                                    "color": "#0CCE6B"
+                                },
+                                {
+                                    "value": 4000,
+                                    "label": "Poor",
+                                    "color": "#FF4E42"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

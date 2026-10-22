@@ -1,0 +1,568 @@
+{
+    "name": "LCP diagnostics",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "b82b4cd2-6f52-4415-993a-d23642c2670c",
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP breakdown (phone)",
+                    "description": "The 75th percentile of each part of an image LCP for the site on phone over the last 28 days, in load order. Each part is its own 75th percentile, so they do not add up to the LCP.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[pageDiagnostics]}}",
+                        "name": "pageDiagnostics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "origin",
+                            "formFactor": "PHONE"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "group",
+                                    "operation": "equals",
+                                    "value": "LCP breakdown"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "order",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Origins]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Part"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Time (ms)"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6703dfba-7975-4687-bb66-e1717410edd2",
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP breakdown (desktop)",
+                    "description": "The 75th percentile of each part of an image LCP for the site on desktop over the last 28 days, in load order. Each part is its own 75th percentile, so they do not add up to the LCP.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[pageDiagnostics]}}",
+                        "name": "pageDiagnostics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "origin",
+                            "formFactor": "DESKTOP"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "group",
+                                    "operation": "equals",
+                                    "value": "LCP breakdown"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "order",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Origins]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Part"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Time (ms)"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "21751e8b-1478-40db-8bac-0b40ec27874a",
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP element",
+                    "description": "Whether the largest element on screen was an image or text on phone and desktop, as a share of visits over the last 28 days.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT device, item, value\nFROM (\n  SELECT 'Phone' AS device, 1 AS deviceOrder, item, CAST(value AS DOUBLE) AS value FROM phone WHERE \"group\" = 'LCP element'\n  UNION ALL\n  SELECT 'Desktop' AS device, 2 AS deviceOrder, item, CAST(value AS DOUBLE) AS value FROM desktop WHERE \"group\" = 'LCP element'\n)\nORDER BY deviceOrder, item",
+                            "tables": [
+                                {
+                                    "tableName": "phone",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktop",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "device",
+                                "displayName": "Device",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "item",
+                                "displayName": "Element",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "value",
+                                "displayName": "Share of visits",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "device",
+                                    "type": "nominal",
+                                    "title": "Device"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Element"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "normalize",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9ca3e69c-10dd-4b10-9b4b-3dc59d1f75f7",
+                "x": 4,
+                "y": 2,
+                "w": 8,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Navigation types",
+                    "description": "How visits arrived over the last 28 days. bfcache (back/forward cache) and prerender loads are near instant, so a bigger share of those is the cheapest LCP win.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT item, CASE WHEN item IN ('bfcache', 'Prerender') THEN 'Instant' ELSE 'Standard' END AS kind, CAST(value AS DOUBLE) AS value\nFROM diag WHERE \"group\" = 'Navigation type'\nORDER BY \"order\"",
+                            "tables": [
+                                {
+                                    "tableName": "diag",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "ALL"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "item",
+                                "displayName": "Navigation type",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "kind",
+                                "displayName": "Speed",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "value",
+                                "displayName": "Share of visits",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Navigation type"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "kind",
+                                    "type": "nominal",
+                                    "title": "Speed"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Instant": "#0CCE6B",
+                                    "Standard": "#9CA3AF"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "aff59742-add2-496c-a377-dfb2bea82553",
+                "x": 0,
+                "y": 5,
+                "w": 12,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Server and network",
+                    "description": "Time to First Byte and network round trip time at the 75th percentile on phone and desktop. A slow round trip points to the network, a slow TTFB with a fast round trip points to the server.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT device, ttfb, ttfbRating, rtt\nFROM (\n  SELECT 'Phone' AS device, 1 AS deviceOrder,\n    CASE WHEN pv.metric = 'CLS' THEN printf('%.2f', pv.p75) WHEN pv.p75 >= 1000 THEN printf('%.2f s', pv.p75 / 1000) ELSE printf('%d ms', CAST(round(pv.p75) AS BIGINT)) END AS ttfb, CASE pv.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS ttfbRating,\n    (SELECT printf('%d ms', CAST(round(value) AS BIGINT)) FROM phoneDiag WHERE \"group\" = 'Network') AS rtt\n  FROM phoneVitals pv WHERE pv.metric = 'TTFB'\n  UNION ALL\n  SELECT 'Desktop' AS device, 2 AS deviceOrder,\n    CASE WHEN dv.metric = 'CLS' THEN printf('%.2f', dv.p75) WHEN dv.p75 >= 1000 THEN printf('%.2f s', dv.p75 / 1000) ELSE printf('%d ms', CAST(round(dv.p75) AS BIGINT)) END AS ttfb, CASE dv.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS ttfbRating,\n    (SELECT printf('%d ms', CAST(round(value) AS BIGINT)) FROM desktopDiag WHERE \"group\" = 'Network') AS rtt\n  FROM desktopVitals dv WHERE dv.metric = 'TTFB'\n)\nORDER BY deviceOrder",
+                            "tables": [
+                                {
+                                    "tableName": "phoneVitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktopVitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "phoneDiag",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktopDiag",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "device",
+                                "displayName": "Device",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "ttfb",
+                                "displayName": "TTFB",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "ttfbRating",
+                                "displayName": "TTFB rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "rtt",
+                                "displayName": "Round trip time",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "device",
+                                        "title": "Device",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ttfb",
+                                        "title": "TTFB",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "ttfbRating",
+                                        "title": "TTFB rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "rtt",
+                                        "title": "Round trip time",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

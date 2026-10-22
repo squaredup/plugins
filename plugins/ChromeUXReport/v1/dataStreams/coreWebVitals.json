@@ -1,0 +1,184 @@
+{
+    "name": "coreWebVitals",
+    "displayName": "Core Web Vitals",
+    "description": "Returns the 75th percentile and good, needs improvement and poor shares of each Core Web Vital over the last 28 days of real Chrome users",
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "chromeuxreport.googleapis.com/v1/records:queryRecord",
+        "getArgs": [
+            {
+                "key": "key",
+                "value": "{{dataSource.apiKey}}"
+            }
+        ],
+        "headers": [],
+        "postBody": "{{JSON.stringify(Object.assign((level === 'origin' || ['CrUX Origin', 'CrUX Competitor'].includes(object.sourceType)) ? { origin: new URL(object.name).origin } : { url: object.name }, formFactor && formFactor !== 'ALL' ? { formFactor } : {}, { metrics: ['largest_contentful_paint', 'interaction_to_next_paint', 'cumulative_layout_shift', 'first_contentful_paint', 'experimental_time_to_first_byte'] }))}}",
+        "postRequestScript": "coreWebVitals.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/coreWebVitals.js"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "CrUX Origin",
+                "CrUX Page",
+                "CrUX Competitor",
+                "page"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "name": "level",
+            "type": "radio",
+            "label": "Level",
+            "help": "**Page** reports the selected page. **Whole site** reports every page on the selected page's origin together.",
+            "defaultValue": "page",
+            "options": [
+                {
+                    "value": "page",
+                    "label": "Page"
+                },
+                {
+                    "value": "origin",
+                    "label": "Whole site"
+                }
+            ]
+        },
+        {
+            "name": "formFactor",
+            "type": "radio",
+            "label": "Device",
+            "defaultValue": "ALL",
+            "options": [
+                {
+                    "value": "ALL",
+                    "label": "All devices"
+                },
+                {
+                    "value": "PHONE",
+                    "label": "Phone"
+                },
+                {
+                    "value": "DESKTOP",
+                    "label": "Desktop"
+                },
+                {
+                    "value": "TABLET",
+                    "label": "Tablet"
+                }
+            ]
+        }
+    ],
+    "timeframes": false,
+    "providesPluginDiagnostics": true,
+    "tags": [
+        "Web Performance",
+        "SEO"
+    ],
+    "metadata": [
+        {
+            "name": "target",
+            "displayName": "Page",
+            "shape": "url",
+            "role": "label"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "metricKey",
+            "displayName": "Metric key",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "p75",
+            "displayName": "75th percentile",
+            "shape": "number",
+            "role": "value",
+            "formatExpression": "{{ $['metricKey'] === 'cumulative_layout_shift' ? Number($['p75']).toFixed(2) : $['p75'] >= 1000 ? ($['p75'] / 1000).toFixed(2) + ' s' : Math.round($['p75']) + ' ms' }}"
+        },
+        {
+            "name": "rating",
+            "displayName": "Rating",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Good"
+                        ],
+                        "warning": [
+                            "Needs improvement"
+                        ],
+                        "error": [
+                            "Poor"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "good",
+            "displayName": "Good",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "needsImprovement",
+            "displayName": "Needs improvement",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "poor",
+            "displayName": "Poor",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "isCoreWebVital",
+            "displayName": "Core Web Vital",
+            "shape": "boolean"
+        },
+        {
+            "name": "device",
+            "displayName": "Device",
+            "shape": "string"
+        },
+        {
+            "name": "level",
+            "displayName": "Level",
+            "shape": "string"
+        },
+        {
+            "name": "periodEnd",
+            "displayName": "Period end",
+            "shape": [
+                "date",
+                {
+                    "format": "dd MMM yyyy"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,1160 @@
+{
+    "name": "Page",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [
+        "{{variables.[CrUX Page]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "09b8a9d9-32e4-4c1e-8d31-1b64332d0d50",
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Core Web Vitals (phone)",
+                    "description": "75th percentile of each Core Web Vital for the page on phone over the last 28 days, colored by its rating.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[coreWebVitals]}}",
+                        "name": "coreWebVitals",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "page",
+                            "formFactor": "PHONE"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "isCoreWebVital",
+                                    "operation": "equals",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Pages]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[CrUX Page]}}"
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "status": {
+                                    "field": "rating",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                },
+                                "value": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "965b678e-5392-4e0a-a091-db8376063af8",
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Core Web Vitals (desktop)",
+                    "description": "75th percentile of each Core Web Vital for the page on desktop over the last 28 days, colored by its rating.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[coreWebVitals]}}",
+                        "name": "coreWebVitals",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "page",
+                            "formFactor": "DESKTOP"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "isCoreWebVital",
+                                    "operation": "equals",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Pages]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[CrUX Page]}}"
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "status": {
+                                    "field": "rating",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                },
+                                "value": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b1b8e680-fef6-4efe-9a2f-e3888245daf8",
+                "x": 0,
+                "y": 2,
+                "w": 12,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Page vs whole site",
+                    "description": "Every metric for the page against every page on its site, on all devices over the last 28 days. Better and worse compare the 75th percentiles, where lower is better.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT\n  page.metric,\n  CASE WHEN page.metric = 'CLS' THEN printf('%.2f', page.p75) WHEN page.p75 >= 1000 THEN printf('%.2f s', page.p75 / 1000) ELSE printf('%d ms', CAST(round(page.p75) AS BIGINT)) END AS pageP75,\n  CASE WHEN site.metric = 'CLS' THEN printf('%.2f', site.p75) WHEN site.p75 >= 1000 THEN printf('%.2f s', site.p75 / 1000) ELSE printf('%d ms', CAST(round(site.p75) AS BIGINT)) END AS siteP75,\n  CASE page.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS pageRating,\n  CASE site.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS siteRating,\n  CASE\n    WHEN round(page.p75, 2) < round(site.p75, 2) THEN 'Better'\n    WHEN round(page.p75, 2) > round(site.p75, 2) THEN 'Worse'\n    ELSE 'Same'\n  END AS comparison\nFROM page\nJOIN site ON page.metric = site.metric\nORDER BY CASE page.metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END",
+                            "tables": [
+                                {
+                                    "tableName": "page",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "ALL"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "site",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "ALL"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "pageP75",
+                                "displayName": "Page",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "siteP75",
+                                "displayName": "Whole site",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "pageRating",
+                                "displayName": "Page rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "siteRating",
+                                "displayName": "Site rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "comparison",
+                                "displayName": "Page vs site",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "metric",
+                                        "title": "Metric",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "pageP75",
+                                        "title": "Page",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "siteP75",
+                                        "title": "Whole site",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "pageRating",
+                                        "title": "Page rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "siteRating",
+                                        "title": "Site rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "comparison",
+                                        "title": "Page vs site",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Better": "#0CCE6B",
+                                                "Same": "#9CA3AF",
+                                                "Worse": "#FF4E42"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0e348029-bb18-4322-9171-989501b10ee0",
+                "x": 0,
+                "y": 5,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Distribution (phone)",
+                    "description": "Share of visits to the page on phone that had a good, needs improvement or poor experience of each metric over the last 28 days.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT metric, bucket, share\nFROM (\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 1 AS bucketOrder, 'Good' AS bucket, CAST(good AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 2 AS bucketOrder, 'Needs improvement' AS bucket, CAST(needsImprovement AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 3 AS bucketOrder, 'Poor' AS bucket, CAST(poor AS DOUBLE) AS share FROM vitals\n)\nORDER BY metricOrder, bucketOrder",
+                            "tables": [
+                                {
+                                    "tableName": "vitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "bucket",
+                                "displayName": "Rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "share",
+                                "displayName": "Share",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "y": {
+                                    "field": "share",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "bucket",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "normalize",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Good": "#0CCE6B",
+                                    "Needs improvement": "#FFA400",
+                                    "Poor": "#FF4E42"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2238f00e-b1d8-4f31-925f-465050594196",
+                "x": 6,
+                "y": 5,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Distribution (desktop)",
+                    "description": "Share of visits to the page on desktop that had a good, needs improvement or poor experience of each metric over the last 28 days.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT metric, bucket, share\nFROM (\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 1 AS bucketOrder, 'Good' AS bucket, CAST(good AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 2 AS bucketOrder, 'Needs improvement' AS bucket, CAST(needsImprovement AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 3 AS bucketOrder, 'Poor' AS bucket, CAST(poor AS DOUBLE) AS share FROM vitals\n)\nORDER BY metricOrder, bucketOrder",
+                            "tables": [
+                                {
+                                    "tableName": "vitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "bucket",
+                                "displayName": "Rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "share",
+                                "displayName": "Share",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "y": {
+                                    "field": "share",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "bucket",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "normalize",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Good": "#0CCE6B",
+                                    "Needs improvement": "#FFA400",
+                                    "Poor": "#FF4E42"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fb344852-f4ee-492d-8a92-e8be579ff830",
+                "x": 0,
+                "y": 8,
+                "w": 8,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP breakdown",
+                    "description": "The 75th percentile of each part of an image LCP for the page on all devices over the last 28 days, in load order. Each part is its own 75th percentile, so they do not add up to the LCP.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[pageDiagnostics]}}",
+                        "name": "pageDiagnostics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "page",
+                            "formFactor": "ALL"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "group",
+                                    "operation": "equals",
+                                    "value": "LCP breakdown"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "order",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Pages]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[CrUX Page]}}"
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Part"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Time (ms)"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "42bf5919-3698-4e09-a7da-6533e8b38549",
+                "x": 8,
+                "y": 8,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP element",
+                    "description": "Whether the largest element on screen was an image or text, as a share of visits to the page over the last 28 days.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[pageDiagnostics]}}",
+                        "name": "pageDiagnostics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "page",
+                            "formFactor": "ALL"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "group",
+                                    "operation": "equals",
+                                    "value": "LCP element"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "value",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Pages]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[CrUX Page]}}"
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Element"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a776b845-dcea-478b-94a4-dfeb9ccd8bdb",
+                "x": 0,
+                "y": 11,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP trend",
+                    "description": "Largest Contentful Paint at the 75th percentile for the page against its whole site on phone. Each point is the 28 days ending that week. The lines mark the good and poor thresholds.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT periodEnd, 'Page' AS series, p75 FROM page WHERE metric = 'LCP'\nUNION ALL\nSELECT periodEnd, 'Whole site' AS series, p75 FROM site WHERE metric = 'LCP'\nORDER BY periodEnd, series",
+                            "tables": [
+                                {
+                                    "tableName": "page",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "tableName": "site",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "periodEnd",
+                                "displayName": "Week ending",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM yyyy"
+                                    }
+                                ],
+                                "role": "timestamp"
+                            },
+                            {
+                                "name": "series",
+                                "displayName": "Series",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "p75",
+                                "displayName": "75th percentile",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "periodEnd",
+                                    "type": "temporal",
+                                    "title": "Week ending"
+                                },
+                                "y": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile (ms)"
+                                },
+                                "series": {
+                                    "field": "series",
+                                    "type": "nominal",
+                                    "title": "Series"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom"
+                            },
+                            "markLines": [
+                                {
+                                    "value": 2500,
+                                    "label": "Good",
+                                    "color": "#0CCE6B"
+                                },
+                                {
+                                    "value": 4000,
+                                    "label": "Poor",
+                                    "color": "#FF4E42"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "i": "24974735-234b-48f7-8599-ff87bdb0b6e7",
+                "x": 4,
+                "y": 11,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "INP trend",
+                    "description": "Interaction to Next Paint at the 75th percentile for the page against its whole site on phone. Each point is the 28 days ending that week. The lines mark the good and poor thresholds.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT periodEnd, 'Page' AS series, p75 FROM page WHERE metric = 'INP'\nUNION ALL\nSELECT periodEnd, 'Whole site' AS series, p75 FROM site WHERE metric = 'INP'\nORDER BY periodEnd, series",
+                            "tables": [
+                                {
+                                    "tableName": "page",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "tableName": "site",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "periodEnd",
+                                "displayName": "Week ending",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM yyyy"
+                                    }
+                                ],
+                                "role": "timestamp"
+                            },
+                            {
+                                "name": "series",
+                                "displayName": "Series",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "p75",
+                                "displayName": "75th percentile",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "periodEnd",
+                                    "type": "temporal",
+                                    "title": "Week ending"
+                                },
+                                "y": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile (ms)"
+                                },
+                                "series": {
+                                    "field": "series",
+                                    "type": "nominal",
+                                    "title": "Series"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom"
+                            },
+                            "markLines": [
+                                {
+                                    "value": 200,
+                                    "label": "Good",
+                                    "color": "#0CCE6B"
+                                },
+                                {
+                                    "value": 500,
+                                    "label": "Poor",
+                                    "color": "#FF4E42"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dd7023da-1fe2-4483-b819-a784dee4929d",
+                "x": 8,
+                "y": 11,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CLS trend",
+                    "description": "Cumulative Layout Shift at the 75th percentile for the page against its whole site on phone. Each point is the 28 days ending that week. The lines mark the good and poor thresholds.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT periodEnd, 'Page' AS series, p75 FROM page WHERE metric = 'CLS'\nUNION ALL\nSELECT periodEnd, 'Whole site' AS series, p75 FROM site WHERE metric = 'CLS'\nORDER BY periodEnd, series",
+                            "tables": [
+                                {
+                                    "tableName": "page",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "tableName": "site",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Pages]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[CrUX Page]}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[CrUX Page]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "periodEnd",
+                                "displayName": "Week ending",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM yyyy"
+                                    }
+                                ],
+                                "role": "timestamp"
+                            },
+                            {
+                                "name": "series",
+                                "displayName": "Series",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "p75",
+                                "displayName": "75th percentile",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[CrUX Page]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "periodEnd",
+                                    "type": "temporal",
+                                    "title": "Week ending"
+                                },
+                                "y": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile"
+                                },
+                                "series": {
+                                    "field": "series",
+                                    "type": "nominal",
+                                    "title": "Series"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom"
+                            },
+                            "markLines": [
+                                {
+                                    "value": 0.1,
+                                    "label": "Good",
+                                    "color": "#0CCE6B"
+                                },
+                                {
+                                    "value": 0.25,
+                                    "label": "Poor",
+                                    "color": "#FF4E42"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
