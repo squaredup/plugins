@@ -1,0 +1,59 @@
+{
+    "name": "customers",
+    "displayName": "Customers",
+    "description": "MSP customers with their account details and provisioning status",
+    "tags": ["Customers"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/msp/v3/customers",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "customers"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "Customer ID", "shape": "string", "visible": false },
+        { "name": "customerName", "displayName": "Customer", "shape": "string", "role": "label" },
+        { "name": "accountName", "displayName": "Account Name", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status code",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ ({ 0: 'Creation pending', 1: 'Ready', 2: 'Tenant processing' })[$['status']] || 'Unknown' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Ready"],
+                        "warning": ["Creation pending", "Tenant processing"],
+                        "unknown": ["Unknown"]
+                    }
+                }
+            ]
+        },
+        { "name": "cloud", "displayName": "Cloud code", "shape": "number", "visible": false },
+        {
+            "name": "cloudName",
+            "displayName": "Cloud",
+            "computed": true,
+            "valueExpression": "{{ ({ 0: 'Public', 1: 'FIPS', 2: 'FedRAMP' })[$['cloud']] || 'Unknown' }}",
+            "shape": "string"
+        },
+        { "name": "createdOn", "displayName": "Created", "shape": "date" },
+        { "name": "activeSince", "displayName": "Active Since", "shape": "date" },
+        { "name": "phone", "displayName": "Phone", "shape": "string", "visible": false },
+        { "name": "address", "displayName": "Address", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

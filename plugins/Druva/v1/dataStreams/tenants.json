@@ -1,0 +1,66 @@
+{
+    "name": "tenants",
+    "displayName": "Tenants",
+    "description": "Product tenants with their status, edition, license expiry and quota (optionally filtered to customers)",
+    "tags": ["Licensing", "Customers"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/msp/v3/tenants",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "postRequestScript": "tenants.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "Tenant ID", "shape": "string", "visible": false },
+        { "name": "tenantName", "displayName": "Tenant", "shape": "string", "role": "label" },
+        { "name": "customerId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        {
+            "name": "customerName",
+            "displayName": "Customer",
+            "sourceId": "customerId",
+            "sourceType": "Customer",
+            "objectPropertyPath": "name"
+        },
+        { "name": "productName", "displayName": "Product", "shape": "string" },
+        { "name": "edition", "displayName": "Edition", "shape": "string" },
+        {
+            "name": "statusName",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Ready"],
+                        "warning": ["Creation pending", "Being migrated", "Updating"],
+                        "error": ["Suspended", "Deletion initiated"],
+                        "unknown": ["Unknown"]
+                    }
+                }
+            ]
+        },
+        { "name": "tenantType", "displayName": "Tenant Type", "shape": "string" },
+        { "name": "licenseExpiryDate", "displayName": "License Expiry", "shape": "date" },
+        { "name": "quota", "displayName": "Quota", "shape": "number" },
+        { "name": "quotaStartDate", "displayName": "Quota Start", "shape": "date" },
+        { "name": "quotaEndDate", "displayName": "Quota End", "shape": "date" },
+        { "name": "servicePlanId", "displayName": "Service Plan ID", "shape": "number", "visible": false },
+        { "name": "storageRegions", "displayName": "Storage Regions", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "createdOn", "displayName": "Created", "shape": "date" },
+        { "name": "deleteDate", "displayName": "Delete Date", "shape": "date", "visible": false }
+    ],
+    "timeframes": false
+}
