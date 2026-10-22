@@ -1,0 +1,48 @@
+{
+    "name": "flagStatuses",
+    "displayName": "Flag Statuses",
+    "description": "Lifecycle status of each feature flag in an environment (new, active, inactive or launched)",
+    "tags": ["Status", "Health"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "flag-statuses/{{object.projectKey}}/{{object.environmentKey}}",
+        "paging": { "mode": "none" },
+        "postRequestScript": "flagStatuses.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Environment"] } },
+    "metadata": [
+        { "name": "flagId", "displayName": "Flag ID", "visible": false },
+        {
+            "name": "flagName",
+            "displayName": "Name",
+            "role": "label",
+            "sourceId": "flagId",
+            "sourceType": "Flag",
+            "objectPropertyPath": "name"
+        },
+        { "name": "flagKey", "displayName": "Key" },
+        { "name": "environmentId", "displayName": "Environment ID", "visible": false },
+        { "name": "environment", "displayName": "Environment" },
+        { "name": "environmentLabel", "displayName": "Project / Environment" },
+        { "name": "project", "displayName": "Project" },
+        { "name": "status", "displayName": "Status" },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["active", "launched"],
+                        "warning": ["inactive"],
+                        "unknown": ["new"]
+                    }
+                }
+            ]
+        },
+        { "name": "lastRequested", "displayName": "Last Requested", "shape": "date" },
+        { "name": "default", "displayName": "Default Value" }
+    ],
+    "timeframes": false
+}

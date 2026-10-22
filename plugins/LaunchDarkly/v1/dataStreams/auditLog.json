@@ -1,0 +1,150 @@
+{
+    "name": "auditLog",
+    "displayName": "Audit Log",
+    "description": "Changes made in LaunchDarkly, such as flag updates, with who made them",
+    "tags": [
+        "Activity",
+        "Audit"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "auditlog",
+        "getArgs": [
+            {
+                "key": "after",
+                "value": "{{timeframe.unixStart * 1000}}"
+            },
+            {
+                "key": "spec",
+                "value": "{{ (() => { const f = flag && flag[0]; const e = environment && environment[0]; const p = typeof project !== 'undefined' && project && project[0]; const u = (v) => (Array.isArray(v) ? v[0] : v); if (f) { return 'proj/' + u(f.projectKey) + ':env/' + ((e && u(e.environmentKey)) || '*') + ':flag/' + u(f.flagKey); } if (e) { return 'proj/' + u(e.projectKey) + ':env/' + u(e.environmentKey) + ':flag/*'; } if (p) { return 'proj/' + u(p.rawId) + ':env/*:flag/*'; } return null; })() }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "20"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "items.19.date"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "before"
+            }
+        },
+        "postRequestScript": "auditLog.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "flag",
+            "label": "Flag (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Flag"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "environment",
+            "label": "Environment (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Environment"
+                    ]
+                }
+            }
+        }
+    ],
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "visible": false
+        },
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "title",
+            "displayName": "Change",
+            "role": "label"
+        },
+        {
+            "name": "description",
+            "displayName": "Details"
+        },
+        {
+            "name": "kind",
+            "displayName": "Resource Type"
+        },
+        {
+            "name": "action",
+            "displayName": "Action"
+        },
+        {
+            "name": "member",
+            "displayName": "Changed By"
+        },
+        {
+            "name": "project",
+            "displayName": "Project"
+        },
+        {
+            "name": "environment",
+            "displayName": "Environment"
+        },
+        {
+            "name": "flagId",
+            "displayName": "Flag ID",
+            "visible": false
+        },
+        {
+            "sourceId": "flagId",
+            "sourceType": "Flag",
+            "name": "flagKey"
+        },
+        {
+            "name": "flagKey",
+            "displayName": "Flag"
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in LaunchDarkly"
+                }
+            ]
+        }
+    ],
+    "timeframes": true
+}

@@ -1,0 +1,64 @@
+{
+    "name": "accountUsage",
+    "displayName": "Account Usage",
+    "description": "Account usage over time, such as monthly active users, contexts or SDK service connections",
+    "tags": ["Usage"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "usage/{{metric}}",
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.unixStart * 1000}}" },
+            { "key": "to", "value": "{{timeframe.unixEnd * 1000}}" },
+            { "key": "groupBy", "value": "{{groupBy || null}}" },
+            { "key": "projectKey", "value": "{{(project && project[0] && project[0].rawId && project[0].rawId[0]) || null}}" }
+        ],
+        "headers": [{ "key": "LD-API-Version", "value": "beta" }],
+        "postRequestScript": "accountUsage.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "metric",
+            "label": "Metric",
+            "defaultValue": "total-mau",
+            "validation": { "required": true },
+            "options": [
+                { "value": "total-mau", "label": "Monthly active users" },
+                { "value": "total-contexts", "label": "Contexts" },
+                { "value": "service-connections", "label": "Service connections" }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "groupBy",
+            "label": "Group by (optional)",
+            "options": [
+                { "value": "projectId", "label": "Project" },
+                { "value": "environmentId", "label": "Environment" },
+                { "value": "sdkName", "label": "SDK" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Project"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "group", "displayName": "Group", "role": "label" },
+        { "name": "value", "displayName": "Value", "shape": "number", "role": "value" }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear"
+    ]
+}

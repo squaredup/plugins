@@ -1,0 +1,53 @@
+{
+    "name": "flags",
+    "displayName": "Flags",
+    "description": "Feature flags and their state in an environment",
+    "tags": ["Inventory", "Status"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "flags/{{object.projectKey}}",
+        "getArgs": [{ "key": "env", "value": "{{object.environmentKey}}" }],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "items" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "postRequestScript": "flags.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Environment"] } },
+    "metadata": [
+        { "name": "flagId", "displayName": "Flag ID", "visible": false },
+        { "sourceId": "flagId", "sourceType": "Flag", "name": "name" },
+        { "name": "name", "displayName": "Name", "role": "label" },
+        { "name": "flagKey", "displayName": "Key" },
+        { "name": "environmentId", "displayName": "Environment ID", "visible": false },
+        { "name": "environment", "displayName": "Environment" },
+        { "name": "environmentLabel", "displayName": "Project / Environment" },
+        { "name": "project", "displayName": "Project" },
+        { "name": "on", "displayName": "On", "shape": "boolean" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": { "success": ["On"], "unknown": ["Off"] } }]
+        },
+        { "name": "servingVariation", "displayName": "Serving" },
+        { "name": "offVariation", "displayName": "Off Variation" },
+        { "name": "rules", "displayName": "Rules", "shape": "number" },
+        { "name": "targets", "displayName": "Targets", "shape": "number" },
+        { "name": "prerequisites", "displayName": "Prerequisites", "shape": "number" },
+        { "name": "lastModified", "displayName": "Last Modified", "shape": "date" },
+        { "name": "createdAt", "displayName": "Created", "shape": "date" },
+        { "name": "kind", "displayName": "Kind" },
+        { "name": "temporary", "displayName": "Temporary", "shape": "boolean" },
+        { "name": "tagList", "displayName": "Tags" },
+        { "name": "maintainer", "displayName": "Maintainer" },
+        { "name": "version", "displayName": "Version", "shape": "number" }
+    ],
+    "timeframes": false
+}
