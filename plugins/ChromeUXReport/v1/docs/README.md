@@ -74,7 +74,7 @@ The out-of-the-box dashboards are:
 - **Data is a 28-day rolling window, not live:** current values cover the 28 days ending about two days ago, and history updates once a week. A fix shows fully after about four weeks, so pair this plugin with real-user monitoring or lab tests to see changes as they happen.
 - **No country breakdown:** the CrUX API doesn't split data by country.
 - **Up to 40 weeks of history:** the CrUX History API keeps 40 weekly periods, so longer timeframes aren't offered.
-- **One request per page:** each page in a tile is one API request, and CrUX allows about 150 requests a minute, so avoid tiles that cover hundreds of pages at once.
+- **One request per page:** each page in a tile is one API request, and CrUX allows about 150 requests a minute for each API key, so avoid tiles that cover hundreds of pages at once. Results are cached for 6 hours (24 hours for history), because CrUX only publishes new data daily and weekly, so busy dashboards don't add requests.
 - **Sitemaps:** only pages on the sitemap's own website are imported, up to **Maximum pages**. Child and nested sitemaps are followed, but one import reads at most about 200 sitemap files, so a site split into hundreds of small sitemaps is only partly imported. Point **Sitemap URL** at the child sitemap that lists your most important pages instead.
 - **Sites that block cloud servers:** some websites' bot protection refuses requests from cloud providers, so the sitemap fails with "Access Denied". Add the data source **Via relay agent** so requests come from your own network, or allowlist SquaredUp on the website's CDN.
 - **Changing the sitemap:** pages from a previous sitemap can stay listed until a later import clears them.
