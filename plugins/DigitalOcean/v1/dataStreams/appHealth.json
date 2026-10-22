@@ -1,0 +1,29 @@
+{
+    "name": "appHealth",
+    "displayName": "App Health",
+    "description": "Per-component health of an App Platform app, with CPU and memory usage and replica counts",
+    "tags": ["Applications", "Health"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "apps/{{object.rawId}}/health",
+        "pathToData": "app_health.components"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["App"] } },
+    "metadata": [
+        { "name": "name", "displayName": "Component", "shape": "string", "role": "label" },
+        { "name": "state", "displayName": "State", "shape": "string" },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['state'] || 'UNKNOWN' }}",
+            "shape": ["state", { "map": { "success": ["HEALTHY"], "error": ["UNHEALTHY"], "unknown": ["UNKNOWN"] } }]
+        },
+        { "name": "cpu_usage_percent", "displayName": "CPU Usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "memory_usage_percent", "displayName": "Memory Usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "replicas_desired", "displayName": "Replicas Desired", "shape": "number" },
+        { "name": "replicas_ready", "displayName": "Replicas Ready", "shape": "number" }
+    ],
+    "timeframes": false
+}

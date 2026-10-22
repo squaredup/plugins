@@ -1,0 +1,156 @@
+{
+    "name": "dropletMetrics",
+    "displayName": "Droplet Metrics",
+    "description": "Time series monitoring metrics for a Droplet, such as CPU, load, memory, disk and bandwidth",
+    "tags": [
+        "Compute",
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "monitoring/metrics/droplet/{{metric.split(':')[0]}}",
+        "getArgs": [
+            {
+                "key": "host_id",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{timeframe.unixEnd}}"
+            },
+            {
+                "key": "interface",
+                "value": "{{metric.split(':')[1] || null}}"
+            },
+            {
+                "key": "direction",
+                "value": "{{metric.split(':')[2] || null}}"
+            }
+        ],
+        "postRequestScript": "dropletMetrics.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Droplet"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "cpu",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "cpu",
+                        "label": "CPU usage (%)"
+                    },
+                    {
+                        "value": "load_1",
+                        "label": "Load average (1 min)"
+                    },
+                    {
+                        "value": "load_5",
+                        "label": "Load average (5 min)"
+                    },
+                    {
+                        "value": "load_15",
+                        "label": "Load average (15 min)"
+                    },
+                    {
+                        "value": "memory_available",
+                        "label": "Memory available"
+                    },
+                    {
+                        "value": "memory_free",
+                        "label": "Memory free"
+                    },
+                    {
+                        "value": "memory_cached",
+                        "label": "Memory cached"
+                    },
+                    {
+                        "value": "memory_total",
+                        "label": "Memory total"
+                    },
+                    {
+                        "value": "filesystem_free",
+                        "label": "Filesystem free"
+                    },
+                    {
+                        "value": "filesystem_size",
+                        "label": "Filesystem size"
+                    },
+                    {
+                        "value": "bandwidth:public:inbound",
+                        "label": "Bandwidth (public inbound)"
+                    },
+                    {
+                        "value": "bandwidth:public:outbound",
+                        "label": "Bandwidth (public outbound)"
+                    },
+                    {
+                        "value": "bandwidth:private:inbound",
+                        "label": "Bandwidth (private inbound)"
+                    },
+                    {
+                        "value": "bandwidth:private:outbound",
+                        "label": "Bandwidth (private outbound)"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 4,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "bytes",
+            "displayName": "Bytes",
+            "shape": "bytes"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string"
+        }
+    ],
+    "timeframes": true
+}
