@@ -7,7 +7,8 @@ const parseResource = (resourceId) => {
     for (const segment of String(resourceId || "").split(":")) {
         const slash = segment.indexOf("/");
         if (slash > 0) {
-            parts[segment.slice(0, slash)] = segment.slice(slash + 1);
+            // Resource specifiers can carry tags after the key, e.g. "flag/my-flag;tag1,tag2".
+            parts[segment.slice(0, slash)] = segment.slice(slash + 1).split(";")[0];
         }
     }
     return parts;
