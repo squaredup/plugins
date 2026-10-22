@@ -17,7 +17,7 @@ You will need a **Google API key** from a Google Cloud project with the Chrome U
 | ----- | ---------- | ---------------- | -------- |
 | **Sitemap URL** | The full URL of your website's XML sitemap or sitemap index. Every page it lists is imported, and the website is taken from its host. | The `Sitemap:` line in your site's `robots.txt`. | Yes |
 | **Maximum pages** | The most pages to import, 50,000 by default. CrUX only has data for pages with enough Chrome traffic, so most sites don't need more. | Your choice. | Yes |
-| **Key pages** | The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key pages** dashboard. | Your analytics or Search Console's top pages. | No |
+| **Key pages** | The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key pages** dashboard and don't count toward **Maximum pages**. | Your analytics or Search Console's top pages. | No |
 | **Competitor websites** | The origin of each competitor to benchmark against, one per line, for example `https://www.competitor.com`. | Your choice. | No |
 | **Google API key** | Authenticates every request to the Chrome UX Report API. | Google Cloud Console > **APIs & Services** > **Credentials**. | Yes |
 
@@ -75,7 +75,11 @@ The out-of-the-box dashboards are:
 - **No country breakdown:** the CrUX API doesn't split data by country.
 - **Up to 40 weeks of history:** the CrUX History API keeps 40 weekly periods, so longer timeframes aren't offered.
 - **One request per page:** each page in a tile is one API request, and CrUX allows about 150 requests a minute for each API key, so avoid tiles that cover hundreds of pages at once. Results are cached for 6 hours (24 hours for history), because CrUX only publishes new data daily and weekly, so busy dashboards don't add requests.
-- **Sitemaps:** only pages on the sitemap's own website are imported, up to **Maximum pages**. Child and nested sitemaps are followed, but one import reads at most about 200 sitemap files, so a site split into hundreds of small sitemaps is only partly imported. Point **Sitemap URL** at the child sitemap that lists your most important pages instead.
+- **Sitemaps:**
+  - Only pages on your website are imported, up to **Maximum pages**. Key pages don't count toward that limit.
+  - Child and nested sitemaps are followed when they're on your website's domain, including a CDN or `sitemaps.` subdomain. Sitemaps from other domains are skipped. If the sitemap itself is on a CDN, the website is taken from the pages it lists.
+  - Gzipped sitemaps (`.xml.gz`) can't be read and are skipped. If your index lists only gzipped files, point **Sitemap URL** at a plain XML sitemap.
+  - One import makes at most about 200 requests. Each sitemap file is one request, and so is every 5,000 pages of a large file. A site split into hundreds of small sitemaps is only partly imported, so point **Sitemap URL** at the sitemap that lists your most important pages instead.
 - **Sites that block cloud servers:** some websites' bot protection refuses requests from cloud providers, so the sitemap fails with "Access Denied". Add the data source **Via relay agent** so requests come from your own network, which the website already trusts, or allowlist SquaredUp on the website's CDN.
 - **Changing the sitemap:** pages from the previous sitemap can stay listed for a short time after the next import, until SquaredUp clears them.
 - **Read-only:** the plugin only reads public CrUX data and your sitemap.
