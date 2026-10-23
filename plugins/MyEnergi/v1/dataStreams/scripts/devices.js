@@ -9,10 +9,13 @@ const families = {
     libbi: { type: "Libbi", prefix: "L" },
 };
 
+// Unused CTs and heaters are reported as the string "None".
+const named = (value) => (value && value !== "None" ? value : null);
+
 const ctTypes = (device) =>
     [1, 2, 3, 4, 5, 6]
         .map((n) => device[`ectt${n}`])
-        .filter((t) => t && t !== "None");
+        .filter(named);
 
 const rows = [];
 let hub;
@@ -39,8 +42,8 @@ for (const element of Array.isArray(data) ? data : []) {
                 firmware: device.fwv || null,
                 phases: device.pha ?? null,
                 ctTypes: ctTypes(device),
-                heater1Name: device.ht1 || null,
-                heater2Name: device.ht2 || null,
+                heater1Name: named(device.ht1),
+                heater2Name: named(device.ht2),
                 batteryCapacity: device.mbc ?? null,
                 inverterSize: device.mic ?? null,
                 server: null,
