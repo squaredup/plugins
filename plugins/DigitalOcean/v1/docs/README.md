@@ -18,7 +18,7 @@ The token belongs to one team. To monitor several teams, add the plugin once per
 | ------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- | -------- |
 | **Personal access token** | Authenticates every request as a bearer token.                     | Control Panel → **API → Tokens** (see above).         | Yes      |
 
-On save, the plugin validates the token by fetching your account details; an invalid, expired or under-scoped token fails setup with an authentication error.
+On save, the plugin validates the token by fetching your account details, so an invalid or expired token, or one without the `account:read` scope, fails setup. Other scopes are not checked on save — a token missing one shows errors on the tiles that need it.
 
 ## What this plugin monitors
 
