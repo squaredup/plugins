@@ -3,7 +3,6 @@ const HOUR = 3600000;
 const now = Date.now();
 const scoped = context.objects[0].rawId;
 const iso = (ms) => new Date(ms).toISOString();
-const round1 = (n) => Math.round(n * 10) / 10;
 
 const scopeIds = (f) => {
     const projects = new Set(Object.keys(f.ProjectEnvironmentScope || {}));
@@ -89,8 +88,8 @@ result = ((data && data.DeploymentFreezes) || [])
             freezeState: status,
             start: iso(w.start),
             end: iso(w.end),
-            hoursRemaining: active ? round1((w.end - now) / HOUR) : null,
-            startsInHours: active ? null : round1((w.start - now) / HOUR),
+            hoursRemaining: active ? (w.end - now) / HOUR : null,
+            startsInHours: active ? null : (w.start - now) / HOUR,
             recurring: !!(f.RecurringSchedule && f.RecurringSchedule.Type),
             schedule: describe(f.RecurringSchedule),
             projectCount: ids.projects.size,

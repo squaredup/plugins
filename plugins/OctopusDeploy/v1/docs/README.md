@@ -17,7 +17,7 @@ You will need the address of your Octopus server and an **API key**. Using a ded
 | **Server URL** | The address of your Octopus server, e.g. `https://example.octopus.app` for Octopus Cloud or `https://octopus.example.com` for a self-hosted server. | The address in your browser's address bar when you open Octopus. | Yes |
 | **API key** | The key used to authenticate every request. It is sent in the `X-Octopus-ApiKey` header. | Octopus → **Configuration → Users** → the service account → **API Keys**, or **Profile → My API Keys** for your own user. | Yes |
 
-When you save, the plugin checks the key by fetching the user it belongs to. If the server URL is unreachable, or the key is invalid or expired, setup fails with an authentication error. For a self-hosted server that uses a certificate from an internal certificate authority, turn on **Ignore certificate errors**.
+When you save, the plugin checks the key by fetching the user it belongs to. If the server URL is unreachable, or the key is invalid or expired, setup fails with an authentication error. If a self-hosted server uses a certificate from an internal certificate authority that SquaredUp doesn't trust, **Ignore certificate errors** lets the connection succeed. It turns off certificate validation, so use it only where you trust the network path to the server.
 
 ## What this plugin monitors
 
