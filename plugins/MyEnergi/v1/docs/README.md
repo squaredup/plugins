@@ -25,16 +25,41 @@ On save, the plugin signs in and lists the devices registered to the hub. If tha
 
 ## What this plugin monitors
 
-<!-- finalized in Phase 9 -->
+- **Live power flow** — grid import and export, solar generation, total consumption, house load, and the power going to EV charging, hot water and the battery.
+- **Device status** — each Zappi, Eddi, Harvi and Libbi with its status, mode, plug state, power, energy, tank temperatures, battery level, voltage and frequency, and whether its data is current.
+- **CT clamps** — the live reading and configured type (Grid, Generation, Internal Load and so on) of every current transformer clamp.
+- **Energy history** — grid import and export, generation, diverted (surplus) and boosted (grid) energy, and battery charge and discharge, per minute for ranges up to 24 hours and per hour beyond that.
+- **Boost schedules** — the boost timers configured on each Zappi and Eddi.
+
+The out-of-the-box dashboards include an **Overview** of the whole site plus a perspective for each **Zappi**, **Eddi**, **Libbi** and **Harvi**.
 
 ## Data streams
 
-<!-- finalized in Phase 9 -->
+- **Power Flow** — live power flow for the whole site, as a single row.
+- **Device Status** — live status and readings, one row per selected device (any mix of Zappi, Eddi, Harvi and Libbi).
+- **CT Readings** — live power on each active CT clamp, one row per clamp on the selected devices.
+- **Energy History** — energy or average power over time, one row per selected Zappi, Eddi or Libbi per minute or hour. Use the **Measure** option to switch between energy (kWh) and average power (kW).
+- **Boost Schedules** — configured boost timers, one row per timer on the selected Zappi and Eddi devices.
 
 ## What gets indexed
 
-<!-- finalized in Phase 9 -->
+| Object type | API source | Represents |
+| ----------- | ---------- | ---------- |
+| **Hub** | `cgi-jstatus-*` | The gateway device the plugin signs in with — a myenergi hub, or the Zappi or Eddi acting as one. |
+| **Zappi** | `cgi-jstatus-*` | An EV charger. |
+| **Eddi** | `cgi-jstatus-*` | A hot water diverter. |
+| **Harvi** | `cgi-jstatus-*` | A wireless CT sensor. |
+| **Libbi** | `cgi-jstatus-*` | A home battery. |
+
+Devices are named by type and serial number, for example **Zappi 12345678**. Device lists refresh every 12 hours, so a newly installed device can take that long to appear.
 
 ## Known limitations
 
-<!-- finalized in Phase 9 -->
+- **Unofficial API** — myenergi does not document or support this API, and it can change without notice.
+- **Read-only** — the plugin never changes modes, boosts, schedules or any other setting on your devices.
+- **History range** — energy history is available for up to the last 30 days, this month or last month. Longer ranges aren't offered, because a single request covers at most 31 days.
+- **Site totals repeat per device** — every device reports the same grid import, export and generation for the site, so don't sum those columns across devices. Diverted and boosted energy are per device and can be summed.
+- **Harvi has no history** — the API provides live readings only for Harvi, so it isn't offered in **Energy History**.
+- **Harvi and Libbi are untested** — their streams and dashboards follow the community documentation of the API but have not been verified against real devices.
+- **Eddi boost timers** — the Eddi reports some timers without a duration and under timer groups whose meaning isn't documented, so they are labelled by output number.
+- **One hub per data source** — add a separate data source for each myenergi hub. Features that need a myenergi account sign-in, such as Libbi grid charging targets, tariffs and vehicles, aren't covered.
