@@ -4,8 +4,8 @@ Monitor your [LaunchDarkly](https://launchdarkly.com) feature flags in SquaredUp
 
 You will need a LaunchDarkly **access token**. The plugin only reads data, so the built-in **Reader** role is enough.
 
-1. Sign in to [LaunchDarkly](https://app.launchdarkly.com).
-2. Go to **Organization settings → Authorization** ([direct link](https://app.launchdarkly.com/settings/authorization)) and, under **Access tokens**, click **Create token**.
+1. Sign in to LaunchDarkly at [app.launchdarkly.com](https://app.launchdarkly.com) (Commercial), [app.eu.launchdarkly.com](https://app.eu.launchdarkly.com) (EU) or [app.launchdarkly.us](https://app.launchdarkly.us) (Federal).
+2. Go to **Organization settings → Authorization** (`/settings/authorization` on your instance) and, under **Access tokens**, click **Create token**.
 3. Give the token a name (for example `SquaredUp`), choose the **Reader** role, and click **Save token**.
 4. Copy the token straight away — LaunchDarkly only shows it once — and paste it into the **Access token** field.
 5. Choose the **Instance** you sign in to. Most accounts use **Commercial**; choose **EU** if you sign in at `app.eu.launchdarkly.com`, or **Federal** if you sign in at `app.launchdarkly.us`.
