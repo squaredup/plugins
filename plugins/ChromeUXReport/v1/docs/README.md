@@ -18,7 +18,7 @@ You will need a **Google API key** from a Google Cloud project with the Chrome U
 | **Sitemap URL** | The full URL of your website's XML sitemap or sitemap index. Every page it lists on your website is imported. | The `Sitemap:` line in your site's `robots.txt`. | Yes |
 | **Website** | Your website's origin, for example `https://www.example.com`. Only needed when the sitemap is on a different host from your pages, such as a CDN, a `sitemaps.` subdomain, or the domain without `www`. | The address bar of your home page. | No |
 | **Maximum pages** | The most pages to import, 50,000 by default. CrUX only has data for pages with enough Chrome traffic, so most sites don't need more. | Your choice. | Yes |
-| **Key pages** | The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key pages** dashboard and don't count toward **Maximum pages**. | Your analytics or Search Console's top pages. | No |
+| **Key pages** | The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key Pages** dashboard and don't count toward **Maximum pages**. | Your analytics or Search Console's top pages. | No |
 | **Competitor websites** | The origin of each competitor to benchmark against, one per line, for example `https://www.competitor.com`. | Your choice. | No |
 | **Google API key** | Authenticates every request to the Chrome UX Report API. | Google Cloud Console > **APIs & Services** > **Credentials**. | Yes |
 
@@ -35,7 +35,7 @@ If you also use the Google Search Console plugin, you can merge its pages with t
 
 1. Go to **Settings** > **Correlation** and click **Add correlation rule**.
 2. Select **Merge**.
-3. Set the left node's **Type** to `CrUX Page` and the right node's **Type** to `page`, then click **Next**.
+3. Set both nodes' **Type** to `page`, then click **Next**.
 4. Set both properties to `name`, then click **Preview** and **Save and run**.
 
 Both plugins name a page by its full URL, so pages listed the same way in your sitemap and in Search Console merge. The CrUX dashboards and the Search Console dashboards then open the same page object.
@@ -56,9 +56,9 @@ The out-of-the-box dashboards are:
 - **Overview:** the latest 28-day snapshot, with the Core Web Vitals pass or fail assessment and what changed since last month.
 - **Page:** a perspective on any single page, against its whole website.
 - **Trends:** 40 weeks of every metric.
-- **LCP diagnostics:** why LCP is slow and what to fix first.
+- **LCP Diagnostics:** why LCP is slow and what to fix first.
 - **Competitors:** your website against each competitor, and who is improving.
-- **Key pages:** a leaderboard of your key pages, showing which ones got better or worse since last month and which have too little traffic to report.
+- **Key Pages:** a leaderboard of your key pages, showing which ones got better or worse since last month and which have too little traffic to report.
 
 ## Data streams
 
@@ -70,9 +70,9 @@ The out-of-the-box dashboards are:
 
 | Object type | API source | Represents |
 | ----------- | ---------- | ---------- |
-| **CrUX Origin** | The **Website** field, or otherwise the sitemap's own origin | The website, used by the whole-site tiles. |
-| **CrUX Page** | Each `<loc>` in the sitemap and every sitemap it links to, plus any **Key pages** | A page on the website. Key pages have the property `pageGroup` set to `Key page`. |
-| **CrUX Competitor** | **Competitor websites** | A competitor website. |
+| **origin** | The **Website** field, or otherwise the sitemap's own origin | The website, used by the whole-site tiles. |
+| **page** | Each `<loc>` in the sitemap and every sitemap it links to, plus any **Key pages** | A page on the website. Key pages have the property `pageGroup` set to `Key page`. |
+| **competitor** | **Competitor websites** | A competitor website. |
 
 ## Known limitations
 
@@ -80,7 +80,7 @@ The out-of-the-box dashboards are:
 - **Data is a 28-day rolling window, not live:** current values cover the 28 days ending about two days ago, and history updates once a week. A fix shows fully after about four weeks, so pair this plugin with real-user monitoring or lab tests to see changes as they happen.
 - **No country breakdown:** the CrUX API doesn't split data by country.
 - **Up to 40 weeks of history:** the CrUX History API keeps 40 weekly periods, so longer timeframes aren't offered.
-- **No all-pages leaderboard:** CrUX has no way to ask for every page at once, and it reports no traffic figures, so ranking thousands of pages would take thousands of requests. The **Key pages** dashboard covers the pages you choose instead, and the **Page** dashboard opens any single page.
+- **No all-pages leaderboard:** CrUX has no way to ask for every page at once, and it reports no traffic figures, so ranking thousands of pages would take thousands of requests. The **Key Pages** dashboard covers the pages you choose instead, and the **Page** dashboard opens any single page.
 - **One request per page:** each page in a tile is one API request, and CrUX allows about 150 requests a minute for each API key, so avoid tiles that cover hundreds of pages at once. Results are cached for 6 hours (24 hours for history), because CrUX only publishes new data daily and weekly, so busy dashboards don't add requests.
 - **Sitemaps:**
   - Only pages on your website, meaning the **Website** origin or otherwise the sitemap's own origin, are imported, up to **Maximum pages**. Pages on other subdomains, `http://` or the domain without `www` are left out, so a large blog or help site can't crowd out the main one. Add any of those pages you care about as **Key pages**, which don't count toward the limit and are imported whatever their address.

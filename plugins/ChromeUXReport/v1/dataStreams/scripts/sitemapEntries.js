@@ -78,15 +78,15 @@ for (const url of entries) {
 const rows = new Map();
 const keyPages = lines(config.keyPages).map(normalize).filter(Boolean);
 if (page === 1) {
-    rows.set(origin, { url: origin, sourceType: "CrUX Origin" });
+    rows.set(origin, { url: origin, sourceType: "origin" });
     for (const competitor of lines(config.competitors).map(normalize)) {
         if (competitor && competitor.origin !== origin) {
-            rows.set(competitor.origin, { url: competitor.origin, sourceType: "CrUX Competitor" });
+            rows.set(competitor.origin, { url: competitor.origin, sourceType: "competitor" });
         }
     }
     // Key pages are imported even when the sitemap doesn't list them, and don't use up Maximum pages
     for (const keyPage of keyPages) {
-        rows.set(keyPage.href, { url: keyPage.href, sourceType: "CrUX Page", pageGroup: "Key page" });
+        rows.set(keyPage.href, { url: keyPage.href, sourceType: "page", pageGroup: "Key page" });
     }
 }
 
@@ -97,7 +97,7 @@ const keyPageHrefs = new Set(keyPages.map((url) => withoutSlash(url.href)));
 const room = Math.max(0, maxPages - state.imported);
 const chunk = sitePages.slice(state.skip, state.skip + Math.min(PAGES_PER_CHUNK, room));
 for (const url of chunk.filter((url) => !keyPageHrefs.has(withoutSlash(url.href)))) {
-    rows.set(url.href, { url: url.href, sourceType: "CrUX Page", pageGroup: "Other page" });
+    rows.set(url.href, { url: url.href, sourceType: "page", pageGroup: "Other page" });
 }
 result = [...rows.values()];
 const imported = state.imported + chunk.length;
