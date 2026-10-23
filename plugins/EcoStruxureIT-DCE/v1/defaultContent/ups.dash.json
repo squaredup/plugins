@@ -1,0 +1,859 @@
+{
+    "name": "UPS",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [
+        "{{variables.[UPS]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "0f8a92f5-bab9-4208-a4f0-21ddf64375bd",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[UPS Devices]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[UPS]}}"
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "805194ce-a6f8-4883-a566-c13de8948ed3",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Battery Capacity",
+                    "description": "Charge remaining in the UPS battery.",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensors]}}",
+                        "name": "sensors",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "device": {
+                                "variable": "{{variables.[UPS]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[UPS Devices]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Battery Capacity Remaining"
+                                },
+                                {
+                                    "column": "numericValue",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-gauge",
+                        "config": {
+                            "data-stream-gauge": {
+                                "value": {
+                                    "type": "mean",
+                                    "columns": [
+                                        "numericValue"
+                                    ]
+                                },
+                                "minimum": 0,
+                                "maximum": 100
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "numericValue",
+                                    "type": "quantitative",
+                                    "title": "Reading",
+                                    "aggregate": "max"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.25,
+                                        "color": "#d63939"
+                                    },
+                                    {
+                                        "to": 0.75,
+                                        "color": "#f59f00"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#2fb344"
+                                    }
+                                ],
+                                "gaugeAxisLabels": true,
+                                "gaugeLabelText": "Capacity (%)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b962a7b7-4fcd-488d-9618-d3e73345579a",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Runtime Remaining",
+                    "description": "Estimated runtime on battery at the current load.",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensors]}}",
+                        "name": "sensors",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "device": {
+                                "variable": "{{variables.[UPS]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[UPS Devices]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Battery Time Remaining"
+                                },
+                                {
+                                    "column": "numericValue",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "numericValue",
+                                "label": "Runtime (min)"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "numericValue",
+                                        "type": "quantitative",
+                                        "title": "Runtime (min)",
+                                        "aggregate": "max"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelText": "minutes"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1831a9c6-a51c-479c-be27-74465bc53d20",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Output Load",
+                    "description": "Load on the UPS as a share of its capacity. Amber from 60%, red from 80%.",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensors]}}",
+                        "name": "sensors",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "device": {
+                                "variable": "{{variables.[UPS]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[UPS Devices]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Output Load"
+                                },
+                                {
+                                    "column": "numericValue",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-gauge",
+                        "config": {
+                            "data-stream-gauge": {
+                                "value": {
+                                    "type": "mean",
+                                    "columns": [
+                                        "numericValue"
+                                    ]
+                                },
+                                "minimum": 0,
+                                "maximum": 100
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "numericValue",
+                                    "type": "quantitative",
+                                    "title": "Reading",
+                                    "aggregate": "max"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.6,
+                                        "color": "#2fb344"
+                                    },
+                                    {
+                                        "to": 0.8,
+                                        "color": "#f59f00"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#d63939"
+                                    }
+                                ],
+                                "gaugeAxisLabels": true,
+                                "gaugeLabelText": "Load (%)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e9cb1815-0f3e-4b59-bb9e-337b5472a78e",
+                "x": 1,
+                "y": 2,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "UPS Status",
+                    "description": "The UPS's device status and key states and readings, coloured by Data Center Expert's severity.",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensors]}}",
+                        "name": "sensors",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "device": {
+                                "variable": "{{variables.[UPS]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[UPS Devices]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "label",
+                                    "operation": "contains",
+                                    "value": "Device Status"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "UPS Operation Mode"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Battery Status"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Battery Replacement Status"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Self-Test Status"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Battery Temperature"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Battery Age"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Input Voltage"
+                                },
+                                {
+                                    "column": "label",
+                                    "operation": "equals",
+                                    "value": "Output Voltage"
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-blocks",
+                        "config": {
+                            "data-stream-blocks": {
+                                "labelColumn": "label",
+                                "stateColumn": "severityText",
+                                "sublabel": "value",
+                                "linkColumn": "none",
+                                "columns": 4
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "label",
+                                    "type": "nominal",
+                                    "title": "Sensor"
+                                },
+                                "status": {
+                                    "field": "severityText",
+                                    "type": "nominal",
+                                    "title": "Status"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "nominal",
+                                    "title": "Reading"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 4,
+                                "statusGridOrderByField": "label",
+                                "statusGridOrderDirection": "asc",
+                                "statusGridLabelWrap": false,
+                                "statusGridMaxBlockHeight": 120
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "413eb948-7bbe-435a-85a6-de993478b434",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Load and Battery Capacity",
+                    "description": "Output load and battery capacity over the dashboard timeframe. Amber line: 80% load.",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceSensorHistory]}}",
+                        "name": "deviceSensorHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "sensorName": [
+                                "Output Load",
+                                "Battery Capacity Remaining"
+                            ]
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "value",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[UPS Devices]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[UPS]}}"
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "time",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "sensorLabel",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "",
+                                "showYAxisLabel": false,
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "time",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Value"
+                                },
+                                "series": {
+                                    "field": "sensorLabel",
+                                    "type": "nominal",
+                                    "title": "Sensor Name"
+                                }
+                            },
+                            "style": {
+                                "cartesianYAxisMin": 0,
+                                "cartesianYAxisMax": 100,
+                                "cartesianYAxisUnitColumn": "units",
+                                "legendPosition": "bottom"
+                            },
+                            "markLines": [
+                                {
+                                    "value": 80,
+                                    "label": "80% load",
+                                    "color": "#f59e0b"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "i": "34c70bef-c243-4ab7-8397-af9a17f9f336",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Input and Output Voltage",
+                    "description": "Input and output voltage over the dashboard timeframe.",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceSensorHistory]}}",
+                        "name": "deviceSensorHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "sensorName": [
+                                "Input Voltage",
+                                "Output Voltage"
+                            ]
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "value",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[UPS Devices]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[UPS]}}"
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "time",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "sensorLabel",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "",
+                                "showYAxisLabel": false,
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "time",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Value"
+                                },
+                                "series": {
+                                    "field": "sensorLabel",
+                                    "type": "nominal",
+                                    "title": "Sensor Name"
+                                }
+                            },
+                            "style": {
+                                "cartesianYAxisRangeMode": "fit",
+                                "cartesianYAxisUnitColumn": "units",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "95414e0e-b86b-4d8f-8db2-f9e6817bb551",
+                "x": 0,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Active Alarms",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alarms]}}",
+                        "name": "alarms",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "device": {
+                                "variable": "{{variables.[UPS]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[UPS Devices]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "severityText",
+                                    "description",
+                                    "startTime",
+                                    "durationSeconds",
+                                    "recommendedAction"
+                                ],
+                                "hiddenColumns": [
+                                    "deviceName",
+                                    "hidden",
+                                    "alarmAlertSuppressed"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "statusText",
+                                        "title": "Severity",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "OK": "#2fb344",
+                                                "Normal": "#2fb344",
+                                                "None": "#2fb344",
+                                                "Information": "#2fb344",
+                                                "Informational": "#2fb344",
+                                                "Warning": "#f59f00",
+                                                "Error": "#d63939",
+                                                "Critical": "#d63939",
+                                                "Failure": "#d63939"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "category",
+                                        "title": "Category",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Environmental": "#1c7ed6",
+                                                "Power": "#7048e8",
+                                                "Other": "#868e96"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "description",
+                                        "title": "Alarm",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "recommendedAction",
+                                        "title": "Recommended Action",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d4f486da-6751-455f-91fe-f34252502dff",
+                "x": 2,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Alarm History",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alarmHistory]}}",
+                        "name": "alarmHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "device": {
+                                "variable": "{{variables.[UPS]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[UPS Devices]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[UPS]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "severityText",
+                                    "description",
+                                    "startTime",
+                                    "resolveTime",
+                                    "durationSeconds"
+                                ],
+                                "hiddenColumns": [
+                                    "deviceName",
+                                    "recommendedAction",
+                                    "hidden",
+                                    "alarmAlertSuppressed"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "statusText",
+                                        "title": "Severity",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "OK": "#2fb344",
+                                                "Normal": "#2fb344",
+                                                "None": "#2fb344",
+                                                "Information": "#2fb344",
+                                                "Informational": "#2fb344",
+                                                "Warning": "#f59f00",
+                                                "Error": "#d63939",
+                                                "Critical": "#d63939",
+                                                "Failure": "#d63939"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "category",
+                                        "title": "Category",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Environmental": "#1c7ed6",
+                                                "Power": "#7048e8",
+                                                "Other": "#868e96"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "description",
+                                        "title": "Alarm",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "resolveTime",
+                                        "title": "Resolved",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "startTime",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

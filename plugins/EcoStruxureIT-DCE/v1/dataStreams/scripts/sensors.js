@@ -72,6 +72,29 @@ const toNumber = (sensor) => {
     return parsed !== null ? parsed : parseReading(sensor.rawValue, ".");
 };
 
+// Environmental readings are what data center teams watch most. The kind identifies most of
+// them; leak, smoke and similar detectors report as generic STATE sensors, so their label is
+// checked too. Keep this list in step with sensorHistory.js.
+const ENVIRONMENTAL_KINDS = new Set([
+    "TEMPERATURE", "DIFF_TEMP", "HUMIDITY", "DEW_POINT", "AIRFLOW", "VOL_AIRFLOW", "VOL_AIRFLOW_SEC",
+    "DOOR", "RA_DOOR", "RMT_DOOR", "MOTION_SENSOR"
+]);
+const ENVIRONMENTAL_LABEL = /temperature|humidity|dew point|air ?flow|leak|fluid|water|smoke|door|motion/i;
+const POWER_KINDS = new Set([
+    "POWER_KVA", "POWER_KWATTS", "K_REACT_POWER", "KVH", "KVA_HOUR", "KWATT_HOUR", "ENERGY_KWH",
+    "CURRENT", "AMP_DETECTOR", "POWER_VA", "POWER_WATTS", "VOLTAGE"
+]);
+const categoryOf = (s) => {
+    const kind = String(s.kind || "").toUpperCase();
+    if (ENVIRONMENTAL_KINDS.has(kind) || ENVIRONMENTAL_LABEL.test(s.label || "")) return "Environmental";
+    if (POWER_KINDS.has(kind) || String(s.sensorType || "").startsWith("NUMBER_POWER")) return "Power";
+    return "Other";
+};
+
+// A relay agent reads the plugin's output in the Windows code page rather than UTF-8, so a
+// degree sign arrives as "Â°". Drop it ("21.5 °C" becomes "21.5 C") until the agent is fixed.
+const asciiUnits = (text) => (typeof text === "string" ? text.replace(/°\s?/g, "") : text);
+
 result = sensors
     .filter((s) => deviceIds.size === 0 || deviceIds.has(s.podId))
     .filter((s) => kinds.size === 0 || kinds.has(String(s.kind || "").toUpperCase()))
@@ -79,12 +102,15 @@ result = sensors
         guid: s.guid,
         label: s.label || s.guid,
         deviceGuid: s.podId,
+        category: categoryOf(s),
         kind: s.kind,
         sensorType: s.sensorType,
         location: s.location,
         numericValue: toNumber(s),
-        units: s.units,
-        value: s.value,
+        units: asciiUnits(s.units),
+        value: asciiUnits(s.value),
         rawValue: s.rawValue,
-        severityText: s.severityText
+        severityText: s.severityText,
+        // DCE's own wording for badges (severityText becomes a mapped health state); "None" is healthy.
+        statusText: /^(none|ok|normal)$/i.test(String(s.severityText || "")) ? "OK" : s.severityText || "Unknown"
     }));
