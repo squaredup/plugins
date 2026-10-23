@@ -1,0 +1,85 @@
+{
+    "name": "conversationSignals",
+    "displayName": "Conversation Signals",
+    "description": "Conversations recorded by Signals for a Harness Runtime environment, with turns, duration and number of detected signals",
+    "tags": [
+        "AI",
+        "Quality"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/signals/agents/{{object.rawId}}/sessions",
+        "getArgs": [
+            {
+                "key": "start_time",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end_time",
+                "value": "{{timeframe.unixEnd}}"
+            }
+        ],
+        "postRequestScript": "conversationSignals.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "edges.99.cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Environment"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "startedAt",
+            "displayName": "Started",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sessionId",
+            "displayName": "Session ID",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "totalTurns",
+            "displayName": "Turns",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": "seconds"
+        },
+        {
+            "name": "signalCount",
+            "displayName": "Signals",
+            "shape": "number"
+        },
+        {
+            "sourceId": "sessionId",
+            "sourceType": "Agent Session",
+            "name": "sessionId"
+        }
+    ],
+    "timeframes": true
+}

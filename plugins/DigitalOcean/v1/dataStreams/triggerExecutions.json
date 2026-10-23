@@ -1,0 +1,98 @@
+{
+    "name": "triggerExecutions",
+    "displayName": "Trigger Executions",
+    "description": "Execution history of a Harness Runtime trigger with each run's status, duration and failure reason",
+    "tags": [
+        "AI",
+        "Automation"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/agents/triggers/{{object.rawId}}/executions",
+        "postRequestScript": "triggerExecutions.js",
+        "getArgs": [
+            {
+                "key": "page_size",
+                "value": "200"
+            }
+        ]
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Trigger"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Execution ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Started",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "succeeded"
+                        ],
+                        "error": [
+                            "failed"
+                        ],
+                        "warning": [
+                            "pending",
+                            "running"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": "seconds"
+        },
+        {
+            "name": "failureReason",
+            "displayName": "Failure Reason",
+            "shape": "string"
+        },
+        {
+            "name": "outputTruncated",
+            "displayName": "Output Truncated",
+            "shape": "boolean"
+        },
+        {
+            "name": "updatedAt",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "name": "sessionId",
+            "displayName": "Session ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}
