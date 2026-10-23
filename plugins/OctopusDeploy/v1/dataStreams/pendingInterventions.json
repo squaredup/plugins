@@ -1,0 +1,163 @@
+{
+    "name": "pendingInterventions",
+    "displayName": "Pending Interventions",
+    "description": "Deployments and runbook runs waiting for a person, with how long they have been waiting and who has taken responsibility",
+    "tags": [
+        "Deployments",
+        "Tasks"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/interruptions",
+        "getArgs": [
+            {
+                "key": "pendingOnly",
+                "value": "true"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "take",
+                "value": "200"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "Items"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "skip"
+            }
+        },
+        "postRequestScript": "pendingInterventions.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Project",
+                "Environment",
+                "Tenant"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "title",
+            "displayName": "Title",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "warning": [
+                            "Pending"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "instructions",
+            "displayName": "Instructions",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "waitingMinutes",
+            "displayName": "Waiting",
+            "shape": "minutes"
+        },
+        {
+            "name": "hasResponsibility",
+            "displayName": "Responsibility taken",
+            "shape": "boolean"
+        },
+        {
+            "name": "responsibleUserId",
+            "displayName": "Responsible User ID",
+            "shape": "string"
+        },
+        {
+            "name": "canTakeResponsibility",
+            "displayName": "Can take responsibility",
+            "shape": "boolean"
+        },
+        {
+            "name": "responsibleTeamIds",
+            "displayName": "Responsible Team IDs",
+            "shape": "string"
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "environmentId",
+            "displayName": "Environment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "taskId",
+            "displayName": "Task ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "interruptionId",
+            "displayName": "Interruption ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "spaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "projectId",
+            "sourceType": "Project",
+            "name": "title"
+        },
+        {
+            "sourceId": "environmentId",
+            "sourceType": "Environment",
+            "name": "title"
+        }
+    ],
+    "timeframes": false
+}
