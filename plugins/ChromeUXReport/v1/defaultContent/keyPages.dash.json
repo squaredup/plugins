@@ -128,7 +128,7 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Key pages",
-                    "description": "Loading speed (LCP), responsiveness (INP) and visual stability (CLS) for each key page on phone, slowest loading first, as met or beaten by 3 in 4 visits. Better and Worse compare the page with the whole site; pages without enough phone traffic are listed under Coverage.",
+                    "description": "Loading speed (LCP), responsiveness (INP) and visual stability (CLS) for each key page on phone, slowest loading first, as met or beaten by 3 in 4 visits. Vs last month compares each page with four weeks earlier; pages without enough phone traffic are listed under Coverage.",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
@@ -137,7 +137,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "SELECT CASE WHEN regexp_replace(p.target, '^https?://[^/]+', '') = '' THEN '/' ELSE regexp_replace(p.target, '^https?://[^/]+', '') END AS page,\n  max(CASE WHEN p.metric = 'LCP' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS lcp, max(CASE WHEN p.metric = 'LCP' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS lcpRating, max(CASE WHEN p.metric = 'LCP' THEN CASE\n      WHEN s.p75 IS NULL THEN NULL\n      WHEN round(p.p75, 2) < round(s.p75, 2) THEN 'Better'\n      WHEN round(p.p75, 2) > round(s.p75, 2) THEN 'Worse' ELSE 'Same' END END) AS lcpVsSite,\n  max(CASE WHEN p.metric = 'INP' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS inp, max(CASE WHEN p.metric = 'INP' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS inpRating, max(CASE WHEN p.metric = 'INP' THEN CASE\n      WHEN s.p75 IS NULL THEN NULL\n      WHEN round(p.p75, 2) < round(s.p75, 2) THEN 'Better'\n      WHEN round(p.p75, 2) > round(s.p75, 2) THEN 'Worse' ELSE 'Same' END END) AS inpVsSite,\n  max(CASE WHEN p.metric = 'CLS' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS cls, max(CASE WHEN p.metric = 'CLS' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS clsRating, max(CASE WHEN p.metric = 'CLS' THEN CASE\n      WHEN s.p75 IS NULL THEN NULL\n      WHEN round(p.p75, 2) < round(s.p75, 2) THEN 'Better'\n      WHEN round(p.p75, 2) > round(s.p75, 2) THEN 'Worse' ELSE 'Same' END END) AS clsVsSite\nFROM pages p\nLEFT JOIN site s ON p.metric = s.metric\nWHERE p.isCoreWebVital\nGROUP BY p.target\nORDER BY max(CASE WHEN p.metric = 'LCP' THEN p.p75 END) DESC",
+                            "sql": "WITH dated AS (\n  SELECT target, metric, p75, CAST(periodEnd AS DATE) AS periodEnd, max(CAST(periodEnd AS DATE)) OVER (PARTITION BY target, metric) AS latest FROM history\n), monthly AS (\n  SELECT target, metric,\n    max(CASE WHEN periodEnd = latest THEN p75 END) AS now,\n    max(CASE WHEN periodEnd = latest - INTERVAL 28 DAY THEN p75 END) AS before\n  FROM dated GROUP BY ALL\n)\nSELECT CASE WHEN regexp_replace(p.target, '^https?://[^/]+', '') = '' THEN '/' ELSE regexp_replace(p.target, '^https?://[^/]+', '') END AS page,\n  max(CASE WHEN p.metric = 'LCP' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS lcp, max(CASE WHEN p.metric = 'LCP' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS lcpRating, max(CASE WHEN p.metric = 'LCP' THEN CASE\n      WHEN h.now IS NULL OR h.before IS NULL THEN NULL\n      WHEN abs(h.now - h.before) < 0.02 * nullif(h.before, 0) OR h.now = h.before THEN 'Same'\n      WHEN h.now < h.before THEN 'Better' ELSE 'Worse' END END) AS lcpVsLastMonth,\n  max(CASE WHEN p.metric = 'INP' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS inp, max(CASE WHEN p.metric = 'INP' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS inpRating, max(CASE WHEN p.metric = 'INP' THEN CASE\n      WHEN h.now IS NULL OR h.before IS NULL THEN NULL\n      WHEN abs(h.now - h.before) < 0.02 * nullif(h.before, 0) OR h.now = h.before THEN 'Same'\n      WHEN h.now < h.before THEN 'Better' ELSE 'Worse' END END) AS inpVsLastMonth,\n  max(CASE WHEN p.metric = 'CLS' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS cls, max(CASE WHEN p.metric = 'CLS' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS clsRating, max(CASE WHEN p.metric = 'CLS' THEN CASE\n      WHEN h.now IS NULL OR h.before IS NULL THEN NULL\n      WHEN abs(h.now - h.before) < 0.02 * nullif(h.before, 0) OR h.now = h.before THEN 'Same'\n      WHEN h.now < h.before THEN 'Better' ELSE 'Worse' END END) AS clsVsLastMonth\nFROM pages p\nLEFT JOIN monthly h ON rtrim(h.target, '/') = rtrim(p.target, '/') AND h.metric = p.metric\nWHERE p.isCoreWebVital\nGROUP BY p.target\nORDER BY max(CASE WHEN p.metric = 'LCP' THEN p.p75 END) DESC",
                             "tables": [
                                 {
                                     "tableName": "pages",
@@ -162,22 +162,22 @@
                                     }
                                 },
                                 {
-                                    "tableName": "site",
+                                    "tableName": "history",
                                     "config": {
                                         "activePluginConfigIds": [
                                             "{{configId}}"
                                         ],
                                         "dataStream": {
-                                            "id": "{{dataStreams.[coreWebVitals]}}",
-                                            "name": "coreWebVitals",
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
                                             "pluginConfigId": "{{configId}}",
                                             "dataSourceConfig": {
-                                                "level": "origin",
+                                                "level": "page",
                                                 "formFactor": "PHONE"
                                             }
                                         },
                                         "scope": {
-                                            "scope": "{{scopes.[CrUX Origins]}}",
+                                            "scope": "{{scopes.[Key pages]}}",
                                             "workspace": "{{workspaceId}}"
                                         },
                                         "timeframe": "none"
@@ -203,8 +203,8 @@
                                 "shape": "string"
                             },
                             {
-                                "name": "lcpVsSite",
-                                "displayName": "LCP vs site",
+                                "name": "lcpVsLastMonth",
+                                "displayName": "LCP vs last month",
                                 "shape": "string"
                             },
                             {
@@ -218,8 +218,8 @@
                                 "shape": "string"
                             },
                             {
-                                "name": "inpVsSite",
-                                "displayName": "INP vs site",
+                                "name": "inpVsLastMonth",
+                                "displayName": "INP vs last month",
                                 "shape": "string"
                             },
                             {
@@ -233,8 +233,8 @@
                                 "shape": "string"
                             },
                             {
-                                "name": "clsVsSite",
-                                "displayName": "CLS vs site",
+                                "name": "clsVsLastMonth",
+                                "displayName": "CLS vs last month",
                                 "shape": "string"
                             }
                         ]
@@ -273,8 +273,8 @@
                                         }
                                     },
                                     {
-                                        "field": "lcpVsSite",
-                                        "title": "LCP vs site",
+                                        "field": "lcpVsLastMonth",
+                                        "title": "LCP vs last month",
                                         "renderer": {
                                             "type": "badge",
                                             "colors": {
@@ -305,8 +305,8 @@
                                         }
                                     },
                                     {
-                                        "field": "inpVsSite",
-                                        "title": "INP vs site",
+                                        "field": "inpVsLastMonth",
+                                        "title": "INP vs last month",
                                         "renderer": {
                                             "type": "badge",
                                             "colors": {
@@ -337,8 +337,8 @@
                                         }
                                     },
                                     {
-                                        "field": "clsVsSite",
-                                        "title": "CLS vs site",
+                                        "field": "clsVsLastMonth",
+                                        "title": "CLS vs last month",
                                         "renderer": {
                                             "type": "badge",
                                             "colors": {

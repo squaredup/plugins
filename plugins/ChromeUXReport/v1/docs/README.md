@@ -54,11 +54,11 @@ Both plugins name a page by its full URL, so pages listed the same way in your s
 The out-of-the-box dashboards are:
 
 - **Overview:** the latest 28-day snapshot, with the Core Web Vitals pass or fail assessment and what changed since last month.
+- **Page:** a perspective on any single page, against its whole website.
 - **Trends:** 40 weeks of every metric.
 - **LCP diagnostics:** why LCP is slow and what to fix first.
 - **Competitors:** your website against each competitor, and who is improving.
-- **Key pages:** a leaderboard of your key pages, showing which ones have too little traffic to report.
-- **Page:** a perspective on any single page, against its whole website.
+- **Key pages:** a leaderboard of your key pages, showing which ones got better or worse since last month and which have too little traffic to report.
 
 ## Data streams
 
