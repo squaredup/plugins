@@ -32,11 +32,12 @@ const normalize = (text) => {
     return url;
 };
 
-// The website is the domain of the Website field when it's set (for a sitemap kept on a CDN or
-// another host), otherwise the sitemap's own domain. It covers www and every other subdomain.
-const website = normalize(config.website);
-const siteHost = bareHost((website || configured).hostname);
-const onSite = (url) => url.hostname === siteHost || url.hostname.endsWith("." + siteHost);
+// The website is the Website field when it's set (for a sitemap kept on a CDN or another host),
+// otherwise the sitemap's own origin. Only its pages are imported, so no subdomain can crowd it out.
+const origin = (normalize(config.website) || configured).origin;
+// Child sitemaps may sit on any subdomain of the site, such as sitemaps.example.com
+const siteHost = bareHost(new URL(origin).hostname);
+const onSiteDomain = (url) => url.hostname === siteHost || url.hostname.endsWith("." + siteHost);
 
 const incoming = context.pagingContext ? String(context.pagingContext) : "";
 // Defaults cover state written by an older version of this script during an upgrade
@@ -46,7 +47,6 @@ const state = {
     skip: 0,
     page: 0,
     imported: 0,
-    origins: {},
     ...(incoming.includes("#crux=") ? JSON.parse(decodeURIComponent(incoming.split("#crux=")[1])) : {})
 };
 const current = incoming ? incoming.split("#")[0] : configured.href;
@@ -64,12 +64,12 @@ for (const url of entries) {
     // In a page list, only files named like sitemaps are sitemaps, so a feed.xml page stays a page
     const isSitemap = isIndex || /sitemap[^/]*\.xml(\.gz)?$/i.test(url.pathname);
     if (!isSitemap) {
-        if (onSite(url)) sitePages.push(url);
+        if (url.origin === origin) sitePages.push(url);
         continue;
     }
     const key = fingerprint(url.href);
     // Gzipped sitemaps can't be read here, so only plain XML sitemaps are followed
-    if ((url.hostname === configured.hostname || onSite(url)) && !/\.gz$/i.test(url.pathname) && !seen.has(key)) {
+    if ((url.hostname === configured.hostname || onSiteDomain(url)) && !/\.gz$/i.test(url.pathname) && !seen.has(key)) {
         children.push(url.href);
         seen.add(key);
     }
@@ -78,8 +78,9 @@ for (const url of entries) {
 const rows = new Map();
 const keyPages = lines(config.keyPages).map(normalize).filter(Boolean);
 if (page === 1) {
+    rows.set(origin, { url: origin, sourceType: "CrUX Origin" });
     for (const competitor of lines(config.competitors).map(normalize)) {
-        if (competitor && !onSite(competitor)) {
+        if (competitor && competitor.origin !== origin) {
             rows.set(competitor.origin, { url: competitor.origin, sourceType: "CrUX Competitor" });
         }
     }
@@ -89,13 +90,14 @@ if (page === 1) {
     }
 }
 
-const keyPageHrefs = new Set(keyPages.map((url) => url.href));
+// Key pages were imported on the first page, so the sitemap's copy is skipped, with or without
+// a trailing slash, rather than becoming a second object for the same page
+const withoutSlash = (href) => href.replace(/\/(?=$|\?)/, "");
+const keyPageHrefs = new Set(keyPages.map((url) => withoutSlash(url.href)));
 const room = Math.max(0, maxPages - state.imported);
 const chunk = sitePages.slice(state.skip, state.skip + Math.min(PAGES_PER_CHUNK, room));
-const origins = { ...state.origins };
-for (const url of chunk) {
-    rows.set(url.href, { url: url.href, sourceType: "CrUX Page", pageGroup: keyPageHrefs.has(url.href) ? "Key page" : "Other page" });
-    origins[url.origin] = (origins[url.origin] || 0) + 1;
+for (const url of chunk.filter((url) => !keyPageHrefs.has(withoutSlash(url.href)))) {
+    rows.set(url.href, { url: url.href, sourceType: "CrUX Page", pageGroup: "Other page" });
 }
 result = [...rows.values()];
 const imported = state.imported + chunk.length;
@@ -108,13 +110,9 @@ if (state.skip + PAGES_PER_CHUNK < sitePages.length) {
 
 if (queue.length && page < MAX_IMPORT_PAGES && imported < maxPages) {
     const [next, ...rest] = queue;
-    const nextState = { queue: rest, seen: [...seen], skip: next.skip, page, imported, origins };
+    // Only MAX_IMPORT_PAGES sitemaps are ever read, so a longer queue would only bloat the state
+    const nextState = { queue: rest.slice(0, MAX_IMPORT_PAGES - page), seen: [...seen], skip: next.skip, page, imported };
     pagingContext = next.u + "#crux=" + encodeURIComponent(JSON.stringify(nextState));
 } else {
     pagingContext = undefined;
-    // The whole-site figures use the origin most pages are on, so a sitemap on example.com that
-    // lists www.example.com pages still reports on www.example.com
-    const busiest = _.maxBy(Object.keys(origins), (key) => origins[key]);
-    const origin = website ? website.origin : busiest || configured.origin;
-    result.push({ url: origin, sourceType: "CrUX Origin" });
 }
