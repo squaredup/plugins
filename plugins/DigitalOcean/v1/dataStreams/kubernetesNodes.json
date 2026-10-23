@@ -1,0 +1,117 @@
+{
+    "name": "kubernetesNodes",
+    "displayName": "Kubernetes Nodes",
+    "description": "Worker nodes of a DOKS cluster with their node pool, size and state",
+    "tags": [
+        "Kubernetes",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/kubernetes/clusters/{{object.rawId}}/node_pools",
+        "postRequestScript": "kubernetesNodes.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Kubernetes Cluster"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "poolName",
+            "displayName": "Node Pool",
+            "shape": "string"
+        },
+        {
+            "name": "poolSize",
+            "displayName": "Size",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "running"
+                        ],
+                        "warning": [
+                            "provisioning",
+                            "draining"
+                        ],
+                        "unknown": [
+                            "deleting"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "dropletId",
+            "displayName": "Droplet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "autoScale",
+            "displayName": "Auto Scale",
+            "shape": "boolean"
+        },
+        {
+            "name": "poolCount",
+            "displayName": "Pool Node Count",
+            "shape": "number"
+        },
+        {
+            "name": "minNodes",
+            "displayName": "Pool Min Nodes",
+            "shape": "number"
+        },
+        {
+            "name": "maxNodes",
+            "displayName": "Pool Max Nodes",
+            "shape": "number"
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "updatedAt",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "sourceId": "dropletId",
+            "sourceType": "Droplet",
+            "name": "name"
+        }
+    ],
+    "timeframes": false
+}

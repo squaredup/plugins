@@ -1,0 +1,90 @@
+{
+    "name": "appMetrics",
+    "displayName": "App Metrics",
+    "description": "CPU, memory or restart count time series for an App Platform app, one row per component instance and timestamp",
+    "tags": [
+        "Applications",
+        "Monitoring"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/monitoring/metrics/apps/{{metric}}",
+        "getArgs": [
+            {
+                "key": "app_id",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{timeframe.unixEnd}}"
+            }
+        ],
+        "postRequestScript": "appMetrics.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "App"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "radio",
+            "name": "metric",
+            "label": "Metric",
+            "defaultValue": "cpu_percentage",
+            "options": [
+                {
+                    "value": "cpu_percentage",
+                    "label": "CPU (%)"
+                },
+                {
+                    "value": "memory_percentage",
+                    "label": "Memory (%)"
+                },
+                {
+                    "value": "restart_count",
+                    "label": "Restart count"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "component",
+            "displayName": "Component",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "instance",
+            "displayName": "Instance",
+            "shape": "string"
+        }
+    ],
+    "timeframes": true
+}

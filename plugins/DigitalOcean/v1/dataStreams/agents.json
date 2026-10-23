@@ -1,0 +1,140 @@
+{
+    "name": "agents",
+    "displayName": "Agents",
+    "description": "Gradient AI platform agents with their deployment status, model and region",
+    "tags": [
+        "AI",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/gen-ai/agents",
+        "postRequestScript": "agents.js",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "200"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.pages.next"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "deploymentStatus",
+            "displayName": "Deployment Status",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['deploymentStatus'] || 'STATUS_UNKNOWN' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "STATUS_RUNNING"
+                        ],
+                        "error": [
+                            "STATUS_FAILED"
+                        ],
+                        "warning": [
+                            "STATUS_WAITING_FOR_DEPLOYMENT",
+                            "STATUS_BUILDING",
+                            "STATUS_DEPLOYING",
+                            "STATUS_WAITING_FOR_UNDEPLOYMENT",
+                            "STATUS_UNDEPLOYING",
+                            "STATUS_UNDEPLOYMENT_FAILED"
+                        ],
+                        "unknown": [
+                            "STATUS_UNKNOWN",
+                            "STATUS_DELETED"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "visibility",
+            "displayName": "Visibility",
+            "shape": "string"
+        },
+        {
+            "name": "url",
+            "displayName": "Endpoint",
+            "shape": "url"
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tagList",
+            "displayName": "Tags",
+            "shape": "string"
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "updatedAt",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Agent",
+            "name": "name"
+        }
+    ],
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,161 @@
+{
+    "name": "sessionDialogues",
+    "displayName": "Session Dialogues",
+    "description": "Turns of a Harness Runtime session recorded by Signals, with each turn's run status, tool calls, token usage and detected signals",
+    "tags": [
+        "AI",
+        "Quality"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/signals/sessions/{{object.rawId}}/dialogues",
+        "postRequestScript": "sessionDialogues.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "edges.99.cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Agent Session"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Dialogue ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "sequence",
+            "displayName": "Sequence",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false,
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "runStatus",
+            "displayName": "Run Status",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['runStatus'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "completed"
+                        ],
+                        "error": [
+                            "failed",
+                            "error",
+                            "cancelled"
+                        ],
+                        "warning": [
+                            "running",
+                            "pending"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "failureCode",
+            "displayName": "Failure Code",
+            "shape": "string"
+        },
+        {
+            "name": "toolCalls",
+            "displayName": "Tool Calls",
+            "shape": "number"
+        },
+        {
+            "name": "toolFailures",
+            "displayName": "Tool Failures",
+            "shape": "number"
+        },
+        {
+            "name": "toolDurationMs",
+            "displayName": "Tool Time",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "inputTokens",
+            "displayName": "Input Tokens",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "outputTokens",
+            "displayName": "Output Tokens",
+            "shape": "number"
+        },
+        {
+            "name": "cachedInputTokens",
+            "displayName": "Cached Input Tokens",
+            "shape": "number"
+        },
+        {
+            "name": "reasoningTokens",
+            "displayName": "Reasoning Tokens",
+            "shape": "number"
+        },
+        {
+            "name": "modelCalls",
+            "displayName": "Model Calls",
+            "shape": "number"
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "signalCount",
+            "displayName": "Signals",
+            "shape": "number"
+        },
+        {
+            "name": "signalLabels",
+            "displayName": "Signal Labels",
+            "shape": "string"
+        },
+        {
+            "name": "userMessage",
+            "displayName": "User Message",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

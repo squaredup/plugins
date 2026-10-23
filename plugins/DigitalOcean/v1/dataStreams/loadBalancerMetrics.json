@@ -1,0 +1,187 @@
+{
+    "name": "loadBalancerMetrics",
+    "displayName": "Load Balancer Metrics",
+    "description": "Time series of a load balancer metric such as request rate, connections, response time or health (the unit depends on the selected metric)",
+    "tags": [
+        "Monitoring",
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/monitoring/metrics/load_balancer/{{metric}}",
+        "getArgs": [
+            {
+                "key": "lb_id",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{timeframe.unixEnd}}"
+            }
+        ],
+        "postRequestScript": "loadBalancerMetrics.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Load Balancer"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "frontend_http_requests_per_second",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "frontend_http_requests_per_second",
+                        "label": "HTTP requests (per second)"
+                    },
+                    {
+                        "value": "frontend_connections_current",
+                        "label": "Current connections (count)"
+                    },
+                    {
+                        "value": "frontend_http_responses",
+                        "label": "HTTP responses by status class (per second)"
+                    },
+                    {
+                        "value": "droplets_http_response_time_avg",
+                        "label": "Droplet HTTP response time, average (seconds)"
+                    },
+                    {
+                        "value": "droplets_http_response_time_50p",
+                        "label": "Droplet HTTP response time, 50th percentile (seconds)"
+                    },
+                    {
+                        "value": "droplets_http_response_time_95p",
+                        "label": "Droplet HTTP response time, 95th percentile (seconds)"
+                    },
+                    {
+                        "value": "droplets_http_response_time_99p",
+                        "label": "Droplet HTTP response time, 99th percentile (seconds)"
+                    },
+                    {
+                        "value": "frontend_network_throughput_http",
+                        "label": "HTTP throughput (bytes per second)"
+                    },
+                    {
+                        "value": "frontend_network_throughput_tcp",
+                        "label": "TCP throughput (bytes per second)"
+                    },
+                    {
+                        "value": "frontend_network_throughput_udp",
+                        "label": "UDP throughput (bytes per second)"
+                    },
+                    {
+                        "value": "frontend_cpu_utilization",
+                        "label": "CPU utilization (percent)"
+                    },
+                    {
+                        "value": "droplets_health_checks",
+                        "label": "Droplet health check status"
+                    },
+                    {
+                        "value": "droplets_downtime",
+                        "label": "Droplet downtime status"
+                    },
+                    {
+                        "value": "droplets_connections",
+                        "label": "Droplet active connections (count)"
+                    },
+                    {
+                        "value": "droplets_http_responses",
+                        "label": "Droplet HTTP responses by status class (per second)"
+                    },
+                    {
+                        "value": "droplets_queue_size",
+                        "label": "Droplet queue size (count)"
+                    },
+                    {
+                        "value": "frontend_connections_limit",
+                        "label": "Max connections limit (count)"
+                    },
+                    {
+                        "value": "frontend_tls_connections_current",
+                        "label": "Current TLS connections rate (per second)"
+                    },
+                    {
+                        "value": "frontend_tls_connections_limit",
+                        "label": "Max TLS connections limit (count)"
+                    },
+                    {
+                        "value": "frontend_tls_connections_exceeding_rate_limit",
+                        "label": "TLS connections closed for exceeding rate limit (count)"
+                    },
+                    {
+                        "value": "droplets_http_session_duration_avg",
+                        "label": "Droplet HTTP session duration, average (seconds)"
+                    },
+                    {
+                        "value": "droplets_http_session_duration_50p",
+                        "label": "Droplet HTTP session duration, 50th percentile (seconds)"
+                    },
+                    {
+                        "value": "droplets_http_session_duration_95p",
+                        "label": "Droplet HTTP session duration, 95th percentile (seconds)"
+                    },
+                    {
+                        "value": "frontend_nlb_tcp_network_throughput",
+                        "label": "Network LB TCP throughput (bytes per second)"
+                    },
+                    {
+                        "value": "frontend_nlb_udp_network_throughput",
+                        "label": "Network LB UDP throughput (bytes per second)"
+                    },
+                    {
+                        "value": "frontend_firewall_dropped_bytes",
+                        "label": "Network LB firewall dropped bytes"
+                    },
+                    {
+                        "value": "frontend_firewall_dropped_packets",
+                        "label": "Network LB firewall dropped packets (per second)"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        }
+    ],
+    "timeframes": true
+}

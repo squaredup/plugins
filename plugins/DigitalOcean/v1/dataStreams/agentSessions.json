@@ -1,0 +1,138 @@
+{
+    "name": "agentSessions",
+    "displayName": "Agent Sessions",
+    "description": "Harness Runtime sessions with their status, agent kind and last activity (destroyed sessions excluded)",
+    "tags": [
+        "AI",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/agents/sessions",
+        "postRequestScript": "agentSessions.js",
+        "getArgs": [
+            {
+                "key": "page_size",
+                "value": "200"
+            }
+        ]
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "environment",
+            "label": "Environment (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Environment"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "READY"
+                        ],
+                        "warning": [
+                            "PROVISIONING",
+                            "DESTROYING"
+                        ],
+                        "error": [
+                            "FAILED",
+                            "LOCKED"
+                        ],
+                        "unknown": [
+                            "PAUSED",
+                            "DETACHED",
+                            "UNSPECIFIED"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "agentKind",
+            "displayName": "Agent",
+            "shape": "string"
+        },
+        {
+            "name": "pauseReason",
+            "displayName": "Pause Reason",
+            "shape": "string"
+        },
+        {
+            "name": "warnings",
+            "displayName": "Warnings",
+            "shape": "string"
+        },
+        {
+            "name": "keepWarm",
+            "displayName": "Keep Warm",
+            "shape": "boolean"
+        },
+        {
+            "name": "idleTimeoutSeconds",
+            "displayName": "Idle Timeout",
+            "shape": "seconds"
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "lastEventAt",
+            "displayName": "Last Activity",
+            "shape": "date"
+        },
+        {
+            "name": "configId",
+            "displayName": "Environment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "parentSessionId",
+            "displayName": "Parent Session ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Agent Session",
+            "name": "name"
+        }
+    ],
+    "timeframes": false
+}

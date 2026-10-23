@@ -1,0 +1,108 @@
+{
+    "name": "appDeployments",
+    "displayName": "App Deployments",
+    "description": "Most recent deployments of an App Platform app with their phase and cause",
+    "tags": [
+        "Applications",
+        "Deployments"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/apps/{{object.rawId}}/deployments",
+        "getArgs": [
+            {
+                "key": "page",
+                "value": "1"
+            },
+            {
+                "key": "per_page",
+                "value": "50"
+            }
+        ],
+        "pathToData": "deployments"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "App"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "phase",
+            "displayName": "Phase",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['phase'] || 'UNKNOWN' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "ACTIVE"
+                        ],
+                        "error": [
+                            "ERROR",
+                            "CANCELED"
+                        ],
+                        "warning": [
+                            "PENDING_BUILD",
+                            "BUILDING",
+                            "PENDING_DEPLOY",
+                            "DEPLOYING"
+                        ],
+                        "unknown": [
+                            "UNKNOWN",
+                            "SUPERSEDED"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "cause",
+            "displayName": "Cause",
+            "shape": "string"
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "updated_at",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "name": "phase_last_updated_at",
+            "displayName": "Phase Last Updated",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "created_at",
+                    "desc"
+                ]
+            ]
+        }
+    }
+}
