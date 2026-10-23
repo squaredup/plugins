@@ -29,6 +29,7 @@ When you save, the plugin checks the key by fetching the user it belongs to. If 
 - **Approvals and freezes**: deployments and runbook runs waiting on a manual intervention or guided failure, and deployment freezes in force now or coming up.
 - **Runbooks**: the latest run of each runbook in each environment, and run history.
 - **Certificates**: certificates in the Octopus library, and how soon they expire.
+- **License**: when the Octopus license or Cloud subscription expires, and usage against each licensed limit.
 - **Audit log**: who changed or did what, and when.
 
 The out-of-the-box dashboards include **Overview**, **Tasks**, **Infrastructure** and **Audit** dashboards, plus a perspective for each **Project**, **Environment**, **Deployment Target**, **Runbook** and **Worker Pool**.
@@ -48,6 +49,7 @@ Each stream can be scoped to whole **Spaces**, or to individual projects, enviro
 - **Deployment Freezes**: freezes that are active now or scheduled, with what they block.
 - **Certificates**: certificates in the Octopus library, with days until expiry.
 - **Audit Events**: the Octopus audit log, filterable by category, for up to the last 7 days.
+- **License**: license or Cloud subscription expiry and compliance, with usage against each licensed limit such as projects, targets and tasks.
 
 ## What gets indexed
 
@@ -71,7 +73,7 @@ Each stream can be scoped to whole **Spaces**, or to individual projects, enviro
 - **Release Progression times are UTC.** The **Detail** column shows the deployment time as text in UTC.
 - **Deployments only covers completed deployments.** Queued and running deployments appear in **Tasks** and **Deployment Status**. The timeframe is limited to the last quarter, because the deployment report isn't paged.
 - **Tasks history is limited to the last 7 days.** Busy servers run many health check and retention tasks, so longer ranges could exceed response size limits. Filter by task type to keep results small. **Tasks** can't filter by environment, because the Octopus API accepts only a single environment there. Use **Deployments** or **Deployment Status** for environment views.
-- **Deployment freezes are server-wide.** Octopus doesn't record a space against a freeze, so freezes are shown against the default space.
+- **Deployment freezes and the license are server-wide.** Octopus doesn't record a space against either, so they are shown against the default space.
 - **Dynamic worker pools list no workers.** Octopus Cloud's hosted pools are managed by Octopus and don't expose their workers.
 - **Data freshness.** Objects are re-imported every 12 hours. Data streams query Octopus live.
 - **Read-only.** The plugin never creates, changes or deletes anything in Octopus Deploy.
