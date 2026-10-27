@@ -26,16 +26,30 @@ On save, the plugin validates your credentials by requesting the first batch of 
 
 ## What this plugin monitors
 
-<!-- finalized in Phase 9 -->
+- **Current fuel prices** — the live price per fuel type (petrol E10/E5, diesel B7, premium diesel) at every forecourt within your radius, with distance from your location.
+- **Price changes** — which nearby stations changed their prices during a timeframe, and what they changed to.
+- **Station details** — brand, address, distance, fuel types sold, amenities, and whether it's a motorway or supermarket forecourt.
+
+The out-of-the-box content includes a **Fuel Prices** overview dashboard plus a perspective for each **Fuel Station**.
 
 ## Data streams
 
-<!-- finalized in Phase 9 -->
+- **Fuel Prices** — current price per fuel type at each fuel station, with distance (per-station or across all stations in scope).
+- **Price Changes** — fuel price changes at each fuel station during the chosen timeframe (last 24 hours to last 30 days).
+- **Fuel Stations** and **Connection Test** are hidden streams used for importing objects and validating credentials.
 
 ## What gets indexed
 
-<!-- finalized in Phase 9 -->
+| Object type | API source | Represents |
+| ----------- | ---------- | ---------- |
+| **Fuel Station** | `GET /api/v1/pfs` | A forecourt within the configured radius of your location. |
 
 ## Known limitations
 
-<!-- finalized in Phase 9 -->
+- **UK residential IP required** — the Fuel Finder API blocks datacenter and cloud IP addresses (including SquaredUp's cloud and UK cloud hosts), so the data source must run on a relay agent on a UK machine with an ordinary broadband connection.
+- **One credential, one data source** — generating an access token revokes previously issued ones, so sharing a client ID/secret between data sources (or any other application) makes them break each other's authentication. Register separate credentials for each use.
+- **Queries page through the whole UK dataset** — the API has no per-station or location filter, so each query walks batches of 500 stations (~17 batches, a few seconds each via the relay agent). Price Changes timeframes are capped at last 30 days to keep queries manageable.
+- **No price history** — the API returns current prices only. Trends build up over time from SquaredUp's own monitoring of the streams.
+- **Location changes need a re-import** — stations are selected at import time, so after changing the latitude/longitude or radius the objects refresh on the next import (every 12 hours by default, or trigger one manually from the data source page).
+- **Rate limits** — 100 requests/minute and one concurrent request per client, set by the Fuel Finder service.
+- **Read-only** — the plugin never writes anything to Fuel Finder.
