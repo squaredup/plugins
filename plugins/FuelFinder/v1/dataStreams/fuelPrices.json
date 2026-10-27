@@ -1,0 +1,45 @@
+{
+    "name": "fuelPrices",
+    "displayName": "Fuel Prices",
+    "description": "Current price per fuel type at each fuel station",
+    "tags": ["Fuel"],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/pfs/fuel-prices",
+        "postRequestScript": "fuelPrices.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "none" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "499.fuel_prices" },
+                "base": 7
+            },
+            "out": { "realm": "queryArg", "path": "batch-number" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Fuel Station"] } },
+    "metadata": [
+        { "name": "stationId", "displayName": "Station ID", "shape": "string", "visible": false },
+        { "name": "stationName", "displayName": "Station", "shape": "string", "role": "label" },
+        { "sourceId": "stationId", "sourceType": "Fuel Station", "name": "stationName" },
+        {
+            "name": "fuelType",
+            "displayName": "Fuel",
+            "shape": "string",
+            "formatExpression": "{{ ({ E10: 'Petrol (E10)', E5: 'Super unleaded (E5)', B7_STANDARD: 'Diesel (B7)', B7_PREMIUM: 'Premium diesel (B7)' })[$['fuelType']] || $['fuelType'] }}"
+        },
+        { "name": "price", "displayName": "Price (p/litre)", "shape": ["number", { "decimalPlaces": 1 }], "role": "value" },
+        { "name": "lastUpdated", "displayName": "Price last updated", "shape": "date" },
+        {
+            "name": "distanceMiles",
+            "displayName": "Distance (miles)",
+            "sourceId": "stationId",
+            "sourceType": "Fuel Station",
+            "objectPropertyPath": "distanceMiles",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        }
+    ],
+    "timeframes": false
+}
