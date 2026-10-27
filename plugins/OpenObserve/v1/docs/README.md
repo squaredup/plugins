@@ -1,6 +1,6 @@
-Monitor your self-hosted [OpenObserve](https://openobserve.ai) instance in SquaredUp — streams, log/metric/trace search, pipelines, incidents, SLOs, and cluster health — via the [OpenObserve API](https://openobserve.ai/docs/reference/api/).
+Monitor your self-hosted [OpenObserve](https://openobserve.ai) instance in SquaredUp — streams, log/metric/trace search, pipelines, alerts, and SLOs — via the [OpenObserve API](https://openobserve.ai/docs/reference/api/).
 
-> ⚠️ This plugin covers self-hosted OpenObserve only, and only the **Streams**, **Search**, **Cluster**, **Metrics**, **Traces**, **Pipelines**, **Incidents**, and **SLOs** API areas — it does not cover OpenObserve Cloud, ingestion, dashboards, reports, or user management.
+> ⚠️ This plugin covers self-hosted OpenObserve only, and only the **Streams**, **Search**, **Metrics**, **Traces**, **Pipelines**, **Alerts**, and **SLOs** API areas — it does not cover OpenObserve Cloud, ingestion, dashboards, reports, or user management.
 
 ## Setup
 
@@ -34,9 +34,8 @@ On save, the plugin validates these by fetching your organization's stream list;
 - **Metrics** — PromQL range queries against metrics ingested into OpenObserve, including a guided metric/label/value picker for building a query without writing PromQL.
 - **Traces** — recent trace spans within a time range, for an individual trace stream.
 - **Pipelines** — data-transformation pipelines and their execution history.
-- **Incidents** — alert incidents (groups of correlated alerts) and summary statistics.
+- **Alerts** — alert rules, with their current level and last evaluation outcome.
 - **SLOs** — Service Level Objectives, with current status (SLI, coverage, error budget remaining, burn rate).
-- **Cluster health** — pending compaction jobs per region/node, for clustered OpenObserve deployments.
 
 The out-of-the-box dashboards include an org-wide **Overview** plus a **Stream** perspective for drilling into an individual stream.
 
@@ -52,10 +51,9 @@ The out-of-the-box dashboards include an org-wide **Overview** plus a **Stream**
 - **Metric Names**, **Metric Labels**, **Label Values** — back the Simple Metrics Query picker's cascading dropdowns; hidden from the tile editor.
 - **Pipelines** — data-transformation pipelines defined in the organization, with node/edge counts and last error; account-wide.
 - **Pipeline History** — pipeline execution history within a time range; account-wide.
-- **Incidents** — alert incidents, with status, severity, and timestamps; account-wide.
-- **Incident Stats** — summary statistics for alert incidents; account-wide. May not be available on all self-hosted deployments (see Known limitations).
+- **Alerts** — alert rules defined in the organization, with current level, last outcome, priority, source stream, and when each was last evaluated/triggered; account-wide. Optional **Folder** filter.
 - **SLOs** — Service Level Objectives with current status (SLI, coverage, error budget remaining, burn rate); account-wide. Optional **Folder** filter.
-- **Cluster Info** — pending compaction jobs per region/node; account-wide. Only returns data on a clustered OpenObserve deployment (see Known limitations).
+- **Incidents**, **Incident Stats**, **Cluster Info** — hidden from the tile editor.
 
 ## What gets indexed
 
@@ -65,8 +63,6 @@ The out-of-the-box dashboards include an org-wide **Overview** plus a **Stream**
 
 ## Known limitations
 
-- **Cluster Info requires a clustered deployment** — on a standalone single-node OpenObserve instance (the common self-hosted setup) this endpoint returns a 404; the plugin surfaces this as a clear message rather than raw error, and no default dashboard tile uses it. Clustered deployments can add their own tile.
-- **Incident Stats may not be available on your deployment** — this endpoint returned "Not Supported" on the instance this plugin was tested against, likely an edition/license gate; the plugin surfaces this as a clear message, and no default dashboard tile uses it.
 - **Search and Logs Search require the stream name typed manually** — the SQL's `FROM` clause isn't auto-filled; default tiles ship with placeholder/example SQL that may need editing to match your streams.
 - **Very broad search timeframes may exceed the platform's response size limit** — narrow the timeframe or reduce **Max rows** if a Search, Logs Search, or Traces Latest tile fails to load. A Simple Metrics Query or Metrics Query with no label filter can hit the same limit on a high-cardinality metric over a wide timeframe — add a label filter or narrow the timeframe.
 - **Pipeline History's Query Took unit is inferred, not documented** — OpenObserve doesn't document the unit anywhere; it's shown as milliseconds, matching the `took` field's documented unit on the Search endpoint and the realistic magnitude seen in testing (single-digit ms for a lightweight scheduled query). Delay and Evaluation Took are shown as seconds, since OpenObserve names those fields explicitly (`delay_in_secs`, `evaluation_took_in_secs`).
@@ -75,5 +71,6 @@ The out-of-the-box dashboards include an org-wide **Overview** plus a **Stream**
 - **Traces Latest's "View Trace" link format is unverified** — it's built from OpenObserve's documented `/web/traces/trace-details` route (`org_identifier`, `stream`, `trace_id`, `from`, `to` query params, with `from`/`to` in microseconds), but this plugin was built without being able to click through and confirm the link actually opens the right trace. If it doesn't resolve correctly, this is the first thing to check.
 - **Traces Latest's Bucket interval only buckets the traces actually fetched** — it doesn't change how many traces the API returns, only **Max rows**. On a high-volume trace stream, a short bucket width (e.g. `1m`) may need a correspondingly larger **Max rows** to see more than one or two buckets, which risks the response-size limit above — there's a real trade-off between bucket granularity and how much time the buckets actually cover.
 - **SLOs show blank status figures until first measured, or when stale** — SLI, burn rate, error budget remaining, and the watermark/measuring-since timestamps are intentionally blank (not zero) when **No Data** is true, matching OpenObserve's own UI — a brand-new or stalled SLO isn't the same as one measured at 0%.
+- **Alerts show a blank Level until an alert has a recorded state** — an alert whose last evaluation errored can have no level yet; check **Last Outcome** for those.
 - **SLO per-group status isn't covered** — only the overall SLO list with its top-level status; drilling into a grouped SLO's per-group breakdown isn't implemented.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in OpenObserve.
