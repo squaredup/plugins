@@ -1,41 +1,75 @@
 {
     "name": "alerts",
     "displayName": "Alerts",
-    "description": "Endpoint alerts with their severity, entity and occurrence window (optionally filtered to customers)",
-    "tags": [
-        "Alerts",
-        "Customers"
-    ],
+    "description": "Endpoint alerts with their severity, affected entity and occurrence window (optionally filtered to customers)",
+    "tags": ["Alerts", "Customers"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "post",
         "endpointPath": "/msp/reporting/v2/reports/mspEPAlert",
         "postBody": {
             "filters": {
-                "pageSize": 500
+                "pageSize": 500,
+                "filterBy": [
+                    { "columnName": "lastUpdatedTime", "operator": "GTE", "value": "{{timeframe.start}}" },
+                    { "columnName": "lastUpdatedTime", "operator": "LTE", "value": "{{timeframe.end}}" }
+                ]
             }
         },
         "paging": {
             "mode": "token",
-            "pageSize": {
-                "realm": "none"
-            },
-            "in": {
-                "realm": "payload",
-                "path": "nextPageToken"
-            },
-            "out": {
-                "realm": "body",
-                "path": "pageToken"
-            }
+            "pageSize": { "realm": "none" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "body", "path": "pageToken" }
         },
         "postRequestScript": "alerts.js"
     },
     "matches": "none",
-    "metadata": [
+    "ui": [
         {
-            "pattern": ".*"
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
         }
     ],
-    "timeframes": false
+    "metadata": [
+        { "name": "dcpUniqueKey", "displayName": "Alert ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "alertDetails", "displayName": "Alert", "shape": "string", "role": "label" },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["Critical"],
+                        "warning": ["Warning"],
+                        "unknown": ["Information", "Info"]
+                    }
+                }
+            ]
+        },
+        { "name": "active", "displayName": "Active (raw)", "shape": "string", "visible": false },
+        {
+            "name": "isActive",
+            "displayName": "Active",
+            "computed": true,
+            "valueExpression": "{{ $['active'] === 'Yes' }}",
+            "shape": "boolean"
+        },
+        { "name": "entity", "displayName": "Entity", "shape": "string" },
+        { "name": "customerGlobalId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        {
+            "name": "customer",
+            "displayName": "Customer",
+            "sourceId": "customerGlobalId",
+            "sourceType": "Customer",
+            "objectPropertyPath": "name"
+        },
+        { "name": "accountName", "displayName": "Account", "shape": "string" },
+        { "name": "firstOccurrence", "displayName": "First occurrence", "shape": "date" },
+        { "name": "lastOccurrence", "displayName": "Last occurrence", "shape": "date", "role": "timestamp" }
+    ],
+    "timeframes": true
 }

@@ -1,11 +1,8 @@
 {
     "name": "ewStorageConsumption",
     "displayName": "Storage Consumption by Backup Set",
-    "description": "Storage consumption for each backup set",
-    "tags": [
-        "Backup",
-        "Storage"
-    ],
+    "description": "Current source size, changes and estimated cloud storage for each backup set (optionally filtered to customers)",
+    "tags": ["Backup", "Usage"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "post",
@@ -13,25 +10,14 @@
         "postBody": {
             "filters": {
                 "pageSize": 500,
-                "filterBy": [
-                    {
-                        "columnName": "lastUpdatedTime",
-                        "operator": "GTE",
-                        "value": "2020-01-01T00:00:00Z"
-                    }
-                ]
+                "filterBy": [{ "columnName": "lastUpdatedTime", "operator": "GTE", "value": "2000-01-01T00:00:00Z" }]
             }
         },
         "paging": {
             "mode": "token",
-            "in": {
-                "realm": "payload",
-                "path": "nextPageToken"
-            },
-            "out": {
-                "realm": "body",
-                "path": "pageToken"
-            }
+            "pageSize": { "realm": "none" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "body", "path": "pageToken" }
         },
         "postRequestScript": "ewStorageConsumption.js"
     },
@@ -41,20 +27,34 @@
             "type": "objects",
             "name": "customer",
             "label": "Customer (optional)",
-            "matches": {
-                "sourceType": {
-                    "type": "oneOf",
-                    "values": [
-                        "Customer"
-                    ]
-                }
-            }
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
         }
     ],
     "metadata": [
+        { "name": "dcpUniqueKey", "displayName": "Record key", "shape": "string", "visible": false },
+        { "name": "customerGlobalId", "displayName": "Customer ID", "shape": "string", "visible": false },
         {
-            "pattern": ".*"
-        }
+            "name": "customerName",
+            "displayName": "Customer",
+            "sourceId": "customerGlobalId",
+            "sourceType": "Customer",
+            "objectPropertyPath": "name"
+        },
+        { "name": "accountName", "displayName": "Account", "shape": "string", "visible": false },
+        { "name": "administrativeGroup", "displayName": "Administrative group", "shape": "string", "visible": false },
+        { "name": "organization", "displayName": "Organization", "shape": "string", "visible": false },
+        { "name": "backupset", "displayName": "Backup set", "shape": "string", "role": "label" },
+        { "name": "backupsetType", "displayName": "Backup set type", "shape": "string" },
+        { "name": "backupPolicy", "displayName": "Backup policy", "shape": "string" },
+        { "name": "backupContent", "displayName": "Backup content", "shape": "string", "visible": false },
+        { "name": "storageCloud", "displayName": "Storage cloud", "shape": "string" },
+        { "name": "storageRegion", "displayName": "Storage region", "shape": "string" },
+        { "name": "storageTier", "displayName": "Storage tier", "shape": "string" },
+        { "name": "currentSource", "displayName": "Current source size", "shape": ["bytes", { "decimalPlaces": 2 }] },
+        { "name": "sourceChanges", "displayName": "Source changes", "shape": ["bytes", { "decimalPlaces": 2 }] },
+        { "name": "estimatedStorage", "displayName": "Estimated storage", "shape": ["bytes", { "decimalPlaces": 2 }], "role": "value" },
+        { "name": "reductionFactor", "displayName": "Reduction factor", "shape": ["number", { "decimalPlaces": 1 }] },
+        { "name": "lastUpdatedTime", "displayName": "Last updated", "shape": "date" }
     ],
     "timeframes": false
 }
