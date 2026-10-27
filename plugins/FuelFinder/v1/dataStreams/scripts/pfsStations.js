@@ -1,24 +1,16 @@
-// The PFS endpoints wrap their payload twice: { success, data: { success, data: [...] } }
-const stations = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : (data?.data?.data ?? []);
+// GET /api/v1/pfs returns a bare root array of stations (no envelope); each page is passed in separately
+const stations = Array.isArray(data) ? data : [];
 
-// Home location comes from the configured postcode, geocoded via postcodes.io
-// (free, no auth, not geo-restricted).
+// Home location comes straight from the configured latitude/longitude -
+// script fetch() is restricted to the data source's own host, so a geocoding
+// service cannot be called from here.
 const dsConfig = (context.dataSources && context.dataSources[0]) || {};
-const postcode = dsConfig.postcode;
+const homeLat = Number(dsConfig.latitude);
+const homeLng = Number(dsConfig.longitude);
 const radiusMiles = Number(dsConfig.radiusMiles) || 5;
-if (typeof fetch !== "function") {
-    throw new Error("fetch is not available in this script context - cannot geocode the configured postcode");
+if (!Number.isFinite(homeLat) || !Number.isFinite(homeLng)) {
+    throw new Error("Latitude/Longitude are not set - edit the data source config and fill in both fields");
 }
-if (!postcode) {
-    throw new Error("No postcode found on the data source config (checked context.dataSources[0].postcode)");
-}
-const geoResp = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(postcode.trim())}`);
-const geo = await geoResp.json();
-if (!geoResp.ok || !geo?.result) {
-    throw new Error(`Could not geocode postcode "${postcode}": ${geo?.error || `HTTP ${geoResp.status}`}`);
-}
-const homeLat = geo.result.latitude;
-const homeLng = geo.result.longitude;
 
 const toRad = (deg) => (deg * Math.PI) / 180;
 const distanceMiles = (lat, lng) => {
