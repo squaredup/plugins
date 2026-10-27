@@ -1,4 +1,4 @@
-// Destroyed sessions are skipped so they don't pile up as dead objects; warnings arrive as an array
+// Destroyed sessions are skipped so they don't pile up as dead objects
 const KINDS = { CLAUDE_CODE: "Claude Code", OPENCODE: "OpenCode", CODEX_CLI: "Codex CLI", CURSOR_CLI: "Cursor CLI", HERMES: "Hermes", OPENAI_CODEX: "OpenAI Codex", LANGGRAPH: "LangGraph", CUSTOM: "Custom", NONE: "None" };
 const kind = (k) => { const key = (k || "").replace(/^AGENT_KIND_/, ""); return KINDS[key] || key || null; };
 
@@ -14,7 +14,7 @@ result = (data.sessions || [])
         pauseReason: s.pause_reason || null,
         keepWarm: s.keep_warm ?? null,
         idleTimeoutSeconds: s.idle_timeout_seconds ?? null,
-        warnings: (s.warnings || []).join("; "),
+        warnings: s.warnings || [],
         createdAt: s.created_at,
         lastEventAt: s.last_event_at || null
     }));

@@ -7,7 +7,7 @@ You will need a DigitalOcean **personal access token**. The plugin only reads da
 1. Sign in to the [DigitalOcean Control Panel](https://cloud.digitalocean.com).
 2. Go to **API → Tokens** ([cloud.digitalocean.com/account/api/tokens](https://cloud.digitalocean.com/account/api/tokens)) and click **Generate New Token**.
 3. Give the token a name (e.g. `SquaredUp`) and choose an **Expiration**. When the token expires, the plugin stops returning data until you supply a new one.
-4. Under **Scopes**, choose **Custom Scopes** and grant **read** on: `account`, `droplet`, `app`, `kubernetes`, `database`, `load_balancer`, `monitoring`, `billing`, `genai`, `vpc`, `project`, `agent_harness_session` and `signals`. A **Read Only** token also works. See [token scopes](https://docs.digitalocean.com/reference/api/scopes/) for details.
+4. Under **Scopes**, choose **Custom Scopes** and grant **read** on: `account`, `droplet`, `app`, `kubernetes`, `database`, `load_balancer`, `monitoring`, `billing`, `genai`, `vpc`, `project` and `agent_harness_session`, plus **query** on `signals`. A **Read Only** token also works. See [token scopes](https://docs.digitalocean.com/reference/api/scopes/) for details.
 5. Click **Generate Token**, copy the token (it starts `dop_v1_`) and paste it into the **Personal access token** field.
 
 The token belongs to one team. To monitor several teams, add the plugin once per team.

@@ -23,7 +23,7 @@ result = (data.edges || []).map((e) => e.node).filter(Boolean).map((n) => {
         modelCalls: usage.length,
         model: usage.map((u) => u.model_id).filter(Boolean)[0] || null,
         signalCount: signals.length,
-        signalLabels: [...new Set(signals.map((s) => s.label).filter(Boolean))].join(", "),
+        signalLabels: [...new Set(signals.map((s) => s.label).filter(Boolean))],
         userMessage: n.user_message || null
     };
 });
