@@ -1,0 +1,46 @@
+{
+    "name": "collectors",
+    "displayName": "Collectors",
+    "description": "Domotz collectors with connectivity status, licence and owning organization",
+    "tags": ["Monitoring", "Network"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/agent",
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "." },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "page_number" }
+        },
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "Collector ID", "shape": "number", "role": "id" },
+        { "name": "display_name", "displayName": "Name", "shape": "string", "role": "label" },
+        {
+            "name": "status.value",
+            "displayName": "Status",
+            "shape": ["state", { "map": { "success": ["ONLINE", "UP"], "error": ["OFFLINE", "DOWN"] } }]
+        },
+        { "name": "status.last_change", "displayName": "Status last changed", "shape": "date" },
+        { "name": "organization.id", "displayName": "Organization ID", "shape": "number", "visible": false },
+        { "name": "organization.name", "displayName": "Organization", "shape": "string" },
+        { "name": "team.name", "displayName": "Team", "shape": "string" },
+        { "name": "wan_info.ip", "displayName": "WAN IP", "shape": "string" },
+        { "name": "wan_info.hostname", "displayName": "WAN hostname", "shape": "string" },
+        { "name": "version.agent", "displayName": "Agent version", "shape": "string" },
+        { "name": "licence.type", "displayName": "Licence", "shape": "string" },
+        { "name": "licence.expiration_time", "displayName": "Licence expiry", "shape": "date" },
+        { "name": "timezone", "displayName": "Time zone", "shape": "string" },
+        { "name": "creation_time", "displayName": "Created", "shape": "date" }
+    ],
+    "timeframes": false
+}

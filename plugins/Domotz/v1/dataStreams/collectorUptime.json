@@ -1,0 +1,48 @@
+{
+    "name": "collectorUptime",
+    "displayName": "Collector uptime",
+    "description": "Connectivity uptime percentage and online time for every collector",
+    "tags": ["Monitoring", "Network"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/agent/uptime",
+        "paging": { "mode": "none" },
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.start}}" },
+            { "key": "to", "value": "{{timeframe.end}}" }
+        ],
+        "headers": []
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "collectors",
+            "label": "Collector(s) (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Collector"] } }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "collectorName",
+            "displayName": "Collector",
+            "sourceId": "agent_id",
+            "sourceType": "Collector",
+            "objectPropertyPath": "name",
+            "role": "label"
+        },
+        {
+            "name": "uptime",
+            "displayName": "Uptime",
+            "shape": ["percent", { "decimalPlaces": 2 }],
+            "valueExpression": "{{ Number($['uptime']) }}",
+            "role": "value"
+        },
+        { "name": "online_seconds", "displayName": "Online time", "shape": "seconds" },
+        { "name": "total_seconds", "displayName": "Monitored time", "shape": "seconds" },
+        { "name": "agent_id", "displayName": "Collector ID", "shape": "string", "visible": false },
+        { "name": "downtime_intervals", "visible": false }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth", "thisQuarter", "lastQuarter"]
+}

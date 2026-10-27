@@ -1,0 +1,49 @@
+{
+    "steps": [
+        {
+            "name": "organizations",
+            "dataStream": { "name": "organizations" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "id",
+                "name": "name",
+                "type": { "value": "Organization" },
+                "properties": [
+                    { "externalReference": "external_reference" },
+                    { "collectorIds": "agents" }
+                ]
+            }
+        },
+        {
+            "name": "collectors",
+            "dataStream": { "name": "collectors" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "id",
+                "name": "display_name",
+                "type": { "value": "Collector" },
+                "properties": [
+                    { "organizationId": "organization.id" },
+                    { "organizationName": "organization.name" },
+                    { "teamName": "team.name" },
+                    { "wanIp": "wan_info.ip" },
+                    { "timeZone": "timezone" }
+                ]
+            }
+        },
+        {
+            "name": "devices",
+            "dataStream": { "name": "devices" },
+            "scope": { "query": "g.V().has(\"sourceType\", \"Collector\")" },
+            "timeframe": "none",
+            "dependsOn": ["collectors"],
+            "optional": true,
+            "objectMapping": {
+                "id": "sourceId",
+                "name": "name",
+                "type": { "value": "Device" },
+                "properties": ["deviceId", "agentId", "deviceType", "vendor", "model", "macAddress"]
+            }
+        }
+    ]
+}

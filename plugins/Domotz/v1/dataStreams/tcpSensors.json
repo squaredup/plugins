@@ -1,0 +1,36 @@
+{
+    "name": "tcpSensors",
+    "displayName": "TCP service checks",
+    "description": "TCP port sensors on a collector's devices with current up or down status",
+    "tags": ["Monitoring", "Network"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/agent/{{object.rawId}}/device/eye/tcp",
+        "paging": { "mode": "none" },
+        "postRequestScript": "tcpSensors.js",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Collector"] } },
+    "metadata": [
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "sourceId": "deviceSourceId",
+            "sourceType": "Device",
+            "objectPropertyPath": "name",
+            "role": "label"
+        },
+        { "name": "port", "displayName": "Port", "shape": ["number", { "thousandsSeparator": false }] },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": { "success": ["UP"], "error": ["DOWN"] } }]
+        },
+        { "name": "lastUpdate", "displayName": "Last update", "shape": "date" },
+        { "name": "id", "displayName": "Sensor ID", "shape": "number", "role": "id", "visible": false },
+        { "name": "deviceSourceId", "displayName": "Device source ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

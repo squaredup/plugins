@@ -1,0 +1,107 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "description": "Domotz alert events raised by alert rules, open and resolved",
+    "tags": ["Alerts", "Monitoring"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/alert",
+        "pathToData": "",
+        "postRequestScript": "alerts.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "50" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "alerts" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "page_number" }
+        },
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.start}}" },
+            { "key": "to", "value": "{{timeframe.end}}" },
+            { "key": "severity", "value": "{{severity || null}}" },
+            { "key": "status", "value": "{{status || null}}" }
+        ],
+        "headers": []
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "organizations",
+            "label": "Organization(s) (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Organization"] } }
+        },
+        {
+            "type": "objects",
+            "name": "collectors",
+            "label": "Collector(s) (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Collector"] } }
+        },
+        {
+            "type": "objects",
+            "name": "devices",
+            "label": "Device(s) (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Device"] } }
+        },
+        {
+            "type": "choiceChips",
+            "name": "severity",
+            "label": "Severity",
+            "options": [
+                { "value": "Critical", "label": "Critical" },
+                { "value": "High", "label": "High" },
+                { "value": "Warning", "label": "Warning" },
+                { "value": "Info", "label": "Info" }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status",
+            "options": [
+                { "value": "Open", "label": "Open" },
+                { "value": "Resolved", "label": "Resolved" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "Alert ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "triggeredAt", "displayName": "Triggered", "shape": "date", "role": "timestamp" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": ["state", { "map": { "error": ["Open"], "success": ["Resolved"] } }]
+        },
+        { "name": "severity", "displayName": "Severity", "shape": "string" },
+        { "name": "condition", "displayName": "Condition", "shape": "string", "role": "label" },
+        {
+            "name": "triggerValue",
+            "displayName": "Trigger value",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        { "name": "closedAt", "displayName": "Resolved", "shape": "date" },
+        { "name": "durationSeconds", "displayName": "Duration", "shape": "seconds" },
+        {
+            "name": "collectorName",
+            "displayName": "Collector",
+            "sourceId": "collectorId",
+            "sourceType": "Collector",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "sourceId": "deviceSourceId",
+            "sourceType": "Device",
+            "objectPropertyPath": "name"
+        },
+        { "name": "collectorId", "displayName": "Collector ID", "shape": "string", "visible": false },
+        { "name": "deviceSourceId", "displayName": "Device source ID", "shape": "string", "visible": false },
+        { "name": "alertRuleId", "displayName": "Alert rule ID", "shape": "number", "visible": false }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth"]
+}

@@ -1,0 +1,51 @@
+{
+    "name": "devices",
+    "displayName": "Devices",
+    "description": "Devices discovered by a collector with status, type, addresses and last status change",
+    "tags": ["Device", "Inventory"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/agent/{{object.rawId}}/device",
+        "paging": { "mode": "none" },
+        "postRequestScript": "devices.js",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Collector"] } },
+    "metadata": [
+        { "name": "sourceId", "displayName": "Source ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["ONLINE"],
+                        "warning": ["OFFLINE"],
+                        "error": ["DOWN"],
+                        "unknown": ["HIDDEN"]
+                    }
+                }
+            ]
+        },
+        { "name": "lastStatusChange", "displayName": "Status last changed", "shape": "date" },
+        { "name": "deviceType", "displayName": "Type", "shape": "string" },
+        { "name": "vendor", "displayName": "Vendor", "shape": "string" },
+        { "name": "model", "displayName": "Model", "shape": "string" },
+        {
+            "name": "ipAddresses",
+            "displayName": "IP addresses",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        { "name": "macAddress", "displayName": "MAC address", "shape": "string" },
+        { "name": "importance", "displayName": "Importance", "shape": "string" },
+        { "name": "operatingSystem", "displayName": "Operating system", "shape": "string" },
+        { "name": "firstSeen", "displayName": "First seen", "shape": "date" },
+        { "name": "deviceId", "displayName": "Device ID", "shape": "number", "visible": false },
+        { "name": "agentId", "displayName": "Collector ID", "shape": "number", "visible": false }
+    ],
+    "timeframes": false
+}

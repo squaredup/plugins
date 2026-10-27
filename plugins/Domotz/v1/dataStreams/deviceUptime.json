@@ -1,0 +1,38 @@
+{
+    "name": "deviceUptime",
+    "displayName": "Device uptime",
+    "description": "Uptime percentage and online time for a device and its collector",
+    "tags": ["Monitoring", "Device"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/agent/{{object.agentId}}/device/{{object.deviceId}}/uptime",
+        "paging": { "mode": "none" },
+        "pathToData": "",
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.start}}" },
+            { "key": "to", "value": "{{timeframe.end}}" }
+        ],
+        "headers": []
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Device"] } },
+    "metadata": [
+        {
+            "name": "uptime",
+            "displayName": "Device uptime",
+            "shape": ["percent", { "decimalPlaces": 2 }],
+            "valueExpression": "{{ Number($['uptime']) }}",
+            "role": "value"
+        },
+        {
+            "name": "agent_uptime",
+            "displayName": "Collector uptime",
+            "shape": ["percent", { "decimalPlaces": 2 }],
+            "valueExpression": "{{ Number($['agent_uptime']) }}"
+        },
+        { "name": "online_seconds", "displayName": "Online time", "shape": "seconds" },
+        { "name": "total_seconds", "displayName": "Monitored time", "shape": "seconds" },
+        { "name": "downtime_intervals", "visible": false }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth", "thisQuarter", "lastQuarter"]
+}
