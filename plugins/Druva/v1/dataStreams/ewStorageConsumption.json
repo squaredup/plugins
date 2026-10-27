@@ -1,0 +1,60 @@
+{
+    "name": "ewStorageConsumption",
+    "displayName": "Storage Consumption by Backup Set",
+    "description": "Storage consumption for each backup set",
+    "tags": [
+        "Backup",
+        "Storage"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "/msp/reporting/v2/reports/mspEWStorageConsumptionbyBackupSets",
+        "postBody": {
+            "filters": {
+                "pageSize": 500,
+                "filterBy": [
+                    {
+                        "columnName": "lastUpdatedTime",
+                        "operator": "GTE",
+                        "value": "2020-01-01T00:00:00Z"
+                    }
+                ]
+            }
+        },
+        "paging": {
+            "mode": "token",
+            "in": {
+                "realm": "payload",
+                "path": "nextPageToken"
+            },
+            "out": {
+                "realm": "body",
+                "path": "pageToken"
+            }
+        },
+        "postRequestScript": "ewStorageConsumption.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Customer"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

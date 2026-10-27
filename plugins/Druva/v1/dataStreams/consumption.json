@@ -1,0 +1,56 @@
+{
+    "name": "consumption",
+    "displayName": "Consumption",
+    "description": "Daily chargeback consumption per customer, product and service plan (optionally filtered to customers)",
+    "tags": ["Licensing", "Customers"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "/msp/reporting/v2/reports/mspChargebackTenantConsumptionReport",
+        "postBody": {
+            "filters": {
+                "pageSize": 500
+            }
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "none" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "body", "path": "pageToken" }
+        },
+        "postRequestScript": "consumption.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "dcpUniqueKey", "displayName": "Record key", "shape": "string", "visible": false },
+        { "name": "customerGlobalId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        {
+            "name": "customerName",
+            "displayName": "Customer",
+            "sourceId": "customerGlobalId",
+            "sourceType": "Customer",
+            "objectPropertyPath": "name"
+        },
+        { "name": "accountName", "displayName": "Account", "shape": "string", "visible": false },
+        { "name": "productName", "displayName": "Product", "shape": "string" },
+        { "name": "productModule", "displayName": "Product module", "shape": "string" },
+        { "name": "entityName", "displayName": "Entity", "shape": "string", "role": "label" },
+        { "name": "servicePlanName", "displayName": "Service plan", "shape": "string" },
+        { "name": "data", "displayName": "Consumption", "shape": ["number", { "decimalPlaces": 2, "thousandsSeparator": true }], "role": "value" },
+        { "name": "units", "displayName": "Units", "shape": "string", "role": "unitLabel" },
+        { "name": "date", "displayName": "Date", "shape": "date", "role": "timestamp" },
+        { "name": "instanceId", "displayName": "Instance ID", "shape": "number", "visible": false },
+        { "name": "productId", "displayName": "Product ID", "shape": "number", "visible": false },
+        { "name": "productModuleId", "displayName": "Product module ID", "shape": "number", "visible": false },
+        { "name": "servicePlanId", "displayName": "Service plan ID", "shape": "number", "visible": false }
+    ],
+    "timeframes": ["last7days", "last30days"]
+}
