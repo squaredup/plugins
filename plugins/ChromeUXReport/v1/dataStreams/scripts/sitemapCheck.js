@@ -14,7 +14,14 @@ const onSite = (url) => url && url.origin === origin;
 
 const pageUrls = [].concat(data?.urlset?.url || []).map((entry) => toUrl(String(first(entry?.loc) || "")));
 const sitemaps = [].concat(data?.sitemapindex?.sitemap || []).map((entry) => String(first(entry?.loc) || ""));
-const readableSitemaps = sitemaps.filter((loc) => loc && !/\.gz$/i.test(loc)).length;
+// The same child rule as the import: the sitemap's own host, or the website's domain and its subdomains
+const siteHost = new URL(origin).hostname.replace(/^www\./, "");
+const importable = (loc) => {
+    const url = toUrl(loc);
+    return Boolean(url) && !/\.gz$/i.test(url.pathname)
+        && (url.hostname === new URL(config.sitemapUrl).hostname || url.hostname === siteHost || url.hostname.endsWith("." + siteHost));
+};
+const readableSitemaps = sitemaps.filter(importable).length;
 // Pages on another origin usually mean the sitemap is on a CDN or bare domain and Website is needed
 const sitePages = pageUrls.filter(onSite).length;
 

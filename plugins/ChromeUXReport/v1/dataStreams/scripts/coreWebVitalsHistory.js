@@ -5,7 +5,7 @@ const metrics = {
     first_contentful_paint: { name: "FCP", good: 1800, poor: 3000, core: false },
     experimental_time_to_first_byte: { name: "TTFB", good: 800, poor: 1800, core: false }
 };
-const percent = (density) => Math.round((density ?? 0) * 1000) / 10;
+const percent = (density) => (density ?? 0) * 100;
 const rate = (value, metric) => (value <= metric.good ? "Good" : value <= metric.poor ? "Needs improvement" : "Poor");
 const toDate = (d) => new Date(Date.UTC(d.year, d.month - 1, d.day));
 

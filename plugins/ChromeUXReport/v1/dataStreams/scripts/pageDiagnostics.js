@@ -5,7 +5,7 @@ const key = record.key || {};
 const metrics = record.metrics || {};
 const lastDate = record.collectionPeriod?.lastDate;
 const periodEnd = lastDate ? new Date(Date.UTC(lastDate.year, lastDate.month - 1, lastDate.day)).toISOString() : null;
-const percent = (fraction) => Math.round((fraction ?? 0) * 1000) / 10;
+const percent = (fraction) => (fraction ?? 0) * 100;
 
 const lcpParts = [
     ["largest_contentful_paint_image_time_to_first_byte", "TTFB", 1],

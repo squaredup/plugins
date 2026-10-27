@@ -34,7 +34,7 @@ The API is free and doesn't need billing.
 
 ## Finding your sitemap
 
-Most sites list their sitemap in `robots.txt`, for example `https://www.example.com/robots.txt`. Look for the `Sitemap:` line. If it points to a sitemap index, use the index, because every sitemap it lists is followed.
+Most sites list their sitemap in `robots.txt`, for example at `https://www.example.com/robots.txt`. Open that file, find the `Sitemap:` line and copy the URL after it, for example `https://www.example.com/sitemap.xml`. Don't use the `robots.txt` address itself. If the line points to a sitemap index, use the index, because every sitemap it lists is followed.
 
 ## Configuring the plugin
 
@@ -60,7 +60,7 @@ On save, the plugin runs four checks:
 
 | Setting | Example |
 |---------|---------|
-| Google API key | `AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
+| Google API key | The key copied from Google Cloud |
 | Sitemap URL | `https://www.example.com/sitemap.xml` |
 | Website | `https://www.example.com` |
 | Key pages | `https://www.example.com/` and `https://www.example.com/pricing`, one per line |
