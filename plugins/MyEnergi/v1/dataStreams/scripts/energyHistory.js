@@ -16,10 +16,7 @@ const rows = history.map((row) => ({ row, time: Date.UTC(row.yr, row.mon - 1, ro
 const seconds = end - start <= 86400000 ? 60 : 3600;
 
 // Joules per interval -> kWh, or average kW over the interval.
-const convert = (joules) => {
-    const value = (joules || 0) / (power ? seconds * 1000 : 3600000);
-    return Math.round(value * 1e6) / 1e6;
-};
+const convert = (joules) => (joules || 0) / (power ? seconds * 1000 : 3600000);
 const sum = (row, keys) => keys.reduce((total, key) => total + (row[key] || 0), 0);
 
 result = rows
