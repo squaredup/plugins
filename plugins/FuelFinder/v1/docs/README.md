@@ -6,7 +6,7 @@ Monitor UK road fuel prices around a postcode in SquaredUp — find the cheapest
 
 You will need Fuel Finder API credentials (a **client ID** and **client secret**). Each user of this plugin registers for their own — registration is free and open to individuals and organisations.
 
-1. Go to the [Fuel Finder developer portal](https://www.developer.fuel-finder.service.gov.uk/) and sign in with a **GOV.UK One Login** (create one if needed — guidance is on the [GOV.UK access page](https://www.gov.uk/guidance/access-the-latest-fuel-prices-and-forecourt-data-via-api-or-email)).
+1. Go to the [Fuel Finder developer portal](https://www.developer.fuel-finder.service.gov.uk/fuel-finder/public-api) and sign in with a **GOV.UK One Login** (create one if needed — guidance is on the [GOV.UK access page](https://www.gov.uk/guidance/access-the-latest-fuel-prices-and-forecourt-data-via-api-or-email)).
 2. Register as a data user and create **API credentials**. Copy the **client ID** and **client secret** it issues.
 3. In SquaredUp, add the **Fuel Finder** data source and paste them into the **Client ID** and **Client secret** fields.
 4. Enter the **Postcode** to search around and a **Search radius (miles)**.
@@ -16,7 +16,7 @@ You will need Fuel Finder API credentials (a **client ID** and **client secret**
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ---------------- | -------- |
-| **Client ID** | Identifies your Fuel Finder API registration. | [Fuel Finder developer portal](https://www.developer.fuel-finder.service.gov.uk/) → your API credentials. | Yes |
+| **Client ID** | Identifies your Fuel Finder API registration. | [Fuel Finder developer portal](https://www.developer.fuel-finder.service.gov.uk/fuel-finder/public-api) → your API credentials. | Yes |
 | **Client secret** | Authenticates the plugin, exchanged for a short-lived access token on each request. | Issued alongside the client ID on the developer portal. | Yes |
 | **Postcode** | Full UK postcode at the centre of your search, e.g. `SW1A 1AA`. Geocoded via the free [postcodes.io](https://postcodes.io) service. | — | Yes |
 | **Search radius (miles)** | Fuel stations within this distance of the postcode are imported (1–50 miles). | — | Yes |
