@@ -43,7 +43,7 @@ const rows = [
         : [])
 ];
 
-result = rows.map((row) => ({
+result = rows.filter((row) => Number.isFinite(row.value)).map((row) => ({
     target: key.url || key.origin,
     level: key.url ? "Page" : "Whole site",
     device: key.formFactor || "ALL",

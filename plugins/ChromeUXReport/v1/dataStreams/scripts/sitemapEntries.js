@@ -5,8 +5,8 @@ const PAGES_PER_CHUNK = 5000;
 const MAX_IMPORT_PAGES = 200;
 
 const config = context.dataSources[0];
+const maxPages = Number(config.maxPages) || 5000;
 const configured = new URL(config.sitemapUrl);
-const maxPages = Number(config.maxPages) || 50000;
 const first = (value) => (Array.isArray(value) ? value[0] : value);
 const lines = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 const bareHost = (hostname) => hostname.replace(/^www\./, "");

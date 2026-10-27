@@ -15,12 +15,12 @@ You will need a **Google API key** from a Google Cloud project with the Chrome U
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ---------------- | -------- |
+| **Google API key** | Authenticates every request to the Chrome UX Report API. | Google Cloud Console > **APIs & Services** > **Credentials**. | Yes |
 | **Sitemap URL** | The full URL of your website's XML sitemap or sitemap index. Every page it lists on your website is imported. | The `Sitemap:` line in your site's `robots.txt`. | Yes |
 | **Website** | Your website's origin, for example `https://www.example.com`. Only needed when the sitemap is on a different host from your pages, such as a CDN, a `sitemaps.` subdomain, or the domain without `www`. | The address bar of your home page. | No |
-| **Maximum pages** | The most pages to import, 50,000 by default. CrUX only has data for pages with enough Chrome traffic, so most sites don't need more. | Your choice. | Yes |
 | **Key pages** | The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key Pages** dashboard and don't count toward **Maximum pages**. | Your analytics or Search Console's top pages. | No |
 | **Competitor websites** | The origin of each competitor to benchmark against, one per line, for example `https://www.competitor.com`. | Your choice. | No |
-| **Google API key** | Authenticates every request to the Chrome UX Report API. | Google Cloud Console > **APIs & Services** > **Credentials**. | Yes |
+| **Maximum pages** | The most pages to import, 5,000 by default. CrUX only has data for pages with enough Chrome traffic, so most sites don't need more. Raise it for a very large site. | Your choice. | No |
 
 On save, the plugin runs four checks:
 
@@ -47,7 +47,7 @@ Both plugins name a page by its full URL, so pages listed the same way in your s
 - **For each metric:** the 75th percentile value Google rates, its good, needs improvement or poor rating, and the share of visits in each band, for all devices, phone, desktop or tablet.
 - **Trends:** weekly values for up to the last 40 weeks.
 - **Pages and the whole site:** any page from the sitemap, or every page on the website together.
-- **Why LCP is slow:** how the Largest Contentful Paint splits into time to first byte, resource load delay, load duration and render delay, and whether the largest element is an image or text.
+- **Why LCP is slow:** how the Largest Contentful Paint splits into time to first byte, resource load delay, load duration and render delay for visits where the largest element is an image, and how often it's an image or text.
 - **Audience and navigation:** the device mix, network round trip time, and how many visits use the back/forward cache or prerendering.
 - **Competitors:** the same Core Web Vitals for any competitor websites you add.
 
@@ -57,8 +57,8 @@ The out-of-the-box dashboards are:
 - **Page:** a perspective on any single page, against its whole website.
 - **Trends:** 40 weeks of every metric.
 - **LCP Diagnostics:** why LCP is slow and what to fix first.
-- **Competitors:** your website against each competitor, and who is improving.
-- **Key Pages:** a leaderboard of your key pages, showing which ones got better or worse since last month and which have too little traffic to report.
+- **Competitors:** your website against each competitor on phone, and who is improving on Largest Contentful Paint. It shows only your own website until you add competitor websites.
+- **Key Pages:** a leaderboard of your key pages, showing which ones got better or worse since last month and which have too little traffic to report. It uses phone data, and stays empty until you add key pages.
 
 ## Data streams
 
