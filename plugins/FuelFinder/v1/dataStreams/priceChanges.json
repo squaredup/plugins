@@ -1,0 +1,38 @@
+{
+    "name": "priceChanges",
+    "displayName": "Price Changes",
+    "description": "Fuel price changes at each fuel station during the timeframe",
+    "tags": ["Fuel"],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/pfs/fuel-prices",
+        "getArgs": [{ "key": "effective-start-timestamp", "value": "{{timeframe.start.replace('T',' ').substring(0,19)}}" }],
+        "postRequestScript": "priceChanges.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "none" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "499.fuel_prices" },
+                "base": 6
+            },
+            "out": { "realm": "queryArg", "path": "batch-number" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Fuel Station"] } },
+    "metadata": [
+        { "name": "stationId", "displayName": "Station ID", "shape": "string", "visible": false },
+        { "name": "stationName", "displayName": "Station", "shape": "string", "role": "label" },
+        { "sourceId": "stationId", "sourceType": "Fuel Station", "name": "stationName" },
+        {
+            "name": "fuelType",
+            "displayName": "Fuel",
+            "shape": "string",
+            "formatExpression": "{{ ({ E10: 'Petrol (E10)', E5: 'Super unleaded (E5)', B7_STANDARD: 'Diesel (B7)', B7_PREMIUM: 'Premium diesel (B7)' })[$['fuelType']] || $['fuelType'] }}"
+        },
+        { "name": "price", "displayName": "New price (p/litre)", "shape": ["number", { "decimalPlaces": 1 }], "role": "value" },
+        { "name": "changedAt", "displayName": "Changed at", "shape": "date", "role": "timestamp" }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}
