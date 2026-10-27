@@ -94,9 +94,11 @@ if (page === 1) {
 // a trailing slash, rather than becoming a second object for the same page
 const withoutSlash = (href) => href.replace(/\/(?=$|\?)/, "");
 const keyPageHrefs = new Set(keyPages.map((url) => withoutSlash(url.href)));
+// Key pages are dropped before the limit is applied, so a key page the sitemap also lists never uses up Maximum pages
+const pagesToImport = sitePages.filter((url) => !keyPageHrefs.has(withoutSlash(url.href)));
 const room = Math.max(0, maxPages - state.imported);
-const chunk = sitePages.slice(state.skip, state.skip + Math.min(PAGES_PER_CHUNK, room));
-for (const url of chunk.filter((url) => !keyPageHrefs.has(withoutSlash(url.href)))) {
+const chunk = pagesToImport.slice(state.skip, state.skip + Math.min(PAGES_PER_CHUNK, room));
+for (const url of chunk) {
     rows.set(url.href, { url: url.href, sourceType: "page", pageGroup: "Other page" });
 }
 result = [...rows.values()];
@@ -104,7 +106,7 @@ const imported = state.imported + chunk.length;
 
 // Children are queued only on the first chunk of a sitemap, so a split sitemap adds them once
 const queue = [...(state.skip === 0 ? children.map((u) => ({ u, skip: 0 })) : []), ...state.queue];
-if (state.skip + PAGES_PER_CHUNK < sitePages.length) {
+if (state.skip + PAGES_PER_CHUNK < pagesToImport.length) {
     queue.unshift({ u: current, skip: state.skip + PAGES_PER_CHUNK });
 }
 
