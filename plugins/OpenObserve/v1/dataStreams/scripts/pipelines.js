@@ -3,6 +3,12 @@
 // ("[object Array]" or a JSON-text blob), so .length there counts characters, not
 // elements. Compute real counts here, and stringify the nested json-shaped fields
 // so they render as JSON rather than "[object Object]".
+// last_error is absent on healthy pipelines and its shape is undocumented, so
+// it's a plain string column (a null in a json-shaped column fails to format):
+// empty when absent, the text itself if a string, compact JSON otherwise.
+// paused_at is in microseconds, like the other v2 timestamps.
+const errorText = (err) => (err == null ? "" : typeof err === "string" ? err : JSON.stringify(err));
+
 result = (data.list || []).map((p) => {
     const nodes = p.nodes || [];
     const edges = p.edges || [];
@@ -12,8 +18,8 @@ result = (data.list || []).map((p) => {
         description: p.description || "",
         enabled: p.enabled,
         version: p.version,
-        paused_at: p.paused_at != null ? p.paused_at : null,
-        last_error: p.last_error != null ? JSON.stringify(p.last_error) : null,
+        paused_at: p.paused_at != null ? p.paused_at / 1000 : null,
+        last_error: errorText(p.last_error),
         source: p.source != null ? JSON.stringify(p.source) : null,
         sourceStreamName: (p.source && p.source.stream_name) || "",
         sourceStreamType: (p.source && p.source.stream_type) || "",
