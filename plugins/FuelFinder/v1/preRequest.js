@@ -26,8 +26,10 @@ try {
 // Token may arrive wrapped ({ success, data: { access_token } }) or bare
 const tokenData = payload?.data?.access_token ? payload.data : payload;
 if (!resp.ok || typeof tokenData?.access_token !== "string") {
-    api.report.error(
-        `Failed to get Fuel Finder access token: HTTP ${resp.status}${payload?.message ? ` - ${payload.message}` : ""}`,
+    // throw rather than api.report.error so the request is aborted instead of
+    // going out with "Bearer undefined"
+    throw new Error(
+        `Failed to get Fuel Finder access token: HTTP ${resp.status} - ${JSON.stringify(payload).slice(0, 300)}`,
     );
 }
 headers["Authorization"] = `Bearer ${tokenData.access_token}`;
