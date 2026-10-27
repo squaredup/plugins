@@ -1,26 +1,53 @@
-Monitor the real-user Core Web Vitals of a website and every page in its sitemap in SquaredUp, using the [Chrome UX Report (CrUX) API](https://developer.chrome.com/docs/crux/api). CrUX is Google's public dataset of how real Chrome users experience a site, and it's the same field data that Search Console and PageSpeed Insights report.
+# Before you start
 
-## Setup
+Monitor the real-user Core Web Vitals of a website and every page in its sitemap using the [Chrome UX Report (CrUX) API](https://developer.chrome.com/docs/crux/api). CrUX is Google's public dataset of how real Chrome users experience a site, and it's the same field data that Search Console and PageSpeed Insights report.
 
-You will need a **Google API key** from a Google Cloud project with the Chrome UX Report API enabled. The API is free and doesn't need billing.
+## Prerequisites
 
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/) and select the project you want to use, or create one.
-2. Go to **APIs & Services** > **Library**, search for **Chrome UX Report API**, and click **Enable**.
-3. Go to **APIs & Services** > **Credentials**, click **+ Create credentials** and select **API key**.
-4. Optional: click **Edit API key**, and under **API restrictions** select **Restrict key** and choose **Chrome UX Report API**.
-5. Copy the key and paste it into the **Google API key** field.
-6. Enter your website's sitemap in the **Sitemap URL** field. Most sites list it in `robots.txt`, for example `https://www.example.com/robots.txt`.
+- A Google Cloud Project
+- A website with a public XML sitemap
+- Optional: the Google Search Console plugin, to see search performance and Core Web Vitals together
 
-## Configuration fields
+## Enabling the Chrome UX Report API
 
-| Field | What it is | Where to find it | Required |
-| ----- | ---------- | ---------------- | -------- |
-| **Google API key** | Authenticates every request to the Chrome UX Report API. | Google Cloud Console > **APIs & Services** > **Credentials**. | Yes |
-| **Sitemap URL** | The full URL of your website's XML sitemap or sitemap index. Every page it lists on your website is imported. | The `Sitemap:` line in your site's `robots.txt`. | Yes |
-| **Website** | Your website's origin, for example `https://www.example.com`. Only needed when the sitemap is on a different host from your pages, such as a CDN, a `sitemaps.` subdomain, or the domain without `www`. | The address bar of your home page. | No |
-| **Key pages** | The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key Pages** dashboard and don't count toward **Maximum pages**. | Your analytics or Search Console's top pages. | No |
-| **Competitor websites** | The origin of each competitor to benchmark against, one per line, for example `https://www.competitor.com`. | Your choice. | No |
-| **Maximum pages** | The most pages to import, 5,000 by default. CrUX only has data for pages with enough Chrome traffic, so most sites don't need more. Raise it for a very large site. | Your choice. | No |
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+
+2. Select the project you wish to use
+
+3. Navigate to **APIs & Services** > **Library**
+
+4. Search for **Chrome UX Report API**
+
+5. Select it and click **Enable**
+
+The API is free and doesn't need billing.
+
+## Creating an API key
+
+1. From the [Google Cloud Console](https://console.cloud.google.com/), navigate to **APIs & Services** > **Credentials**
+
+2. Click **+ Create credentials** and select **API key**
+
+3. Optional: click **Edit API key**, and under **API restrictions** select **Restrict key** and choose **Chrome UX Report API**
+
+4. Copy the key and save it somewhere secure
+
+## Finding your sitemap
+
+Most sites list their sitemap in `robots.txt`, for example `https://www.example.com/robots.txt`. Look for the `Sitemap:` line. If it points to a sitemap index, use the index, because every sitemap it lists is followed.
+
+## Configuring the plugin
+
+Populate the following fields when configuring the plugin:
+
+| Field | Description |
+|---------|---------|
+| Google API key | The API key created in Google Cloud |
+| Sitemap URL | The full URL of your website's XML sitemap or sitemap index. Every page it lists on your website is imported |
+| Website | Optional. Your website's origin, for example `https://www.example.com`. Only needed when the sitemap is on a different host from your pages, such as a CDN, a `sitemaps.` subdomain, or the domain without `www` |
+| Key pages | Optional. The full URL of each page to track closely, one per line, such as your home page, top landing pages and checkout. They appear on the **Key Pages** dashboard and don't count toward **Maximum pages** |
+| Competitor websites | Optional. The origin of each competitor website to benchmark against, one per line, for example `https://www.competitor.com`. They appear on the **Competitors** dashboard |
+| Maximum pages | Optional. The most pages to import from the sitemap, 5,000 by default. CrUX only has data for pages with enough Chrome traffic, so most sites don't need more |
 
 On save, the plugin runs four checks:
 
@@ -28,6 +55,17 @@ On save, the plugin runs four checks:
 - **Sitemap:** it must open and list at least one page on your website or a plain XML sitemap, or setup stops with the reason, such as a 404, a website that blocks cloud servers, or pages on another host that need the **Website** field.
 - **Gzipped sitemaps:** if the sitemap itself lists `.xml.gz` sitemaps, you get a warning that their pages will be skipped. Gzipped files listed deeper, inside child sitemaps, are skipped without a warning.
 - **Website data:** if CrUX holds no data for your website yet, you only get a warning, because new or quiet sites appear in CrUX once they have enough Chrome traffic.
+
+## Example configuration
+
+| Setting | Example |
+|---------|---------|
+| Google API key | `AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
+| Sitemap URL | `https://www.example.com/sitemap.xml` |
+| Website | `https://www.example.com` |
+| Key pages | `https://www.example.com/` and `https://www.example.com/pricing`, one per line |
+| Competitor websites | `https://www.competitor.com` |
+| Maximum pages | `5000` |
 
 ## Use with Google Search Console
 
@@ -92,3 +130,28 @@ The out-of-the-box dashboards are:
 - **Sites that block cloud servers:** some websites' bot protection refuses requests from cloud providers, so the sitemap fails with "Access Denied". Add the data source **Via relay agent** so requests come from your own network, which the website already trusts, or allowlist SquaredUp on the website's CDN.
 - **Changing the sitemap:** pages from the previous sitemap can stay listed for a short time after the next import, until SquaredUp clears them.
 - **Read-only:** the plugin only reads public CrUX data and your sitemap.
+
+## Troubleshooting
+
+### The API key check fails
+
+Verify that:
+
+- The Chrome UX Report API is enabled on the Google Cloud project that owns the key
+- The key is copied in full, with no spaces
+- If the key is restricted, **Chrome UX Report API** is one of the allowed APIs
+
+### The sitemap can't be read
+
+Verify that:
+
+- The **Sitemap URL** opens in a browser and shows plain XML, not a gzipped file
+- If the website refuses the request with **Access Denied** or an HTTP 403, its bot protection is probably blocking cloud servers. Add the data source **Via relay agent** so requests come from your own network, or allowlist SquaredUp on the website's CDN
+- If the sitemap is on a different host from your pages, **Website** is set to the origin of your pages
+
+### Tiles show no data
+
+Verify that:
+
+- The page or website has enough real Chrome traffic. CrUX doesn't report quiet pages, and a page can have phone data but no desktop data
+- The data source finished indexing, so the page you selected exists
