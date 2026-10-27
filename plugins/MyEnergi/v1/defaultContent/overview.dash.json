@@ -1,0 +1,488 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "96530d4c-95e5-56ac-b749-b9f5fc5ae232",
+                "x": 0,
+                "y": 0,
+                "w": 3,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Live Energy Flow",
+                    "description": "Where power is coming from and going to right now, in watts. Solar covers the home first; anything left over is exported.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[powerFlow]}}",
+                        "name": "powerFlow",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH f AS (SELECT * FROM \"dataset\") SELECT \"source\", \"target\", \"power\" FROM (SELECT 'Solar' AS \"source\", 'Home' AS \"target\", GREATEST(\"generationPower\" - \"exportPower\", 0) AS \"power\" FROM f UNION ALL SELECT 'Solar', 'Grid export', LEAST(\"exportPower\", \"generationPower\") FROM f UNION ALL SELECT 'Grid', 'Home', \"importPower\" FROM f UNION ALL SELECT 'Battery', 'Home', GREATEST(-\"batteryPower\", 0) FROM f UNION ALL SELECT 'Home', 'EV charging', \"evChargePower\" FROM f UNION ALL SELECT 'Home', 'Hot water', \"hotWaterPower\" FROM f UNION ALL SELECT 'Home', 'Battery charging', GREATEST(\"batteryPower\", 0) FROM f UNION ALL SELECT 'Home', 'Household', \"houseLoadPower\" FROM f) WHERE \"power\" > 0"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sankey",
+                            "encoding": {
+                                "source": {
+                                    "field": "source",
+                                    "type": "nominal"
+                                },
+                                "target": {
+                                    "field": "target",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "power",
+                                    "type": "quantitative",
+                                    "title": "Power (W)"
+                                }
+                            },
+                            "style": {
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}} W{{{{/raw}}}}",
+                                "mappedColors": {
+                                    "Solar": "#F5A623",
+                                    "Grid": "#8E6CEF",
+                                    "Battery": "#14B8A6",
+                                    "Home": "#64748B",
+                                    "Household": "#38BDF8",
+                                    "EV charging": "#4F7CFF",
+                                    "Hot water": "#F0506E",
+                                    "Battery charging": "#14B8A6",
+                                    "Grid export": "#2BB673"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7b02467d-ba5b-5174-81c8-c032f99ccd96",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Devices",
+                    "description": "Live state of every Zappi, Eddi, Harvi and Libbi; amber means no data in the last 15 minutes, red means a fault",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Devices]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "deviceName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{status}}{{{{/raw}}}}",
+                                "statusGridOrderByField": "deviceType",
+                                "statusGridOrderDirection": "asc"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1d1cf38d-b8b0-5e5e-a47a-a8c8d0276df1",
+                "x": 0,
+                "y": 4,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Where Your Energy Went",
+                    "description": "Energy in kWh over the dashboard timeframe, from solar, grid and battery to the house, EV, hot water and export",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH s AS (SELECT \"timestamp\", MAX(\"import\") AS imp, MAX(\"export\") AS exp, MAX(\"generation\") AS gen, SUM(CASE WHEN \"deviceType\" = 'Zappi' THEN \"diverted\" + \"boosted\" ELSE 0 END) AS ev, SUM(CASE WHEN \"deviceType\" = 'Eddi' THEN \"diverted\" + \"boosted\" ELSE 0 END) AS hw, SUM(CASE WHEN \"deviceType\" = 'Libbi' THEN \"batteryCharge\" ELSE 0 END) AS bc, SUM(CASE WHEN \"deviceType\" = 'Libbi' THEN \"batteryDischarge\" ELSE 0 END) AS bd FROM \"dataset\" GROUP BY \"timestamp\"), t AS (SELECT SUM(imp) AS imp, SUM(exp) AS exp, SUM(gen) AS gen, SUM(ev) AS ev, SUM(hw) AS hw, SUM(bc) AS bc, SUM(bd) AS bd FROM s) SELECT \"source\", \"target\", ROUND(\"energy\", 1) AS \"energy\" FROM (SELECT 'Solar' AS \"source\", 'Home' AS \"target\", GREATEST(gen - exp, 0) AS \"energy\" FROM t UNION ALL SELECT 'Solar', 'Grid export', LEAST(exp, gen) FROM t UNION ALL SELECT 'Grid', 'Home', imp FROM t UNION ALL SELECT 'Battery', 'Home', bd FROM t UNION ALL SELECT 'Home', 'EV charging', ev FROM t UNION ALL SELECT 'Home', 'Hot water', hw FROM t UNION ALL SELECT 'Home', 'Battery charging', bc FROM t UNION ALL SELECT 'Home', 'Household', GREATEST(imp + gen - exp + bd - bc - ev - hw, 0) FROM t) WHERE \"energy\" > 0.05"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Devices with Energy History]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sankey",
+                            "encoding": {
+                                "source": {
+                                    "field": "source",
+                                    "type": "nominal"
+                                },
+                                "target": {
+                                    "field": "target",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "energy",
+                                    "type": "quantitative",
+                                    "title": "Energy (kWh)"
+                                }
+                            },
+                            "style": {
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}} kWh{{{{/raw}}}}",
+                                "mappedColors": {
+                                    "Solar": "#F5A623",
+                                    "Grid": "#8E6CEF",
+                                    "Battery": "#14B8A6",
+                                    "Home": "#64748B",
+                                    "Household": "#38BDF8",
+                                    "EV charging": "#4F7CFF",
+                                    "Hot water": "#F0506E",
+                                    "Battery charging": "#14B8A6",
+                                    "Grid export": "#2BB673"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b6c68479-2f8b-59e1-bfb1-5fe33e59ee2d",
+                "x": 2,
+                "y": 4,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Energy Independence",
+                    "description": "Over the dashboard timeframe. Self-powered: share of home use not drawn from the grid. Solar kept: share of generation used on site rather than exported. EV diverted: share of EV charging from diverted surplus rather than boost.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH s AS (SELECT \"timestamp\", MAX(\"import\") AS imp, MAX(\"export\") AS exp, MAX(\"generation\") AS gen, SUM(CASE WHEN \"deviceType\" = 'Zappi' THEN \"diverted\" ELSE 0 END) AS evSolar, SUM(CASE WHEN \"deviceType\" = 'Zappi' THEN \"diverted\" + \"boosted\" ELSE 0 END) AS ev, SUM(CASE WHEN \"deviceType\" = 'Libbi' THEN \"batteryCharge\" ELSE 0 END) AS bc, SUM(CASE WHEN \"deviceType\" = 'Libbi' THEN \"batteryDischarge\" ELSE 0 END) AS bd FROM \"dataset\" GROUP BY \"timestamp\"), t AS (SELECT SUM(imp) AS imp, SUM(exp) AS exp, SUM(gen) AS gen, SUM(evSolar) AS evSolar, SUM(ev) AS ev, SUM(imp + gen - exp + bd - bc) AS use FROM s) SELECT \"metric\", ROUND(\"percent\", 0) AS \"percent\" FROM (SELECT 1 AS o, 'Self-powered' AS \"metric\", 100 * (use - imp) / NULLIF(use, 0) AS \"percent\" FROM t UNION ALL SELECT 2, 'Solar kept', 100 * (gen - exp) / NULLIF(gen, 0) FROM t UNION ALL SELECT 3, 'EV diverted', 100 * evSolar / NULLIF(ev, 0) FROM t) WHERE \"percent\" IS NOT NULL ORDER BY o"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Devices with Energy History]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "percent",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "metric",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridMax": 100,
+                                "ringGridTrackWidth": 8,
+                                "labelFontSize": 14,
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 1,
+                                        "color": "#2BB673"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "aa88e91e-7b89-5a26-9df0-0724558924b5",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Power",
+                    "description": "Minute-by-minute solar generation, total home use, EV charging and hot water heating over the last 24 hours, in kW",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last24hours",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "power"
+                        },
+                        "sql": "WITH s AS (SELECT \"timestamp\", MAX(\"generation\") AS solar, GREATEST(MAX(\"import\") + MAX(\"generation\") - MAX(\"export\") + SUM(CASE WHEN \"deviceType\" = 'Libbi' THEN \"batteryDischarge\" - \"batteryCharge\" ELSE 0 END), 0) AS home, SUM(CASE WHEN \"deviceType\" = 'Zappi' THEN \"diverted\" + \"boosted\" ELSE 0 END) AS ev, SUM(CASE WHEN \"deviceType\" = 'Eddi' THEN \"diverted\" + \"boosted\" ELSE 0 END) AS hw, COUNT(*) FILTER (WHERE \"deviceType\" = 'Zappi') AS zappis, COUNT(*) FILTER (WHERE \"deviceType\" = 'Eddi') AS eddis FROM \"dataset\" GROUP BY \"timestamp\") SELECT \"timestamp\", \"series\", ROUND(\"kw\", 3) AS \"kw\" FROM (SELECT \"timestamp\", 'Solar' AS \"series\", solar AS \"kw\" FROM s UNION ALL SELECT \"timestamp\", 'Home use', home FROM s UNION ALL SELECT \"timestamp\", 'EV charging', ev FROM s WHERE zappis > 0 UNION ALL SELECT \"timestamp\", 'Hot water', hw FROM s WHERE eddis > 0) ORDER BY \"timestamp\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Devices with Energy History]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "kw",
+                                    "type": "quantitative",
+                                    "title": "kW",
+                                    "aggregate": "avg"
+                                },
+                                "series": {
+                                    "field": "series",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSymbol": "none",
+                                "mappedColors": {
+                                    "Solar": "#F5A623",
+                                    "Home use": "#38BDF8",
+                                    "EV charging": "#4F7CFF",
+                                    "Hot water": "#F0506E",
+                                    "Battery": "#14B8A6"
+                                },
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "kW"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "30cd5981-5104-5fac-bf78-7882a6043539",
+                "x": 0,
+                "y": 11,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Energy Balance",
+                    "description": "Each whole day's home supply split into solar used on site and grid import, with export to the grid below the line",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH b AS (SELECT DATE_TRUNC('day', MIN(\"timestamp\") + INTERVAL 23 HOUR) AS lo, DATE_TRUNC('day', MAX(\"timestamp\")) AS hi FROM \"dataset\"), x AS (SELECT \"dataset\".* FROM \"dataset\", b WHERE \"timestamp\" >= b.lo AND \"timestamp\" < b.hi), s AS (SELECT \"timestamp\", MAX(\"import\") AS imp, MAX(\"export\") AS exp, MAX(\"generation\") AS gen FROM x GROUP BY \"timestamp\") SELECT STRFTIME(DATE_TRUNC('day', \"timestamp\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", ROUND(SUM(GREATEST(gen - exp, 0)), 2) AS \"solarUsed\", ROUND(SUM(imp), 2) AS \"gridImport\", ROUND(-SUM(exp), 2) AS \"gridExport\" FROM s GROUP BY 1 ORDER BY 1"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Devices with Energy History]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "colors": [
+                                    "#F5A623",
+                                    "#8E6CEF",
+                                    "#2BB673"
+                                ],
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2,
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "kWh"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d572b640-6fe9-56b8-88d7-7203c8d60e51",
+                "x": 0,
+                "y": 15,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Grid Import by Hour",
+                    "description": "kWh drawn from the grid in each hour (UTC) of the last 29 whole days; shows when off-peak charging and evening peaks happen",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH b AS (SELECT DATE_TRUNC('day', MIN(\"timestamp\") + INTERVAL 23 HOUR) AS lo, DATE_TRUNC('day', MAX(\"timestamp\")) AS hi FROM \"dataset\"), x AS (SELECT \"dataset\".* FROM \"dataset\", b WHERE \"timestamp\" >= b.lo AND \"timestamp\" < b.hi), s AS (SELECT \"timestamp\", MAX(\"import\") AS v FROM x GROUP BY \"timestamp\"), d AS (SELECT DISTINCT CAST(\"timestamp\" AS DATE) AS d FROM s), h AS (SELECT \"range\" AS h FROM range(24)) SELECT STRFTIME(d.d, '%a %d %b') AS \"day\", LPAD(CAST(h.h AS VARCHAR), 2, '0') || ':00' AS \"hour\", ROUND(COALESCE(s.v, 0), 2) AS \"gridImport\" FROM d CROSS JOIN h LEFT JOIN s ON CAST(s.\"timestamp\" AS DATE) = d.d AND HOUR(s.\"timestamp\") = h.h ORDER BY d.d, h.h"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Devices with Energy History]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "heatmap",
+                            "encoding": {
+                                "x": {
+                                    "field": "hour",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "day",
+                                    "type": "nominal"
+                                },
+                                "color": {
+                                    "field": "gridImport",
+                                    "type": "quantitative",
+                                    "title": "Grid import (kWh)"
+                                }
+                            },
+                            "style": {
+                                "colorScheme": "health",
+                                "heatmapCellBorderWidth": 1,
+                                "heatmapCellBorderRadius": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c8c5313a-5c5e-5865-856c-6299d8c9470a",
+                "x": 2,
+                "y": 15,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Solar Generation by Hour",
+                    "description": "kWh generated on site in each hour (UTC) of the last 29 whole days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH b AS (SELECT DATE_TRUNC('day', MIN(\"timestamp\") + INTERVAL 23 HOUR) AS lo, DATE_TRUNC('day', MAX(\"timestamp\")) AS hi FROM \"dataset\"), x AS (SELECT \"dataset\".* FROM \"dataset\", b WHERE \"timestamp\" >= b.lo AND \"timestamp\" < b.hi), s AS (SELECT \"timestamp\", MAX(\"generation\") AS v FROM x GROUP BY \"timestamp\"), d AS (SELECT DISTINCT CAST(\"timestamp\" AS DATE) AS d FROM s), h AS (SELECT \"range\" AS h FROM range(24)) SELECT STRFTIME(d.d, '%a %d %b') AS \"day\", LPAD(CAST(h.h AS VARCHAR), 2, '0') || ':00' AS \"hour\", ROUND(COALESCE(s.v, 0), 2) AS \"solar\" FROM d CROSS JOIN h LEFT JOIN s ON CAST(s.\"timestamp\" AS DATE) = d.d AND HOUR(s.\"timestamp\") = h.h ORDER BY d.d, h.h"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Devices with Energy History]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "heatmap",
+                            "encoding": {
+                                "x": {
+                                    "field": "hour",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "day",
+                                    "type": "nominal"
+                                },
+                                "color": {
+                                    "field": "solar",
+                                    "type": "quantitative",
+                                    "title": "Solar (kWh)"
+                                }
+                            },
+                            "style": {
+                                "colorScheme": "squaredUpBlue",
+                                "heatmapCellBorderWidth": 1,
+                                "heatmapCellBorderRadius": 2,
+                                "heatmapColorScaleReversed": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
