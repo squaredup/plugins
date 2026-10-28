@@ -31,21 +31,25 @@ The out-of-the-box content includes a **Fuel Prices** overview dashboard plus a 
 
 ## Data streams
 
-- **Fuel Prices** — current price per fuel type at each fuel station, with distance (per-station or across all stations in scope).
-- **Price Changes** — fuel price changes at each fuel station during the chosen timeframe (last 24 hours to last 30 days).
-- **Fuel Stations** and **Connection Test** are hidden streams used for importing objects and validating credentials.
+- **Fuel Prices** — one row per fuel station in scope with its current price for each fuel type; optional latitude/longitude/radius parameters add a distance column and filter by it.
+- **Price Changes** — fuel price changes during the chosen timeframe (last 24 hours to last 30 days), one row per change.
+- **Fuel Stations**, **Fuel Station Prices** and **Connection Test** are hidden streams used for importing objects and validating credentials.
 
 ## What gets indexed
 
 | Object type | API source | Represents |
 | ----------- | ---------- | ---------- |
-| **Fuel Station** | `GET /api/v1/pfs` + `GET /api/v1/pfs/fuel-prices` | A UK forecourt, with its details and current per-fuel prices as properties (~8,100 objects, prices refreshed hourly). |
+| **Fuel Station** | `GET /api/v1/pfs` | A UK forecourt and its details (~8,100 objects). |
+| **Fuel Price** | `GET /api/v1/pfs/fuel-prices` | The current per-fuel prices for one forecourt, refreshed hourly. |
+
+**Relationships:** a Fuel Price shares its station's identifier; dashboards join the two per row.
 
 ## Known limitations
 
 - **UK residential IP required** — the Fuel Finder API blocks datacenter and cloud IP addresses (including SquaredUp's cloud and UK cloud hosts), so the data source must run on a relay agent on a UK machine with an ordinary broadband connection.
 - **One credential, one data source** — generating an access token revokes previously issued ones, so sharing a client ID/secret between data sources (or any other application) makes them break each other's authentication. Register separate credentials for each use.
-- **Every UK station is imported** (~8,100 objects) — the API has no location filter, so the full dataset is synced hourly and selection happens via scopes and stream parameters. Prices on dashboards are as fresh as the last import (up to an hour old).
+- **Every UK station is imported** (~8,100 stations plus ~8,100 price objects) — the API has no location filter, so the full dataset is synced hourly and selection happens via scopes and stream parameters. Prices on dashboards are as fresh as the last import (up to an hour old).
+- **Occasional import warnings self-heal** — a transient failure in the prices step is reported as a warning and the next hourly import fills any gap.
 - **No price history** — the API returns current prices only. Trends build up over time via SquaredUp KPIs and monitors on the streams.
 - **Rate limits** — 100 requests/minute and one concurrent request per client, set by the Fuel Finder service.
 - **Read-only** — the plugin never writes anything to Fuel Finder.
