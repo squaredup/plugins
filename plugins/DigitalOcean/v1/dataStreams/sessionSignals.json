@@ -1,0 +1,108 @@
+{
+    "name": "sessionSignals",
+    "displayName": "Session Signals",
+    "description": "Behavioral signals detected in a Harness Runtime session (from DigitalOcean Signals), such as execution failures and loops, with their confidence",
+    "tags": [
+        "AI",
+        "Quality"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/signals/sessions/{{object.rawId}}/dialogues",
+        "postRequestScript": "sessionSignals.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "edges.99.cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Agent Session"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "turn",
+            "displayName": "Sequence",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false,
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "label",
+            "displayName": "Signal",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "signalType",
+            "displayName": "Signal Type",
+            "shape": "string"
+        },
+        {
+            "name": "layer",
+            "displayName": "Layer",
+            "shape": "string"
+        },
+        {
+            "name": "confidence",
+            "displayName": "Confidence",
+            "shape": [
+                "percent",
+                {
+                    "asZeroToOne": true,
+                    "decimalPlaces": 0
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "snippet",
+            "displayName": "Detail",
+            "shape": "string"
+        },
+        {
+            "name": "stepIndex",
+            "displayName": "Step",
+            "shape": "number"
+        }
+    ],
+    "timeframes": false
+}
