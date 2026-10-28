@@ -1,0 +1,78 @@
+{
+    "name": "approvalRequests",
+    "displayName": "Approval Requests",
+    "description": "Approval requests for flag changes, with their review status",
+    "tags": ["Activity", "Approvals"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "approval-requests",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "{{reviewStatus && reviewStatus !== 'all' ? 'reviewStatus anyOf [\"' + reviewStatus + '\"]' : null}}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "items" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "postRequestScript": "approvalRequests.js"
+    },
+    "ui": [
+        {
+            "name": "reviewStatus",
+            "label": "Review status",
+            "type": "radio",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "pending", "label": "Pending" },
+                { "value": "approved", "label": "Approved" },
+                { "value": "declined", "label": "Declined" }
+            ]
+        }
+    ],
+    "matches": "none",
+    "metadata": [
+        { "name": "approvalId", "displayName": "Approval ID", "visible": false },
+        { "name": "description", "displayName": "Description", "role": "label" },
+        { "name": "createdAt", "displayName": "Created", "shape": "date" },
+        {
+            "name": "reviewState",
+            "displayName": "Review Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Approved"],
+                        "warning": ["Pending"],
+                        "error": ["Declined"]
+                    }
+                }
+            ]
+        },
+        { "name": "reviewStatus", "displayName": "Review Status" },
+        { "name": "status", "displayName": "Status" },
+        { "name": "requestorId", "displayName": "Requestor ID" },
+        { "name": "projectKey", "displayName": "Project" },
+        { "name": "environmentKey", "displayName": "Environment" },
+        { "name": "resourceKind", "displayName": "Resource Kind" },
+        { "name": "flagId", "displayName": "Flag ID", "visible": false },
+        { "sourceId": "flagId", "sourceType": "Flag", "name": "flagKey" },
+        { "name": "flagKey", "displayName": "Flag" },
+        { "name": "instructions", "displayName": "Changes" },
+        { "name": "executionDate", "displayName": "Scheduled For", "shape": "date" },
+        { "name": "appliedDate", "displayName": "Applied", "shape": "date" },
+        { "name": "reviewers", "displayName": "Reviewers", "shape": "number" },
+        { "name": "approvals", "displayName": "Approvals", "shape": "number" },
+        { "name": "declines", "displayName": "Declines", "shape": "number" }
+    ],
+    "timeframes": false
+}
