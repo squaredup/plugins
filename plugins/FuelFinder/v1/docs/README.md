@@ -1,6 +1,6 @@
 Monitor UK road fuel prices in SquaredUp — find the cheapest petrol and diesel forecourts near you, compare prices by region and brand, and track price changes — via the UK government's [Fuel Finder](https://www.gov.uk/government/collections/fuel-finder) open data service.
 
-> ⚠️ The Fuel Finder API covers **Great Britain and Northern Ireland forecourts only**, and rejects requests from **datacenter and cloud IP addresses** — run the data source on a relay agent on a UK machine with an ordinary broadband connection.
+> ⚠️ The Fuel Finder API covers **Great Britain and Northern Ireland forecourts only**, and rejects requests from **non-UK IP addresses** (SquaredUp's cloud backend included) — run the data source on a relay agent hosted in the UK. Both a UK home connection and a UK cloud region (e.g. AWS London) have been verified to work.
 
 ## Setup
 
@@ -46,7 +46,7 @@ The out-of-the-box content includes a **Fuel Prices** overview, a **UK Fuel Mark
 
 ## Known limitations
 
-- **UK residential IP required** — the Fuel Finder API blocks datacenter and cloud IP addresses (including SquaredUp's cloud and UK cloud hosts), so the data source must run on a relay agent on a UK machine with an ordinary broadband connection.
+- **UK-hosted relay agent required** — the Fuel Finder API only answers UK IP addresses, which SquaredUp's cloud backend is not, so the data source must run on a relay agent hosted in the UK (a UK cloud region such as AWS London works, as does a home machine).
 - **One credential, one data source** — generating an access token revokes previously issued ones, so sharing a client ID/secret between data sources (or any other application) makes them break each other's authentication. Register separate credentials for each use.
 - **Every UK station is imported** (~8,100 stations plus ~8,100 price objects) — the API has no location filter, so the full dataset is synced hourly and selection happens via scopes and stream parameters. Prices on dashboards are as fresh as the last import (up to an hour old).
 - **Occasional import warnings self-heal** — a transient failure in the prices step is reported as a warning and the next hourly import fills any gap.
