@@ -1,5 +1,5 @@
-// The API response (GET api/v1/pfs, one page) is ignored: the request only exists because a stream needs one.
-// Rows come from the scoped stations' indexed properties (price and price-changed-at per fuel).
+// The API response (GET favicon.ico) is ignored: it is an unauthenticated 200 that only exists because a stream needs one request.
+// Rows come from the scoped Fuel Price objects' indexed properties (price and price-changed-at per fuel).
 
 // User-defined graph properties arrive as single-element arrays; rawId and name are scalars
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
@@ -32,8 +32,6 @@ result = (context.objects || []).flatMap((station) =>
                 fuelType: fuel.fuelType,
                 price,
                 changedAt,
-                brand: unwrap(station.brand),
-                postcodeArea: unwrap(station.postcodeArea),
             },
         ];
     }),
