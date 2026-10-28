@@ -1,0 +1,280 @@
+{
+    "name": "hostStatus",
+    "displayName": "Host Status",
+    "description": "Current state of each host with a count of its services by state",
+    "tags": [
+        "Host",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/domain-types/host/collections/all",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{ typeof host === 'undefined' || !host || !host.length ? null : JSON.stringify({ op: 'or', expr: host.map(o => ({ op: '=', left: 'name', right: String([].concat(o.rawId)[0]) })) }) }}"
+            },
+            {
+                "key": "columns",
+                "value": "name"
+            },
+            {
+                "key": "columns",
+                "value": "alias"
+            },
+            {
+                "key": "columns",
+                "value": "address"
+            },
+            {
+                "key": "columns",
+                "value": "state"
+            },
+            {
+                "key": "columns",
+                "value": "has_been_checked"
+            },
+            {
+                "key": "columns",
+                "value": "plugin_output"
+            },
+            {
+                "key": "columns",
+                "value": "num_services"
+            },
+            {
+                "key": "columns",
+                "value": "num_services_ok"
+            },
+            {
+                "key": "columns",
+                "value": "num_services_warn"
+            },
+            {
+                "key": "columns",
+                "value": "num_services_crit"
+            },
+            {
+                "key": "columns",
+                "value": "num_services_unknown"
+            },
+            {
+                "key": "columns",
+                "value": "num_services_pending"
+            },
+            {
+                "key": "columns",
+                "value": "worst_service_state"
+            },
+            {
+                "key": "columns",
+                "value": "acknowledged"
+            },
+            {
+                "key": "columns",
+                "value": "scheduled_downtime_depth"
+            },
+            {
+                "key": "columns",
+                "value": "last_check"
+            },
+            {
+                "key": "columns",
+                "value": "last_state_change"
+            }
+        ],
+        "postRequestScript": "hostStatus.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/checkmkError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "host",
+            "label": "Host(s) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Host"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "hostName",
+            "displayName": "Host",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "sourceId": "hostName",
+            "sourceType": "Host",
+            "name": "hostName"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "UP"
+                        ],
+                        "error": [
+                            "DOWN"
+                        ],
+                        "warning": [
+                            "UNREACHABLE"
+                        ],
+                        "unknown": [
+                            "PENDING"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusName",
+            "displayName": "Status name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "output",
+            "displayName": "Output",
+            "shape": "string"
+        },
+        {
+            "name": "worstServiceState",
+            "displayName": "Worst service state",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "OK"
+                        ],
+                        "warning": [
+                            "WARN"
+                        ],
+                        "error": [
+                            "CRIT"
+                        ],
+                        "unknown": [
+                            "UNKNOWN",
+                            "PENDING"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "worstServiceStateName",
+            "displayName": "Worst service state name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "OK"
+                        ],
+                        "warning": [
+                            "WARN",
+                            "UNREACHABLE"
+                        ],
+                        "error": [
+                            "CRIT",
+                            "DOWN"
+                        ],
+                        "unknown": [
+                            "UNKNOWN",
+                            "PENDING"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "healthRank",
+            "displayName": "Health rank",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "services",
+            "displayName": "Services",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "servicesOk",
+            "displayName": "OK",
+            "shape": "number"
+        },
+        {
+            "name": "servicesWarn",
+            "displayName": "WARN",
+            "shape": "number"
+        },
+        {
+            "name": "servicesCrit",
+            "displayName": "CRIT",
+            "shape": "number"
+        },
+        {
+            "name": "servicesUnknown",
+            "displayName": "UNKNOWN",
+            "shape": "number"
+        },
+        {
+            "name": "servicesPending",
+            "displayName": "PENDING",
+            "shape": "number"
+        },
+        {
+            "name": "acknowledged",
+            "displayName": "Acknowledged",
+            "shape": "boolean"
+        },
+        {
+            "name": "inDowntime",
+            "displayName": "In downtime",
+            "shape": "boolean"
+        },
+        {
+            "name": "alias",
+            "displayName": "Alias",
+            "shape": "string"
+        },
+        {
+            "name": "address",
+            "displayName": "Address",
+            "shape": "string"
+        },
+        {
+            "name": "lastCheck",
+            "displayName": "Last check",
+            "shape": "date"
+        },
+        {
+            "name": "lastStateChange",
+            "displayName": "Last state change",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}

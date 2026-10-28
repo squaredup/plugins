@@ -1,0 +1,192 @@
+{
+    "name": "services",
+    "displayName": "Services",
+    "description": "Current state and check output of each service (unhandled problems leave out services on hosts that are down, as Checkmk does)",
+    "tags": [
+        "Service",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/domain-types/service/collections/all",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{ ((H, S0) => (S => (F => F.length ? JSON.stringify(F.length > 1 ? { op: 'and', expr: F } : F[0]) : null)([].concat(H.length ? [ { op: 'or', expr: H.map(n => ({ op: '=', left: 'host_name', right: n })) } ] : []).concat(S === 'problems' || S === 'unhandled' ? [ { op: '!=', left: 'state', right: '0' } ] : []).concat(S === 'unhandled' ? [ { op: '=', left: 'host_state', right: '0' }, { op: '=', left: 'acknowledged', right: '0' }, { op: '=', left: 'scheduled_downtime_depth', right: '0' }, { op: '=', left: 'host_scheduled_downtime_depth', right: '0' } ] : [])))(S0 || (H.length ? 'all' : 'problems')))((typeof host === 'undefined' || !host ? [] : host).map(o => String([].concat(o.rawId)[0])), typeof serviceState === 'undefined' || !serviceState ? null : String(serviceState.value || serviceState)) }}"
+            },
+            {
+                "key": "columns",
+                "value": "host_name"
+            },
+            {
+                "key": "columns",
+                "value": "description"
+            },
+            {
+                "key": "columns",
+                "value": "state"
+            },
+            {
+                "key": "columns",
+                "value": "state_type"
+            },
+            {
+                "key": "columns",
+                "value": "has_been_checked"
+            },
+            {
+                "key": "columns",
+                "value": "plugin_output"
+            },
+            {
+                "key": "columns",
+                "value": "check_command"
+            },
+            {
+                "key": "columns",
+                "value": "acknowledged"
+            },
+            {
+                "key": "columns",
+                "value": "scheduled_downtime_depth"
+            },
+            {
+                "key": "columns",
+                "value": "host_scheduled_downtime_depth"
+            },
+            {
+                "key": "columns",
+                "value": "last_check"
+            },
+            {
+                "key": "columns",
+                "value": "last_state_change"
+            }
+        ],
+        "postRequestScript": "services.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/checkmkError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "host",
+            "label": "Host(s) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Host"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "serviceState",
+            "label": "State",
+            "options": [
+                {
+                    "value": "all",
+                    "label": "All"
+                },
+                {
+                    "value": "problems",
+                    "label": "Problems"
+                },
+                {
+                    "value": "unhandled",
+                    "label": "Unhandled problems"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "hostName",
+            "displayName": "Host",
+            "shape": "string"
+        },
+        {
+            "sourceId": "hostName",
+            "sourceType": "Host",
+            "name": "hostName"
+        },
+        {
+            "name": "service",
+            "displayName": "Service",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "OK"
+                        ],
+                        "warning": [
+                            "WARN"
+                        ],
+                        "error": [
+                            "CRIT"
+                        ],
+                        "unknown": [
+                            "UNKNOWN",
+                            "PENDING"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "stateName",
+            "displayName": "State name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "output",
+            "displayName": "Output",
+            "shape": "string"
+        },
+        {
+            "name": "plugin",
+            "displayName": "Plugin",
+            "shape": "string"
+        },
+        {
+            "name": "stateType",
+            "displayName": "State type",
+            "shape": "string"
+        },
+        {
+            "name": "acknowledged",
+            "displayName": "Acknowledged",
+            "shape": "boolean"
+        },
+        {
+            "name": "inDowntime",
+            "displayName": "In downtime",
+            "shape": "boolean"
+        },
+        {
+            "name": "lastCheck",
+            "displayName": "Last check",
+            "shape": "date"
+        },
+        {
+            "name": "lastStateChange",
+            "displayName": "Last state change",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}
