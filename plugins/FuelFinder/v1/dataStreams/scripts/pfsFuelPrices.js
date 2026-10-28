@@ -33,7 +33,8 @@ result = stations.map((s) => {
     for (const entry of s.fuel_prices || []) {
         const col = fuelColumn[entry.fuel_type];
         if (!col || !Number.isFinite(entry.price)) continue;
-        row[col] = entry.price;
+        // the feed quotes pence per litre (176.9); store pounds (1.769)
+        row[col] = Math.round(entry.price * 10) / 1000;
         row[`${col}ChangedAt`] = entry.price_change_effective_timestamp || entry.price_last_updated || null;
         const changed = row[`${col}ChangedAt`];
         if (changed && (!row.pricesUpdated || changed > row.pricesUpdated)) {
