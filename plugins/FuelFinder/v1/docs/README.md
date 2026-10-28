@@ -1,6 +1,6 @@
-Monitor UK road fuel prices around a postcode in SquaredUp — find the cheapest petrol and diesel forecourts near you and track price changes — via the UK government's [Fuel Finder](https://www.gov.uk/government/collections/fuel-finder) open data service.
+Monitor UK road fuel prices in SquaredUp — find the cheapest petrol and diesel forecourts near you, compare prices by region and brand, and track price changes — via the UK government's [Fuel Finder](https://www.gov.uk/government/collections/fuel-finder) open data service.
 
-> ⚠️ The Fuel Finder API covers **Great Britain and Northern Ireland forecourts only**, and only accepts requests from **UK IP addresses** — if your SquaredUp tenant cannot reach it directly, run the data source on a relay agent hosted on a UK machine.
+> ⚠️ The Fuel Finder API covers **Great Britain and Northern Ireland forecourts only**, and rejects requests from **datacenter and cloud IP addresses** — run the data source on a relay agent on a UK machine with an ordinary broadband connection.
 
 ## Setup
 
@@ -23,9 +23,9 @@ On save, the plugin validates your credentials by requesting the first batch of 
 
 ## What this plugin monitors
 
-- **Current fuel prices** — the live price per fuel type (petrol E10/E5, diesel B7, premium diesel) at every forecourt within your radius, with distance from your location.
-- **Price changes** — which nearby stations changed their prices during a timeframe, and what they changed to.
-- **Station details** — brand, address, distance, fuel types sold, amenities, and whether it's a motorway or supermarket forecourt.
+- **Current fuel prices** — the price per fuel type (petrol E10/E5, diesel B7, premium diesel) at every UK forecourt, refreshed hourly, with optional distance-from-a-location filtering on the tiles.
+- **Price changes** — which stations changed their prices during a timeframe, and what they changed to.
+- **Station details** — brand, address, postcode area, fuel types sold, amenities, and whether it's a motorway or supermarket forecourt.
 
 The out-of-the-box content includes a **Fuel Prices** overview, a **UK Fuel Market** analysis dashboard (regional, brand, motorway and supermarket price comparisons), and a perspective for each **Fuel Station**.
 
