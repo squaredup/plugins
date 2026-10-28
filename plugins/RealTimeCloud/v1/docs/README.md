@@ -6,7 +6,7 @@ Explore the sustainability metadata of AWS, Azure, Google Cloud and Oracle Cloud
 
 No account, API key or credentials are needed — the data is read from public CSV files on GitHub.
 
-1. Add the **Real Time Cloud** data source in SquaredUp.
+1. Add the **Sustainability Data (Real Time Cloud)** data source in SquaredUp.
 2. Save the data source.
 
 ## Configuration fields
