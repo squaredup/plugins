@@ -36,7 +36,7 @@ const haversineMiles = (lat1, lon1, lat2, lon2) => {
     return 2 * EARTH_RADIUS_MILES * Math.asin(Math.min(1, Math.sqrt(a)));
 };
 
-result = (context.objects || []).flatMap((station) => {
+const rows = (context.objects || []).flatMap((station) => {
     const latitude = toNumber(station.latitude);
     const longitude = toNumber(station.longitude);
 
@@ -62,3 +62,17 @@ result = (context.objects || []).flatMap((station) => {
         },
     ];
 });
+
+// Optional minBrandStations param: drop rows whose brand has fewer than N
+// stations in scope. Cross-row logic the tile cannot express (its filter runs
+// before grouping), used by brand-league style tiles to hide one-off brands.
+const minBrandStations = toNumber(config.minBrandStations);
+if (minBrandStations !== null && minBrandStations > 1) {
+    const brandCounts = new Map();
+    for (const r of rows) {
+        if (r.brand) brandCounts.set(r.brand, (brandCounts.get(r.brand) || 0) + 1);
+    }
+    result = rows.filter((r) => r.brand && (brandCounts.get(r.brand) || 0) >= minBrandStations);
+} else {
+    result = rows;
+}
