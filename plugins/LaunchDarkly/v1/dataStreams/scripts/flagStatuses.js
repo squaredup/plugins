@@ -6,9 +6,10 @@ const flagIdFromLink = (flag) => {
 };
 
 const scalar = (v) => (Array.isArray(v) ? v[0] : v);
-const { projectKey, environmentKey, name: environmentName } = context.objects[0];
+const { projectKey, environmentKey, environmentName: environmentNameProperty } = context.objects[0];
 const project = scalar(projectKey);
 const envKey = scalar(environmentKey);
+const environmentName = scalar(environmentNameProperty) || envKey;
 
 result = (data?.items || []).map((flag) => {
     const flagId = flagIdFromLink(flag);

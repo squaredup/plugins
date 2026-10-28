@@ -1,9 +1,10 @@
 // Flag keys are only unique within a project, so the flag id combines both keys.
 // With the env query arg, per-environment state sits under flag.environments.<envKey>.
-const { projectKey, environmentKey, name: environmentName } = context.objects[0];
+const { projectKey, environmentKey, environmentName: environmentNameProperty } = context.objects[0];
 const scalar = (v) => (Array.isArray(v) ? v[0] : v);
 const project = scalar(projectKey);
 const envKey = scalar(environmentKey);
+const environmentName = scalar(environmentNameProperty);
 
 const maintainerName = (flag) => {
     const member = flag._maintainer;
