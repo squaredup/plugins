@@ -64,7 +64,7 @@ Each stream can be scoped to whole **Spaces**, or to individual projects, enviro
 | **Worker Pool** | `GET /api/{spaceId}/workerpools` | A static or dynamic pool of workers. |
 | **Worker** | `GET /api/{spaceId}/workers` | A machine in a static worker pool that runs deployment work. |
 
-**Relationships:** every object stores the `spaceId` of the space it belongs to. Runbooks also store their project ID, deployment targets their environment and tenant IDs, and workers their worker pool IDs.
+**Relationships:** every object stores the `spaceId` of the space it belongs to. Deployment targets are related to their environments and tenants, workers to their worker pools, and runbooks to their project.
 
 ## Known limitations
 

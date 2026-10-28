@@ -33,7 +33,7 @@ result = (data.Items || [])
         hasResponsibility: !!i.HasResponsibility,
         responsibleUserId: i.ResponsibleUserId || null,
         canTakeResponsibility: !!i.CanTakeResponsibility,
-        responsibleTeamIds: (i.ResponsibleTeamIds || []).join(', '),
+        responsibleTeamIds: i.ResponsibleTeamIds || [],
         projectId: pick(i, 'Projects-'),
         environmentId: pick(i, 'Environments-'),
         tenantId: pick(i, 'Tenants-'),

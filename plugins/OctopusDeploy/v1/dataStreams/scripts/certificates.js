@@ -2,9 +2,6 @@
 const EXPIRING_SOON_DAYS = 30;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-// Array fields shape to "[object Array]", so join them into display strings here.
-const list = (arr) => (Array.isArray(arr) ? arr.join(', ') : arr || '');
-
 // An empty scope list means the certificate is available to every environment or tenant.
 const inScope = (ids, scopedId) => !Array.isArray(ids) || ids.length === 0 || ids.includes(scopedId);
 
@@ -28,10 +25,10 @@ result = (data.Items || [])
             NotBefore: c.NotBefore || null,
             DaysUntilExpiry: daysUntilExpiry,
             ExpiryStatus: expired ? 'Expired' : daysUntilExpiry !== null && daysUntilExpiry < EXPIRING_SOON_DAYS ? 'Expiring soon' : 'Valid',
-            EnvironmentIds: list(c.EnvironmentIds),
+            EnvironmentIds: c.EnvironmentIds || [],
             SelfSigned: c.SelfSigned,
             HasPrivateKey: c.HasPrivateKey,
             Thumbprint: c.Thumbprint || null,
-            SubjectAlternativeNames: list(c.SubjectAlternativeNames)
+            SubjectAlternativeNames: c.SubjectAlternativeNames || []
         };
     });
