@@ -1,5 +1,6 @@
-// The API response is deliberately IGNORED. The stream calls GET api/v1/pfs (one cheap request) only because a
-// stream must call something; every row below is built from the scoped stations' indexed properties instead.
+// The API response is deliberately IGNORED. The stream calls GET favicon.ico (one cheap unauthenticated 200) only
+// because a stream must call something; every row below is built from the scoped stations' indexed properties.
+// Prices are joined from the "Fuel Price" objects at shaping time (objectPropertyPath columns in the stream metadata).
 
 // Indexed properties arrive in scripts as single-element arrays; rawId and name are scalars
 const prop = (p) => (Array.isArray(p) ? p[0] : p);
@@ -18,13 +19,6 @@ const toText = (v) => {
     const raw = prop(v);
     return raw === null || raw === undefined ? null : String(raw);
 };
-
-const FUELS = [
-    { code: "E10", price: "priceE10", changedAt: "priceE10ChangedAt" },
-    { code: "E5", price: "priceE5", changedAt: "priceE5ChangedAt" },
-    { code: "B7_STANDARD", price: "priceB7", changedAt: "priceB7ChangedAt" },
-    { code: "B7_PREMIUM", price: "priceB7Premium", changedAt: "priceB7PremiumChangedAt" },
-];
 
 // Optional location filter (stream params); both coordinates must parse or no distance is computed
 const config = context.config || {};
@@ -53,21 +47,18 @@ result = (context.objects || []).flatMap((station) => {
     // With a radius set, drop stations that are too far away or whose distance cannot be determined
     if (radius !== null && (distanceMiles === null || distanceMiles > radius)) return [];
 
-    return FUELS.map((fuel) => ({ fuel, price: toNumber(station[fuel.price]) }))
-        .filter(({ price }) => price !== null)
-        .map(({ fuel, price }) => ({
+    return [
+        {
             stationId: station.rawId,
             stationName: station.name,
-            fuelType: fuel.code,
-            price,
-            lastUpdated: toText(station[fuel.changedAt]),
-            distanceMiles,
             brand: toText(station.brand),
             city: toText(station.city),
             postcodeArea: toText(station.postcodeArea),
-            isMotorway: toBoolean(station.isMotorway),
-            isSupermarket: toBoolean(station.isSupermarket),
+            distanceMiles,
             latitude,
             longitude,
-        }));
+            isMotorway: toBoolean(station.isMotorway),
+            isSupermarket: toBoolean(station.isSupermarket),
+        },
+    ];
 });
