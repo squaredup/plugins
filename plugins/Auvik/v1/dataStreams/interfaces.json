@@ -1,0 +1,265 @@
+{
+    "name": "interfaces",
+    "displayName": "Interfaces",
+    "description": "Device interfaces and ports with operational and admin status, speed, duplex, MAC and IP addresses",
+    "tags": [
+        "Inventory",
+        "Network",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/interface/info",
+        "getArgs": [
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || '').replace(/[ ]/g, '') || null) }}"
+            },
+            {
+                "key": "filter[parentDevice]",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) }}"
+            },
+            {
+                "key": "filter[operationalStatus]",
+                "value": "{{ (typeof operationalStatus !== 'undefined' && operationalStatus) ? operationalStatus : null }}"
+            },
+            {
+                "key": "filter[adminStatus]",
+                "value": "{{ (typeof adminStatus !== 'undefined' && adminStatus) ? (adminStatus === 'enabled' ? 'true' : 'false') : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "interfaces.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "operationalStatus",
+            "label": "Operational status",
+            "options": [
+                {
+                    "value": "online",
+                    "label": "Up"
+                },
+                {
+                    "value": "offline",
+                    "label": "Down"
+                },
+                {
+                    "value": "lowerLayerDown",
+                    "label": "Lower layer down"
+                },
+                {
+                    "value": "dormant",
+                    "label": "Dormant"
+                },
+                {
+                    "value": "notPresent",
+                    "label": "Not present"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "adminStatus",
+            "label": "Admin status",
+            "options": [
+                {
+                    "value": "enabled",
+                    "label": "Enabled"
+                },
+                {
+                    "value": "disabled",
+                    "label": "Disabled"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Interface ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "sourceId": "deviceId",
+            "objectPropertyPath": "name",
+            "sourceType": "Device"
+        },
+        {
+            "name": "operationalStatus",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "online"
+                        ],
+                        "error": [
+                            "offline",
+                            "unreachable",
+                            "lowerLayerDown"
+                        ],
+                        "warning": [
+                            "dormant",
+                            "testing"
+                        ],
+                        "unmonitored": [
+                            "notPresent",
+                            "adminDown"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "adminStatus",
+            "displayName": "Admin enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "interfaceType",
+            "displayName": "Type",
+            "shape": "string",
+            "formatExpression": "{{ ($['interfaceType'] || '').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase()) }}"
+        },
+        {
+            "name": "negotiatedSpeed",
+            "displayName": "Speed (Mbps)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "duplex",
+            "displayName": "Duplex",
+            "shape": "string"
+        },
+        {
+            "name": "macAddress",
+            "displayName": "MAC address",
+            "shape": "string"
+        },
+        {
+            "name": "ipAddresses",
+            "displayName": "IP addresses",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "networkNames",
+            "displayName": "Networks",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "connectedTo",
+            "displayName": "Connections",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "lastModified",
+            "displayName": "Last modified",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false,
+            "sourceType": "Device"
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in Auvik"
+                }
+            ]
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}

@@ -1,0 +1,252 @@
+{
+    "name": "usage",
+    "displayName": "Usage",
+    "description": "Billable device days, client days, monitored servers and workstations, and SaaS Management users for each tenant in the timeframe",
+    "tags": [
+        "Billing",
+        "Usage"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "billing/usage/client",
+        "getArgs": [
+            {
+                "key": "filter[fromDate]",
+                "value": "{{ timeframe.start.slice(0, 10) }}"
+            },
+            {
+                "key": "filter[thruDate]",
+                "value": "{{ timeframe.end.slice(0, 10) }}"
+            },
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || '').replace(/[ ]/g, '') || null) }}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "usage.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Usage ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "billableDays",
+            "displayName": "Billable days",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "deviceDays",
+            "displayName": "Device days",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "averageDevices",
+            "displayName": "Average devices",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "clientDays",
+            "displayName": "Client days",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "maxMonitoredServers",
+            "displayName": "Peak servers",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "maxMonitoredWorkstations",
+            "displayName": "Peak workstations",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "asmUsers",
+            "displayName": "SaaS Management users",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "deviceDays_essentials",
+            "displayName": "Device days: Essentials",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "deviceDays_performance",
+            "displayName": "Device days: Performance",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "deviceDays_light",
+            "displayName": "Device days: Light",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "deviceDays_notier",
+            "displayName": "Device days: No tier",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "deviceDays_corpitbasic",
+            "displayName": "Device days: Corporate IT Basic",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "deviceDays_corpitcore",
+            "displayName": "Device days: Corporate IT Core",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "deviceDays_corpitadvanced",
+            "displayName": "Device days: Corporate IT Advanced",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "periodStart",
+            "displayName": "Period start",
+            "shape": "date"
+        },
+        {
+            "name": "periodEnd",
+            "displayName": "Period end",
+            "shape": "date"
+        },
+        {
+            "name": "periodDays",
+            "displayName": "Period length (days)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ],
+    "matches": "none"
+}

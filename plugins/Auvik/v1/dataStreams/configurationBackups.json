@@ -1,0 +1,159 @@
+{
+    "name": "configurationBackups",
+    "displayName": "Configuration Backups",
+    "description": "Device configuration backups taken in the timeframe and whether each is the running configuration, or each device's current running configuration whatever its age",
+    "tags": [
+        "Configuration",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/configuration",
+        "getArgs": [
+            {
+                "key": "filter[backupTimeAfter]",
+                "value": "{{ (typeof running !== 'undefined' && running === 'running') ? null : timeframe.start }}"
+            },
+            {
+                "key": "filter[backupTimeBefore]",
+                "value": "{{ (typeof running !== 'undefined' && running === 'running') ? null : timeframe.end }}"
+            },
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || '').replace(/[ ]/g, '') || null) }}"
+            },
+            {
+                "key": "filter[deviceId]",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) }}"
+            },
+            {
+                "key": "filter[isRunning]",
+                "value": "{{ (typeof running !== 'undefined' && running) ? (running === 'running' ? 'true' : 'false') : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "configurationBackups.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "running",
+            "label": "Configuration",
+            "options": [
+                {
+                    "value": "running",
+                    "label": "Current running only"
+                },
+                {
+                    "value": "previous",
+                    "label": "Previous only"
+                }
+            ],
+            "help": "**Current running only** returns each device's current running configuration, whatever its age, and ignores the timeframe."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Configuration ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "Device"
+        },
+        {
+            "name": "backupTime",
+            "displayName": "Backed up",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "ageDays",
+            "displayName": "Age (days)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "isRunning",
+            "displayName": "Running configuration",
+            "shape": "boolean"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "backupTime",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "matches": "none"
+}

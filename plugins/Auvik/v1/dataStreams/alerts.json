@@ -1,0 +1,310 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "description": "Alerts triggered in the timeframe with severity, status, affected device, interface or network and any external tickets",
+    "tags": [
+        "Alerts",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "alert/history/info",
+        "getArgs": [
+            {
+                "key": "filter[detectedTimeAfter]",
+                "value": "{{ timeframe.start }}"
+            },
+            {
+                "key": "filter[detectedTimeBefore]",
+                "value": "{{ timeframe.end }}"
+            },
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || '').replace(/[ ]/g, '') || null) }}"
+            },
+            {
+                "key": "filter[entityId]",
+                "value": "{{ (typeof entity !== 'undefined' && entity && entity.length === 1 ? entity.flatMap((o) => o.rawId)[0] : null) }}"
+            },
+            {
+                "key": "filter[severity]",
+                "value": "{{ (typeof severity !== 'undefined' && severity) ? severity : null }}"
+            },
+            {
+                "key": "filter[dismissed]",
+                "value": "{{ (typeof dismissed !== 'undefined' && dismissed) ? (dismissed === 'dismissed' ? 'true' : 'false') : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "alerts.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "entity",
+            "label": "Device(s) or network(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device",
+                        "Network"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "severity",
+            "label": "Severity",
+            "options": [
+                {
+                    "value": "emergency",
+                    "label": "Emergency"
+                },
+                {
+                    "value": "critical",
+                    "label": "Critical"
+                },
+                {
+                    "value": "warning",
+                    "label": "Warning"
+                },
+                {
+                    "value": "info",
+                    "label": "Info"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status",
+            "options": [
+                {
+                    "value": "open",
+                    "label": "Open"
+                },
+                {
+                    "value": "resolved",
+                    "label": "Resolved"
+                },
+                {
+                    "value": "paused",
+                    "label": "Paused"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "dismissed",
+            "label": "Dismissed",
+            "options": [
+                {
+                    "value": "active",
+                    "label": "Not dismissed"
+                },
+                {
+                    "value": "dismissed",
+                    "label": "Dismissed"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Alert ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Alert",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "emergency",
+                            "critical"
+                        ],
+                        "warning": [
+                            "warning"
+                        ],
+                        "success": [
+                            "info"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "severityLevel",
+            "displayName": "Severity level",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "Open"
+                        ],
+                        "success": [
+                            "Resolved"
+                        ],
+                        "unmonitored": [
+                            "Paused"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "detectedOn",
+            "displayName": "Detected",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "resolvedOn",
+            "displayName": "Resolved",
+            "shape": "date"
+        },
+        {
+            "name": "entityName",
+            "displayName": "Affected",
+            "sourceId": "entityRef",
+            "objectPropertyPath": "name",
+            "shape": "string"
+        },
+        {
+            "name": "entityType",
+            "displayName": "Entity type",
+            "shape": "string"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "description"
+        },
+        {
+            "name": "dismissed",
+            "displayName": "Dismissed",
+            "shape": "boolean"
+        },
+        {
+            "name": "dispatched",
+            "displayName": "Dispatched",
+            "shape": "boolean",
+            "visible": false
+        },
+        {
+            "name": "tickets",
+            "displayName": "Tickets",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "alertDefinitionId",
+            "displayName": "Alert definition ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "entityId",
+            "displayName": "Entity ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in Auvik"
+                }
+            ]
+        },
+        {
+            "name": "entityRef",
+            "displayName": "Affected ref",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "detectedOn",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "matches": "none"
+}

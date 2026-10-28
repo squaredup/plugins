@@ -1,0 +1,583 @@
+{
+    "name": "devices",
+    "displayName": "Devices",
+    "description": "Discovered devices with online status, make and model, software, IP addresses, networks and discovery status",
+    "tags": [
+        "Inventory",
+        "Network",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/device/info{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) ? '/' + (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) : '' }}",
+        "getArgs": [
+            {
+                "key": "include",
+                "value": "deviceDetail"
+            },
+            {
+                "key": "fields[deviceDetail]",
+                "value": "discoveryStatus,manageStatus"
+            },
+            {
+                "key": "tenants",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) ? null : ((typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || '').replace(/[ ]/g, '') || null)) }}"
+            },
+            {
+                "key": "filter[networks]",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) ? null : ((typeof network !== 'undefined' && network && network.length) ? network.flatMap((o) => o.rawId).join(',') : null) }}"
+            },
+            {
+                "key": "filter[deviceType]",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) ? null : ((typeof deviceType !== 'undefined' && deviceType) ? (Array.isArray(deviceType) ? (deviceType[0] && (deviceType[0].value || deviceType[0])) : deviceType) || null : null) }}"
+            },
+            {
+                "key": "filter[onlineStatus]",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) ? null : ((typeof onlineStatus !== 'undefined' && onlineStatus) ? onlineStatus : null) }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "devices.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "network",
+            "label": "Network(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Network"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "deviceType",
+            "label": "Device type",
+            "isMulti": false,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "unknown",
+                        "label": "Unknown"
+                    },
+                    {
+                        "value": "switch",
+                        "label": "Switch"
+                    },
+                    {
+                        "value": "l3Switch",
+                        "label": "L3 switch"
+                    },
+                    {
+                        "value": "router",
+                        "label": "Router"
+                    },
+                    {
+                        "value": "accessPoint",
+                        "label": "Access point"
+                    },
+                    {
+                        "value": "firewall",
+                        "label": "Firewall"
+                    },
+                    {
+                        "value": "workstation",
+                        "label": "Workstation"
+                    },
+                    {
+                        "value": "server",
+                        "label": "Server"
+                    },
+                    {
+                        "value": "storage",
+                        "label": "Storage"
+                    },
+                    {
+                        "value": "printer",
+                        "label": "Printer"
+                    },
+                    {
+                        "value": "copier",
+                        "label": "Copier"
+                    },
+                    {
+                        "value": "hypervisor",
+                        "label": "Hypervisor"
+                    },
+                    {
+                        "value": "multimedia",
+                        "label": "Multimedia"
+                    },
+                    {
+                        "value": "phone",
+                        "label": "Phone"
+                    },
+                    {
+                        "value": "tablet",
+                        "label": "Tablet"
+                    },
+                    {
+                        "value": "handheld",
+                        "label": "Handheld"
+                    },
+                    {
+                        "value": "virtualAppliance",
+                        "label": "Virtual appliance"
+                    },
+                    {
+                        "value": "bridge",
+                        "label": "Bridge"
+                    },
+                    {
+                        "value": "controller",
+                        "label": "Controller"
+                    },
+                    {
+                        "value": "hub",
+                        "label": "Hub"
+                    },
+                    {
+                        "value": "modem",
+                        "label": "Modem"
+                    },
+                    {
+                        "value": "ups",
+                        "label": "UPS"
+                    },
+                    {
+                        "value": "module",
+                        "label": "Module"
+                    },
+                    {
+                        "value": "loadBalancer",
+                        "label": "Load balancer"
+                    },
+                    {
+                        "value": "camera",
+                        "label": "Camera"
+                    },
+                    {
+                        "value": "telecommunications",
+                        "label": "Telecommunications"
+                    },
+                    {
+                        "value": "packetProcessor",
+                        "label": "Packet processor"
+                    },
+                    {
+                        "value": "chassis",
+                        "label": "Chassis"
+                    },
+                    {
+                        "value": "airConditioner",
+                        "label": "Air conditioner"
+                    },
+                    {
+                        "value": "virtualMachine",
+                        "label": "Virtual machine"
+                    },
+                    {
+                        "value": "pdu",
+                        "label": "PDU"
+                    },
+                    {
+                        "value": "ipPhone",
+                        "label": "IP phone"
+                    },
+                    {
+                        "value": "backhaul",
+                        "label": "Backhaul"
+                    },
+                    {
+                        "value": "internetOfThings",
+                        "label": "Internet of things"
+                    },
+                    {
+                        "value": "voipSwitch",
+                        "label": "VoIP switch"
+                    },
+                    {
+                        "value": "stack",
+                        "label": "Stack"
+                    },
+                    {
+                        "value": "backupDevice",
+                        "label": "Backup device"
+                    },
+                    {
+                        "value": "timeClock",
+                        "label": "Time clock"
+                    },
+                    {
+                        "value": "lightingDevice",
+                        "label": "Lighting device"
+                    },
+                    {
+                        "value": "audioVisual",
+                        "label": "Audio visual"
+                    },
+                    {
+                        "value": "securityAppliance",
+                        "label": "Security appliance"
+                    },
+                    {
+                        "value": "utm",
+                        "label": "UTM"
+                    },
+                    {
+                        "value": "alarm",
+                        "label": "Alarm"
+                    },
+                    {
+                        "value": "buildingManagement",
+                        "label": "Building management"
+                    },
+                    {
+                        "value": "ipmi",
+                        "label": "IPMI"
+                    },
+                    {
+                        "value": "thinAccessPoint",
+                        "label": "Thin access point"
+                    },
+                    {
+                        "value": "thinClient",
+                        "label": "Thin client"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "onlineStatus",
+            "label": "Online status",
+            "options": [
+                {
+                    "value": "online",
+                    "label": "Online"
+                },
+                {
+                    "value": "offline",
+                    "label": "Offline"
+                },
+                {
+                    "value": "unreachable",
+                    "label": "Unreachable"
+                },
+                {
+                    "value": "dormant",
+                    "label": "Dormant"
+                },
+                {
+                    "value": "unknown",
+                    "label": "Unknown"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Device"
+        },
+        {
+            "name": "onlineStatus",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "online"
+                        ],
+                        "error": [
+                            "offline",
+                            "unreachable",
+                            "lowerLayerDown"
+                        ],
+                        "warning": [
+                            "dormant",
+                            "testing"
+                        ],
+                        "unmonitored": [
+                            "notPresent"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "deviceType",
+            "displayName": "Type",
+            "shape": "string",
+            "formatExpression": "{{ ($['deviceType'] || '').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase()) }}"
+        },
+        {
+            "name": "vendorName",
+            "displayName": "Vendor",
+            "shape": "string"
+        },
+        {
+            "name": "makeModel",
+            "displayName": "Make and model",
+            "shape": "string"
+        },
+        {
+            "name": "ipAddresses",
+            "displayName": "IP addresses",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "softwareVersion",
+            "displayName": "Software version",
+            "shape": "string"
+        },
+        {
+            "name": "firmwareVersion",
+            "displayName": "Firmware version",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "serialNumber",
+            "displayName": "Serial number",
+            "shape": "string"
+        },
+        {
+            "name": "lastSeenTime",
+            "displayName": "Last seen",
+            "shape": "date"
+        },
+        {
+            "name": "networkNames",
+            "displayName": "Networks",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "managed",
+            "displayName": "Managed",
+            "shape": "boolean"
+        },
+        {
+            "name": "snmpStatus",
+            "displayName": "SNMP",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "authorized",
+                            "privileged"
+                        ],
+                        "error": [
+                            "notAuthorized"
+                        ],
+                        "warning": [
+                            "authorizing",
+                            "determining"
+                        ],
+                        "unmonitored": [
+                            "disabled",
+                            "notSupported"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "wmiStatus",
+            "displayName": "WMI",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "authorized",
+                            "privileged"
+                        ],
+                        "error": [
+                            "notAuthorized"
+                        ],
+                        "warning": [
+                            "authorizing",
+                            "determining"
+                        ],
+                        "unmonitored": [
+                            "disabled",
+                            "notSupported"
+                        ]
+                    }
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "loginStatus",
+            "displayName": "Login",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "authorized",
+                            "privileged"
+                        ],
+                        "error": [
+                            "notAuthorized"
+                        ],
+                        "warning": [
+                            "authorizing",
+                            "determining"
+                        ],
+                        "unmonitored": [
+                            "disabled",
+                            "notSupported"
+                        ]
+                    }
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "vmwareStatus",
+            "displayName": "VMware",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "authorized",
+                            "privileged"
+                        ],
+                        "error": [
+                            "notAuthorized"
+                        ],
+                        "warning": [
+                            "authorizing",
+                            "determining"
+                        ],
+                        "unmonitored": [
+                            "disabled",
+                            "notSupported"
+                        ]
+                    }
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "description",
+            "visible": false
+        },
+        {
+            "name": "lastModified",
+            "displayName": "Last modified",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "networkIds",
+            "displayName": "Network IDs",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in Auvik"
+                }
+            ]
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}
