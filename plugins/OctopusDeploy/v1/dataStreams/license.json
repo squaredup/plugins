@@ -1,0 +1,125 @@
+{
+    "name": "license",
+    "displayName": "License",
+    "description": "Octopus license or Cloud subscription expiry and compliance, with usage against each licensed limit (one row per limit)",
+    "tags": [
+        "License",
+        "Usage"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/licenses/licenses-current-status",
+        "postRequestScript": "license.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "limitName",
+            "displayName": "Limit",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "currentUsage",
+            "displayName": "Usage",
+            "shape": "number"
+        },
+        {
+            "name": "limit",
+            "displayName": "Licensed Limit",
+            "shape": "number"
+        },
+        {
+            "name": "isUnlimited",
+            "displayName": "Unlimited",
+            "shape": "boolean"
+        },
+        {
+            "name": "usagePercent",
+            "displayName": "Usage %",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "limitState",
+            "displayName": "Limit State",
+            "computed": true,
+            "valueExpression": "{{ $['limitStatus'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "UnderLimit"
+                        ],
+                        "warning": [
+                            "AtLimit",
+                            "NearLimit",
+                            "ApproachingLimit"
+                        ],
+                        "error": [
+                            "OverLimit",
+                            "ExceedsLimit"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "limitStatus",
+            "displayName": "Limit Status",
+            "shape": "string"
+        },
+        {
+            "name": "limitMessage",
+            "displayName": "Message",
+            "shape": "string"
+        },
+        {
+            "name": "expiryDate",
+            "displayName": "Expires",
+            "shape": "date"
+        },
+        {
+            "name": "daysToExpiry",
+            "displayName": "Days to Expiry",
+            "shape": "number"
+        },
+        {
+            "name": "expiryState",
+            "displayName": "Expiry State",
+            "computed": true,
+            "valueExpression": "{{ $['daysToExpiry'] === null || $['daysToExpiry'] === undefined ? 'unknown' : ($['daysToExpiry'] < 0 ? 'error' : ($['daysToExpiry'] < 30 ? 'warning' : 'success')) }}",
+            "shape": "state"
+        },
+        {
+            "name": "isCompliant",
+            "displayName": "Compliant",
+            "shape": "boolean"
+        },
+        {
+            "name": "complianceSummary",
+            "displayName": "Compliance Summary",
+            "shape": "string"
+        },
+        {
+            "name": "hostingEnvironment",
+            "displayName": "Hosting",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}
