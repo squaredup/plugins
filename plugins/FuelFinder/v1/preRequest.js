@@ -7,39 +7,47 @@
 // cached in state and only re-minted near expiry, so concurrent requests
 // (dashboard tiles refreshing together) reuse one token instead of racing to
 // mint and revoking each other's.
-const now = Date.now();
-if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= now) {
-    const baseUrl = context.dataSources[0].baseUrl.replace(/\/*$/, "");
-    const resp = await fetch(`${baseUrl}/api/v1/oauth/generate_access_token`, {
-        method: "post",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            client_id: secrets.clientId,
-            client_secret: secrets.clientSecret,
-        }),
-    });
-    let payload = {};
-    try {
-        payload = await resp.json();
-    } catch (e) {
-        // non-JSON body (e.g. an edge error page); fall through to the error below
+//
+// Streams that ignore their response (graph-readers) call /favicon.ico, which
+// serves 200 without a token. Such a request carries no Authorization header
+// and never mints a token, so it cannot revoke anything.
+if (url.pathname === "/favicon.ico") {
+    // unauthenticated request: nothing to do
+} else {
+    const now = Date.now();
+    if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= now) {
+        const baseUrl = context.dataSources[0].baseUrl.replace(/\/*$/, "");
+        const resp = await fetch(`${baseUrl}/api/v1/oauth/generate_access_token`, {
+            method: "post",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                client_id: secrets.clientId,
+                client_secret: secrets.clientSecret,
+            }),
+        });
+        let payload = {};
+        try {
+            payload = await resp.json();
+        } catch (e) {
+            // non-JSON body (e.g. an edge error page); fall through to the error below
+        }
+        // Token may arrive wrapped ({ success, data: { access_token } }) or bare
+        const tokenData = payload?.data?.access_token ? payload.data : payload;
+        if (!resp.ok || typeof tokenData?.access_token !== "string") {
+            // throw rather than api.report.error so the request is aborted instead
+            // of going out with "Bearer undefined"
+            throw new Error(
+                `Failed to get Fuel Finder access token: HTTP ${resp.status} - ${JSON.stringify(payload).slice(0, 300)}`,
+            );
+        }
+        state = {
+            token: tokenData.access_token,
+            // re-mint a minute before expiry (tokens last an hour)
+            expiryTime: now + (tokenData.expires_in ?? 3600) * 1000 - 60000,
+        };
     }
-    // Token may arrive wrapped ({ success, data: { access_token } }) or bare
-    const tokenData = payload?.data?.access_token ? payload.data : payload;
-    if (!resp.ok || typeof tokenData?.access_token !== "string") {
-        // throw rather than api.report.error so the request is aborted instead
-        // of going out with "Bearer undefined"
-        throw new Error(
-            `Failed to get Fuel Finder access token: HTTP ${resp.status} - ${JSON.stringify(payload).slice(0, 300)}`,
-        );
-    }
-    state = {
-        token: tokenData.access_token,
-        // re-mint a minute before expiry (tokens last an hour)
-        expiryTime: now + (tokenData.expires_in ?? 3600) * 1000 - 60000,
-    };
+    headers["Authorization"] = `Bearer ${state.token}`;
 }
-headers["Authorization"] = `Bearer ${state.token}`;
