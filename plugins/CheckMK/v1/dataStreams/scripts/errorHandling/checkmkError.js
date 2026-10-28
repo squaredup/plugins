@@ -22,7 +22,7 @@ if (!status) {
     // Metric History: Checkmk reports a missing service as a raw livestatus query dump
     result = 'The host has no service with that name. Enter the service name exactly as Checkmk shows it.';
 } else if (detail.indexOf('requested graph does not exist') >= 0) {
-    result = "The service has no metric with that ID. Check the metric ID in the service's Service metrics in Checkmk.";
+    result = "The service has no metric with that ID. Check the metric ID in the Service Metrics entry on the service's details page in Checkmk.";
 } else if (status === 404 && !problem) {
     result =
         'Not found (HTTP 404). Check the Site URL ends with the Checkmk site name, for example https://checkmk.example.com/mysite.';

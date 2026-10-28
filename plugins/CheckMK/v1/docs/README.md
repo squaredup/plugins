@@ -51,7 +51,7 @@ If the Checkmk server's certificate is issued by an internal certificate authori
 | Host Status | Current state of each host with a count of its services by state. Optionally filtered to chosen hosts. |
 | Services | Current state, output and check plugin of each service. **State** filters to **Problems** (every service that isn't OK) or **Unhandled problems** (problems on hosts that are up, not acknowledged and not in downtime, the definition Checkmk's own overview uses). With no hosts chosen it defaults to Problems; with hosts chosen it defaults to All. |
 | Downtimes | Scheduled host and service downtimes, with whether each is active now. Optionally filtered to chosen hosts. |
-| Metric History | One metric of one service over time, for each selected host. **Service** is the service name exactly as Checkmk shows it, and **Metric** is the Checkmk metric ID, for example `util` for CPU utilization, `load1` for CPU load, `mem_used_percent` for Memory or `fs_used_percent` for a filesystem. You can find metric IDs in Checkmk on the service's **Service metrics**. |
+| Metric History | One metric of one service over time, for each selected host. **Service** is the service name exactly as Checkmk shows it, and **Metric** is the Checkmk metric ID, for example `util` for CPU utilization, `load1` for CPU load, `mem_used_percent` for Memory or `fs_used_percent` for a filesystem. You can find metric IDs in Checkmk in the **Service Metrics** entry on the service's details page. |
 
 ## What gets indexed
 
