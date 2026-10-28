@@ -1,5 +1,3 @@
-# Before you start
-
 Monitor the real-user Core Web Vitals of a website and every page in its sitemap using the [Chrome UX Report (CrUX) API](https://developer.chrome.com/docs/crux/api). CrUX is Google's public dataset of how real Chrome users experience a site, and it's the same field data that Search Console and PageSpeed Insights report.
 
 ## Prerequisites
