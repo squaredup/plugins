@@ -1,6 +1,6 @@
 // Instruction kinds are LaunchDarkly semantic-patch kinds; unknown kinds fall back to the raw kind.
-// The environment key is a stream parameter, so read it back from the response's self link.
-const envKey = (data?._links?.self?.href || "").match(/\/environments\/([^/]+)\/scheduled-changes/)?.[1];
+// The environment key is a stream parameter, defaulting to "production" as in the endpoint path.
+const envKey = context.config?.environmentKey || "production";
 
 const KINDS = {
     turnFlagOn: "Turn flag on",
