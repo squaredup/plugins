@@ -1,7 +1,7 @@
 {
     "name": "Fuel Prices",
     "schemaVersion": "1.5",
-    "timeframe": "last7days",
+    "timeframe": "last24hours",
     "variables": [],
     "dashboard": {
         "_type": "layout/grid",
@@ -9,31 +9,182 @@
         "version": 1,
         "contents": [
             {
-                "i": "5e0a8c10-e018-434c-be97-30b47609a4ae",
+                "i": "9552d9a2-ded5-499a-a06f-275e3fc28f75",
                 "x": 0,
                 "y": 0,
+                "w": 4,
+                "h": 1,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/text",
+                    "title": "",
+                    "description": "",
+                    "visualisation": {
+                        "config": {
+                            "content": "Tiles on this dashboard cover every fuel station in the UK. To focus on your own area, edit a tile and set its Latitude, Longitude and Radius in miles parameters; stations outside the radius are dropped and a distance column becomes available.",
+                            "fontSize": 14,
+                            "align": "left",
+                            "autoSize": true
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9606ec6b-7bcb-4e28-957e-8387294a3929",
+                "x": 0,
+                "y": 1,
                 "w": 2,
                 "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cheapest Petrol (E10) in the UK",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fuelPrices]}}",
+                        "name": "fuelPrices",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "priceE10",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "min",
+                                    "names": [
+                                        "priceE10"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "priceE10_min",
+                                "comparisonColumn": "none",
+                                "label": "Cheapest E10 (p/litre)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e40a89f0-0157-46d1-86d6-dcb9eddd3be3",
+                "x": 2,
+                "y": 1,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cheapest Diesel (B7) in the UK",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fuelPrices]}}",
+                        "name": "fuelPrices",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "priceB7",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "min",
+                                    "names": [
+                                        "priceB7"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "priceB7_min",
+                                "comparisonColumn": "none",
+                                "label": "Cheapest B7 (p/litre)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2af1071b-d353-46ac-ae0b-3f88172fb32f",
+                "x": 0,
+                "y": 3,
+                "w": 2,
+                "h": 4,
                 "moved": false,
                 "static": false,
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Cheapest Petrol (E10)",
-                    "description": "Lowest current E10 price (p/litre) across nearby stations",
+                    "description": "",
                     "timeframe": "none",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "dataStream": {
                         "id": "{{dataStreams.[fuelPrices]}}",
                         "name": "fuelPrices",
                         "pluginConfigId": "{{configId}}",
                         "filter": {
                             "multiOperation": "and",
-                            "filters": [{ "column": "fuelType", "operation": "equals", "value": "E10" }]
+                            "filters": [
+                                {
+                                    "column": "priceE10",
+                                    "operation": "notempty"
+                                }
+                            ]
                         },
-                        "group": {
-                            "by": [],
-                            "aggregate": [{ "type": "min", "names": ["price"] }]
+                        "sort": {
+                            "by": [
+                                [
+                                    "priceE10",
+                                    "asc"
+                                ]
+                            ],
+                            "top": 15
                         }
                     },
                     "scope": {
@@ -41,85 +192,66 @@
                         "workspace": "{{workspaceId}}"
                     },
                     "visualisation": {
-                        "type": "data-stream-scalar",
+                        "type": "data-stream-table",
                         "config": {
-                            "data-stream-scalar": {
-                                "value": "price_min",
-                                "comparisonColumn": "none",
-                                "label": "p/litre"
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "stationName",
+                                    "brand",
+                                    "city",
+                                    "postcodeArea",
+                                    "priceE10",
+                                    "pricesUpdated"
+                                ],
+                                "hiddenColumns": [
+                                    "stationId",
+                                    "distanceMiles"
+                                ],
+                                "transpose": false
                             }
                         }
                     }
                 }
             },
             {
-                "i": "d3a15d50-b988-409f-ad8d-5ba90183322e",
+                "i": "a0fc5af1-46f2-4259-8c4c-ebf626e2ff9c",
                 "x": 2,
-                "y": 0,
+                "y": 3,
                 "w": 2,
-                "h": 2,
+                "h": 4,
                 "moved": false,
                 "static": false,
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Cheapest Diesel (B7)",
-                    "description": "Lowest current standard diesel price (p/litre) across nearby stations",
+                    "description": "",
                     "timeframe": "none",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "dataStream": {
                         "id": "{{dataStreams.[fuelPrices]}}",
                         "name": "fuelPrices",
                         "pluginConfigId": "{{configId}}",
                         "filter": {
                             "multiOperation": "and",
-                            "filters": [{ "column": "fuelType", "operation": "equals", "value": "B7_STANDARD" }]
+                            "filters": [
+                                {
+                                    "column": "priceB7",
+                                    "operation": "notempty"
+                                }
+                            ]
                         },
-                        "group": {
-                            "by": [],
-                            "aggregate": [{ "type": "min", "names": ["price"] }]
+                        "sort": {
+                            "by": [
+                                [
+                                    "priceB7",
+                                    "asc"
+                                ]
+                            ],
+                            "top": 15
                         }
-                    },
-                    "scope": {
-                        "scope": "{{scopes.[Fuel Stations]}}",
-                        "workspace": "{{workspaceId}}"
-                    },
-                    "visualisation": {
-                        "type": "data-stream-scalar",
-                        "config": {
-                            "data-stream-scalar": {
-                                "value": "price_min",
-                                "comparisonColumn": "none",
-                                "label": "p/litre"
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "4c43940a-597f-416e-a388-b9f184d665c8",
-                "x": 0,
-                "y": 2,
-                "w": 2,
-                "h": 4,
-                "moved": false,
-                "static": false,
-                "z": 0,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Petrol prices near you",
-                    "description": "Current E10 prices, cheapest first",
-                    "timeframe": "none",
-                    "activePluginConfigIds": ["{{configId}}"],
-                    "dataStream": {
-                        "id": "{{dataStreams.[fuelPrices]}}",
-                        "name": "fuelPrices",
-                        "pluginConfigId": "{{configId}}",
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [{ "column": "fuelType", "operation": "equals", "value": "E10" }]
-                        },
-                        "sort": { "by": [["price", "asc"]] }
                     },
                     "scope": {
                         "scope": "{{scopes.[Fuel Stations]}}",
@@ -129,59 +261,28 @@
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": ["stationName", "price", "distanceMiles", "lastUpdated"],
-                                "hiddenColumns": ["stationId", "fuelType"]
+                                "columnOrder": [
+                                    "stationName",
+                                    "brand",
+                                    "city",
+                                    "postcodeArea",
+                                    "priceB7",
+                                    "pricesUpdated"
+                                ],
+                                "hiddenColumns": [
+                                    "stationId",
+                                    "distanceMiles"
+                                ],
+                                "transpose": false
                             }
                         }
                     }
                 }
             },
             {
-                "i": "72106761-3989-4f9f-afa6-3b2aff6bca2a",
-                "x": 2,
-                "y": 2,
-                "w": 2,
-                "h": 4,
-                "moved": false,
-                "static": false,
-                "z": 0,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "Diesel prices near you",
-                    "description": "Current standard diesel (B7) prices, cheapest first",
-                    "timeframe": "none",
-                    "activePluginConfigIds": ["{{configId}}"],
-                    "dataStream": {
-                        "id": "{{dataStreams.[fuelPrices]}}",
-                        "name": "fuelPrices",
-                        "pluginConfigId": "{{configId}}",
-                        "filter": {
-                            "multiOperation": "and",
-                            "filters": [{ "column": "fuelType", "operation": "equals", "value": "B7_STANDARD" }]
-                        },
-                        "sort": { "by": [["price", "asc"]] }
-                    },
-                    "scope": {
-                        "scope": "{{scopes.[Fuel Stations]}}",
-                        "workspace": "{{workspaceId}}"
-                    },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": ["stationName", "price", "distanceMiles", "lastUpdated"],
-                                "hiddenColumns": ["stationId", "fuelType"]
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                "i": "90565a0b-9dd7-4591-ab1d-90e657f9d39b",
+                "i": "7c22a019-7bfa-4af8-8801-94d7f98df096",
                 "x": 0,
-                "y": 6,
+                "y": 7,
                 "w": 4,
                 "h": 4,
                 "moved": false,
@@ -189,26 +290,44 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Price changes (last 7 days)",
-                    "description": "Recent price changes, newest first",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "title": "Recent Price Changes",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "dataStream": {
                         "id": "{{dataStreams.[priceChanges]}}",
                         "name": "priceChanges",
                         "pluginConfigId": "{{configId}}",
-                        "sort": { "by": [["changedAt", "desc"]] }
+                        "sort": {
+                            "by": [
+                                [
+                                    "changedAt",
+                                    "desc"
+                                ]
+                            ]
+                        }
                     },
                     "scope": {
-                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "scope": "{{scopes.[Fuel Prices]}}",
                         "workspace": "{{workspaceId}}"
                     },
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
                             "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": ["changedAt", "stationName", "fuelType", "price"],
-                                "hiddenColumns": ["stationId"]
+                                "columnOrder": [
+                                    "changedAt",
+                                    "stationName",
+                                    "brand",
+                                    "postcodeArea",
+                                    "fuelType",
+                                    "price"
+                                ],
+                                "hiddenColumns": [
+                                    "stationId"
+                                ],
+                                "transpose": false
                             }
                         }
                     }

@@ -27,7 +27,7 @@ On save, the plugin validates your credentials by requesting the first batch of 
 - **Price changes** — which nearby stations changed their prices during a timeframe, and what they changed to.
 - **Station details** — brand, address, distance, fuel types sold, amenities, and whether it's a motorway or supermarket forecourt.
 
-The out-of-the-box content includes a **Fuel Prices** overview dashboard plus a perspective for each **Fuel Station**.
+The out-of-the-box content includes a **Fuel Prices** overview, a **UK Fuel Market** analysis dashboard (regional, brand, motorway and supermarket price comparisons), and a perspective for each **Fuel Station**.
 
 ## Data streams
 

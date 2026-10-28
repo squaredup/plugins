@@ -1,0 +1,402 @@
+{
+    "name": "UK Fuel Market",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "139af46d-5a93-4a31-b0e5-ccea4164f183",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Motorway Average (E10)",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fuelPrices]}}",
+                        "name": "fuelPrices",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "priceE10",
+                                    "operation": "notempty"
+                                },
+                                {
+                                    "column": "isMotorway",
+                                    "operation": "equals",
+                                    "value": "true"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "priceE10"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "priceE10_mean",
+                                "comparisonColumn": "none",
+                                "label": "Motorway E10 (p/litre)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9a1c2c85-c91f-4f78-b19c-081f6324b5b1",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Non-motorway Average (E10)",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fuelPrices]}}",
+                        "name": "fuelPrices",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "priceE10",
+                                    "operation": "notempty"
+                                },
+                                {
+                                    "column": "isMotorway",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "priceE10"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "priceE10_mean",
+                                "comparisonColumn": "none",
+                                "label": "Everywhere else E10 (p/litre)"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3775b856-20cb-4b36-bdbd-e684473c6e77",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Supermarket Effect (E10)",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fuelPrices]}}",
+                        "name": "fuelPrices",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "priceE10",
+                                    "operation": "notempty"
+                                },
+                                {
+                                    "column": "isSupermarket",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "isSupermarket",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "priceE10"
+                                    ]
+                                },
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "priceE10_mean",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "isSupermarket_uniqueValues",
+                                    "priceE10_mean",
+                                    "count"
+                                ],
+                                "columnDisplayNames": {
+                                    "isSupermarket_uniqueValues": "Supermarket",
+                                    "priceE10_mean": "Average E10 (p/litre)",
+                                    "count": "Stations"
+                                },
+                                "transpose": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b37fd59f-0531-41af-909e-10d0a002af83",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Average E10 by Postcode Area",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fuelPrices]}}",
+                        "name": "fuelPrices",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "priceE10",
+                                    "operation": "notempty"
+                                },
+                                {
+                                    "column": "postcodeArea",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "postcodeArea",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "priceE10"
+                                    ]
+                                },
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "priceE10_mean",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "postcodeArea_uniqueValues",
+                                    "priceE10_mean",
+                                    "count"
+                                ],
+                                "columnDisplayNames": {
+                                    "postcodeArea_uniqueValues": "Postcode area",
+                                    "priceE10_mean": "Average E10 (p/litre)",
+                                    "count": "Stations"
+                                },
+                                "transpose": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f4751688-9ea4-45ce-b877-2cf685ddfe26",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Brand League (E10)",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fuelPrices]}}",
+                        "name": "fuelPrices",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "priceE10",
+                                    "operation": "notempty"
+                                },
+                                {
+                                    "column": "brand",
+                                    "operation": "notempty"
+                                },
+                                {
+                                    "column": "brand",
+                                    "operation": "notequals",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "brand",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "priceE10"
+                                    ]
+                                },
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "priceE10_mean",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Fuel Stations]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "brand_uniqueValues",
+                                    "priceE10_mean",
+                                    "count"
+                                ],
+                                "columnDisplayNames": {
+                                    "brand_uniqueValues": "Brand",
+                                    "priceE10_mean": "Average E10 (p/litre)",
+                                    "count": "Stations"
+                                },
+                                "transpose": false
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
