@@ -18,7 +18,7 @@ When you save, the plugin looks up the league. If it fails, the League ID is wro
 - **Luck**: how a team's actual win rate compares with its all-play win rate, which is how often it would have won if it had played every other team each week.
 - **Weekly awards**: the top and bottom scorer of each week.
 
-The out-of-the-box dashboards include a **League overview** and a **Team** perspective.
+The out-of-the-box dashboards include a **League overview**, a **Team** perspective and a **Trends** dashboard for week-by-week scoring, rank, margin and luck.
 
 ## Data streams
 

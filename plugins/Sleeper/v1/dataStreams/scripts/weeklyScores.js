@@ -29,12 +29,17 @@ const teamName = (rosterId) => {
 
 const selected = (context.config.teams || []).map((t) => (Array.isArray(t.rawId) ? t.rawId[0] : t.rawId));
 
+// Weeks are processed in order, so per-team running totals can accumulate as we go.
+const running = {};
+
 result = weeks.flatMap((week, i) => {
     const matchups = weeklyMatchups[i] || [];
     const sorted = _.sortBy(matchups.map((m) => m.points));
     const mid = Math.floor(sorted.length / 2);
     const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     const lowest = sorted[0];
+    const leagueAvgPoints = _.round(_.mean(sorted), 2);
+    const isRegularSeason = !playoffStart || week < playoffStart;
 
     return matchups.map((m) => {
         const opponent = m.matchup_id
@@ -47,10 +52,18 @@ result = weeks.flatMap((week, i) => {
                 .map(([, points]) => points),
         );
         // Teams on the same score share a rank.
-        const rank = ranked.filter((o) => o.points > m.points).length + 1;
+        const rank = matchups.filter((o) => o.points > m.points).length + 1;
         let outcome = null;
         if (opponent) {
             outcome = m.points > opponent.points ? "Win" : m.points < opponent.points ? "Loss" : "Tie";
+        }
+
+        const history = (running[m.roster_id] ??= { points: [], luck: 0 });
+        history.points.push(m.points);
+        if (isRegularSeason && opponent) {
+            const actualWins = outcome === "Win" ? 1 : outcome === "Tie" ? 0.5 : 0;
+            const expectedWins = matchups.length > 1 ? matchups.filter((o) => o.points < m.points).length / (matchups.length - 1) : 0;
+            history.luck += actualWins - expectedWins;
         }
 
         return {
@@ -65,6 +78,10 @@ result = weeks.flatMap((week, i) => {
             outcome,
             benchPoints: _.round(benchPoints, 2),
             weekRank: rank,
+            leagueAvgPoints,
+            rollingAvgPoints: _.round(_.mean(history.points.slice(-3)), 2),
+            // Cumulative wins above what all-play results would predict; regular season only, as in Standings.
+            cumulativeLuck: isRegularSeason ? _.round(history.luck, 2) : null,
             // Teams that would have beaten this week's score, had they all played each other.
             allPlayWins: matchups.filter((o) => o.points < m.points).length,
             allPlayLosses: matchups.filter((o) => o.points > m.points).length,
