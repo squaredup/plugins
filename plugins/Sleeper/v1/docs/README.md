@@ -17,6 +17,7 @@ When you save, the plugin looks up the league. If it fails, the League ID is wro
 - **Points missed**: how many more points a team would have scored with its best possible lineup, and its lineup efficiency.
 - **Luck**: how a team's actual win rate compares with its all-play win rate, which is how often it would have won if it had played every other team each week.
 - **Weekly awards**: the top and bottom scorer of each week.
+- **Bench decisions**: the benched players who outscored a starter they could have replaced, and how many points each call cost.
 
 The out-of-the-box dashboards include a **League overview**, a **Team** perspective and a **Trends** dashboard for week-by-week scoring, rank, margin and luck.
 
@@ -25,6 +26,7 @@ The out-of-the-box dashboards include a **League overview**, a **Team** perspect
 - **League**: name, season, status and settings of the configured league.
 - **Standings**: season-to-date record, points, missed points, lineup efficiency and luck, one row per team. Optionally filter to selected teams.
 - **Weekly Scores**: one row per team per completed week, with points, opponent, result, bench points, weekly rank and award. Optionally filter to selected teams.
+- **Bench Decisions**: one row per lineup swap a team should have made, with the benched player, the starter they could have replaced, the lineup slot and the points lost. Optionally filter to selected teams.
 
 ## What gets indexed
 
@@ -36,7 +38,8 @@ The out-of-the-box dashboards include a **League overview**, a **Team** perspect
 
 - **One league per data source.** To track another league, add the plugin again.
 - **Current season only.** Previous seasons have their own league ID in Sleeper.
-- **Team-level only.** Player names and player stats aren't included.
+- **Player data is limited to bench decisions.** Player names and positions come from Sleeper's player list. Other player stats aren't included.
+- **Bench decisions won't add up to points missed.** Bench Decisions counts the swaps a manager could have made from the players listed in each week's matchup, leaving out injured reserve. Sleeper works out its best-possible lineup its own way, so the totals differ.
 - **Luck uses regular-season weeks only.** Playoff weeks are left out of the all-play record.
 - **Bench points and missed points differ.** **Bench points** on the **Weekly Scores** stream is the total scored by every player outside the starting lineup. **Points missed** on the **Standings** stream is the gap to Sleeper's best-possible lineup, so it is much smaller.
 - **Ties share a weekly rank.** Teams on the same score get the same rank and award.
