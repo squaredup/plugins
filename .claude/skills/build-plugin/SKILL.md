@@ -324,6 +324,8 @@ Then invoke the `deploy-plugin` skill for the final validate, version bump, and 
 
 **Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale)), the deployed tenant's objects are **stale** — they still match the **old** definition and won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger + poll one more import (the [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) trigger/wait steps) so the deployed objects match the shipped definition. Skip only if no import definition or import stream has changed since the last import.
 
+**Check the SmartViz charts.** `squaredup validate` checks each `vizSpec` against the schema, but it cannot confirm that each `field` names a real column, and a wrong one leaves the chart empty. Once the final deploy and any re-index above have landed, ask the user to open each dashboard that has `vizSpec` tiles in the deployed plugin and confirm every chart shows data. For an empty chart, check its `field` names against the stream's columns (the post-group names when the tile groups — see [oob-content.md](references/oob-content.md#shaping-in-the-tile-group-filter-sort)), fix them, and redeploy.
+
 ---
 
 ## Phase 10 (optional): Contribute the plugin back
