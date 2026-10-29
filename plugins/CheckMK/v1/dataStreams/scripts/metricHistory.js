@@ -16,7 +16,6 @@ curves.forEach((curve) => {
             result.push({
                 timestamp: new Date(start + i * stepMs).toISOString(),
                 value,
-                valueBytes: value,
                 hostName,
                 metric: curve.title
             });
