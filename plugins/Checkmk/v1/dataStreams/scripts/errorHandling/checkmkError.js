@@ -20,8 +20,9 @@ if (!status) {
     result = `The Checkmk automation user doesn't have permission for this request (HTTP 403). ${detail}`.trim();
 } else if (status === 414) {
     // The host filter travels in the URL (Checkmk's collections are GET only), so a selection the
-    // picker's limit didn't stop, such as a dashboard variable, can still overflow the web server's cap
-    result = 'Too many hosts are selected for one request (HTTP 414). Select 25 hosts or fewer, or leave Host(s) empty to include every host.';
+    // picker's limit didn't stop, such as a dashboard variable, can still overflow the web server's cap.
+    // Very long host names can also exceed it below the picker's limit, so the message names no number.
+    result = 'The host selection is too long for one request (HTTP 414). Select fewer hosts, or leave Host(s) empty to include every host.';
 } else if (detail.indexOf('No matching entries found') >= 0) {
     // Metric History: Checkmk reports a missing service as a raw livestatus query dump
     result = 'The host has no service with that name. Enter the service name exactly as Checkmk shows it.';
