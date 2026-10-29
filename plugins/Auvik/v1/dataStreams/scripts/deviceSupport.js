@@ -49,8 +49,11 @@ result = items
 // Auvik only holds records for devices it has matched to vendor data, and the single-device
 // endpoint 404s for the rest, so the list is always fetched and filtered here. A selected device
 // without a record still gets a row, so a per-device tile says so rather than showing no data.
+// The platform runs this script once per page, so only a result that fits on one page shows
+// which devices have no record.
+const onePage = !context.pagingContext && !context.outputPagingContext;
 const reported = new Set(result.map((r) => r.deviceId));
-for (const o of (context.config && context.config.device) || []) {
+for (const o of (onePage && context.config && context.config.device) || []) {
     const deviceId = unwrap(o.rawId);
     if (!deviceId || reported.has(deviceId)) continue;
     const statuses = lifecycle

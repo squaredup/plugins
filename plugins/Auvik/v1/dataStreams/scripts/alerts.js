@@ -11,26 +11,32 @@ const entityFilter = selected("entity");
 const statusFilter = context.config && context.config.status;
 const levels = { emergency: 1, critical: 2, warning: 3, info: 4, unknown: 5 };
 
-// Auvik records an alert clearing as a separate "resolved" alert whose relatedAlert is the
-// alert that triggered. Fold each clear into its trigger, so one row is one alert.
+// Auvik ends an alert with a separate "resolved" record and a pause with an "unpaused" one, and
+// links each pair to each other through relatedAlert. Fold each ending into the record it ends,
+// so one row is one alert. The platform runs this script once per page, so the link decides the
+// status; the time it ended is only known when both records are on the same page.
+const isEnding = (al) =>
+    ["resolved", "unpaused"].includes((al.attributes || {}).status) && rel(al, "relatedAlert");
 const clearedOn = {};
 for (const al of items) {
-    const related = rel(al, "relatedAlert");
-    if (al.attributes && al.attributes.status === "resolved" && related && related.id) {
-        clearedOn[related.id] = (al.attributes && al.attributes.detectedOn) || null;
-    }
+    if (isEnding(al)) clearedOn[rel(al, "relatedAlert").id] = al.attributes.detectedOn || null;
 }
 const statusOf = (al) => {
-    if (al.id in clearedOn) return "Resolved";
     const s = al.attributes && al.attributes.status;
+    if (s === "resolved" || s === "unpaused" || al.id in clearedOn || rel(al, "relatedAlert")) return "Resolved";
     if (s === "paused") return "Paused";
-    if (s === "resolved") return "Resolved";
     return "Open";
 };
 
 result = items
-    // Clears are folded into their trigger above; one whose trigger predates the timeframe is dropped.
-    .filter((al) => !((al.attributes || {}).status === "resolved" && rel(al, "relatedAlert")))
+    // A Status filter returns Auvik's records with that status as they are, where Open is a
+    // "created" alert with no linked clear. Otherwise endings are folded in above, and one whose
+    // alert predates the timeframe is dropped.
+    .filter((al) => {
+        const s = (al.attributes || {}).status;
+        if (statusFilter === "open") return s === "created" && !rel(al, "relatedAlert");
+        return statusFilter ? s === statusFilter : !isEnding(al);
+    })
     .map((al) => {
         const a = al.attributes || {};
         const entity = rel(al, "entity") || {};
@@ -56,5 +62,4 @@ result = items
             link: (al.links && al.links.dashboard) || null,
         };
     })
-    .filter((r) => !entityFilter.size || entityFilter.has(r.entityId))
-    .filter((r) => !statusFilter || r.status.toLowerCase() === statusFilter);
+    .filter((r) => !entityFilter.size || entityFilter.has(r.entityId));
