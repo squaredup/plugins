@@ -50,8 +50,8 @@ result = items
 // endpoint 404s for the rest, so the list is always fetched and filtered here. A selected device
 // without a record still gets a row, so a per-device tile says so rather than showing no data.
 // The platform runs this script once per page, so only a result that fits on one page shows
-// which devices have no record.
-const onePage = !context.pagingContext && !context.outputPagingContext;
+// which devices have no record: the first page, with no link to a next one.
+const onePage = !context.pagingContext && !(data && data.links && data.links.next);
 const reported = new Set(result.map((r) => r.deviceId));
 for (const o of (onePage && context.config && context.config.device) || []) {
     const deviceId = unwrap(o.rawId);

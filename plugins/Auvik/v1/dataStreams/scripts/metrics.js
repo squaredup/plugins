@@ -143,8 +143,8 @@ for (const entry of entries) {
 }
 
 // Devices can share a name (every Auvik collector is "auvik-virtual-appliance"), which
-// would merge their series on a chart. Suffix the duplicates with the end of each device's own
-// ID: the platform runs this script once per page, so a running number could repeat across pages.
+// would merge their series on a chart. Suffix every device with the end of its own ID: the
+// platform runs this script once per page, so duplicates on different pages can't be spotted.
 const shortId = (id) => {
     try {
         return atob(id).split(",").pop().slice(-4);
@@ -152,14 +152,8 @@ const shortId = (id) => {
         return String(id).slice(-4);
     }
 };
-const idsByName = {};
 for (const r of rows) {
     if (r.entityType !== "Device") continue;
-    (idsByName[r.entityName] = idsByName[r.entityName] || new Set()).add(r.entityId);
-}
-for (const r of rows) {
-    const ids = r.entityType === "Device" && idsByName[r.entityName];
-    if (!ids || ids.size < 2) continue;
     const name = `${r.entityName} (${shortId(r.entityId)})`;
     r.label = name + r.label.slice(r.entityName.length);
     r.entityName = name;
