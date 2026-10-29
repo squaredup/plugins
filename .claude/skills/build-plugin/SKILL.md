@@ -306,7 +306,7 @@ Pass in the prompt:
 - The versioned plugin dir, plus the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A.
 - The planned dashboards from Phase 2 (top-level summary + one perspective per object type) and the object types.
 - The data stream names to build tiles from — the sub-agent reads the stream files itself for columns and parameters.
-- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
+- Instructions: read `references/oob-content.md` — including its SmartViz section, which has the sub-agent fetch current chart guidance with `squaredup skill visualize` — write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
 
 Resolve anything the report flags before Phase 8.
 
