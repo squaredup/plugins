@@ -1,7 +1,13 @@
 // Season-to-date standings. Rosters hold the record and points; luck needs
 // every regular-season week's matchups to work out the all-play record.
 const api = "https://api.sleeper.app/v1";
-const get = async (path) => (await fetch(`${api}/${path}`)).json();
+const get = async (path) => {
+    const response = await fetch(`${api}/${path}`);
+    if (!response.ok) {
+        throw new Error(`Sleeper API returned ${response.status} for ${path}`);
+    }
+    return response.json();
+};
 
 const league = data;
 const { start_week: startWeek = 1, last_scored_leg: lastWeek = 0, playoff_week_start: playoffStart } =
@@ -50,7 +56,7 @@ const rows = rosters.map((roster) => {
         pointsFor: _.round(pointsFor, 2),
         pointsAgainst: _.round(pts(s, "fpts_against"), 2),
         maxPoints: _.round(maxPoints, 2),
-        benchPoints: _.round(Math.max(maxPoints - pointsFor, 0), 2),
+        missedPoints: _.round(Math.max(maxPoints - pointsFor, 0), 2),
         efficiency: maxPoints ? _.round((pointsFor / maxPoints) * 100, 1) : null,
         winPct: winPct === null ? null : _.round(winPct * 100, 1),
         allPlayPct: allPlayPct === null ? null : _.round(allPlayPct * 100, 1),

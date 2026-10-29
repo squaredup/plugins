@@ -1,7 +1,13 @@
 // One row per team per scored week. Sleeper serves matchups one week at a
 // time, so fetch every scored week alongside the rosters and users.
 const api = "https://api.sleeper.app/v1";
-const get = async (path) => (await fetch(`${api}/${path}`)).json();
+const get = async (path) => {
+    const response = await fetch(`${api}/${path}`);
+    if (!response.ok) {
+        throw new Error(`Sleeper API returned ${response.status} for ${path}`);
+    }
+    return response.json();
+};
 
 const league = data;
 const { start_week: startWeek = 1, last_scored_leg: lastWeek = 0, playoff_week_start: playoffStart } =
@@ -25,8 +31,10 @@ const selected = (context.config.teams || []).map((t) => (Array.isArray(t.rawId)
 
 result = weeks.flatMap((week, i) => {
     const matchups = weeklyMatchups[i] || [];
-    const ranked = _.orderBy(matchups, ["points"], ["desc"]);
-    const median = _.mean(matchups.map((m) => m.points));
+    const sorted = _.sortBy(matchups.map((m) => m.points));
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    const lowest = sorted[0];
 
     return matchups.map((m) => {
         const opponent = m.matchup_id
@@ -38,7 +46,8 @@ result = weeks.flatMap((week, i) => {
                 .filter(([player]) => !starters.has(player))
                 .map(([, points]) => points),
         );
-        const rank = ranked.findIndex((o) => o.roster_id === m.roster_id) + 1;
+        // Teams on the same score share a rank.
+        const rank = ranked.filter((o) => o.points > m.points).length + 1;
         let outcome = null;
         if (opponent) {
             outcome = m.points > opponent.points ? "Win" : m.points < opponent.points ? "Loss" : "Tie";
@@ -60,7 +69,7 @@ result = weeks.flatMap((week, i) => {
             allPlayWins: matchups.filter((o) => o.points < m.points).length,
             allPlayLosses: matchups.filter((o) => o.points > m.points).length,
             aboveMedian: m.points > median,
-            award: rank === 1 ? "Top scorer" : rank === matchups.length ? "Bottom scorer" : null,
+            award: rank === 1 ? "Top scorer" : m.points === lowest ? "Bottom scorer" : null,
         };
     });
 }).filter((row) => selected.length === 0 || selected.includes(row.sourceId));
