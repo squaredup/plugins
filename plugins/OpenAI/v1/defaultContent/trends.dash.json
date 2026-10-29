@@ -1,0 +1,693 @@
+{
+    "name": "Trends",
+    "schemaVersion": "1.5",
+    "timeframe": "thisQuarter",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "a6b94a4b-7ff1-4fa4-8698-ec8ba4ff64a3",
+                "x": 0,
+                "y": 0,
+                "w": 8,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend Per Week By Model",
+                    "description": "Six biggest model families; the rest are grouped as Other.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, COALESCE(NULLIF(\"modelFamily\", ''), \"category\") AS fam, \"amount\" AS v FROM \"cost\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"week\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"spend\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "cost",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[cost]}}",
+                                            "name": "cost",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "week",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "spend",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "week",
+                                    "type": "temporal",
+                                    "title": "Week"
+                                },
+                                "y": {
+                                    "field": "spend",
+                                    "type": "quantitative",
+                                    "title": "Spend"
+                                },
+                                "series": {
+                                    "field": "model",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "58856ba1-e01d-4e78-abe9-486825be6841",
+                "x": 8,
+                "y": 0,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Month Over Month Spend",
+                    "description": "Change compares this month so far with the same days of last month.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH t AS (SELECT SUM(\"amount\") AS v FROM \"thisMonth\"),\nl AS (SELECT SUM(\"amount\") AS v FROM \"lastMonth\"),\nltd AS (SELECT SUM(\"amount\") AS v FROM \"lastMonth\" WHERE EXTRACT(day FROM \"date\") <= EXTRACT(day FROM CURRENT_DATE))\nSELECT t.v AS \"thisMonth\", l.v AS \"lastMonth\", (t.v - ltd.v) * 100.0 / NULLIF(ltd.v, 0) AS \"change\"\nFROM t, l, ltd",
+                            "tables": [
+                                {
+                                    "tableName": "thisMonth",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "thisMonth",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[cost]}}",
+                                            "name": "cost",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "lastMonth",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "lastMonth",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[cost]}}",
+                                            "name": "cost",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "thisMonth",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "lastMonth",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "change",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "thisMonth",
+                                        "type": "quantitative",
+                                        "title": "This month"
+                                    },
+                                    {
+                                        "field": "lastMonth",
+                                        "type": "quantitative",
+                                        "title": "Last month"
+                                    },
+                                    {
+                                        "field": "change",
+                                        "type": "quantitative",
+                                        "title": "Change (like for like)"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 1
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d0b20f5b-b7aa-469e-be64-5e9a9ab2dab1",
+                "x": 0,
+                "y": 3,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend Per Week By Project",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS \"week\", \"project\" AS \"project\", SUM(\"amount\") AS \"spend\"\nFROM \"cost\"\nGROUP BY 1, 2\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "cost",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[cost]}}",
+                                            "name": "cost",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "week",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "spend",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "week",
+                                    "type": "temporal",
+                                    "title": "Week"
+                                },
+                                "y": {
+                                    "field": "spend",
+                                    "type": "quantitative",
+                                    "title": "Spend"
+                                },
+                                "series": {
+                                    "field": "project",
+                                    "type": "nominal",
+                                    "title": "Project"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "18ddfca0-7e80-4054-85b4-7771502ec850",
+                "x": 6,
+                "y": 3,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Model Mix",
+                    "description": "Share of tokens per model family each week.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', '') AS fam, \"input_tokens\" + \"output_tokens\" AS v FROM \"usage\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"week\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"tokens\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "week",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "tokens",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "week",
+                                    "type": "temporal",
+                                    "title": "Week"
+                                },
+                                "y": {
+                                    "field": "tokens",
+                                    "type": "quantitative",
+                                    "title": "Tokens"
+                                },
+                                "series": {
+                                    "field": "model",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "normalize",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c46f3d70-0152-4baf-9228-ff27b458b143",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost Per 1K Tokens",
+                    "description": "Chat & text spend divided by completion tokens, per week.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH c AS (SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS w, SUM(\"amount\") AS spend FROM \"cost\" WHERE \"category\" = 'Chat & text' GROUP BY 1),\nu AS (SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS w, SUM(\"input_tokens\") + SUM(\"output_tokens\") AS tokens FROM \"usage\" GROUP BY 1)\nSELECT c.w AS \"week\", c.spend * 1000.0 / NULLIF(u.tokens, 0) AS \"costPer1K\"\nFROM c JOIN u USING (w)\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "cost",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[cost]}}",
+                                            "name": "cost",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "week",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "costPer1K",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 4,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "week",
+                                    "type": "temporal",
+                                    "title": "Week"
+                                },
+                                "y": {
+                                    "field": "costPer1K",
+                                    "type": "quantitative",
+                                    "title": "Cost per 1K tokens"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianSymbol": "none",
+                                "cartesianYAxisMin": 0
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "629bcb51-abb1-4aa8-964f-fc9cefe83d27",
+                "x": 4,
+                "y": 6,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cache Hit Rate Per Week",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS \"week\", SUM(\"input_cached_tokens\") * 100.0 / NULLIF(SUM(\"input_tokens\"), 0) AS \"cacheHitRate\"\nFROM \"usage\"\nGROUP BY 1\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "week",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "cacheHitRate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "week",
+                                    "type": "temporal",
+                                    "title": "Week"
+                                },
+                                "y": {
+                                    "field": "cacheHitRate",
+                                    "type": "quantitative",
+                                    "title": "Cache Hit Rate"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianSymbol": "none",
+                                "cartesianYAxisMin": 0,
+                                "cartesianYAxisMax": 100,
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3aa639de-89ec-45cf-ad01-6629d37ee074",
+                "x": 8,
+                "y": 6,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tokens And Requests Per Week",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS \"week\", SUM(\"input_tokens\") + SUM(\"output_tokens\") AS \"tokens\", SUM(\"requests\") AS \"requests\"\nFROM \"usage\"\nGROUP BY 1\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "week",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "tokens",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "requests",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "week",
+                                    "type": "temporal",
+                                    "title": "Week"
+                                },
+                                "y": {
+                                    "field": "tokens",
+                                    "type": "quantitative",
+                                    "title": "Tokens"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianSymbol": "none",
+                                "cartesianY2AxisField": "requests",
+                                "cartesianY2AxisTitle": "Requests"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

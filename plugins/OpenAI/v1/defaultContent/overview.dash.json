@@ -1,0 +1,998 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 10,
+        "version": 1,
+        "contents": [
+            {
+                "i": "80b8f504-2ee1-4bb6-b889-7cd1e333d673",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend This Month",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[cost]}}",
+                        "name": "cost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "amount"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "amount_sum",
+                                        "type": "quantitative",
+                                        "title": "Spend"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1135daa1-df8a-45fa-a7f8-d7ed874221cd",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Budget Used",
+                    "description": "Spend this month across projects with a monthly limit, as a share of those limits.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH s AS (SELECT \"project_id\", SUM(\"amount\") AS spend FROM \"cost\" GROUP BY 1)\nSELECT SUM(COALESCE(s.spend, 0)) * 100.0 / NULLIF(SUM(lim.\"limit\"), 0) AS \"budgetUsed\"\nFROM \"spendLimits\" lim LEFT JOIN s ON s.\"project_id\" = lim.\"projectId\"",
+                            "tables": [
+                                {
+                                    "tableName": "cost",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "thisMonth",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[cost]}}",
+                                            "name": "cost",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "spendLimits",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "scope": {
+                                            "scope": "{{scopes.[Projects]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[spendLimits]}}",
+                                            "name": "spendLimits",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "budgetUsed",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "budgetUsed",
+                                    "type": "quantitative",
+                                    "title": "Budget Used"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.75,
+                                        "color": "#259A51"
+                                    },
+                                    {
+                                        "to": 0.9,
+                                        "color": "#E18700"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#D63939"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "759c4368-f6c9-4eb3-b020-65ff62944378",
+                "x": 4,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "requests"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "requests_sum",
+                                        "type": "quantitative",
+                                        "title": "Requests"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fcb7661b-521e-4925-b285-b86b019a1c9a",
+                "x": 6,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tokens",
+                    "description": "Input plus output tokens for completions.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT SUM(\"input_tokens\") + SUM(\"output_tokens\") AS \"tokens\" FROM \"usage\"",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "tokens",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "tokens",
+                                        "type": "quantitative",
+                                        "title": "Tokens"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5e7bff02-eb11-4563-beef-64e60af46a77",
+                "x": 8,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cache Hit Rate",
+                    "description": "Share of input tokens served from the prompt cache.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT SUM(\"input_cached_tokens\") * 100.0 / NULLIF(SUM(\"input_tokens\"), 0) AS \"cacheHitRate\" FROM \"usage\"",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "cacheHitRate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "cacheHitRate",
+                                    "type": "quantitative",
+                                    "title": "Cache Hit Rate"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.3,
+                                        "color": "#E18700"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#259A51"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "36243227-2a80-40c5-964f-b6a356297edf",
+                "x": 0,
+                "y": 2,
+                "w": 7,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend By Category",
+                    "description": "Total spend for the timeframe, by type of usage.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[cost]}}",
+                        "name": "cost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "category",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "amount"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "amount_sum",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "category_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Category"
+                                },
+                                "y": {
+                                    "field": "amount_sum",
+                                    "type": "quantitative",
+                                    "title": "Spend"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "legendPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "52987201-1446-46f1-8dc6-c5f9a024b119",
+                "x": 7,
+                "y": 2,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend By Project",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[cost]}}",
+                        "name": "cost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "project",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "amount"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "project_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Project"
+                                },
+                                "value": {
+                                    "field": "amount_sum",
+                                    "type": "quantitative",
+                                    "title": "Spend"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "pieLegendStyle": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a5c3b30b-e6a0-4170-b992-dbfc3b03447c",
+                "x": 0,
+                "y": 4,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tokens Per Day",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Input' AS \"direction\", SUM(\"input_tokens\") AS \"tokens\" FROM \"usage\" GROUP BY 1\nUNION ALL\nSELECT STRFTIME(DATE_TRUNC('day', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Output' AS \"direction\", SUM(\"output_tokens\") AS \"tokens\" FROM \"usage\" GROUP BY 1\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "day",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "tokens",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "tokens",
+                                    "type": "quantitative",
+                                    "title": "Tokens"
+                                },
+                                "series": {
+                                    "field": "direction",
+                                    "type": "nominal",
+                                    "title": "Direction"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fe0e1e46-c051-413c-b04e-fcfd5b0d4a80",
+                "x": 4,
+                "y": 4,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests By Model",
+                    "description": "Top 8 models, release dates merged.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', '') AS \"model\", SUM(\"requests\") AS \"requests\"\nFROM \"usage\"\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 8",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "requests",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "model",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                },
+                                "y": {
+                                    "field": "requests",
+                                    "type": "quantitative",
+                                    "title": "Requests"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "legendPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c39c3348-8162-4d5a-8d41-08049a686d95",
+                "x": 7,
+                "y": 4,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Web Search Calls Per Day",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[otherUsage]}}",
+                        "name": "otherUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "usageType": "web_search_calls"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "date",
+                                    "byDay"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "requests"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "date_byDay",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "date_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "requests_sum",
+                                    "type": "quantitative",
+                                    "title": "Calls"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c241ba18-eb2f-4256-99a6-c17c5a16f869",
+                "x": 0,
+                "y": 6,
+                "w": 5,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Project Budgets",
+                    "description": "Spend this month against each monthly limit. Projects without a limit are not listed.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH s AS (SELECT \"project_id\", SUM(\"amount\") AS spend FROM \"cost\" GROUP BY 1)\nSELECT lim.\"project\" AS \"project\", COALESCE(s.spend, 0) AS \"spend\", lim.\"limit\" AS \"limit\",\n    COALESCE(s.spend, 0) * 100.0 / NULLIF(lim.\"limit\", 0) AS \"percentUsed\", lim.\"enforcement\" AS \"enforcement\"\nFROM \"spendLimits\" lim LEFT JOIN s ON s.\"project_id\" = lim.\"projectId\"\nORDER BY 4 DESC",
+                            "tables": [
+                                {
+                                    "tableName": "cost",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "thisMonth",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[cost]}}",
+                                            "name": "cost",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "spendLimits",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "scope": {
+                                            "scope": "{{scopes.[Projects]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[spendLimits]}}",
+                                            "name": "spendLimits",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "spend",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "limit",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "percentUsed",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "project",
+                                        "title": "Project",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "spend",
+                                        "title": "Spend This Month",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "limit",
+                                        "title": "Limit",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "percentUsed",
+                                        "title": "Used",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "enforcement",
+                                        "title": "Enforcement",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "active": "#259A51",
+                                                "inactive": "#94A3B8"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    }
+                }
+            },
+            {
+                "i": "64b8b61c-944a-47da-a477-954d435c1f72",
+                "x": 5,
+                "y": 6,
+                "w": 5,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "API Keys Unused For 30+ Days",
+                    "description": "Keys never used, or last used more than 30 days ago.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[apiKeys]}}",
+                        "name": "apiKeys",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "last_used_at",
+                                    "operation": "empty"
+                                },
+                                {
+                                    "column": "last_used_at",
+                                    "operation": "datemorethan",
+                                    "value": "30",
+                                    "unit": "days",
+                                    "tenseUnit": "before"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "last_used_at",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Projects]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "project",
+                                        "title": "Project",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ownerName",
+                                        "title": "Owner",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "last_used_at",
+                                        "title": "Last Used",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,253 @@
+{
+    "name": "usage",
+    "displayName": "Token Usage",
+    "description": "Daily chat and text model token usage by model, project, API key and user or service account",
+    "tags": [
+        "Usage",
+        "Tokens"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/organization/usage/completions",
+        "getArgs": [
+            {
+                "key": "start_time",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end_time",
+                "value": "{{timeframe.unixEnd}}"
+            },
+            {
+                "key": "bucket_width",
+                "value": "1d"
+            },
+            {
+                "key": "limit",
+                "value": "31"
+            },
+            {
+                "key": "group_by[]",
+                "value": "{{ ['model', 'project_id', 'api_key_id', 'user_id', 'batch', 'service_tier'] }}"
+            },
+            {
+                "key": "project_ids",
+                "value": "{{ project?.map(p => p.rawId) || null }}"
+            },
+            {
+                "key": "api_key_ids",
+                "value": "{{ apiKey?.map(k => k.rawId) || null }}"
+            },
+            {
+                "key": "user_ids",
+                "value": "{{ user?.map(u => u.rawId) || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "in": {
+                "realm": "payload",
+                "path": "next_page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "usage.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "apiKey",
+            "label": "API Key (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "API Key"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "project_id",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "project",
+            "displayName": "Project",
+            "sourceId": "project_id",
+            "sourceType": "Project",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "api_key_id",
+            "displayName": "API Key ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "apiKey",
+            "displayName": "API Key",
+            "sourceId": "api_key_id",
+            "sourceType": "API Key",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "user_id",
+            "displayName": "User or service account ID",
+            "shape": "string"
+        },
+        {
+            "name": "batch",
+            "displayName": "Batch",
+            "shape": "boolean"
+        },
+        {
+            "name": "service_tier",
+            "displayName": "Service Tier",
+            "shape": "string"
+        },
+        {
+            "name": "requests",
+            "displayName": "Requests",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "input_tokens",
+            "displayName": "Input Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "output_tokens",
+            "displayName": "Output Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "input_cached_tokens",
+            "displayName": "Cached Input Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "input_uncached_tokens",
+            "displayName": "Uncached Input Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "cacheHitRate",
+            "displayName": "Cache Hit Rate",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "input_audio_tokens",
+            "displayName": "Input Audio Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "output_audio_tokens",
+            "displayName": "Output Audio Tokens",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear"
+    ]
+}

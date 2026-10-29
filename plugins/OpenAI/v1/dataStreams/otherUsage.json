@@ -1,0 +1,186 @@
+{
+    "name": "otherUsage",
+    "displayName": "Other Usage",
+    "description": "Daily non-chat usage by project and model (embeddings, moderations, images, speech, transcription, vector stores, code interpreter, file search and web search)",
+    "tags": [
+        "Usage"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/organization/usage/{{usageType}}",
+        "getArgs": [
+            {
+                "key": "start_time",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end_time",
+                "value": "{{timeframe.unixEnd}}"
+            },
+            {
+                "key": "bucket_width",
+                "value": "1d"
+            },
+            {
+                "key": "limit",
+                "value": "31"
+            },
+            {
+                "key": "group_by[]",
+                "value": "project_id"
+            },
+            {
+                "key": "group_by[]",
+                "value": "{{['vector_stores', 'code_interpreter_sessions', 'file_search_calls'].includes(usageType) ? null : 'model'}}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "in": {
+                "realm": "payload",
+                "path": "next_page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "otherUsage.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "usageType",
+            "label": "Usage type",
+            "validation": {
+                "required": true
+            },
+            "defaultValue": "embeddings",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "embeddings",
+                        "label": "Embeddings"
+                    },
+                    {
+                        "value": "moderations",
+                        "label": "Moderations"
+                    },
+                    {
+                        "value": "images",
+                        "label": "Images"
+                    },
+                    {
+                        "value": "audio_speeches",
+                        "label": "Audio speeches"
+                    },
+                    {
+                        "value": "audio_transcriptions",
+                        "label": "Audio transcriptions"
+                    },
+                    {
+                        "value": "vector_stores",
+                        "label": "Vector stores"
+                    },
+                    {
+                        "value": "code_interpreter_sessions",
+                        "label": "Code interpreter sessions"
+                    },
+                    {
+                        "value": "file_search_calls",
+                        "label": "File search calls"
+                    },
+                    {
+                        "value": "web_search_calls",
+                        "label": "Web search calls"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "usageType",
+            "displayName": "Usage type",
+            "shape": "string"
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "project_id",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "project",
+            "displayName": "Project",
+            "sourceId": "project_id",
+            "sourceType": "Project",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "requests",
+            "displayName": "Requests",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "quantity",
+            "displayName": "Quantity",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear"
+    ]
+}

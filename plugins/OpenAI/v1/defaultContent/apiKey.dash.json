@@ -1,0 +1,661 @@
+{
+    "name": "API Key",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [
+        "{{variables.[API Key]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 10,
+        "version": 1,
+        "contents": [
+            {
+                "i": "d743b92d-1de0-4263-b93c-1b9e3b326f9e",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Key Details",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[API Keys]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[API Key]}}"
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ownerName",
+                                        "title": "Owner",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ownerType",
+                                        "title": "Owner Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "projectId",
+                                        "title": "Project ID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "last_used_at",
+                                        "title": "Last Used",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "redacted_value",
+                                        "title": "Key",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b9922267-2ae8-42e5-8115-4703b1cad7a8",
+                "x": 4,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "apiKey": {
+                                "scope": "{{scopes.[API Keys]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[API Key]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "requests"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "requests_sum",
+                                        "type": "quantitative",
+                                        "title": "Requests"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c8cebcc6-0517-4e2d-af41-1764816242bc",
+                "x": 6,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tokens",
+                    "description": "Input plus output tokens for completions.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT SUM(\"input_tokens\") + SUM(\"output_tokens\") AS \"tokens\" FROM \"usage\"",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "apiKey": {
+                                                    "scope": "{{scopes.[API Keys]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "variable": "{{variables.[API Key]}}"
+                                                }
+                                            }
+                                        },
+                                        "variables": [
+                                            "{{variables.[API Key]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "tokens",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "tokens",
+                                        "type": "quantitative",
+                                        "title": "Tokens"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7529af31-2c4f-43a2-a4b4-1d7abd4d7557",
+                "x": 8,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cache Hit Rate",
+                    "description": "Share of input tokens served from the prompt cache.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT SUM(\"input_cached_tokens\") * 100.0 / NULLIF(SUM(\"input_tokens\"), 0) AS \"cacheHitRate\" FROM \"usage\"",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "apiKey": {
+                                                    "scope": "{{scopes.[API Keys]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "variable": "{{variables.[API Key]}}"
+                                                }
+                                            }
+                                        },
+                                        "variables": [
+                                            "{{variables.[API Key]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "cacheHitRate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "cacheHitRate",
+                                    "type": "quantitative",
+                                    "title": "Cache Hit Rate"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.3,
+                                        "color": "#E18700"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#259A51"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b3c2990d-902b-42ed-acce-fbbdbf0bdb84",
+                "x": 4,
+                "y": 2,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tokens Per Day By Model",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('day', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', '') AS fam, \"input_tokens\" + \"output_tokens\" AS v FROM \"usage\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"day\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"tokens\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "apiKey": {
+                                                    "scope": "{{scopes.[API Keys]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "variable": "{{variables.[API Key]}}"
+                                                }
+                                            }
+                                        },
+                                        "variables": [
+                                            "{{variables.[API Key]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "day",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "tokens",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "tokens",
+                                    "type": "quantitative",
+                                    "title": "Tokens"
+                                },
+                                "series": {
+                                    "field": "model",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "72387331-790d-46d4-8bcc-2fa54dc3a6b3",
+                "x": 0,
+                "y": 4,
+                "w": 5,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests Per Day By Model",
+                    "description": "Six biggest model families; the rest are grouped as Other.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('day', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', '') AS fam, \"requests\" AS v FROM \"usage\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"day\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"requests\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "apiKey": {
+                                                    "scope": "{{scopes.[API Keys]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "variable": "{{variables.[API Key]}}"
+                                                }
+                                            }
+                                        },
+                                        "variables": [
+                                            "{{variables.[API Key]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "day",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "requests",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "requests",
+                                    "type": "quantitative",
+                                    "title": "Requests"
+                                },
+                                "series": {
+                                    "field": "model",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d707d235-7969-431d-897d-9b00d64b3403",
+                "x": 5,
+                "y": 4,
+                "w": 5,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cache Hit Rate Per Day",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", SUM(\"input_cached_tokens\") * 100.0 / NULLIF(SUM(\"input_tokens\"), 0) AS \"cacheHitRate\"\nFROM \"usage\"\nGROUP BY 1\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "usage",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usage]}}",
+                                            "name": "usage",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "apiKey": {
+                                                    "scope": "{{scopes.[API Keys]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "variable": "{{variables.[API Key]}}"
+                                                }
+                                            }
+                                        },
+                                        "variables": [
+                                            "{{variables.[API Key]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "day",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "cacheHitRate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[API Key]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "cacheHitRate",
+                                    "type": "quantitative",
+                                    "title": "Cache Hit Rate"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianSymbol": "none",
+                                "cartesianYAxisMin": 0,
+                                "cartesianYAxisMax": 100,
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

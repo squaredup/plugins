@@ -1,0 +1,162 @@
+{
+    "name": "cost",
+    "displayName": "Cost",
+    "description": "Organization spend over time, one row per project and line item per day",
+    "tags": [
+        "Cost",
+        "Billing"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/organization/costs",
+        "getArgs": [
+            {
+                "key": "start_time",
+                "value": "{{ Math.floor(timeframe.unixStart / 86400) * 86400 }}"
+            },
+            {
+                "key": "end_time",
+                "value": "{{ Math.ceil(timeframe.unixEnd / 86400) * 86400 }}"
+            },
+            {
+                "key": "bucket_width",
+                "value": "1d"
+            },
+            {
+                "key": "group_by[]",
+                "value": "project_id"
+            },
+            {
+                "key": "group_by[]",
+                "value": "line_item"
+            },
+            {
+                "key": "limit",
+                "value": "180"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "in": {
+                "realm": "payload",
+                "path": "next_page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "cost.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "amount",
+            "displayName": "Cost",
+            "shape": [
+                "currency",
+                {
+                    "code": "{{column.currency}}",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "currency",
+            "displayName": "Currency",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "project_id",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "project",
+            "displayName": "Project",
+            "sourceId": "project_id",
+            "sourceType": "Project",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "line_item",
+            "displayName": "Line item",
+            "shape": "string"
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "modelFamily",
+            "displayName": "Model family",
+            "shape": "string"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "batch",
+            "displayName": "Batch",
+            "shape": "boolean"
+        },
+        {
+            "name": "costType",
+            "displayName": "Cost type",
+            "shape": "string"
+        },
+        {
+            "name": "quantity",
+            "displayName": "Quantity",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "quantity_unit",
+            "displayName": "Quantity unit",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear"
+    ]
+}
