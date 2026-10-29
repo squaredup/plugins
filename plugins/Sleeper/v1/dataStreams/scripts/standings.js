@@ -25,12 +25,22 @@ const usersById = _.keyBy(users, "user_id");
 // Sleeper splits points into an integer and a hundredths field.
 const pts = (s, key) => (s[key] || 0) + (s[`${key}_decimal`] || 0) / 100;
 
+// Luck is counted in head-to-head games only, matching cumulativeLuck in
+// weeklyScores. Median games (league_average_match) are decided by points
+// alone, so they carry no luck.
 const allPlay = {};
 for (const matchups of weeklyMatchups) {
     for (const m of matchups || []) {
-        const record = (allPlay[m.roster_id] ??= { wins: 0, games: 0 });
-        record.wins += matchups.filter((o) => o.points < m.points).length;
+        const record = (allPlay[m.roster_id] ??= { wins: 0, games: 0, luck: 0 });
+        const beaten = matchups.filter((o) => o.points < m.points).length;
+        record.wins += beaten;
         record.games += matchups.length - 1;
+
+        const opponent = matchups.find((o) => o.matchup_id === m.matchup_id && o.roster_id !== m.roster_id);
+        if (m.matchup_id && opponent && matchups.length > 1) {
+            const actualWins = m.points > opponent.points ? 1 : m.points === opponent.points ? 0.5 : 0;
+            record.luck += actualWins - beaten / (matchups.length - 1);
+        }
     }
 }
 
@@ -60,8 +70,8 @@ const rows = rosters.map((roster) => {
         efficiency: maxPoints ? _.round((pointsFor / maxPoints) * 100, 1) : null,
         winPct: winPct === null ? null : _.round(winPct * 100, 1),
         allPlayPct: allPlayPct === null ? null : _.round(allPlayPct * 100, 1),
-        // Positive means winning more often than the points scored deserve.
-        luck: winPct === null || allPlayPct === null ? null : _.round((winPct - allPlayPct) * 100, 1),
+        // Wins above what the points scored deserve. Positive is lucky.
+        luck: record ? _.round(record.luck, 1) : null,
         expectedWins: allPlayPct === null ? null : _.round(allPlayPct * games, 1),
     };
 });
