@@ -2,7 +2,7 @@ Monitor the networks you manage in [Auvik](https://www.auvik.com) from SquaredUp
 
 ## Setup
 
-You will need an Auvik **username** and **API key**. Auvik recommends a dedicated service account, so the integration keeps working if an employee leaves.
+You will need an Auvik **username** and **API key**. Auvik recommends a dedicated service account.
 
 1. Sign in to Auvik as an administrator and go to **Settings → Users & Roles**.
 2. Create a user for SquaredUp and give it a role with read permission on these APIs: **Alerts**, **Audit history**, **Components**, **Configuration history**, **Device details**, **Device info**, **Entity notes**, **Hardware lifecycle**, **Interface info**, **Network details**, **Network info**, **Statistics**, **Tenants** and **Usage**. The built-in **API access only** role covers all of these except **Statistics**, so edit it, or copy it into a custom role, and enable **Statistics** as well. Without it, the **Metrics** stream fails with a permission error. See [API Access Only Role and Service Account Configuration](https://support.auvik.com/hc/en-us/articles/48529381648660-API-Access-Only-Role-and-Service-Account-Configuration-in-Auvik).
@@ -21,7 +21,7 @@ You will need an Auvik **username** and **API key**. Auvik recommends a dedicate
 | **Region** | The Auvik cluster that hosts your account: `us1`–`us6`, `lnx`, `eu1`, `eu2`, `au1` or `ca1`. | The part between your domain prefix and `.my.auvik.com` in the Auvik dashboard address. | Yes (defaults to `us1`) |
 | **Domain prefix** | The domain prefix of your main Auvik account. When set, tenants show their display names, plus enabled, subscription and running status and their address. Without it, tenants are named by their domain prefix. | The first part of the Auvik dashboard address, e.g. `example` in `https://example.us1.my.auvik.com`. | No |
 | **Tenants** | Whether to monitor **All tenants the user can access**, or **Specific tenants only**. | | Yes (defaults to all) |
-| **Tenant ID(s)** | Shown when **Specific tenants only** is chosen. A comma-separated list of the tenant IDs to monitor. Only these tenants, and their devices and networks, are imported and queried. | The **Tenants** data stream, or the **ID** of an imported tenant. | When shown |
+| **Tenant IDs** | Shown when **Specific tenants only** is chosen. The tenant IDs to monitor, added one at a time. Only these tenants, and their devices and networks, are imported and queried. | The **Tenants** data stream, or the **ID** of an imported tenant. | When shown |
 
 When you save, the plugin checks the credentials against Auvik's credential check endpoint and then lists your tenants. If authentication fails, the username, API key or region is wrong. If authentication succeeds but no tenants are returned, the user isn't authorized on any site, or its role lacks the **Tenants** API permission.
 

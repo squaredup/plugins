@@ -12,10 +12,7 @@ const tenantFilter = selected("tenant");
 const ds = (context.dataSources && context.dataSources[0]) || {};
 const scope = new Set(
     ds.tenantScope === "selected"
-        ? String(ds.tenantIds || "")
-              .split(",")
-              .map((id) => id.trim())
-              .filter(Boolean)
+        ? (ds.tenantIds || []).map((o) => String(o.value).trim()).filter(Boolean)
         : []
 );
 const typeFilter = context.config && context.config.tenantType;
