@@ -1,0 +1,355 @@
+{
+    "name": "metrics",
+    "displayName": "Metrics",
+    "description": "Performance time series for devices, interfaces, hardware components and internet connection checks, one row per data point and series",
+    "tags": [
+        "Performance",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "stat/{{ (typeof metric !== 'undefined' && metric ? (Array.isArray(metric) ? (metric[0] && (metric[0].value || metric[0])) : metric) : null) || 'device/cpuUtilization' }}",
+        "getArgs": [
+            {
+                "key": "filter[fromTime]",
+                "value": "{{ new Date(Math.max(timeframe.unixStart, timeframe.unixEnd - [86400, 2678400, 31536000][((h, g, one) => Math.max(h <= 24 ? 0 : h <= 744 ? 1 : 2, ['minute', 'hour', 'day'].indexOf(g) < 0 ? (one ? (h <= 12 ? 0 : h <= 744 ? 1 : 2) : (h <= 1 ? 0 : h <= 168 ? 1 : 2)) : ['minute', 'hour', 'day'].indexOf(g)))((timeframe.unixEnd - timeframe.unixStart) / 3600, typeof granularity !== 'undefined' && granularity ? granularity : 'auto', typeof device !== 'undefined' && !!device && device.length === 1)]) * 1000).toISOString() }}"
+            },
+            {
+                "key": "filter[thruTime]",
+                "value": "{{ timeframe.end }}"
+            },
+            {
+                "key": "filter[interval]",
+                "value": "{{ ['minute', 'hour', 'day'][((h, g, one) => Math.max(h <= 24 ? 0 : h <= 744 ? 1 : 2, ['minute', 'hour', 'day'].indexOf(g) < 0 ? (one ? (h <= 12 ? 0 : h <= 744 ? 1 : 2) : (h <= 1 ? 0 : h <= 168 ? 1 : 2)) : ['minute', 'hour', 'day'].indexOf(g)))((timeframe.unixEnd - timeframe.unixStart) / 3600, typeof granularity !== 'undefined' && granularity ? granularity : 'auto', typeof device !== 'undefined' && !!device && device.length === 1)] }}"
+            },
+            {
+                "key": "filter[deviceId]",
+                "value": "{{ ((typeof metric !== 'undefined' && metric ? (Array.isArray(metric) ? (metric[0] && (metric[0].value || metric[0])) : metric) : null) || 'device/cpuUtilization').indexOf('device') === 0 ? (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) : null }}"
+            },
+            {
+                "key": "filter[parentDevice]",
+                "value": "{{ ['interface', 'component'].includes(((typeof metric !== 'undefined' && metric ? (Array.isArray(metric) ? (metric[0] && (metric[0].value || metric[0])) : metric) : null) || 'device/cpuUtilization').split('/')[0]) ? (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) : null }}"
+            },
+            {
+                "key": "filter[omitUndiscovered]",
+                "value": "{{ ((typeof metric !== 'undefined' && metric ? (Array.isArray(metric) ? (metric[0] && (metric[0].value || metric[0])) : metric) : null) || 'device/cpuUtilization').indexOf('deviceAvailability') === 0 ? 'true' : null }}"
+            },
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || []).map((o) => String(o.value).trim()).join(',') || null) }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "metrics.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "help": "Pick an Auvik statistic, or type the path of one that isn't listed, e.g. `interface/packetLoss` or `component/fan/speed` (the part of the API path after `stat/`).",
+            "isMulti": false,
+            "isClearable": false,
+            "allowCustomValues": true,
+            "defaultValue": "device/cpuUtilization",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "device/cpuUtilization",
+                        "label": "Device: CPU utilization"
+                    },
+                    {
+                        "value": "device/memoryUtilization",
+                        "label": "Device: Memory utilization"
+                    },
+                    {
+                        "value": "device/storageUtilization",
+                        "label": "Device: Storage utilization"
+                    },
+                    {
+                        "value": "device/bandwidth",
+                        "label": "Device: Bandwidth"
+                    },
+                    {
+                        "value": "deviceAvailability/uptime",
+                        "label": "Device: Uptime"
+                    },
+                    {
+                        "value": "deviceAvailability/outage",
+                        "label": "Device: Outage (time offline)"
+                    },
+                    {
+                        "value": "device/packetUnicast",
+                        "label": "Device: Unicast packets"
+                    },
+                    {
+                        "value": "device/packetMulticast",
+                        "label": "Device: Multicast packets"
+                    },
+                    {
+                        "value": "device/packetBroadcast",
+                        "label": "Device: Broadcast packets"
+                    },
+                    {
+                        "value": "interface/bandwidth",
+                        "label": "Interface: Bandwidth"
+                    },
+                    {
+                        "value": "interface/utilization",
+                        "label": "Interface: Utilization"
+                    },
+                    {
+                        "value": "interface/packetLoss",
+                        "label": "Interface: Packet loss"
+                    },
+                    {
+                        "value": "interface/packetDiscard",
+                        "label": "Interface: Packet discards"
+                    },
+                    {
+                        "value": "interface/packetUnicast",
+                        "label": "Interface: Unicast packets"
+                    },
+                    {
+                        "value": "interface/packetMulticast",
+                        "label": "Interface: Multicast packets"
+                    },
+                    {
+                        "value": "interface/packetBroadcast",
+                        "label": "Interface: Broadcast packets"
+                    },
+                    {
+                        "value": "component/cpuCore/utilization",
+                        "label": "Hardware: CPU core utilization"
+                    },
+                    {
+                        "value": "component/cpuCore/idle",
+                        "label": "Hardware: CPU core idle"
+                    },
+                    {
+                        "value": "component/cpu/readiness",
+                        "label": "Hardware: CPU readiness (VMware)"
+                    },
+                    {
+                        "value": "component/cpu/capacity",
+                        "label": "Hardware: CPU capacity (VMware)"
+                    },
+                    {
+                        "value": "component/cpu/latency",
+                        "label": "Hardware: CPU latency (VMware)"
+                    },
+                    {
+                        "value": "component/cpu/ready",
+                        "label": "Hardware: CPU ready (VMware)"
+                    },
+                    {
+                        "value": "component/cpu/swap",
+                        "label": "Hardware: CPU swap wait (VMware)"
+                    },
+                    {
+                        "value": "component/memory/counters",
+                        "label": "Hardware: Memory counters (VMware)"
+                    },
+                    {
+                        "value": "component/memory/swapRate",
+                        "label": "Hardware: Memory swap rate (VMware)"
+                    },
+                    {
+                        "value": "component/memory/temperature",
+                        "label": "Hardware: Memory temperature"
+                    },
+                    {
+                        "value": "component/memory/swap",
+                        "label": "Hardware: Memory swap (VMware)"
+                    },
+                    {
+                        "value": "component/disk/rate",
+                        "label": "Hardware: Disk throughput"
+                    },
+                    {
+                        "value": "component/disk/latency",
+                        "label": "Hardware: Disk latency"
+                    },
+                    {
+                        "value": "component/disk/totalLatency",
+                        "label": "Hardware: Disk total latency"
+                    },
+                    {
+                        "value": "component/disk/queueLatency",
+                        "label": "Hardware: Disk queue latency"
+                    },
+                    {
+                        "value": "component/fan/speed",
+                        "label": "Hardware: Fan speed"
+                    },
+                    {
+                        "value": "component/powerSupply/power",
+                        "label": "Hardware: Power supply"
+                    },
+                    {
+                        "value": "component/systemBoard/temperature",
+                        "label": "Hardware: System board temperature"
+                    },
+                    {
+                        "value": "service/pingTime",
+                        "label": "Internet check: Round-trip time"
+                    },
+                    {
+                        "value": "service/pingPacket",
+                        "label": "Internet check: Packet loss"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "help": "Interface and hardware metrics return every interface or component on the selected devices.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "granularity",
+            "label": "Granularity",
+            "defaultValue": "auto",
+            "help": "**Auto** uses minute data for up to 12 hours on a single device, or up to 1 hour across many, then hourly data, then daily. Auvik limits minute data to 1 day and hourly data to 31 days per query, so a finer granularity than the timeframe allows is coarsened automatically.",
+            "options": [
+                {
+                    "value": "auto",
+                    "label": "Auto"
+                },
+                {
+                    "value": "minute",
+                    "label": "Minute"
+                },
+                {
+                    "value": "hour",
+                    "label": "Hour"
+                },
+                {
+                    "value": "day",
+                    "label": "Day"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "label",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value",
+            "formatExpression": "{{ $['value'] === null || $['value'] === undefined ? '' : (Math.round($['value'] * 100) / 100).toLocaleString() + ($['unit'] ? ' ' + $['unit'] : '') }}"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string",
+            "role": "unitLabel"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "series",
+            "displayName": "Measure",
+            "shape": "string"
+        },
+        {
+            "name": "entityName",
+            "displayName": "Entity",
+            "shape": "string"
+        },
+        {
+            "name": "entityType",
+            "displayName": "Entity type",
+            "shape": "string"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "sourceId": "deviceId",
+            "objectPropertyPath": "name",
+            "sourceType": "Device"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false,
+            "sourceType": "Device"
+        },
+        {
+            "name": "entityId",
+            "displayName": "Entity ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true
+}

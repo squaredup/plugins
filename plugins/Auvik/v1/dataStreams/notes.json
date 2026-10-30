@@ -1,0 +1,134 @@
+{
+    "name": "notes",
+    "displayName": "Notes",
+    "description": "Notes recorded in Auvik against devices, interfaces, networks and tenants",
+    "tags": [
+        "Documentation"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/entity/note",
+        "getArgs": [
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || []).map((o) => String(o.value).trim()).join(',') || null) }}"
+            },
+            {
+                "key": "filter[entityId]",
+                "value": "{{ (typeof entity !== 'undefined' && entity && entity.length === 1 ? entity.flatMap((o) => o.rawId)[0] : null) }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "notes.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "entity",
+            "label": "Device(s) or network(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device",
+                        "Network"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Note ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "title",
+            "displayName": "Title",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "body",
+            "displayName": "Note",
+            "shape": "string"
+        },
+        {
+            "name": "entityName",
+            "displayName": "Applies to",
+            "shape": "string"
+        },
+        {
+            "name": "entityType",
+            "displayName": "Entity type",
+            "shape": "string"
+        },
+        {
+            "name": "lastModifiedBy",
+            "displayName": "Modified by",
+            "shape": "string"
+        },
+        {
+            "name": "lastModified",
+            "displayName": "Last modified",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "entityId",
+            "displayName": "Entity ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "lastModified",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "matches": "none"
+}

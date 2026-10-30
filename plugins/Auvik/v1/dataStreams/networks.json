@@ -1,0 +1,247 @@
+{
+    "name": "networks",
+    "displayName": "Networks",
+    "description": "Discovered networks and VLANs with type, scan status, scope, collectors and the devices on each",
+    "tags": [
+        "Inventory",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/network/info{{ (typeof network !== 'undefined' && network && network.length === 1 ? network.flatMap((o) => o.rawId)[0] : null) ? '/' + (typeof network !== 'undefined' && network && network.length === 1 ? network.flatMap((o) => o.rawId)[0] : null) : '' }}",
+        "getArgs": [
+            {
+                "key": "include",
+                "value": "networkDetail"
+            },
+            {
+                "key": "tenants",
+                "value": "{{ (typeof network !== 'undefined' && network && network.length === 1 ? network.flatMap((o) => o.rawId)[0] : null) ? null : ((typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || []).map((o) => String(o.value).trim()).join(',') || null)) }}"
+            },
+            {
+                "key": "filter[devices]",
+                "value": "{{ (typeof network !== 'undefined' && network && network.length === 1 ? network.flatMap((o) => o.rawId)[0] : null) ? null : ((typeof device !== 'undefined' && device && device.length) ? device.flatMap((o) => o.rawId).join(',') : null) }}"
+            },
+            {
+                "key": "filter[networkType]",
+                "value": "{{ (typeof network !== 'undefined' && network && network.length === 1 ? network.flatMap((o) => o.rawId)[0] : null) ? null : ((typeof networkType !== 'undefined' && networkType) ? networkType : null) }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "networks.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "network",
+            "label": "Network(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Network"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "networkType",
+            "label": "Network type",
+            "options": [
+                {
+                    "value": "routed",
+                    "label": "Routed"
+                },
+                {
+                    "value": "vlan",
+                    "label": "VLAN"
+                },
+                {
+                    "value": "wifi",
+                    "label": "Wi-Fi"
+                },
+                {
+                    "value": "loopback",
+                    "label": "Loopback"
+                },
+                {
+                    "value": "network",
+                    "label": "Network"
+                },
+                {
+                    "value": "layer2",
+                    "label": "Layer 2"
+                },
+                {
+                    "value": "internet",
+                    "label": "Internet"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Network ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Network"
+        },
+        {
+            "name": "networkType",
+            "displayName": "Type",
+            "shape": "string",
+            "formatExpression": "{{ ({ vlan: 'VLAN', wifi: 'Wi-Fi', layer2: 'Layer 2' })[$['networkType']] || ($['networkType'] || '').replace(/^./, (c) => c.toUpperCase()) }}"
+        },
+        {
+            "name": "scanStatus",
+            "displayName": "Scanning",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "true"
+                        ],
+                        "unmonitored": [
+                            "false",
+                            "notAllowed"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "scope",
+            "displayName": "Scope",
+            "shape": "string"
+        },
+        {
+            "name": "deviceCount",
+            "displayName": "Devices",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "primaryCollector",
+            "displayName": "Primary collector",
+            "shape": "string"
+        },
+        {
+            "name": "secondaryCollectors",
+            "displayName": "Secondary collectors",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "collectorSelection",
+            "displayName": "Collector selection",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "description"
+        },
+        {
+            "name": "lastModified",
+            "displayName": "Last modified",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "deviceIds",
+            "displayName": "Device IDs",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in Auvik"
+                }
+            ]
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}
