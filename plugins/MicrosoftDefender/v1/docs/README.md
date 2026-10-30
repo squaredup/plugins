@@ -47,7 +47,7 @@ The following dashboards work with any licence, as long as the matching permissi
 
 The following dashboard needs vulnerability management, but not advanced hunting:
 
-- **Vulnerability Exposure**: Critical and high severity CVEs, exposed devices and vulnerable software, the most exposed CVEs and software, and a list of every critical and high exposure.
+- **Vulnerability Exposure**: Critical CVEs, exposed devices and vulnerable software, the most exposed CVEs and software, and a list of every critical exposure. It covers critical severity only so it loads quickly on large tenants. Use the **Vulnerability Exposures** data stream for other severities.
 
 The **Advanced Hunting** folder holds dashboards that need advanced hunting on device data:
 
