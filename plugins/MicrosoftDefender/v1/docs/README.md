@@ -9,14 +9,15 @@ Each part of this plugin needs its own Microsoft Graph application permission, a
 | Alerts | _SecurityAlert.Read.All_ | Any Microsoft Defender product, including Plan 1 tiers | **Alerts** data stream, alert tiles on the **Overview** dashboard |
 | Incidents | _SecurityIncident.Read.All_ | Any Microsoft Defender product, including Plan 1 tiers | **Incidents** data stream and dashboard, incident tiles on the **Overview** dashboard |
 | Secure Score | _SecurityEvents.Read.All_ | Any Microsoft 365 tenant | **Secure Score History** data stream, Secure Score tiles on the **Overview** dashboard |
-| Advanced hunting on devices | _ThreatHunting.Read.All_ | A licence with advanced hunting on device data, such as Microsoft Defender for Endpoint Plan 2 | Device import, the **Advanced Hunting** dashboards, and the **Advanced Hunting Query**, **Devices**, **Vulnerabilities** and **Recommendations** data streams |
+| Advanced hunting | _ThreatHunting.Read.All_ | A licence with advanced hunting, such as Microsoft Defender for Endpoint Plan 2 or Microsoft Defender for Office 365 Plan 2 | **Advanced Hunting Query** data stream, for the tables your licence covers |
+| Advanced hunting on devices | _ThreatHunting.Read.All_ | A licence with advanced hunting on device data, such as Microsoft Defender for Endpoint Plan 2 | Device import, the **Advanced Hunting** dashboards, and the **Devices**, **Vulnerabilities** and **Recommendations** data streams |
 
 > [!NOTE]
-> Microsoft Defender for Endpoint Plan 1, Microsoft Defender for Business and Microsoft Defender for Office 365 Plan 1 do not include advanced hunting on device data. With these licences, use the **Overview** and **Incidents** dashboards.
+> Microsoft Defender for Endpoint Plan 1, Microsoft Defender for Business and Microsoft Defender for Office 365 Plan 1 do not include advanced hunting. With these licences, use the **Overview** and **Incidents** dashboards.
 
 ## Configuring the data source
 
-Client credentials are required to configure this plugin. Follow the steps in [Configuring App Registration for the Microsoft 365 Plugin](https://docs.squaredup.com/data-sources/microsoft-365-plugin/configuring-app-registration-for-the-microsoft-365-plugin), and add the application permissions you chose from the table above.
+Client credentials are required to configure this plugin. Follow the steps in [Configuring App Registration for the Microsoft 365 Plugin](https://docs.squaredup.com/data-sources/microsoft-365-plugin/configuring-app-registration-for-the-microsoft-365-plugin) to create the app registration and client secret. When you add API permissions, add only the Microsoft Graph application permissions you chose from the table above, not the permission list in that article, which covers the wider Microsoft 365 plugin.
 
 Then fill in the details below:
 
@@ -61,9 +62,12 @@ These data streams work with any licence:
 - **Incidents**: Incidents that Microsoft Defender created to track attacks in an organization. *Parameters:* Severity, Status.
 - **Secure Score History**: The tenant's Secure Score over the past 90 days.
 
-These data streams need advanced hunting on device data:
+This data stream needs advanced hunting, and returns data for the tables your licence covers:
 
 - **Advanced Hunting Query**: Runs a KQL query to proactively look for threats in your environment. *Parameters:* Query.
+
+These data streams need advanced hunting on device data:
+
 - **Devices**: Attributes and properties for the selected device.
 - **Vulnerabilities**: Vulnerabilities for the selected device.
 - **Recommendations**: Security configuration recommendations for the selected device.
