@@ -86,7 +86,8 @@ export const readStreamColumns = (pluginDirectory) => {
     const packagedStreams = (packaged?.dataStreams ?? []).map(({ definition = {} }) => {
         const metadata = definition.metadata ?? rowTypeMetadataByName.get(definition.rowType);
 
-        return [definition.name, Array.isArray(metadata) ? toColumnSet(metadata) : undefined];
+        /** A packaged plugin's handler can return columns its metadata does not declare, so the list is never complete. */
+        return [definition.name, Array.isArray(metadata) ? { ...toColumnSet(metadata), isComplete: false } : undefined];
     });
 
     return new Map([...lowCodeStreams, ...packagedStreams]);

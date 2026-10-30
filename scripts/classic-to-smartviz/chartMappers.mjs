@@ -403,15 +403,31 @@ const toDonutValue = (classicConfig, tileColumns, labelField, notes) => {
 export const toDonut = (classicConfig, tileColumns) => {
     const notes = [];
 
+    /** Classic's per-label colours, which SmartViz matches the same way: by label, ignoring case. */
+    const hasPalette =
+        classicConfig.palette !== null &&
+        typeof classicConfig.palette === 'object' &&
+        Object.values(classicConfig.palette).length > 0 &&
+        Object.values(classicConfig.palette).every((color) => typeof color === 'string');
+
     if (!isSet(classicConfig.labelColumn) || !isSet(classicConfig.valueColumn)) {
         return { blockedReason: 'label or value column is set to auto' };
     }
 
-    if (!isKnownColumn(tileColumns, classicConfig.labelColumn)) {
+    /** Like classic, a label column the tile no longer has falls back to its only category column. */
+    const labelField = isKnownColumn(tileColumns, classicConfig.labelColumn)
+        ? classicConfig.labelColumn
+        : findSoleColumnOfType(tileColumns, 'nominal');
+
+    if (!labelField) {
         return { blockedReason: `label column ${classicConfig.labelColumn} no longer exists` };
     }
 
-    const value = toDonutValue(classicConfig, tileColumns, classicConfig.labelColumn, notes);
+    if (labelField !== classicConfig.labelColumn) {
+        notes.push(`label column ${classicConfig.labelColumn} no longer exists; using ${labelField}`);
+    }
+
+    const value = toDonutValue(classicConfig, tileColumns, labelField, notes);
 
     if (!value) {
         return { blockedReason: `value column ${classicConfig.valueColumn} no longer exists` };
@@ -421,10 +437,11 @@ export const toDonut = (classicConfig, tileColumns) => {
         pieInnerRadius: 60,
         pieDonutCenterValue: classicConfig.hideCenterValue === true ? 'none' : 'total',
         labelFontSize: 16,
-        ...(classicConfig.legendMode === 'table' && { pieLegendStyle: 'table' })
+        ...(classicConfig.legendMode === 'table' && { pieLegendStyle: 'table' }),
+        ...(hasPalette && { mappedColors: classicConfig.palette })
     };
 
-    const encoding = { label: { field: classicConfig.labelColumn, type: 'nominal' }, value };
+    const encoding = { label: { field: labelField, type: 'nominal', title: getColumnTitle(tileColumns.columns, labelField) }, value };
 
     return toVisualization('pie', encoding, style, notes);
 };
