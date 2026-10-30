@@ -33,6 +33,7 @@ Click **Test and add** to validate the data source configuration. SquaredUp chec
 - **A warning on one check** means that permission or licence is missing. The data source still works for everything else. See [Before you start](#before-you-start) for what each check enables.
 - **A warning on every check** usually means the tenant ID, client ID or client secret is wrong, or the client secret has expired.
 - **No devices imported** means advanced hunting on device data is not available. This is expected without a licence that includes it.
+- **Vulnerability tiles ask you to save the data source** on a data source added before vulnerability data was supported. Edit the data source and save it once.
 - **The vulnerability management check fails** when _Vulnerability.Read.All_ is missing or has no admin consent, or when the tenant has no Defender for Endpoint or Defender for Business.
 
 For errors on dashboard tiles see [Troubleshooting tiles](https://docs.squaredup.com/troubleshooting/troubleshooting-tiles).
