@@ -8,6 +8,7 @@
 - [Auto-scoping a stream](#auto-scoping-a-stream-via-its-objects-filter)
 - [Shaping in the tile: group, filter, sort](#shaping-in-the-tile-group-filter-sort)
 - [Dashboard rules](#dashboard-rules)
+- [SmartViz charts (`vizSpec`)](#smartviz-charts-vizspec) — fetch live guidance with `squaredup skill visualize`
 - [Visualisation types](#visualisation-types): table, line graph, bar chart, scalar, donut, blocks, gauge, text & image tiles
 - [Templating tokens](#templating-tokens)
 
@@ -258,6 +259,26 @@ Common tiles, with the **exact** column names the visualisation must reference:
 - `h=2` works well for most tiles; use consistent heights for side-by-side tiles.
 - **Match heights for side-by-side tiles.** Tiles at the same `y` must have the same `h` — mismatched heights leave a visible gap.
 - Side-by-side pairing example: attributes table `w=1, x=0` + chart `w=3, x=1` at the same `y`.
+
+---
+
+## SmartViz charts (`vizSpec`)
+
+SmartViz is the platform's chart engine. A tile opts in with a `vizSpec` — a JSON chart spec — at `config.vizSpec`, a sibling of `dataStream`, `scope` and `timeframe`. The spec format and its rules change with the platform, so **this file deliberately does not document them**. Fetch the current guidance from the platform instead:
+
+```sh
+squaredup skill visualize            # the spec format, the rules, and a chart chooser
+squaredup skill visualize --file references/cartesian.md   # one chart type's reference
+squaredup skill visualize --all      # everything in one go
+```
+
+This is the same `visualize` skill the SquaredUp MCP server serves, so it is written for an agent editing live tiles. When you apply it to plugin default content:
+
+- **Ignore the MCP tool steps.** The skill names tools such as `tile_create`, `tile_update`, `tile_query`, `data_stream_query` and `validate_visualization`. You write the `.dash.json` file directly; there is no tile to create or update.
+- **Take column names from the stream.** Every `field` in the spec is a real column `name` — from the stream's `metadata` in `dataStreams/<name>.json`, or the post-group names when the tile groups (see [Shaping in the tile](#shaping-in-the-tile-group-filter-sort)). Confirm them by running the stream with the ids from your brief: `squaredup test <stream> --plugin-id <id> --datasource-id <id> --json --silent`. For a scoped stream, first get an object id with `squaredup objects <stream> --plugin-id <id> --datasource-id <id> --json --silent`, then add `--object <objectId>` to the test.
+- **Validate it.** `squaredup validate` checks each tile's `vizSpec` against the schema the app renders with, and reports a failure at its path in the `.dash.json` (for example `dashboard.contents[3].config.vizSpec.visualization.chartType`). Fix every one: the app silently ignores a spec that fails the schema, so the tile would not show your chart. Validation cannot check that each `field` is a real column, so get the names right from the stream; the charts are checked in the deployed plugin in Phase 9 of the build-plugin skill.
+
+If `squaredup skill` is not available (an older CLI — `npm i -g @squaredup/cli` to update — or a platform that does not serve skills yet), skip `vizSpec` and use only the classic [visualisation types](#visualisation-types) below.
 
 ---
 
