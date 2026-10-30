@@ -1,0 +1,946 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "b8c35782-cdf4-4850-a3d4-0ebafc7609f5",
+                "x": 0,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Data as Of",
+                    "description": "Every tile on this dashboard covers real Chrome visits over the 28 days ending on this date. Google publishes a new 28-day window each day.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT strftime(max(CAST(periodEnd AS TIMESTAMP)), '%d %b %Y') AS asOf FROM vitals",
+                            "tables": [
+                                {
+                                    "tableName": "vitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "ALL"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "asOf",
+                                "displayName": "Data as of",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "asOf",
+                                        "type": "nominal",
+                                        "title": "28 days ending"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6d5593bf-350b-4544-a6d3-26f61377c41f",
+                "x": 3,
+                "y": 0,
+                "w": 9,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Core Web Vitals Assessment",
+                    "description": "Passed when at least 3 in 4 visits to the site had a good loading speed, responsiveness and visual stability over the last 28 days. This is the test Google Search uses for ranking.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT device, CASE WHEN passed IS NULL THEN 'No data' WHEN passed THEN 'Passed' ELSE 'Failed' END AS result, CASE WHEN passed IS NULL THEN 'unknown' WHEN passed THEN 'success' ELSE 'error' END AS state\nFROM (\n  SELECT 'Phone' AS device, 1 AS sortOrder, bool_and(rating = 'success') AS passed FROM phone WHERE isCoreWebVital\n  UNION ALL\n  SELECT 'Desktop' AS device, 2 AS sortOrder, bool_and(rating = 'success') AS passed FROM desktop WHERE isCoreWebVital\n)\nORDER BY sortOrder",
+                            "tables": [
+                                {
+                                    "tableName": "phone",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktop",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "device",
+                                "displayName": "Device",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "result",
+                                "displayName": "Result",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "state",
+                                "displayName": "State",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "device",
+                                    "type": "nominal",
+                                    "title": "Device"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "Result"
+                                },
+                                "value": {
+                                    "field": "result",
+                                    "type": "nominal",
+                                    "title": "Result"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fee5c25e-f175-407a-802b-1a5289537e54",
+                "x": 0,
+                "y": 2,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Core Web Vitals (Phone)",
+                    "description": "Largest Contentful Paint (LCP, how long the main content takes to appear), Interaction to Next Paint (INP, how quickly the page responds to taps and clicks) and Cumulative Layout Shift (CLS, how much the page jumps around) for the site on phone. Each value is what 3 in 4 visits met or beat over the last 28 days, colored by its rating.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[coreWebVitals]}}",
+                        "name": "coreWebVitals",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "origin",
+                            "formFactor": "PHONE"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "isCoreWebVital",
+                                    "operation": "equals",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Websites]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "status": {
+                                    "field": "rating",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                },
+                                "value": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "edf86fc0-e8b2-4d52-9a99-2681005bc3a8",
+                "x": 6,
+                "y": 2,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Core Web Vitals (Desktop)",
+                    "description": "Largest Contentful Paint (LCP, how long the main content takes to appear), Interaction to Next Paint (INP, how quickly the page responds to taps and clicks) and Cumulative Layout Shift (CLS, how much the page jumps around) for the site on desktop. Each value is what 3 in 4 visits met or beat over the last 28 days, colored by its rating.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[coreWebVitals]}}",
+                        "name": "coreWebVitals",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "origin",
+                            "formFactor": "DESKTOP"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "isCoreWebVital",
+                                    "operation": "equals",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Websites]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "status": {
+                                    "field": "rating",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                },
+                                "value": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d9eb6227-6cea-4980-98ff-c2cc66729ecc",
+                "x": 0,
+                "y": 4,
+                "w": 12,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Change Since Last Month",
+                    "description": "Each metric for the latest 28 days against the 28 days that ended four weeks earlier, as met or beaten by 3 in 4 visits. Lower is better, and changes under 2% count as the same.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH ranked AS (\n  SELECT 'Phone' AS device, 1 AS labelOrder, metric, periodEnd, p75, max(CAST(periodEnd AS DATE)) OVER (PARTITION BY target, metric) AS latest FROM phone WHERE p75 IS NOT NULL\n  UNION ALL\n  SELECT 'Desktop' AS device, 2 AS labelOrder, metric, periodEnd, p75, max(CAST(periodEnd AS DATE)) OVER (PARTITION BY target, metric) AS latest FROM desktop WHERE p75 IS NOT NULL\n), paired AS (\n  SELECT device, labelOrder, metric,\n    max(CASE WHEN CAST(periodEnd AS DATE) = latest THEN p75 END) AS now,\n    max(CASE WHEN CAST(periodEnd AS DATE) = latest - INTERVAL 28 DAY THEN p75 END) AS before\n  FROM ranked GROUP BY ALL\n), diffed AS (SELECT *, now - before AS diff FROM paired WHERE now IS NOT NULL AND before IS NOT NULL)\nSELECT device, metric,\n  CASE WHEN metric = 'CLS' THEN printf('%.2f', now)\n       WHEN metric = 'INP' THEN printf('%d ms', CAST(round(now) AS BIGINT))\n       ELSE printf('%.2f s', now / 1000) END AS nowText,\n  CASE WHEN metric = 'CLS' THEN printf('%.2f', before)\n       WHEN metric = 'INP' THEN printf('%d ms', CAST(round(before) AS BIGINT))\n       ELSE printf('%.2f s', before / 1000) END AS beforeText,\n  CASE WHEN metric = 'CLS' THEN printf('%+.2f', diff)\n       WHEN metric = 'INP' THEN printf('%+d ms', CAST(round(diff) AS BIGINT))\n       ELSE printf('%+.2f s', diff / 1000) END AS change,\n  CASE WHEN abs(diff) < 0.02 * nullif(before, 0) OR diff = 0 THEN 'Same' WHEN diff < 0 THEN 'Better' ELSE 'Worse' END AS verdict\nFROM diffed\nORDER BY CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END, labelOrder, device",
+                            "tables": [
+                                {
+                                    "tableName": "phone",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktop",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "device",
+                                "displayName": "Device",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "nowText",
+                                "displayName": "Now",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "beforeText",
+                                "displayName": "4 weeks ago",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "change",
+                                "displayName": "Change",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "verdict",
+                                "displayName": "Trend",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "metric",
+                                        "title": "Metric",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "device",
+                                        "title": "Device",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "nowText",
+                                        "title": "Now",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "beforeText",
+                                        "title": "4 weeks ago",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "change",
+                                        "title": "Change",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "verdict",
+                                        "title": "Trend",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Better": "#0CCE6B",
+                                                "Same": "#9CA3AF",
+                                                "Worse": "#FF4E42"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f1954dfc-8cba-49d4-96a3-99e2e999b8c5",
+                "x": 0,
+                "y": 8,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Distribution (Phone)",
+                    "description": "How many visits to the site on phone had a good, needs improvement or poor experience of each metric over the last 28 days. A metric passes when the good share is 75% or more.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT metric, bucket, share\nFROM (\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 1 AS bucketOrder, 'Good' AS bucket, CAST(good AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 2 AS bucketOrder, 'Needs improvement' AS bucket, CAST(needsImprovement AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 3 AS bucketOrder, 'Poor' AS bucket, CAST(poor AS DOUBLE) AS share FROM vitals\n)\nORDER BY metricOrder, bucketOrder",
+                            "tables": [
+                                {
+                                    "tableName": "vitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "bucket",
+                                "displayName": "Rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "share",
+                                "displayName": "Share",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "y": {
+                                    "field": "share",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "bucket",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "normalize",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Good": "#0CCE6B",
+                                    "Needs improvement": "#FFA400",
+                                    "Poor": "#FF4E42"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "78256eb0-2726-457e-b890-ba30ba65d4c1",
+                "x": 6,
+                "y": 8,
+                "w": 6,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Distribution (Desktop)",
+                    "description": "How many visits to the site on desktop had a good, needs improvement or poor experience of each metric over the last 28 days. A metric passes when the good share is 75% or more.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT metric, bucket, share\nFROM (\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 1 AS bucketOrder, 'Good' AS bucket, CAST(good AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 2 AS bucketOrder, 'Needs improvement' AS bucket, CAST(needsImprovement AS DOUBLE) AS share FROM vitals\n  UNION ALL\n  SELECT metric, CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END AS metricOrder, 3 AS bucketOrder, 'Poor' AS bucket, CAST(poor AS DOUBLE) AS share FROM vitals\n)\nORDER BY metricOrder, bucketOrder",
+                            "tables": [
+                                {
+                                    "tableName": "vitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "bucket",
+                                "displayName": "Rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "share",
+                                "displayName": "Share",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "metric",
+                                    "type": "nominal",
+                                    "title": "Metric"
+                                },
+                                "y": {
+                                    "field": "share",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "bucket",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "normalize",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Good": "#0CCE6B",
+                                    "Needs improvement": "#FFA400",
+                                    "Poor": "#FF4E42"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dd28bd77-4153-4859-85c9-c20ac9277481",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Device Mix",
+                    "description": "Share of visits from desktop, phone and tablet over the last 28 days, which shows which device to prioritize.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[pageDiagnostics]}}",
+                        "name": "pageDiagnostics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "origin",
+                            "formFactor": "ALL"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "group",
+                                    "operation": "equals",
+                                    "value": "Device"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "value",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Websites]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Device"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7d360994-1618-44fb-ad1c-ffbb1adfa8d8",
+                "x": 4,
+                "y": 10,
+                "w": 8,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "FCP and TTFB",
+                    "description": "First Contentful Paint (FCP, when anything first appears) and Time to First Byte (TTFB, how long the server takes to start responding) for the site, as met or beaten by 3 in 4 visits. They are not Core Web Vitals, but a slow TTFB or FCP usually explains slow loading.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT metric, device, p75Text, rating, good\nFROM (\n  SELECT phone.metric, 'Phone' AS device, 1 AS deviceOrder, CASE WHEN phone.metric = 'CLS' THEN printf('%.2f', phone.p75) WHEN phone.p75 >= 1000 THEN printf('%.2f s', phone.p75 / 1000) ELSE printf('%d ms', CAST(round(phone.p75) AS BIGINT)) END AS p75Text, CASE phone.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS rating, CAST(phone.good AS DOUBLE) AS good FROM phone WHERE NOT phone.isCoreWebVital\n  UNION ALL\n  SELECT desktop.metric, 'Desktop' AS device, 2 AS deviceOrder, CASE WHEN desktop.metric = 'CLS' THEN printf('%.2f', desktop.p75) WHEN desktop.p75 >= 1000 THEN printf('%.2f s', desktop.p75 / 1000) ELSE printf('%d ms', CAST(round(desktop.p75) AS BIGINT)) END AS p75Text, CASE desktop.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS rating, CAST(desktop.good AS DOUBLE) AS good FROM desktop WHERE NOT desktop.isCoreWebVital\n)\nORDER BY metric, deviceOrder",
+                            "tables": [
+                                {
+                                    "tableName": "phone",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktop",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "device",
+                                "displayName": "Device",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "p75Text",
+                                "displayName": "75th percentile",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "rating",
+                                "displayName": "Rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "good",
+                                "displayName": "Good visits",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "metric",
+                                        "title": "Metric",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "device",
+                                        "title": "Device",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "p75Text",
+                                        "title": "75th percentile",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "rating",
+                                        "title": "Rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "good",
+                                        "title": "Good visits",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": "%"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
