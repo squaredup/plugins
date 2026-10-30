@@ -6,6 +6,7 @@ import { parseArgs } from 'node:util';
 import { toBarChart, toDonut, toGauge, toLineChart, toScalar } from './chartMappers.mjs';
 import { getTileColumns, isKnownColumn, isPropertiesTile, readStreamColumns } from './columns.mjs';
 import { replaceMembers } from './jsonEdit.mjs';
+import { applyEnhancementRules, RULE_NAMES } from './enhancementRules.mjs';
 import { toRichTable, toStatusGrid } from './tableMappers.mjs';
 
 const USAGE = `Converts classic data-stream tiles in plugin default dashboards to SmartViz (vizSpec) tiles.
@@ -17,6 +18,8 @@ Options:
   --bump <level>     With --write, bump metadata.json by patch or minor in each folder that changed
   --schema <file>    CommonJS build of @squaredup/viz-spec (or a bundle exporting vizSpecSchema) to validate
                      every spec against; a spec that fails is left classic
+  --rules <names>    Enhancement rules to apply on top of the conversion: all (the default), none, or a
+                     comma-separated list of ${RULE_NAMES.join(', ')}
   --json <file>      Also write the report as JSON`;
 
 const MAPPERS = {
@@ -82,7 +85,7 @@ const getSchemaProblems = (vizSpecSchema, spec) => {
 const toIndentUnit = (text) => /\n([ \t]+)"/u.exec(text)?.[1] ?? '    ';
 
 /** Converts one tile, returning its report entry and, when it converts, the spec to write. */
-const convertTile = (tileConfig, streamColumnsByName, vizSpecSchema) => {
+const convertTile = (tileConfig, streamColumnsByName, { vizSpecSchema, ruleNames }) => {
     const title = tileConfig.title || '(untitled)';
 
     if (tileConfig.vizSpec) {
@@ -107,14 +110,15 @@ const convertTile = (tileConfig, streamColumnsByName, vizSpecSchema) => {
         return { title, classicType, status: 'blocked', reason: blockedReason };
     }
 
-    const spec = { version: '1.0', visualization };
+    const enhanced = applyEnhancementRules(visualization, { tileColumns, tileConfig }, ruleNames);
+    const spec = { version: '1.0', visualization: enhanced.spec };
     const schemaProblems = vizSpecSchema ? getSchemaProblems(vizSpecSchema, spec) : [];
 
     if (schemaProblems.length > 0) {
         return { title, classicType, status: 'blocked', reason: `invalid spec: ${schemaProblems.join('; ')}` };
     }
 
-    const unknownFields = getSpecFields(visualization).filter((field) => !isKnownColumn(tileColumns, field));
+    const unknownFields = getSpecFields(enhanced.spec).filter((field) => !isKnownColumn(tileColumns, field));
 
     if (unknownFields.length > 0) {
         return { title, classicType, status: 'blocked', reason: `refers to columns the tile does not have: ${unknownFields.join(', ')}` };
@@ -127,18 +131,19 @@ const convertTile = (tileConfig, streamColumnsByName, vizSpecSchema) => {
         chartType: visualization.chartType,
         columnSource: tileColumns.source,
         notes,
+        rulesApplied: enhanced.applied,
         spec
     };
 };
 
-const convertDashboard = (filePath, streamColumnsByName, { vizSpecSchema, write }) => {
+const convertDashboard = (filePath, streamColumnsByName, { vizSpecSchema, ruleNames, write }) => {
     const text = fs.readFileSync(filePath, 'utf8');
     const contents = JSON.parse(text).dashboard?.contents ?? [];
 
     const tiles = contents
         .map((item, index) => ({ index, config: item?.config }))
         .filter(({ config }) => config?._type === 'tile/data-stream')
-        .map(({ index, config }) => ({ index, ...convertTile(config, streamColumnsByName, vizSpecSchema) }));
+        .map(({ index, config }) => ({ index, ...convertTile(config, streamColumnsByName, { vizSpecSchema, ruleNames }) }));
 
     const replacements = tiles
         .filter((tile) => tile.status === 'converted')
@@ -188,6 +193,7 @@ const printReport = (plugins) => {
                 const detail = tile.status === 'converted' ? `${tile.classicType} → ${tile.chartType}` : tile.reason;
                 console.log(`    ${STATUS_MARKS[tile.status]} ${tile.title}: ${detail}`);
                 (tile.notes ?? []).forEach((note) => console.log(`        note: ${note}`));
+                (tile.rulesApplied ?? []).forEach(({ rule, note }) => console.log(`        rule ${rule}: ${note}`));
             }
         }
     }
@@ -195,6 +201,29 @@ const printReport = (plugins) => {
     const tiles = plugins.flatMap((plugin) => plugin.dashboards.flatMap((dashboard) => dashboard.tiles));
     const countOf = (status) => tiles.filter((tile) => tile.status === status).length;
     console.log(`\n${countOf('converted')} converted, ${countOf('blocked')} blocked, ${countOf('skipped')} skipped`);
+
+    const ruleCounts = Object.groupBy(tiles.flatMap((tile) => tile.rulesApplied ?? []), ({ rule }) => rule);
+    Object.entries(ruleCounts).forEach(([rule, hits]) => console.log(`  ${rule}: ${hits.length} tile(s)`));
+};
+
+/** Reads `--rules`: `all`, `none`, or a comma-separated list of rule names. */
+const toRuleNames = (option) => {
+    if (option === 'all') {
+        return RULE_NAMES;
+    }
+
+    if (option === 'none') {
+        return [];
+    }
+
+    const names = option.split(',').map((name) => name.trim()).filter(Boolean);
+    const unknown = names.filter((name) => !RULE_NAMES.includes(name));
+
+    if (unknown.length > 0) {
+        throw new Error(`Unknown rule(s): ${unknown.join(', ')}. Rules: ${RULE_NAMES.join(', ')}`);
+    }
+
+    return names;
 };
 
 const loadVizSpecSchema = (schemaPath) => {
@@ -219,6 +248,7 @@ const main = () => {
             bump: { type: 'string' },
             schema: { type: 'string' },
             json: { type: 'string' },
+            rules: { type: 'string', default: 'all' },
             help: { type: 'boolean', default: false }
         }
     });
@@ -233,13 +263,14 @@ const main = () => {
     }
 
     const vizSpecSchema = loadVizSpecSchema(options.schema);
+    const ruleNames = toRuleNames(options.rules);
 
     const plugins = folders.map((folder) => {
         const defaultContentDirectory = findDefaultContentDirectory(folder);
         const streamColumnsByName = readStreamColumns(folder);
         const dashboards = defaultContentDirectory
             ? findDashboardFiles(defaultContentDirectory).map((file) =>
-                  convertDashboard(file, streamColumnsByName, { vizSpecSchema, write: options.write })
+                  convertDashboard(file, streamColumnsByName, { vizSpecSchema, ruleNames, write: options.write })
               )
             : [];
         const hasConversions = dashboards.some((dashboard) => dashboard.tiles.some((tile) => tile.status === 'converted'));

@@ -19,6 +19,7 @@ node scripts/classic-to-smartviz/convert.mjs --write --bump patch --schema <viz-
 | `--write` | Write the converted dashboards. Without it the script only reports. |
 | `--bump patch\|minor` | With `--write`, bump `metadata.json` in each folder that had a tile converted. |
 | `--schema <file>` | A CommonJS module exporting `vizSpecSchema` from `@squaredup/viz-spec` (in the saas repo). A spec that fails it, or loses a key to it, stays classic. |
+| `--rules <names>` | The enhancement rules to apply on top of the conversion: `all` (the default), `none`, or a comma-separated list. See [Enhancement rules](#enhancement-rules). |
 | `--json <file>` | Also write the report as JSON. |
 
 `squaredup validate` checks every `vizSpec` against the same schema when the plugin is validated or deployed, so `--schema` is a convenience for checking a large batch before you push.
@@ -36,6 +37,19 @@ node scripts/classic-to-smartviz/convert.mjs --write --bump patch --schema <viz-
 | Donut | `pie` with a 60% hole and the total in the centre | |
 
 Tiles on the built-in properties stream, iframe tiles and tiles that are already SmartViz are left alone.
+
+## Enhancement rules
+
+On top of the like-for-like conversion, these rules improve a tile where the repository alone shows it is safe to. None depends on what the data holds. They run only on tiles converted in that run, never on an existing `vizSpec`, and the report lists every rule that fired on each tile.
+
+| Rule | What it does | When |
+| --- | --- | --- |
+| `recencyDates` | Shows a date as "3 hours ago", with the exact time in the tooltip | A table date column named like last seen, updated, modified, checked, heartbeat, sync, refreshed or polled |
+| `statusColours` | Colours status words: critical / error / failed / down → red, warning / medium / degraded → amber, ok / healthy / success / up → green, low / info → blue, unknown → grey. Other values keep the palette | A donut, or a bar or line chart split by a column named like status, state, health, result, severity, priority, outcome, level or condition, with no colours of its own |
+| `percentBars` | Shows a bar filled to the value out of 100 | A table column with the percent shape, unless its name suggests a signed value (difference, change, delta, growth, trend, result) |
+| `percentAxis` | Fixes the y axis to 0–100% | A line chart whose y column has the percent shape and no range of its own |
+| `percentGauge` | Runs the gauge from 0 to 100 | A gauge of a percent-shaped column with no range of its own |
+| `booleanLabels` | Shows "Yes" / "No" in the table's own text colour, so neither value reads as good or bad | A table column with the boolean shape |
 
 ## What it will not convert
 
