@@ -38,7 +38,9 @@ const STATUS_COLORS = {
     info: INFO,
     informational: INFO,
     unknown: UNKNOWN,
-    unmonitored: UNKNOWN
+    unmonitored: UNKNOWN,
+    'not monitored': UNKNOWN,
+    paused: UNKNOWN
 };
 
 const getShapeName = ({ tileColumns }, field) => findColumn(tileColumns.columns, field)?.shapeName;

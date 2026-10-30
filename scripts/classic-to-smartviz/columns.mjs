@@ -51,6 +51,7 @@ const toColumn = (metadataEntry) => ({
     displayName: metadataEntry.displayName || undefined,
     role: metadataEntry.role,
     isVisible: metadataEntry.visible !== false,
+    isComputed: metadataEntry.computed === true,
     ...toShape(metadataEntry)
 });
 

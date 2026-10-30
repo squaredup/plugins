@@ -11,10 +11,14 @@ const isSet = (value) => value !== undefined && value !== null && value !== '' &
 
 const toList = (value) => (Array.isArray(value) ? value : isSet(value) ? [value] : []);
 
-/** A channel for a column, typed from its declared shape or, failing that, from the role the channel plays. */
+/**
+ * A channel for a column, typed from its declared shape or, failing that, from the role the channel plays. Its
+ * title is the header classic showed, because SmartViz falls back to the raw field name in axis titles.
+ */
 const toChannel = ({ columns }, field, fallbackType, extra = {}) => ({
     field,
     type: findFieldType(columns, field) ?? fallbackType,
+    title: getColumnTitle(columns, field),
     ...extra
 });
 
@@ -42,15 +46,16 @@ const toXChannel = (tileColumns, configured, chartType, notes) => {
     }
 
     const declaredType = findFieldType(tileColumns.columns, field);
+    const title = getColumnTitle(tileColumns.columns, field);
 
     if (declaredType) {
-        return { field, type: declaredType };
+        return { field, type: declaredType, title };
     }
 
     const guessedType = chartType === 'line' || isTimeLikeName(field) ? 'temporal' : 'nominal';
     notes.push(`x column ${field} has no declared shape; typed as ${guessedType}`);
 
-    return { field, type: guessedType };
+    return { field, type: guessedType, title };
 };
 
 /**
@@ -131,10 +136,10 @@ const toVisualization = (chartType, encoding, style, notes) => ({
     notes
 });
 
-const toCartesianEncoding = (x, y, seriesField) => ({
+const toCartesianEncoding = (x, y, seriesField, { columns }) => ({
     ...(x && { x }),
     ...(y && { y }),
-    ...(seriesField && { series: { field: seriesField, type: 'nominal' } })
+    ...(seriesField && { series: { field: seriesField, type: 'nominal', title: getColumnTitle(columns, seriesField) } })
 });
 
 /** Converts a classic `data-stream-line-graph` config to a line spec. */
@@ -167,7 +172,7 @@ export const toLineChart = (classicConfig, tileColumns) => {
         ...(isSet(classicConfig.unitLabelColumn) && { cartesianYAxisUnitColumn: classicConfig.unitLabelColumn })
     };
 
-    return toVisualization('line', toCartesianEncoding(x, y, seriesField), style, notes);
+    return toVisualization('line', toCartesianEncoding(x, y, seriesField, tileColumns), style, notes);
 };
 
 const PALETTE_RULE = /^(?:bar|series)Index\s*%\s*(\d+)\s*==\s*(\d+)$/u;
@@ -270,7 +275,7 @@ export const toBarChart = (classicConfig, tileColumns) => {
         ...toBarColorStyle(classicConfig.color, notes)
     };
 
-    return toVisualization('bar', toCartesianEncoding(x, y, seriesField), style, notes);
+    return toVisualization('bar', toCartesianEncoding(x, y, seriesField, tileColumns), style, notes);
 };
 
 /**
@@ -328,10 +333,12 @@ export const toScalar = (classicConfig, tileColumns) => {
         notes.push(`value column ${channel.field} is not declared by the stream; typed as a number`);
     }
 
-    const style = {
-        ...(typeof classicConfig.label === 'string' && classicConfig.label && { scalarLabelText: classicConfig.label }),
-        ...(labelPosition && labelPosition !== 'bottom' && { scalarLabelPosition: labelPosition })
-    };
+    const labelText = typeof classicConfig.label === 'string' ? classicConfig.label : '';
+
+    /** Classic shows no label unless one is set, where SmartViz would show the field name. */
+    const style = labelText
+        ? { scalarLabelText: labelText, ...(labelPosition && labelPosition !== 'bottom' && { scalarLabelPosition: labelPosition }) }
+        : { scalarLabelPosition: 'none' };
 
     const encoding = {
         values: [channel],

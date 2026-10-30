@@ -7,6 +7,13 @@ const isSet = (value) => value !== undefined && value !== null && value !== '' &
 /** Wraps a Handlebars template so the platform's install-time templating leaves it for SmartViz to resolve. */
 export const toRawTemplate = (template) => `{{{{raw}}}}${template}{{{{/raw}}}}`;
 
+/**
+ * A Handlebars reference to a column. A name with dots or brackets (`status[Expanded].rawState`) would read as a
+ * path, so it is looked up by its whole name instead.
+ */
+const toTemplateReference = (name) =>
+    /^[A-Za-z_$][\w$]*$/u.test(name) ? `{{${name}}}` : `{{lookup this ${JSON.stringify(name)}}}`;
+
 const COLUMN_REFERENCE = /^\{\{\s*column\.([^}\s]+)\s*\}\}$/u;
 
 const STATE_COLORS = { success: '#2BB660', info: '#3B82F6', warning: '#F59E0B', error: '#DE0038', unknown: '#94A3B8' };
@@ -17,7 +24,8 @@ const STATE_COLORS = { success: '#2BB660', info: '#3B82F6', warning: '#F59E0B', 
  * coloured by the map, the cell reads "Win" in green rather than "Success".
  */
 const toMappedStateColumn = (column) => {
-    const stateMap = column?.shapeName === 'state' ? column.shapeConfig?.map : undefined;
+    /** The platform adds the raw copy only for columns read from the response, not for computed ones. */
+    const stateMap = column?.shapeName === 'state' && !column.isComputed ? column.shapeConfig?.map : undefined;
 
     if (!stateMap || typeof stateMap !== 'object' || Object.keys(stateMap).length === 0) {
         return undefined;
@@ -186,7 +194,7 @@ export const toStatusGrid = (classicConfig, tileColumns) => {
 
     const style = {
         ...(typeof classicConfig.columns === 'number' && { statusGridColumnsPerRow: classicConfig.columns }),
-        ...(sublabelField && { statusGridSecondaryTemplate: toRawTemplate(`{{${sublabelField}}}`) }),
+        ...(sublabelField && { statusGridSecondaryTemplate: toRawTemplate(toTemplateReference(sublabelField)) }),
         ...(classicConfig.wrapLabels === true && { statusGridLabelWrap: true }),
         ...(orderField && { statusGridOrderByField: orderField }),
         ...(blockHeight >= 50 && blockHeight <= 310 && { statusGridMaxBlockHeight: Math.round(blockHeight) })
