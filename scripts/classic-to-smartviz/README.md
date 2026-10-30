@@ -27,7 +27,7 @@ node scripts/classic-to-smartviz/convert.mjs --write --bump patch --schema <viz-
 
 | Classic | SmartViz | Notes |
 | --- | --- | --- |
-| Table | `richTable` | The shown columns are `columnOrder` minus `hiddenColumns`, or every visible declared column when there is no `columnOrder`. Headers come from `columnDisplayNames`, then the column's `displayName`, then the name the platform would infer. State, date and URL columns get the status, date and link renderers; everything else uses the text renderer, which keeps the shape's formatting. |
+| Table | `richTable` | The shown columns are `columnOrder` minus `hiddenColumns`, or every visible declared column when there is no `columnOrder`. Headers come from `columnDisplayNames`, then the column's `displayName`, then the name the platform would infer. State, date and URL columns get the status, date and link renderers; everything else uses the text renderer, which keeps the shape's formatting. A state column that maps its own values to states (say `Win` to success) shows those values instead, from the platform's `<name>[Expanded].rawState` column, as a badge coloured by the map. |
 | Status blocks | `statusGrid` | The sublabel becomes a `statusGridSecondaryTemplate`, wrapped in `{{{{raw}}}}` so install-time templating leaves it alone. |
 | Line graph | `line` | Classic's default fitted y axis and hidden data points carry over. Area shading is kept only when the lines are not split into series. |
 | Bar chart | `bar` | Grouping, stacking, horizontal layout, value labels and simple colour rules carry over. |

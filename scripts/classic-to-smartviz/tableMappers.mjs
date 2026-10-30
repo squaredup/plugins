@@ -9,6 +9,29 @@ export const toRawTemplate = (template) => `{{{{raw}}}}${template}{{{{/raw}}}}`;
 
 const COLUMN_REFERENCE = /^\{\{\s*column\.([^}\s]+)\s*\}\}$/u;
 
+const STATE_COLORS = { success: '#2BB660', info: '#3B82F6', warning: '#F59E0B', error: '#DE0038', unknown: '#94A3B8' };
+
+/**
+ * A state column that maps its own values to states (`Win` → success) keeps those values in a column the
+ * platform adds, `<name>[Expanded].rawState`, which classic tables showed as "<name> (raw)". Shown as a badge
+ * coloured by the map, the cell reads "Win" in green rather than "Success".
+ */
+const toMappedStateColumn = (column) => {
+    const stateMap = column?.shapeName === 'state' ? column.shapeConfig?.map : undefined;
+
+    if (!stateMap || typeof stateMap !== 'object' || Object.keys(stateMap).length === 0) {
+        return undefined;
+    }
+
+    const colors = Object.fromEntries(
+        Object.entries(stateMap).flatMap(([state, values]) =>
+            STATE_COLORS[state] && Array.isArray(values) ? values.map((value) => [String(value), STATE_COLORS[state]]) : []
+        )
+    );
+
+    return { field: `${column.name}[Expanded].rawState`, renderer: { type: 'badge', colors } };
+};
+
 /**
  * Picks the richTable renderer that shows a column the way the classic table did. Text, date and status
  * renderers show the shape-formatted value, so units and decimals carry over unchanged.
@@ -106,7 +129,8 @@ export const toRichTable = (classicConfig, tileColumns) => {
                 columns: names.map((name) => ({
                     field: name,
                     title: getColumnTitle(columns, name, displayNameOverrides),
-                    renderer: toRenderer(findColumn(columns, name))
+                    renderer: toRenderer(findColumn(columns, name)),
+                    ...toMappedStateColumn(findColumn(columns, name))
                 }))
             },
             ...(Object.keys(style).length > 0 && { style })
