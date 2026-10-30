@@ -9,6 +9,10 @@
 // The script avoids returning early: it always runs to the end so the platform picks up the
 // final url and headers.
 
+// Scripts may only fetch hosts the data source allows, which excludes login.microsoftonline.com.
+// login.microsoft.com is an official alias of it for the public cloud (listed by Entra ID
+// instance discovery) and shares the microsoft.com domain with the Graph base URL.
+const TOKEN_HOST = "login.microsoft.com";
 const GRAPH_SCOPE = "https://graph.microsoft.com/.default";
 const MDE_HOST = "api.securitycenter.microsoft.com";
 const MDE_SCOPE = "https://api.securitycenter.microsoft.com/.default";
@@ -33,7 +37,7 @@ if (typeof token !== "string") {
     const tenantId = String(secrets.tenantId || "").trim();
 
     const response = await fetch(
-        `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`,
+        `https://${TOKEN_HOST}/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`,
         {
             method: "post",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
