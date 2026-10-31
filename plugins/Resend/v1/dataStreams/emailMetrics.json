@@ -1,0 +1,277 @@
+{
+    "name": "emailMetrics",
+    "displayName": "Email Metrics",
+    "description": "Email sending, delivery and engagement metrics, optionally by period, domain or broadcast",
+    "tags": [
+        "Email",
+        "Metrics"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "emails/metrics",
+        "getArgs": [
+            {
+                "key": "start_date",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "end_date",
+                "value": "{{timeframe.end}}"
+            },
+            {
+                "key": "granularity",
+                "value": "{{ (typeof granularity !== 'undefined' && granularity && granularity !== 'total') ? granularity : null }}"
+            },
+            {
+                "key": "dimensions",
+                "value": "{{ [(typeof granularity === 'undefined' || !granularity || granularity !== 'total') ? 'period' : null, (typeof breakdown !== 'undefined' && breakdown) ? breakdown : null].filter(Boolean).join(',') || null }}"
+            },
+            {
+                "key": "domain_id",
+                "value": "{{ (typeof domain !== 'undefined' && domain && domain.length) ? domain.flatMap((o) => o.rawId).join(',') : null }}"
+            },
+            {
+                "key": "broadcast_id",
+                "value": "{{ (typeof broadcast !== 'undefined' && broadcast && broadcast.length) ? broadcast.flatMap((o) => o.rawId).join(',') : null }}"
+            }
+        ],
+        "postRequestScript": "emailMetrics.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "domain",
+            "label": "Domain(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Domain"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "broadcast",
+            "label": "Broadcast(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Broadcast"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "granularity",
+            "label": "Granularity",
+            "defaultValue": "daily",
+            "options": [
+                {
+                    "value": "hourly",
+                    "label": "Hourly"
+                },
+                {
+                    "value": "daily",
+                    "label": "Daily"
+                },
+                {
+                    "value": "weekly",
+                    "label": "Weekly"
+                },
+                {
+                    "value": "monthly",
+                    "label": "Monthly"
+                },
+                {
+                    "value": "total",
+                    "label": "Total"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Break down by",
+            "options": [
+                {
+                    "value": "domain",
+                    "label": "Domain"
+                },
+                {
+                    "value": "broadcast",
+                    "label": "Broadcast"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "period",
+            "displayName": "Period",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "domain_id",
+            "displayName": "Domain ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "domain_name",
+            "displayName": "Domain",
+            "shape": "string",
+            "role": "none"
+        },
+        {
+            "sourceId": "domain_id",
+            "sourceType": "Domain",
+            "name": "domain_name"
+        },
+        {
+            "name": "broadcast_id",
+            "displayName": "Broadcast ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "broadcast_name",
+            "displayName": "Broadcast",
+            "shape": "string",
+            "role": "none"
+        },
+        {
+            "sourceId": "broadcast_id",
+            "sourceType": "Broadcast",
+            "name": "broadcast_name"
+        },
+        {
+            "name": "sent",
+            "displayName": "Sent",
+            "shape": "number"
+        },
+        {
+            "name": "received",
+            "displayName": "Received",
+            "shape": "number"
+        },
+        {
+            "name": "delivered",
+            "displayName": "Delivered",
+            "shape": "number"
+        },
+        {
+            "name": "complained",
+            "displayName": "Complained",
+            "shape": "number"
+        },
+        {
+            "name": "suppressed",
+            "displayName": "Suppressed",
+            "shape": "number"
+        },
+        {
+            "name": "bounced",
+            "displayName": "Bounced",
+            "shape": "number"
+        },
+        {
+            "name": "bounced_transient",
+            "displayName": "Bounced (Transient)",
+            "shape": "number"
+        },
+        {
+            "name": "bounced_permanent",
+            "displayName": "Bounced (Permanent)",
+            "shape": "number"
+        },
+        {
+            "name": "bounced_undetermined",
+            "displayName": "Bounced (Undetermined)",
+            "shape": "number"
+        },
+        {
+            "name": "opened",
+            "displayName": "Opened",
+            "shape": "number"
+        },
+        {
+            "name": "unique_opened",
+            "displayName": "Unique Opened",
+            "shape": "number"
+        },
+        {
+            "name": "clicked",
+            "displayName": "Clicked",
+            "shape": "number"
+        },
+        {
+            "name": "unique_clicked",
+            "displayName": "Unique Clicked",
+            "shape": "number"
+        },
+        {
+            "name": "unsubscribed",
+            "displayName": "Unsubscribed",
+            "shape": "number"
+        },
+        {
+            "name": "delivery_delayed",
+            "displayName": "Delivery Delayed",
+            "shape": "number"
+        },
+        {
+            "name": "failed",
+            "displayName": "Failed",
+            "shape": "number"
+        },
+        {
+            "name": "delivery_rate",
+            "displayName": "Delivery Rate",
+            "shape": "percent"
+        },
+        {
+            "name": "open_rate",
+            "displayName": "Open Rate",
+            "shape": "percent"
+        },
+        {
+            "name": "click_rate",
+            "displayName": "Click Rate",
+            "shape": "percent"
+        },
+        {
+            "name": "bounce_rate",
+            "displayName": "Bounce Rate",
+            "shape": "percent"
+        },
+        {
+            "name": "complaint_rate",
+            "displayName": "Complaint Rate",
+            "shape": "percent"
+        },
+        {
+            "name": "unsubscribe_rate",
+            "displayName": "Unsubscribe Rate",
+            "shape": "percent"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}

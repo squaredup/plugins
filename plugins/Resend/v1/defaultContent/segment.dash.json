@@ -1,0 +1,405 @@
+{
+    "name": "Segment",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [
+        "{{variables.[Resend Segment]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "8d39d680-bc4c-47b9-bf25-5a69c0d55d58",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Segment Details",
+                    "description": "Name and creation date of this segment",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Segments]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Segment]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Segment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Segment",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c32cb0cf-16da-4520-af86-6bd1d9ad6118",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Contacts",
+                    "description": "Contacts in this segment",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[contacts]}}",
+                        "name": "contacts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "segment": {
+                                "scope": "{{scopes.[Resend Segments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Segment]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Resend Segment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "count",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Contacts"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cd70bafa-8b52-47c2-9f73-c0ff632e41bd",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Unsubscribed",
+                    "description": "Contacts in this segment who unsubscribed from all emails, out of all its contacts",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[contacts]}}",
+                        "name": "contacts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "segment": {
+                                "scope": "{{scopes.[Resend Segments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Segment]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "is_unsubscribed"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Resend Segment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "is_unsubscribed_sum",
+                                    "type": "quantitative",
+                                    "title": "Unsubscribed"
+                                },
+                                "max": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Contacts"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 0.02,
+                                        "color": "#22c55e"
+                                    },
+                                    {
+                                        "to": 0.05,
+                                        "color": "#f59e0b"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#ef4444"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cb33a637-bc30-473b-a27f-3594840fe1dd",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Contacts",
+                    "description": "Contacts in this segment, newest first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[contacts]}}",
+                        "name": "contacts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "segment": {
+                                "scope": "{{scopes.[Resend Segments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Segment]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Resend Segment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "email",
+                                        "title": "Email",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "unsubscribed",
+                                        "title": "Unsubscribed",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueColor": "#d97706",
+                                            "falseColor": "#64748b"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Added",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1265bc04-1c75-4db6-bb0f-ee3acc040f88",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Broadcasts",
+                    "description": "Broadcasts sent to this segment, newest first. Click one to open it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[broadcasts]}}",
+                        "name": "broadcasts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "segment": {
+                                "scope": "{{scopes.[Resend Segments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Segment]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Resend Segment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Broadcast",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "status[Expanded].rawState",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "sent": "#16a34a",
+                                                "draft": "#64748b",
+                                                "scheduled": "#3b82f6",
+                                                "queued": "#3b82f6",
+                                                "sending": "#3b82f6",
+                                                "canceled": "#d97706",
+                                                "cancelled": "#d97706",
+                                                "failed": "#dc2626"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "sent_at",
+                                        "title": "Sent",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "scheduled_at",
+                                        "title": "Scheduled",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
