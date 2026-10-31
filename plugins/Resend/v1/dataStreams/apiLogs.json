@@ -1,0 +1,97 @@
+{
+    "name": "apiLogs",
+    "displayName": "API Logs",
+    "description": "API requests made to the Resend team, newest first",
+    "tags": [
+        "Logs"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "logs",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        },
+        "postRequestScript": "listInTimeframe.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "created_at",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "method",
+            "displayName": "Method",
+            "shape": "string"
+        },
+        {
+            "name": "endpoint",
+            "displayName": "Endpoint",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "response_status",
+            "displayName": "Response Status",
+            "shape": "number"
+        },
+        {
+            "name": "outcome",
+            "displayName": "Outcome",
+            "computed": true,
+            "valueExpression": "{{ $['response_status'] >= 200 && $['response_status'] < 300 ? 'success' : ($['response_status'] == 429 || $['response_status'] >= 500 ? 'error' : 'warning') }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "warning": [
+                            "warning"
+                        ],
+                        "error": [
+                            "error"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "user_agent",
+            "displayName": "User Agent",
+            "shape": "string"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ]
+}

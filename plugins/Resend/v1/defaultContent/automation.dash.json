@@ -1,0 +1,418 @@
+{
+    "name": "Automation",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [
+        "{{variables.[Resend Automation]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "153afe3f-2b4b-4206-877d-21f1e93c369a",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Automation Details",
+                    "description": "Status and history of this automation",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Automations]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Automation]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Automation]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "updated_at",
+                                        "title": "Updated",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9575180e-7641-4615-a2a9-f31a07d3302b",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Run Status",
+                    "description": "Runs of this automation by status",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[automationRuns]}}",
+                        "name": "automationRuns",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Automations]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Automation]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Automation]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "status[Expanded].rawState",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "created_at",
+                                    "type": "nominal",
+                                    "aggregate": "count"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "mappedColors": {
+                                    "completed": "#22c55e",
+                                    "failed": "#ef4444",
+                                    "cancelled": "#f59e0b",
+                                    "running": "#3b82f6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8604da28-6747-4a88-babd-316caa488b0a",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Run Duration",
+                    "description": "Average duration of this automation's runs per day",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[automationRuns]}}",
+                        "name": "automationRuns",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "started_at",
+                                    "byDay"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "duration"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "started_at_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Automations]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Automation]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Automation]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "started_at_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "duration_mean",
+                                    "type": "quantitative",
+                                    "aggregate": "avg",
+                                    "title": "Seconds"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSmooth": true,
+                                "cartesianLineWidth": 2,
+                                "colors": [
+                                    "#8b5cf6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5877e135-a3cc-4c61-aedb-33f900a05c20",
+                "x": 0,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Failed Runs",
+                    "description": "Runs of this automation that failed, newest first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[automationRuns]}}",
+                        "name": "automationRuns",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "failed"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Automations]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Automation]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Automation]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status[Expanded].rawState",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "completed": "#22c55e",
+                                                "failed": "#ef4444",
+                                                "cancelled": "#f59e0b",
+                                                "running": "#3b82f6"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "started_at",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "completed_at",
+                                        "title": "Completed",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "duration",
+                                        "title": "Duration",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": " s"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f569fabe-815b-462c-96b1-407d93c38c15",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Runs",
+                    "description": "Latest runs of this automation",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[automationRuns]}}",
+                        "name": "automationRuns",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 20
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Automations]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Automation]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Automation]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status[Expanded].rawState",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "completed": "#22c55e",
+                                                "failed": "#ef4444",
+                                                "cancelled": "#f59e0b",
+                                                "running": "#3b82f6"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "started_at",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "completed_at",
+                                        "title": "Completed",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "duration",
+                                        "title": "Duration",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": " s"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
