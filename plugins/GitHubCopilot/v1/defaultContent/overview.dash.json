@@ -1,0 +1,825 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "thisMonth",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "52f31df0-781c-4b47-bbb8-7d4190c20c64",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Copilot Seats",
+                    "description": "People with a Copilot licence, and how many used it in the last 30 days",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT CAST(COUNT(DISTINCT \"assignee.login\") AS DOUBLE) AS \"seats\", CAST(COUNT(DISTINCT \"assignee.login\") FILTER (WHERE \"activity\" = 'success') AS DOUBLE) AS \"active\" FROM \"seats\"",
+                            "tables": [
+                                {
+                                    "tableName": "seats",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[seats]}}",
+                                            "name": "seats"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "seats",
+                                        "type": "quantitative",
+                                        "title": "Seats",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "active",
+                                        "type": "quantitative",
+                                        "title": "Active (30 days)",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "16982d7e-127d-4af5-914d-09fdf591eda4",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Active Users",
+                    "description": "Users active in the 28 days and on the day of the latest usage report",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageMetrics]}}",
+                        "name": "usageMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "day",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 1
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "monthlyActiveUsers",
+                                        "type": "quantitative",
+                                        "title": "Monthly",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "dailyActiveUsers",
+                                        "type": "quantitative",
+                                        "title": "Daily",
+                                        "aggregate": "max"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c38e932a-fdcf-4dd3-8809-8181e17412a9",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI Credit Spend This Month",
+                    "description": "AI credits used this month, their gross cost, the part covered by included credits and the part billed",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiCreditUsage]}}",
+                        "name": "aiCreditUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "meter": "ai_credit"
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "grossQuantity"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "grossAmount"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "discountAmount"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "netAmount"
+                                    ]
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "grossQuantity_sum",
+                                "displayName": "AI credits",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "grossAmount_sum",
+                                "displayName": "Gross (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "discountAmount_sum",
+                                "displayName": "Included (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "netAmount_sum",
+                                "displayName": "Billed (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "grossQuantity_sum",
+                                        "type": "quantitative",
+                                        "title": "AI credits",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "grossAmount_sum",
+                                        "type": "quantitative",
+                                        "title": "Gross",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "discountAmount_sum",
+                                        "type": "quantitative",
+                                        "title": "Included",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "netAmount_sum",
+                                        "type": "quantitative",
+                                        "title": "Billed",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1e4e1437-fabc-4ff0-9893-62a428a1862f",
+                "x": 0,
+                "y": 2,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Seat Activity",
+                    "description": "People active in the last 30 days, inactive for longer, or with no recorded activity",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"users\" AS (SELECT \"assignee.login\", CASE WHEN bool_or(\"activity\" = 'success') THEN 'Active' WHEN bool_or(\"activity\" = 'warning') THEN 'Inactive' ELSE 'No recorded activity' END AS \"activity\" FROM \"seats\" GROUP BY \"assignee.login\") SELECT \"activity\", CAST(COUNT(*) AS DOUBLE) AS \"users\" FROM \"users\" GROUP BY \"activity\" ORDER BY \"users\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "seats",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[seats]}}",
+                                            "name": "seats"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "activity",
+                                    "type": "nominal",
+                                    "title": "Activity"
+                                },
+                                "value": {
+                                    "field": "users",
+                                    "type": "quantitative",
+                                    "title": "Users",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 12,
+                                "piePadAngle": 2,
+                                "pieBorderRadius": 4,
+                                "pieMinShowLabelAngle": 4,
+                                "mappedColors": {
+                                    "Active": "#16a34a",
+                                    "Inactive": "#d97706",
+                                    "No recorded activity": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bad550d2-72ca-4508-a611-6aca815a7c2d",
+                "x": 1,
+                "y": 2,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Active Users Trend",
+                    "description": "Daily, weekly and monthly active users over the latest 28-day usage report",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Daily' AS \"measure\", CAST(\"dailyActiveUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"dailyActiveUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Weekly' AS \"measure\", CAST(\"weeklyActiveUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"weeklyActiveUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Monthly' AS \"measure\", CAST(\"monthlyActiveUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"monthlyActiveUsers\" IS NOT NULL ORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "metrics",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usageMetrics]}}",
+                                            "name": "usageMetrics"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "users",
+                                    "type": "quantitative",
+                                    "title": "Users",
+                                    "aggregate": "max"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal",
+                                    "title": "Measure"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Daily": "#3b82f6",
+                                    "Weekly": "#8b5cf6",
+                                    "Monthly": "#14b8a6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f110f0f3-9d2a-466c-a1c2-cec808f73275",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI Credits by Model This Month",
+                    "description": "The 10 models that used the most AI credits this month",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiCreditUsage]}}",
+                        "name": "aiCreditUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "meter": "ai_credit"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "model",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "grossQuantity"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "grossQuantity_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        },
+                        "metadata": [
+                            {
+                                "name": "grossQuantity_sum",
+                                "displayName": "AI credits",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "model_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                },
+                                "y": {
+                                    "field": "grossQuantity_sum",
+                                    "type": "quantitative",
+                                    "title": "AI credits",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "colors": [
+                                    "#8b5cf6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2210b466-e38e-45a3-8d0b-34fb9e1a886c",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tokens by Model",
+                    "description": "Each model's share of prompt and output tokens over the latest 28-day usage report",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[tokenUsage]}}",
+                        "name": "tokenUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "model",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "totalTokens"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "totalTokens_sum",
+                                    "desc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "totalTokens_sum",
+                                "displayName": "Total tokens",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "treemap",
+                            "encoding": {
+                                "label": {
+                                    "field": "model_uniqueValues",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "totalTokens_sum",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "treemapGap": 2,
+                                "treemapShowBreadcrumb": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "acf7ceb9-a8b6-4b3f-82ed-d07698793f30",
+                "x": 0,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top 10 Users by AI Credits",
+                    "description": "The people who used the most AI credits over the latest 28-day usage report",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[userUsage]}}",
+                        "name": "userUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "login",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "aiCreditsUsed"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "interactions"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "codeAcceptances"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "aiCreditsUsed_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        },
+                        "metadata": [
+                            {
+                                "name": "login_uniqueValues",
+                                "displayName": "User",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "aiCreditsUsed_sum",
+                                "displayName": "AI credits",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "interactions_sum",
+                                "displayName": "Interactions",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "codeAcceptances_sum",
+                                "displayName": "Code acceptances",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "login_uniqueValues",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "aiCreditsUsed_sum",
+                                        "title": "AI credits",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#8b5cf6"
+                                        }
+                                    },
+                                    {
+                                        "field": "interactions_sum",
+                                        "title": "Interactions",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "codeAcceptances_sum",
+                                        "title": "Accepted",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableSort": {
+                                    "field": "aiCreditsUsed_sum",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "25ea746b-e3e0-4100-8009-24a3bd11a80d",
+                "x": 2,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Budget Usage",
+                    "description": "Share of each Copilot budget spent this billing cycle",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[budgetConsumption]}}",
+                        "name": "budgetConsumption",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "percentUsed",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Copilot Budgets]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "percentUsed",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "budgetName",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 0.8,
+                                        "color": "#22c55e"
+                                    },
+                                    {
+                                        "to": 0.999,
+                                        "color": "#f59e0b"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#ef4444"
+                                    }
+                                ],
+                                "ringGridMax": 100,
+                                "ringGridTrackWidth": 10
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

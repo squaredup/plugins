@@ -1,0 +1,51 @@
+{
+    "name": "usageMetrics",
+    "displayName": "Usage Metrics",
+    "description": "Daily Copilot adoption and activity totals for the latest 28-day report (active users, interactions, code accepted, tokens and pull requests)",
+    "tags": ["Usage", "AI"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'orgs' }}/{{ dataSource.slug.trim() }}/copilot/metrics/reports/{{ dataSource.accountType === 'enterprise' ? 'enterprise' : 'organization' }}-28-day/latest",
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "download_links.0" }
+        },
+        "postRequestScript": "usageMetrics.js"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "day", "displayName": "Day", "shape": "date", "role": "timestamp" },
+        { "name": "dailyActiveUsers", "displayName": "Daily active users", "shape": "number", "role": "value" },
+        { "name": "weeklyActiveUsers", "displayName": "Weekly active users", "shape": "number" },
+        { "name": "monthlyActiveUsers", "displayName": "Monthly active users", "shape": "number" },
+        { "name": "monthlyActiveChatUsers", "displayName": "Monthly active chat users", "shape": "number" },
+        { "name": "monthlyActiveAgentUsers", "displayName": "Monthly active agent users", "shape": "number" },
+        { "name": "dailyActiveCliUsers", "displayName": "Daily active CLI users", "shape": "number" },
+        { "name": "dailyActiveCloudAgentUsers", "displayName": "Daily active cloud agent users", "shape": "number" },
+        { "name": "dailyActiveCodeReviewUsers", "displayName": "Daily active code review users", "shape": "number" },
+        { "name": "interactions", "displayName": "Interactions", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "codeGenerations", "displayName": "Code generations", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "codeAcceptances", "displayName": "Code acceptances", "shape": ["number", { "thousandsSeparator": true }] },
+        {
+            "name": "acceptanceRate",
+            "displayName": "Acceptance rate (%)",
+            "computed": true,
+            "valueExpression": "{{ $['codeGenerations'] ? ($['codeAcceptances'] / $['codeGenerations']) * 100 : null }}",
+            "shape": ["percent", { "decimalPlaces": 1 }]
+        },
+        { "name": "locSuggestedToAdd", "displayName": "Lines suggested (added)", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "locSuggestedToDelete", "displayName": "Lines suggested (deleted)", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "locAdded", "displayName": "Lines added", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "locDeleted", "displayName": "Lines deleted", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "modelRequests", "displayName": "Model requests", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "promptTokens", "displayName": "Prompt tokens", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "outputTokens", "displayName": "Output tokens", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "pullRequestsCreated", "displayName": "PRs created", "shape": "number" },
+        { "name": "pullRequestsCreatedByCopilot", "displayName": "PRs created by Copilot", "shape": "number" },
+        { "name": "pullRequestsMerged", "displayName": "PRs merged", "shape": "number" },
+        { "name": "pullRequestsReviewedByCopilot", "displayName": "PRs reviewed by Copilot", "shape": "number" },
+        { "name": "medianMinutesToMerge", "displayName": "Median time to merge", "shape": ["minutes", { "formatDuration": true }] }
+    ],
+    "timeframes": false
+}
