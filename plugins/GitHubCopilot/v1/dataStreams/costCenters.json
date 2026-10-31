@@ -1,0 +1,135 @@
+{
+    "name": "costCenters",
+    "displayName": "Cost Centers",
+    "description": "Enterprise cost centers with their members and AI credit pool cap (enterprise accounts only)",
+    "tags": [
+        "Billing",
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ dataSource.accountType === 'enterprise' ? `/enterprises/${dataSource.slug.trim()}/settings/billing/cost-centers` : '/user' }}",
+        "getArgs": [
+            {
+                "key": "state",
+                "value": "{{ dataSource.accountType === 'enterprise' ? 'active' : null }}"
+            }
+        ],
+        "postRequestScript": "costCenters.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "costCenterId",
+            "displayName": "Cost center ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Cost center",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "sourceId": "costCenterId",
+            "sourceType": "Cost Center",
+            "name": "name"
+        },
+        {
+            "name": "costCenterState",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "userCount",
+            "displayName": "Users",
+            "shape": "number"
+        },
+        {
+            "name": "teamCount",
+            "displayName": "Teams",
+            "shape": "number"
+        },
+        {
+            "name": "organizationCount",
+            "displayName": "Organizations",
+            "shape": "number"
+        },
+        {
+            "name": "repositoryCount",
+            "displayName": "Repositories",
+            "shape": "number"
+        },
+        {
+            "name": "members",
+            "displayName": "Members",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "azureSubscription",
+            "displayName": "Azure subscription",
+            "shape": "string"
+        },
+        {
+            "name": "poolEnabled",
+            "displayName": "Pool cap enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "poolTargetAmount",
+            "displayName": "Pool cap",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "poolCurrentAmount",
+            "displayName": "Pool current",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "poolPercent",
+            "displayName": "Pool current vs cap (%)",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        }
+    ],
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "objects",
+            "name": "costCenter",
+            "label": "Cost center (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Cost Center"
+                    ]
+                }
+            }
+        }
+    ]
+}

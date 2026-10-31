@@ -1,0 +1,1462 @@
+{
+    "name": "Adoption",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "439ce030-6d2e-4f50-9ef7-12f2e5b5dcb6",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Active Users",
+                    "description": "Users active in the 28 days, 7 days and on the day of the latest usage report",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageMetrics]}}",
+                        "name": "usageMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "day",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 1
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "monthlyActiveUsers",
+                                        "type": "quantitative",
+                                        "title": "Monthly",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "weeklyActiveUsers",
+                                        "type": "quantitative",
+                                        "title": "Weekly",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "dailyActiveUsers",
+                                        "type": "quantitative",
+                                        "title": "Daily",
+                                        "aggregate": "max"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dfde75c9-b95e-4de6-bfa7-49546cc21e3f",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Acceptance Rate",
+                    "description": "Share of generated code accepted over the latest 28-day usage report",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT COALESCE(ROUND(SUM(CAST(\"codeAcceptances\" AS DOUBLE)) * 100 / NULLIF(SUM(CAST(\"codeGenerations\" AS DOUBLE)), 0), 1), CAST(0 AS DOUBLE)) AS \"rate\" FROM \"metrics\"",
+                            "tables": [
+                                {
+                                    "tableName": "metrics",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usageMetrics]}}",
+                                            "name": "usageMetrics"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "rate",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 1,
+                                        "color": "#3b82f6"
+                                    }
+                                ],
+                                "ringGridMax": 100,
+                                "ringGridTrackWidth": 10
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6eb4dd0d-0185-40c0-b5a3-b4d64386c427",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Copilot Pull Requests",
+                    "description": "Pull requests created and reviewed by Copilot over the latest 28-day usage report",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageMetrics]}}",
+                        "name": "usageMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "pullRequestsCreatedByCopilot"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "pullRequestsReviewedByCopilot"
+                                    ]
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "pullRequestsCreatedByCopilot_sum",
+                                "displayName": "Created by Copilot",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "pullRequestsReviewedByCopilot_sum",
+                                "displayName": "Reviewed by Copilot",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "pullRequestsCreatedByCopilot_sum",
+                                        "type": "quantitative",
+                                        "title": "Created",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "pullRequestsReviewedByCopilot_sum",
+                                        "type": "quantitative",
+                                        "title": "Reviewed",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "84b2939e-f944-4004-bf82-59f0d0122bb2",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Active Users Trend",
+                    "description": "Daily, weekly and monthly active users over the latest 28-day usage report",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Daily' AS \"measure\", CAST(\"dailyActiveUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"dailyActiveUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Weekly' AS \"measure\", CAST(\"weeklyActiveUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"weeklyActiveUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Monthly' AS \"measure\", CAST(\"monthlyActiveUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"monthlyActiveUsers\" IS NOT NULL ORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "metrics",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usageMetrics]}}",
+                                            "name": "usageMetrics"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "users",
+                                    "type": "quantitative",
+                                    "title": "Users",
+                                    "aggregate": "max"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal",
+                                    "title": "Measure"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Daily": "#3b82f6",
+                                    "Weekly": "#8b5cf6",
+                                    "Monthly": "#14b8a6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3ceaae16-7949-4a31-9768-d735f4ebc14c",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Monthly Chat and Agent Users",
+                    "description": "Users active in the 28 days to each day: all of Copilot, Copilot Chat, and agent mode",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'All Copilot' AS \"measure\", CAST(\"monthlyActiveUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"monthlyActiveUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Chat' AS \"measure\", CAST(\"monthlyActiveChatUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"monthlyActiveChatUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Agent' AS \"measure\", CAST(\"monthlyActiveAgentUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"monthlyActiveAgentUsers\" IS NOT NULL ORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "metrics",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usageMetrics]}}",
+                                            "name": "usageMetrics"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "users",
+                                    "type": "quantitative",
+                                    "title": "Users",
+                                    "aggregate": "max"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal",
+                                    "title": "Measure"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "All Copilot": "#14b8a6",
+                                    "Chat": "#3b82f6",
+                                    "Agent": "#ec4899"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a68ac5a0-dcb1-47fc-9454-0e9683ac2473",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily CLI, Cloud Agent and Code Review Users",
+                    "description": "Users of Copilot CLI, the cloud agent and Copilot code review each day",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'CLI' AS \"measure\", CAST(\"dailyActiveCliUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"dailyActiveCliUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Cloud agent' AS \"measure\", CAST(\"dailyActiveCloudAgentUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"dailyActiveCloudAgentUsers\" IS NOT NULL UNION ALL SELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", 'Code review' AS \"measure\", CAST(\"dailyActiveCodeReviewUsers\" AS DOUBLE) AS \"users\" FROM \"metrics\" WHERE \"dailyActiveCodeReviewUsers\" IS NOT NULL ORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "metrics",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[usageMetrics]}}",
+                                            "name": "usageMetrics"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "users",
+                                    "type": "quantitative",
+                                    "title": "Users",
+                                    "aggregate": "max"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal",
+                                    "title": "Measure"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "CLI": "#14b8a6",
+                                    "Cloud agent": "#f59e0b",
+                                    "Code review": "#8b5cf6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d7da1c2c-66d3-4f08-a935-76f69d4cb3b2",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Interactions and Acceptances",
+                    "description": "Prompts sent, code generated and code accepted each day",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageMetrics]}}",
+                        "name": "usageMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "day",
+                                    "byDay"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "interactions"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "codeGenerations"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "codeAcceptances"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "day_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "interactions_sum",
+                                "displayName": "Interactions",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "codeGenerations_sum",
+                                "displayName": "Code generations",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "codeAcceptances_sum",
+                                "displayName": "Code acceptances",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#3b82f6",
+                                    "#8b5cf6",
+                                    "#22c55e"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8d5b3fa4-4c4e-477e-a108-f63d427db5a7",
+                "x": 0,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Acceptance Rate Trend",
+                    "description": "Share of generated code accepted each day, with the report average",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageMetrics]}}",
+                        "name": "usageMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "day",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "acceptanceRate",
+                                    "type": "quantitative",
+                                    "title": "Accepted (%)",
+                                    "aggregate": "avg"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "cartesianAreaGradient": true,
+                                "colors": [
+                                    "#22c55e"
+                                ]
+                            },
+                            "markLines": [
+                                {
+                                    "type": "average",
+                                    "label": "Average",
+                                    "color": "#64748b"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b3615e46-1a0f-47bf-98b6-0da7878275ab",
+                "x": 2,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Activity by Feature",
+                    "description": "Interactions each day, by Copilot feature",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageBreakdown]}}",
+                        "name": "usageBreakdown",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "breakdown": "feature"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "day",
+                                    "byDay"
+                                ],
+                                [
+                                    "feature",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "interactions"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "day_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "interactions_sum",
+                                "displayName": "Interactions",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "interactions_sum",
+                                    "type": "quantitative",
+                                    "title": "Interactions",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "feature_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Feature"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 2,
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dac68567-b59a-4382-875b-b27f958e2d80",
+                "x": 0,
+                "y": 11,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Activity by IDE",
+                    "description": "Interactions per IDE over the latest 28-day usage report",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageBreakdown]}}",
+                        "name": "usageBreakdown",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "breakdown": "ide"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "ide",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "interactions"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "interactions_sum",
+                                    "desc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "interactions_sum",
+                                "displayName": "Interactions",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "ide_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "IDE"
+                                },
+                                "y": {
+                                    "field": "interactions_sum",
+                                    "type": "quantitative",
+                                    "title": "Interactions",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "colors": [
+                                    "#3b82f6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "76cc8ce2-1dbc-4a40-816f-eadea9783fbb",
+                "x": 1,
+                "y": 11,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Users by Adoption Phase",
+                    "description": "People in each AI adoption phase on their latest report day",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"latest\" AS (SELECT \"login\", arg_max(\"adoptionPhase\", \"day\") FILTER (WHERE \"adoptionPhase\" IS NOT NULL) AS \"phase\", arg_max(\"adoptionPhaseNumber\", \"day\") FILTER (WHERE \"adoptionPhase\" IS NOT NULL) AS \"phaseNumber\" FROM \"users\" GROUP BY \"login\") SELECT \"phase\", CAST(COUNT(*) AS DOUBLE) AS \"users\" FROM \"latest\" WHERE \"phase\" IS NOT NULL GROUP BY \"phase\" ORDER BY MIN(\"phaseNumber\"), \"phase\"",
+                            "tables": [
+                                {
+                                    "tableName": "users",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userUsage]}}",
+                                            "name": "userUsage"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "phase",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "users",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 12,
+                                "piePadAngle": 2,
+                                "pieBorderRadius": 4,
+                                "pieMinShowLabelAngle": 4,
+                                "colors": [
+                                    "#bfdbfe",
+                                    "#93c5fd",
+                                    "#60a5fa",
+                                    "#3b82f6",
+                                    "#2563eb",
+                                    "#1d4ed8"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "914edd19-4a4a-48e8-a28e-b1488c7dbc8b",
+                "x": 2,
+                "y": 11,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top 10 Languages",
+                    "description": "Code accepted per language over the latest 28-day usage report",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[usageBreakdown]}}",
+                        "name": "usageBreakdown",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "breakdown": "language"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "language",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "codeAcceptances"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "codeAcceptances_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        },
+                        "metadata": [
+                            {
+                                "name": "codeAcceptances_sum",
+                                "displayName": "Code acceptances",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "language_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Language"
+                                },
+                                "y": {
+                                    "field": "codeAcceptances_sum",
+                                    "type": "quantitative",
+                                    "title": "Code acceptances",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "colors": [
+                                    "#14b8a6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "127d29a6-3b06-49dc-b494-caed286efad9",
+                "x": 0,
+                "y": 14,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Seat Breakdown",
+                    "description": "Seats this billing cycle (organizations only)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[seatBreakdown]}}",
+                        "name": "seatBreakdown",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "totalSeats",
+                                        "type": "quantitative",
+                                        "title": "Total",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "activeThisCycle",
+                                        "type": "quantitative",
+                                        "title": "Active",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "inactiveThisCycle",
+                                        "type": "quantitative",
+                                        "title": "Inactive",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "addedThisCycle",
+                                        "type": "quantitative",
+                                        "title": "Added",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "pendingInvitation",
+                                        "type": "quantitative",
+                                        "title": "Pending invitation",
+                                        "aggregate": "max"
+                                    },
+                                    {
+                                        "field": "pendingCancellation",
+                                        "type": "quantitative",
+                                        "title": "Pending cancellation",
+                                        "aggregate": "max"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9d880d1b-35ab-4e3c-8c5a-5ed9cace873a",
+                "x": 2,
+                "y": 14,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Copilot Policies",
+                    "description": "Plan, seat assignment and feature policies for the organization (organizations only)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[seatBreakdown]}}",
+                        "name": "seatBreakdown",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "planType",
+                                        "title": "Plan",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "defaultColor": "#6366f1"
+                                        }
+                                    },
+                                    {
+                                        "field": "seatManagement",
+                                        "title": "Seat management",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ideChat",
+                                        "title": "Chat in IDE",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "enabled": "#16a34a",
+                                                "disabled": "#64748b",
+                                                "unconfigured": "#94a3b8",
+                                                "Not configured": "#94a3b8",
+                                                "allow": "#16a34a",
+                                                "Allowed": "#16a34a",
+                                                "block": "#d97706",
+                                                "Blocked": "#d97706"
+                                            },
+                                            "defaultColor": "#94a3b8"
+                                        }
+                                    },
+                                    {
+                                        "field": "platformChat",
+                                        "title": "Chat on GitHub.com",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "enabled": "#16a34a",
+                                                "disabled": "#64748b",
+                                                "unconfigured": "#94a3b8",
+                                                "Not configured": "#94a3b8",
+                                                "allow": "#16a34a",
+                                                "Allowed": "#16a34a",
+                                                "block": "#d97706",
+                                                "Blocked": "#d97706"
+                                            },
+                                            "defaultColor": "#94a3b8"
+                                        }
+                                    },
+                                    {
+                                        "field": "cli",
+                                        "title": "Copilot CLI",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "enabled": "#16a34a",
+                                                "disabled": "#64748b",
+                                                "unconfigured": "#94a3b8",
+                                                "Not configured": "#94a3b8",
+                                                "allow": "#16a34a",
+                                                "Allowed": "#16a34a",
+                                                "block": "#d97706",
+                                                "Blocked": "#d97706"
+                                            },
+                                            "defaultColor": "#94a3b8"
+                                        }
+                                    },
+                                    {
+                                        "field": "publicCodeSuggestions",
+                                        "title": "Public code suggestions",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "enabled": "#16a34a",
+                                                "disabled": "#64748b",
+                                                "unconfigured": "#94a3b8",
+                                                "Not configured": "#94a3b8",
+                                                "allow": "#16a34a",
+                                                "Allowed": "#16a34a",
+                                                "block": "#d97706",
+                                                "Blocked": "#d97706"
+                                            },
+                                            "defaultColor": "#94a3b8"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true,
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4cd810c4-21f5-4379-a46f-a400f2d20375",
+                "x": 0,
+                "y": 17,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Inactive and Unused Seats",
+                    "description": "Seats with no Copilot activity in the last 30 days, or no recorded activity. Click a row to open the profile on GitHub",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"assignee.login\" AS \"login\", \"assignee.name\" AS \"name\", \"activity[Expanded].rawState\" AS \"activity\", CAST(\"daysSinceActivity\" AS DOUBLE) AS \"idleDays\", \"last_activity_at\" AS \"lastActivity\", \"last_activity_editor\" AS \"editor\", CASE \"plan_type\" WHEN 'business' THEN 'Business' WHEN 'enterprise' THEN 'Enterprise' WHEN 'access' THEN 'Copilot access' ELSE \"plan_type\" END AS \"plan\", \"assigning_team.name\" AS \"team\", \"created_at\" AS \"assigned\" FROM \"seats\" WHERE \"activity\" <> 'success' ORDER BY \"idleDays\" DESC NULLS FIRST, \"login\"",
+                            "tables": [
+                                {
+                                    "tableName": "seats",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[seats]}}",
+                                            "name": "seats"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "activity",
+                                        "title": "Activity",
+                                        "width": 170,
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Active": "#16a34a",
+                                                "Inactive": "#d97706",
+                                                "No recorded activity": "#64748b"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "login",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "idleDays",
+                                        "title": "Idle",
+                                        "align": "right",
+                                        "width": 100,
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " days",
+                                            "thresholds": [
+                                                {
+                                                    "to": 60,
+                                                    "color": "#d97706"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#dc2626"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "lastActivity",
+                                        "title": "Last activity",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "editor",
+                                        "title": "Last editor",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "plan",
+                                        "title": "Plan",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "team",
+                                        "title": "Assigning team",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "assigned",
+                                        "title": "Assigned",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1f55e02a-aefd-4eb7-a15b-2861d4819a88",
+                "x": 0,
+                "y": 21,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Usage by User",
+                    "description": "Each person's activity and AI credits over the latest 28-day usage report, with their latest adoption phase and IDE. Click a row to open the profile on GitHub",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"login\", arg_max(\"adoptionPhase\", \"day\") FILTER (WHERE \"adoptionPhase\" IS NOT NULL) AS \"phase\", arg_max(\"primaryIde\", \"day\") FILTER (WHERE \"primaryIde\" IS NOT NULL) AS \"ide\", CAST(COUNT(DISTINCT \"day\") AS DOUBLE) AS \"activeDays\", ROUND(SUM(CAST(\"aiCreditsUsed\" AS DOUBLE)), 2) AS \"credits\", SUM(CAST(\"interactions\" AS DOUBLE)) AS \"interactions\", SUM(CAST(\"codeAcceptances\" AS DOUBLE)) AS \"acceptances\", ROUND(SUM(CAST(\"codeAcceptances\" AS DOUBLE)) * 100 / NULLIF(SUM(CAST(\"codeGenerations\" AS DOUBLE)), 0), 1) AS \"acceptanceRate\", SUM(CAST(\"modelRequests\" AS DOUBLE)) AS \"requests\", MAX(\"day\") AS \"lastDay\" FROM \"users\" GROUP BY \"login\" ORDER BY \"credits\" DESC NULLS LAST, \"interactions\" DESC NULLS LAST",
+                            "tables": [
+                                {
+                                    "tableName": "users",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userUsage]}}",
+                                            "name": "userUsage"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "login",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "phase",
+                                        "title": "Adoption phase",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "defaultColor": "#3b82f6"
+                                        }
+                                    },
+                                    {
+                                        "field": "ide",
+                                        "title": "Primary IDE",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "activeDays",
+                                        "title": "Active days",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "credits",
+                                        "title": "AI credits",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#8b5cf6"
+                                        }
+                                    },
+                                    {
+                                        "field": "interactions",
+                                        "title": "Interactions",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "acceptances",
+                                        "title": "Accepted",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "acceptanceRate",
+                                        "title": "Acceptance rate",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "requests",
+                                        "title": "Model requests",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "lastDay",
+                                        "title": "Last active",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableSort": {
+                                    "field": "credits",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

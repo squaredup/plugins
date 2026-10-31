@@ -1,0 +1,621 @@
+{
+    "name": "Cost Center",
+    "schemaVersion": "1.5",
+    "timeframe": "thisMonth",
+    "variables": [
+        "{{variables.[Copilot Cost Center]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "22fe00f2-988c-4ce1-85d7-72a05367027d",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost Center Properties",
+                    "description": "This cost center and whether it caps its share of the AI credit pool",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Copilot Cost Centers]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Copilot Cost Center]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Copilot Cost Center]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Cost center",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "poolEnabled",
+                                        "title": "Pool cap enabled",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No",
+                                            "trueColor": "#16a34a",
+                                            "falseColor": "#64748b"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true,
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a5cf27af-1597-4eef-84b5-e3ccd8568728",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "This Month",
+                    "description": "AI credits this cost center used this month, their gross cost, the part covered by included credits and the part billed",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiCreditUsage]}}",
+                        "name": "aiCreditUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "meter": "ai_credit",
+                            "costCenter": {
+                                "variable": "{{variables.[Copilot Cost Center]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Copilot Cost Centers]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "grossQuantity"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "grossAmount"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "discountAmount"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "netAmount"
+                                    ]
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "grossQuantity_sum",
+                                "displayName": "AI credits",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "grossAmount_sum",
+                                "displayName": "Gross (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "discountAmount_sum",
+                                "displayName": "Included (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "netAmount_sum",
+                                "displayName": "Billed (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Copilot Cost Center]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "grossQuantity_sum",
+                                        "type": "quantitative",
+                                        "title": "AI credits",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "grossAmount_sum",
+                                        "type": "quantitative",
+                                        "title": "Gross",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "discountAmount_sum",
+                                        "type": "quantitative",
+                                        "title": "Included",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "netAmount_sum",
+                                        "type": "quantitative",
+                                        "title": "Billed",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f2d1496c-5471-4ce9-b227-e0a6f16fa2af",
+                "x": 1,
+                "y": 2,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI Credit Pool Cap",
+                    "description": "This cost center's current usage of the enterprise AI credit pool against its cap",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[costCenters]}}",
+                        "name": "costCenters",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "costCenter": {
+                                "variable": "{{variables.[Copilot Cost Center]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Copilot Cost Centers]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Copilot Cost Center]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bullet",
+                            "encoding": {
+                                "value": {
+                                    "field": "poolCurrentAmount",
+                                    "type": "quantitative"
+                                },
+                                "target": {
+                                    "field": "poolTargetAmount",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "bulletLabelWidth": 140,
+                                "bulletFillColor": "#14b8a6",
+                                "bulletBarRadius": 3,
+                                "bulletTrackHeight": 32
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "592de7ec-6987-4805-9004-470708953bb1",
+                "x": 0,
+                "y": 4,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Monthly Spend This Year",
+                    "description": "Each month's AI credit cost, split into the part covered by included credits and the part billed",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisYear",
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiCreditUsage]}}",
+                        "name": "aiCreditUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "meter": "ai_credit",
+                            "costCenter": {
+                                "variable": "{{variables.[Copilot Cost Center]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Copilot Cost Centers]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "period",
+                                    "byMonth"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "discountAmount"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "netAmount"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "period_byMonth",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "discountAmount_sum",
+                                "displayName": "Included (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "netAmount_sum",
+                                "displayName": "Billed (USD)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "usd",
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Copilot Cost Center]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "period_byMonth",
+                                    "type": "temporal",
+                                    "title": "Month"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianShowStackedTotals": true,
+                                "cartesianBarBorderRadius": 3,
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#22c55e",
+                                    "#f59e0b"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4e415541-00ff-43a4-a7d7-7ff815ee5552",
+                "x": 2,
+                "y": 4,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI Credits by Model This Month",
+                    "description": "The 10 models this cost center used the most AI credits on this month",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiCreditUsage]}}",
+                        "name": "aiCreditUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "meter": "ai_credit",
+                            "costCenter": {
+                                "variable": "{{variables.[Copilot Cost Center]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Copilot Cost Centers]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "model",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "grossQuantity"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "grossQuantity_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        },
+                        "metadata": [
+                            {
+                                "name": "grossQuantity_sum",
+                                "displayName": "AI credits",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Copilot Cost Center]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "model_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                },
+                                "y": {
+                                    "field": "grossQuantity_sum",
+                                    "type": "quantitative",
+                                    "title": "AI credits",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "colors": [
+                                    "#8b5cf6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e2b4c60f-743a-4b81-8a98-37d41e09d70c",
+                "x": 0,
+                "y": 7,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily AI Credits, Last 7 Days",
+                    "description": "AI credits this cost center used each day, stacked by model",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last7days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiCreditUsage]}}",
+                        "name": "aiCreditUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "meter": "ai_credit",
+                            "costCenter": {
+                                "variable": "{{variables.[Copilot Cost Center]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Copilot Cost Centers]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "period",
+                                    "byDay"
+                                ],
+                                [
+                                    "model",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "grossQuantity"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "period_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "grossQuantity_sum",
+                                "displayName": "AI credits",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Copilot Cost Center]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "period_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "grossQuantity_sum",
+                                    "type": "quantitative",
+                                    "title": "AI credits",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "model_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianShowStackedTotals": true,
+                                "cartesianBarBorderRadius": 3,
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,203 @@
+{
+    "name": "userUsage",
+    "displayName": "User Usage",
+    "description": "Copilot activity, AI credits used and tokens per user from the latest 28-day report",
+    "tags": [
+        "Usage",
+        "AI",
+        "User"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'orgs' }}/{{ dataSource.slug.trim() }}/copilot/metrics/reports/users-28-day/latest",
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "download_links.0"
+            }
+        },
+        "postRequestScript": "userUsage.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "userId",
+            "displayName": "User ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "login",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "day",
+            "displayName": "Day",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "sourceId": "userId",
+            "sourceType": "User",
+            "name": "login"
+        },
+        {
+            "name": "aiCreditsUsed",
+            "displayName": "AI credits used",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "interactions",
+            "displayName": "Interactions",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "codeGenerations",
+            "displayName": "Code generations",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "codeAcceptances",
+            "displayName": "Code acceptances",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "acceptanceRate",
+            "displayName": "Acceptance rate (%)",
+            "computed": true,
+            "valueExpression": "{{ $['codeGenerations'] ? ($['codeAcceptances'] / $['codeGenerations']) * 100 : null }}",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "locSuggestedToAdd",
+            "displayName": "Lines suggested (added)",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "locAdded",
+            "displayName": "Lines added",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "locDeleted",
+            "displayName": "Lines deleted",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "modelRequests",
+            "displayName": "Model requests",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "promptTokens",
+            "displayName": "Prompt tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "outputTokens",
+            "displayName": "Output tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "featuresUsed",
+            "displayName": "Features used",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "primaryIde",
+            "displayName": "Primary IDE",
+            "shape": "string"
+        },
+        {
+            "name": "adoptionPhase",
+            "displayName": "AI adoption phase",
+            "shape": "string"
+        },
+        {
+            "name": "adoptionPhaseNumber",
+            "displayName": "AI adoption phase number",
+            "shape": "number"
+        }
+    ],
+    "timeframes": false
+}
