@@ -1,0 +1,221 @@
+{
+    "name": "userActivity",
+    "displayName": "Copilot User Activity",
+    "description": "Microsoft 365 Copilot activity per user, including days since last use and prompts submitted",
+    "tags": [
+        "Adoption",
+        "User"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "graph/beta/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period='{{period || 'D28'}}')",
+        "postRequestScript": "userActivity.js",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "none"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "@odata.nextLink"
+            }
+        }
+    },
+    "matches": "none",
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "radio",
+            "name": "period",
+            "label": "Period",
+            "defaultValue": "D28",
+            "options": [
+                {
+                    "value": "D7",
+                    "label": "7 days"
+                },
+                {
+                    "value": "D28",
+                    "label": "28 days"
+                },
+                {
+                    "value": "D90",
+                    "label": "90 days"
+                },
+                {
+                    "value": "D180",
+                    "label": "180 days"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "users",
+            "label": "User (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User principal name",
+            "shape": "string"
+        },
+        {
+            "name": "activityState",
+            "displayName": "Activity",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "warning": [
+                            "warning"
+                        ],
+                        "error": [
+                            "error"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "lastActivityDate",
+            "displayName": "Last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "daysSinceLastActivity",
+            "displayName": "Days since last activity",
+            "shape": "number"
+        },
+        {
+            "name": "lastUsed",
+            "displayName": "Last used",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ $['lastActivityDate'] ? 'Last used ' + String($['lastActivityDate']).slice(0, 10) : 'Never used' }}"
+        },
+        {
+            "name": "promptsSubmitted",
+            "displayName": "Prompts submitted",
+            "shape": "number"
+        },
+        {
+            "name": "activeDays",
+            "displayName": "Active days",
+            "shape": "number"
+        },
+        {
+            "name": "copilotChatLastActivityDate",
+            "displayName": "Copilot Chat last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "teamsLastActivityDate",
+            "displayName": "Teams last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "wordLastActivityDate",
+            "displayName": "Word last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "excelLastActivityDate",
+            "displayName": "Excel last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "powerPointLastActivityDate",
+            "displayName": "PowerPoint last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "outlookLastActivityDate",
+            "displayName": "Outlook last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "oneNoteLastActivityDate",
+            "displayName": "OneNote last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "loopLastActivityDate",
+            "displayName": "Loop last activity",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        },
+        {
+            "name": "reportRefreshDate",
+            "displayName": "Report refreshed",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,43 @@
+{
+    "name": "users",
+    "displayName": "Copilot Users",
+    "description": "Users with a Microsoft 365 Copilot licence",
+    "tags": ["User", "Licence"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "graph/v1.0/users",
+        "pathToData": "value",
+        "headers": [{ "key": "ConsistencyLevel", "value": "eventual" }],
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "assignedPlans/any(p:p/servicePlanId eq a62f8878-de10-42f3-b68f-6149a25ceb97 and p/capabilityStatus eq 'Enabled')"
+            },
+            { "key": "$count", "value": "true" },
+            {
+                "key": "$select",
+                "value": "id,displayName,userPrincipalName,mail,department,jobTitle,officeLocation,country,accountEnabled"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "$top", "value": "999" },
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        }
+    },
+    "matches": "none",
+    "timeframes": false,
+    "visibility": { "type": "hidden" },
+    "metadata": [
+        { "name": "id", "displayName": "Object ID", "shape": "guid", "visible": false },
+        { "name": "displayName", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "userPrincipalName", "displayName": "User principal name", "shape": "string" },
+        { "name": "mail", "displayName": "Email", "shape": "string" },
+        { "name": "department", "displayName": "Department", "shape": "string" },
+        { "name": "jobTitle", "displayName": "Job title", "shape": "string" },
+        { "name": "officeLocation", "displayName": "Office", "shape": "string" },
+        { "name": "country", "displayName": "Country", "shape": "string" },
+        { "name": "accountEnabled", "displayName": "Account enabled", "shape": "boolean" }
+    ]
+}
