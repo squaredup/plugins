@@ -1,0 +1,93 @@
+{
+    "name": "contacts",
+    "displayName": "Contacts",
+    "description": "Contacts on the Resend team, optionally limited to one segment",
+    "tags": [
+        "Email",
+        "Contacts"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "contacts",
+        "getArgs": [
+            {
+                "key": "segment_id",
+                "value": "{{ segment && segment.length ? segment[0].rawId : null }}"
+            }
+        ],
+        "pathToData": "data"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "segment",
+            "label": "Segment",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Segment"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "email",
+            "displayName": "Email",
+            "shape": "string"
+        },
+        {
+            "name": "first_name",
+            "displayName": "First Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "last_name",
+            "displayName": "Last Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "computed": true,
+            "valueExpression": "{{ [$['first_name'], $['last_name']].filter((v) => typeof v === 'string' && v.trim()).join(' ') || $['email'] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "unsubscribed",
+            "displayName": "Unsubscribed",
+            "shape": "boolean"
+        },
+        {
+            "name": "is_unsubscribed",
+            "displayName": "Unsubscribed (0/1)",
+            "computed": true,
+            "valueExpression": "{{ $['unsubscribed'] === true ? 1 : 0 }}",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

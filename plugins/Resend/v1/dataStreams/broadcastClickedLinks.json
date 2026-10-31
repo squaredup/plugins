@@ -1,0 +1,83 @@
+{
+    "name": "broadcastClickedLinks",
+    "displayName": "Broadcast Clicked Links",
+    "description": "Links clicked in a broadcast, ranked by total clicks",
+    "tags": [
+        "Email",
+        "Broadcasts"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "broadcasts/{{object.rawId}}/clicked-links",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        },
+        "postRequestScript": "list.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Broadcast"
+            ]
+        }
+    },
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "clicks",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "{{column.url}}"
+                }
+            ],
+            "role": "label"
+        },
+        {
+            "name": "clicks",
+            "displayName": "Clicks",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "unique_clicks",
+            "displayName": "Unique Clicks",
+            "shape": "number"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}
