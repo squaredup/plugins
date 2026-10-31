@@ -1,0 +1,107 @@
+{
+    "name": "suppressions",
+    "displayName": "Suppressions",
+    "description": "Addresses suppressed from receiving mail after a bounce, complaint or manual addition",
+    "tags": [
+        "Email",
+        "Deliverability"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "suppressions",
+        "getArgs": [
+            {
+                "key": "origin",
+                "value": "{{ origin || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        },
+        "postRequestScript": "list.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "origin",
+            "label": "Origin",
+            "options": [
+                {
+                    "value": "bounce",
+                    "label": "Bounce"
+                },
+                {
+                    "value": "complaint",
+                    "label": "Complaint"
+                },
+                {
+                    "value": "manual",
+                    "label": "Manual"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "email",
+            "displayName": "Email",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "origin",
+            "displayName": "Origin",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "warning": [
+                            "bounce",
+                            "complaint"
+                        ],
+                        "unknown": [
+                            "manual"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "source_id",
+            "displayName": "Source Email ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

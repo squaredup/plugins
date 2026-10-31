@@ -1,0 +1,579 @@
+{
+    "name": "Domain",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [
+        "{{variables.[Resend Domain]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "ae84c913-781e-4e00-86a4-0eca0ba95df7",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Status",
+                    "description": "Verification status and region of this domain",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Domains]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Domain]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Domain]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 16,
+                                "secondaryFontSize": 12,
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridLabelWrap": true,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{region}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "400c4838-5741-482c-8294-3d0333792d82",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sending",
+                    "description": "Emails from this domain sent, delivered, bounced and marked as spam",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "domain": {
+                                "scope": "{{scopes.[Resend Domains]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Domain]}}"
+                            },
+                            "granularity": "total"
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Resend Domain]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "sent",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Sent"
+                                    },
+                                    {
+                                        "field": "delivered",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Delivered"
+                                    },
+                                    {
+                                        "field": "bounced",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Bounced"
+                                    },
+                                    {
+                                        "field": "complained",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Complained"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1dc7673c-1cf7-4400-9283-b879027c2450",
+                "x": 0,
+                "y": 2,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Email Volume",
+                    "description": "Emails from this domain sent, delivered and bounced per day",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "domain": {
+                                "scope": "{{scopes.[Resend Domains]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Domain]}}"
+                            },
+                            "granularity": "daily"
+                        },
+                        "sql": "SELECT \"period\", \"metric\", \"emails\" FROM (SELECT \"period\", 1 AS \"ord\", 'Sent' AS \"metric\", CAST(COALESCE(\"sent\", 0) AS DOUBLE) AS \"emails\" FROM \"dataset\" UNION ALL SELECT \"period\", 2, 'Delivered', CAST(COALESCE(\"delivered\", 0) AS DOUBLE) FROM \"dataset\" UNION ALL SELECT \"period\", 3, 'Bounced', CAST(COALESCE(\"bounced\", 0) AS DOUBLE) FROM \"dataset\") ORDER BY \"period\", \"ord\""
+                    },
+                    "variables": [
+                        "{{variables.[Resend Domain]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "period",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "emails",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "title": "Emails"
+                                },
+                                "series": {
+                                    "field": "metric",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSymbol": "none",
+                                "cartesianLineWidth": 2,
+                                "cartesianShowVerticalGridLines": false,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Sent": "#6366f1",
+                                    "Delivered": "#22c55e",
+                                    "Bounced": "#ef4444"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3b5901a1-2aff-4977-bb51-48931dce1a42",
+                "x": 3,
+                "y": 2,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Engagement Funnel",
+                    "description": "How many emails from this domain were delivered, opened and clicked",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "domain": {
+                                "scope": "{{scopes.[Resend Domains]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Domain]}}"
+                            },
+                            "granularity": "total"
+                        },
+                        "sql": "SELECT \"stage\", \"emails\" FROM (SELECT 1 AS \"ord\", 'Sent' AS \"stage\", CAST(COALESCE(\"sent\", 0) AS DOUBLE) AS \"emails\" FROM \"dataset\" UNION ALL SELECT 2, 'Delivered', CAST(COALESCE(\"delivered\", 0) AS DOUBLE) FROM \"dataset\" UNION ALL SELECT 3, 'Opened', CAST(COALESCE(\"unique_opened\", 0) AS DOUBLE) FROM \"dataset\" UNION ALL SELECT 4, 'Clicked', CAST(COALESCE(\"unique_clicked\", 0) AS DOUBLE) FROM \"dataset\") ORDER BY \"ord\""
+                    },
+                    "variables": [
+                        "{{variables.[Resend Domain]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "funnel",
+                            "encoding": {
+                                "label": {
+                                    "field": "stage",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "emails",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "funnelSort": "none",
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#14b8a6",
+                                    "#22c55e"
+                                ],
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}}{{{{/raw}}}}",
+                                "funnelLabelPosition": "inside",
+                                "labelColor": "#ffffff"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "057f9cc2-235f-4cdf-90ea-1f8ebea769b6",
+                "x": 0,
+                "y": 5,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Domain Details",
+                    "description": "Capabilities and tracking settings of this domain",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Domains]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Domain]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Domain]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "sending",
+                                        "title": "Sending",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "enabled": "#16a34a",
+                                                "disabled": "#64748b"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "receiving",
+                                        "title": "Receiving",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "enabled": "#16a34a",
+                                                "disabled": "#64748b"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "open_tracking",
+                                        "title": "Open tracking",
+                                        "renderer": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    {
+                                        "field": "click_tracking",
+                                        "title": "Click tracking",
+                                        "renderer": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4e8093f2-32d1-47d3-947b-4b5d64843e4a",
+                "x": 1,
+                "y": 5,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "DNS Records",
+                    "description": "DNS records that verify and configure this domain",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[domainRecords]}}",
+                        "name": "domainRecords",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Domains]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Domain]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Domain]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status[Expanded].rawState",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "verified": "#16a34a",
+                                                "pending": "#d97706",
+                                                "temporary_failure": "#d97706",
+                                                "failed": "#dc2626",
+                                                "not_started": "#64748b"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "record",
+                                        "title": "Record",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "type",
+                                        "title": "Type",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "defaultColor": "#6366f1"
+                                        }
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "value",
+                                        "title": "Value",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "priority",
+                                        "title": "Priority",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "ttl",
+                                        "title": "TTL",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "53bad7fa-553f-4c34-9dbb-46d6f363c88b",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Emails",
+                    "description": "Emails sent from this domain, newest first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sentEmails]}}",
+                        "name": "sentEmails",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "domain": {
+                                "scope": "{{scopes.[Resend Domains]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Resend Domain]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Resend Domain]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "last_event[Expanded].rawState",
+                                        "title": "Last event",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "delivered": "#16a34a",
+                                                "opened": "#16a34a",
+                                                "clicked": "#16a34a",
+                                                "sent": "#3b82f6",
+                                                "queued": "#3b82f6",
+                                                "scheduled": "#3b82f6",
+                                                "delivery_delayed": "#d97706",
+                                                "canceled": "#64748b",
+                                                "bounced": "#dc2626",
+                                                "complained": "#dc2626",
+                                                "failed": "#dc2626",
+                                                "suppressed": "#dc2626"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "subject",
+                                        "title": "Subject",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "to",
+                                        "title": "To",
+                                        "renderer": {
+                                            "type": "tag-list"
+                                        }
+                                    },
+                                    {
+                                        "field": "from",
+                                        "title": "From",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Sent",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
