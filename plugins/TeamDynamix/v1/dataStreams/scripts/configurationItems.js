@@ -38,9 +38,9 @@ const realDate = (value) => (value && Date.parse(value) >= UNSET_DATE_BEFORE ? v
 // individually returns them, which this stream doesn't do.
 
 // A sandbox Web API address (/SBTDWebApi) needs the matching sandbox web app (/SBTDNext) —
-// otherwise every sandbox CI link points at the production app instead. SBTDNext is inferred
-// from the same SB-prefix convention as SBTDWebApi; the API spec has no web UI paths to
-// confirm it against.
+// otherwise every sandbox CI link points at the production app instead. The API spec has no
+// web UI paths; SBTDNext follows the same SB prefix as SBTDWebApi, confirmed on a real
+// sandbox tenant.
 const rawBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
     .replace(/\/+$/, "");

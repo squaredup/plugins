@@ -14,9 +14,9 @@ const UNSET_DATE_BEFORE = Date.parse("1901-01-02T00:00:00Z");
 const realDate = (value) => (value && Date.parse(value) >= UNSET_DATE_BEFORE ? value : null);
 
 // A sandbox Web API address (/SBTDWebApi) needs the matching sandbox web app (/SBTDNext) —
-// otherwise every sandbox asset link points at the production app instead. SBTDNext is
-// inferred from the same SB-prefix convention as SBTDWebApi; the API spec has no web UI
-// paths to confirm it against.
+// otherwise every sandbox asset link points at the production app instead. The API spec has
+// no web UI paths; SBTDNext follows the same SB prefix as SBTDWebApi, confirmed on a real
+// sandbox tenant.
 const rawBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
     .replace(/\/+$/, "");

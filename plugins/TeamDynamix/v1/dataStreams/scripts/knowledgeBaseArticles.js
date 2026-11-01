@@ -11,8 +11,8 @@ const realDate = (value) => (value && Date.parse(value) >= UNSET_DATE_BEFORE ? v
 
 // A sandbox Web API address (/SBTDWebApi) needs the matching sandbox client portal
 // (/SBTDClient) — otherwise every sandbox article link points at the production portal
-// instead. SBTDClient is inferred from the same SB-prefix convention as SBTDWebApi; the API
-// spec has no web UI paths to confirm it against.
+// instead. The API spec has no web UI paths; SBTDClient follows the same SB prefix as
+// SBTDWebApi, confirmed on a real sandbox tenant.
 const rawBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
     .replace(/\/+$/, "");
