@@ -15,6 +15,12 @@ const STATUS_CLASS_NAMES = {
     6: "Requested"
 };
 
+// TeamDynamix never sends null for an unset date: it sends 0001-01-01T00:00:00 (.NET's minimum
+// date), which SquaredUp displays as 12/31/1900 and which passes "not empty" filters. Anything
+// before 1901-01-02 is treated as unset, which covers that value however it is normalised.
+const UNSET_DATE_BEFORE = Date.parse("1901-01-02T00:00:00Z");
+const realDate = (value) => (value && Date.parse(value) >= UNSET_DATE_BEFORE ? value : null);
+
 // No custom-attribute columns: the API's own description for this endpoint says Attachments,
 // Attributes, Description, Notify and Tasks are never included in search results — only
 // loading a ticket individually returns them, which this stream doesn't do.
@@ -39,6 +45,10 @@ const ticketLink = (ticket) =>
     webBaseUrl
         ? `${webBaseUrl}/${nextApp}/Apps/${ticket.AppID}/Tickets/TicketDet?TicketID=${ticket.ID}`
         : ticket.Uri || "";
+
+// An empty assignee or group would otherwise group into an unlabelled bar or row, hiding
+// unassigned work, which is usually the first thing a service desk wants to see.
+const UNASSIGNED = "(Unassigned)";
 
 // Rolled up into one health value so a status tile works without shaping. SLA breach is the
 // most urgent thing about a ticket, so it outranks the status class.
@@ -67,23 +77,23 @@ result = (Array.isArray(data) ? data : []).map((ticket) => ({
     serviceName: ticket.ServiceName || "",
     locationName: ticket.LocationName || "",
     sourceName: ticket.SourceName || "",
-    responsibleFullName: ticket.ResponsibleFullName || "",
-    responsibleGroupName: ticket.ResponsibleGroupName || "",
+    responsibleFullName: ticket.ResponsibleFullName || UNASSIGNED,
+    responsibleGroupName: ticket.ResponsibleGroupName || UNASSIGNED,
     requestorName: ticket.RequestorName || "",
     requestorEmail: ticket.RequestorEmail || "",
-    createdDate: ticket.CreatedDate || null,
-    modifiedDate: ticket.ModifiedDate || null,
-    completedDate: ticket.CompletedDate || null,
-    respondedDate: ticket.RespondedDate || null,
+    createdDate: realDate(ticket.CreatedDate),
+    modifiedDate: realDate(ticket.ModifiedDate),
+    completedDate: realDate(ticket.CompletedDate),
+    respondedDate: realDate(ticket.RespondedDate),
     daysOld: typeof ticket.DaysOld === "number" ? ticket.DaysOld : null,
     slaName: ticket.SlaName || "",
     isSlaViolated: Boolean(ticket.IsSlaViolated),
     isSlaRespondByViolated: Boolean(ticket.IsSlaRespondByViolated),
     isSlaResolveByViolated: Boolean(ticket.IsSlaResolveByViolated),
-    respondByDate: ticket.RespondByDate || null,
-    resolveByDate: ticket.ResolveByDate || null,
+    respondByDate: realDate(ticket.RespondByDate),
+    resolveByDate: realDate(ticket.ResolveByDate),
     isOnHold: Boolean(ticket.IsOnHold),
-    goesOffHoldDate: ticket.GoesOffHoldDate || null,
+    goesOffHoldDate: realDate(ticket.GoesOffHoldDate),
     actualMinutes: typeof ticket.ActualMinutes === "number" ? ticket.ActualMinutes : null,
     estimatedMinutes: typeof ticket.EstimatedMinutes === "number" ? ticket.EstimatedMinutes : null,
     formName: ticket.FormName || "",

@@ -1,19 +1,33 @@
-// Serves double duty: this stream backs both the configurationItems import step and CI tiles.
+// Serves both CI tiles (configurationItems, the unpaged cmdb/search) and the import
+// (configurationItemsIndex, cmdb/search/paged, which wraps each page in { Data: [...] }).
 //
-// ConfigurationItemSearch has no MaxResults field and no paging (confirmed against the API:
-// the only paged CMDB endpoint is cmdb/searches/{searchId}/results, which needs a saved search
-// the customer would have to pre-create in TeamDynamix — not viable for a zero-touch setup).
-// So a large, unfiltered CMDB can return more rows than the ~6MB stream response cap allows.
-// Two defences: keep each row small (the projection below), and cap the row count actually
-// returned rather than trust the upstream call to stay small. The IsActive filter set by the
-// stream's own config already narrows the common case before this ever runs.
-// BackingItemType is an integer enum on the wire. A CI can be backed by a real asset or
-// service record elsewhere in TeamDynamix, which is worth showing — but not as "27".
+// The import has to page. TeamDynamix creates a configuration item for every asset, so a big
+// asset application's CMDB is almost all asset mirrors (49,000+ in one real tenant), and one
+// unpaged search for it ran the stream out of memory before this script could drop them.
+// Tiles stay on the unpaged search, capped below: walking hundreds of 250-row pages (the API's
+// maximum page size) is fine every 12 hours but far too slow for a tile. The unpaged search
+// does take MaxResults, but it would count the asset mirrors dropped below, so the tile cap is
+// applied here instead.
+
+// BackingItemType is an integer enum on the wire. A CI can be backed by a service record
+// elsewhere in TeamDynamix, which is worth showing — but not as "47". 87 isn't in the
+// published enum, but real tenants send it for service offering CIs.
 const BACKING_ITEM_TYPE_NAMES = {
-    27: "Asset",
     47: "Service",
-    63: "Configuration Item"
+    63: "Configuration Item",
+    87: "Service Offering"
 };
+
+// TeamDynamix creates a system-maintained configuration item for every asset, so importing
+// both would list each asset twice in search, pickers and counts. Only standalone items are
+// kept, which is also what TeamDynamix itself means by a configuration item count.
+const ASSET_BACKING_ITEM_TYPE = 27;
+
+// TeamDynamix never sends null for an unset date: it sends 0001-01-01T00:00:00 (.NET's minimum
+// date), which SquaredUp displays as 12/31/1900 and which passes "not empty" filters. Anything
+// before 1901-01-02 is treated as unset, which covers that value however it is normalised.
+const UNSET_DATE_BEFORE = Date.parse("1901-01-02T00:00:00Z");
+const realDate = (value) => (value && Date.parse(value) >= UNSET_DATE_BEFORE ? value : null);
 
 // No custom-attribute columns: the API's own description for this endpoint says Attachments
 // and Attributes are never included in search results — only loading a configuration item
@@ -30,37 +44,40 @@ const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
 const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
 const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
-const rows = (Array.isArray(data) ? data : []).map((item) => ({
-    // As with assets, CI IDs are only unique within an application.
-    sourceId: `${item.AppID}-${item.ID}`,
-    configurationItemId: String(item.ID),
-    name: item.Name || `Configuration Item ${item.ID}`,
-    link: webBaseUrl
-        ? `${webBaseUrl}/${nextApp}/Apps/${item.AppID}/Assets/CIDet?CID=${item.ID}`
-        : item.Uri || "",
-    typeName: item.TypeName || "",
-    isActive: Boolean(item.IsActive),
-    ownerFullName: item.OwnerFullName || "",
-    owningDepartmentName: item.OwningDepartmentName || "",
-    owningGroupName: item.OwningGroupName || "",
-    locationName: item.LocationName || "",
-    maintenanceScheduleName: item.MaintenanceScheduleName || "",
-    backingItemType: BACKING_ITEM_TYPE_NAMES[item.BackingItemType] || "",
-    isSystemMaintained: Boolean(item.IsSystemMaintained),
-    externalSourceName: item.ExternalSourceName || "",
-    externalId: item.ExternalID || "",
-    // Note the Utc suffix: configuration items use CreatedDateUtc / ModifiedDateUtc where
-    // tickets and assets use CreatedDate / ModifiedDate.
-    createdDate: item.CreatedDateUtc || null,
-    modifiedDate: item.ModifiedDateUtc || null,
-    appId: String(item.AppID ?? ""),
-    sourceType: "TeamDynamix Configuration Item"
-}));
+const items = Array.isArray(data) ? data : Array.isArray(data?.Data) ? data.Data : [];
 
-// The API gave us no way to ask for fewer rows, so the cap is enforced here instead, using
-// the same "Maximum records per request" plugin setting the ticket/asset/time streams pass
-// to the API directly. Sort so a forced cut drops the stalest records first rather than an
-// arbitrary API-returned order.
+const rows = items
+    .filter((item) => item.BackingItemType !== ASSET_BACKING_ITEM_TYPE)
+    .map((item) => ({
+        // As with assets, CI IDs are only unique within an application.
+        sourceId: `${item.AppID}-${item.ID}`,
+        configurationItemId: String(item.ID),
+        name: item.Name || `Configuration Item ${item.ID}`,
+        link: webBaseUrl
+            ? `${webBaseUrl}/${nextApp}/Apps/${item.AppID}/Assets/CIDet?CID=${item.ID}`
+            : item.Uri || "",
+        typeName: item.TypeName || "",
+        isActive: Boolean(item.IsActive),
+        ownerFullName: item.OwnerFullName || "",
+        owningDepartmentName: item.OwningDepartmentName || "",
+        owningGroupName: item.OwningGroupName || "",
+        locationName: item.LocationName || "",
+        maintenanceScheduleName: item.MaintenanceScheduleName || "",
+        backingItemType: BACKING_ITEM_TYPE_NAMES[item.BackingItemType] || "",
+        isSystemMaintained: Boolean(item.IsSystemMaintained),
+        externalSourceName: item.ExternalSourceName || "",
+        externalId: item.ExternalID || "",
+        // Note the Utc suffix: configuration items use CreatedDateUtc / ModifiedDateUtc where
+        // tickets and assets use CreatedDate / ModifiedDate.
+        createdDate: realDate(item.CreatedDateUtc),
+        modifiedDate: realDate(item.ModifiedDateUtc),
+        appId: String(item.AppID ?? ""),
+        sourceType: "TeamDynamix Configuration Item"
+    }));
+
+// The cap uses the same "Maximum records per request" plugin setting the ticket/asset/time
+// streams pass to the API directly. A 250-row import page never reaches it. Sort so a forced
+// cut drops the stalest records first rather than an arbitrary API-returned order.
 const maxRecords = Number(context?.dataSources?.[0]?.maxRecords) || 2000;
 result = rows
     .sort((a, b) => (b.modifiedDate || "").localeCompare(a.modifiedDate || ""))

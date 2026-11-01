@@ -7,6 +7,12 @@
 // and Attributes are never included in search results — only loading an asset individually
 // returns them, which this stream doesn't do.
 
+// TeamDynamix never sends null for an unset date: it sends 0001-01-01T00:00:00 (.NET's minimum
+// date), which SquaredUp displays as 12/31/1900 and which passes "not empty" filters. Anything
+// before 1901-01-02 is treated as unset, which covers that value however it is normalised.
+const UNSET_DATE_BEFORE = Date.parse("1901-01-02T00:00:00Z");
+const realDate = (value) => (value && Date.parse(value) >= UNSET_DATE_BEFORE ? value : null);
+
 // A sandbox Web API address (/SBTDWebApi) needs the matching sandbox web app (/SBTDNext) —
 // otherwise every sandbox asset link points at the production app instead. SBTDNext is
 // inferred from the same SB-prefix convention as SBTDWebApi; the API spec has no web UI
@@ -39,10 +45,10 @@ result = (Array.isArray(data) ? data : []).map((asset) => ({
     owningDepartmentName: asset.OwningDepartmentName || "",
     requestingCustomerName: asset.RequestingCustomerName || "",
     purchaseCost: typeof asset.PurchaseCost === "number" ? asset.PurchaseCost : null,
-    acquisitionDate: asset.AcquisitionDate || null,
-    expectedReplacementDate: asset.ExpectedReplacementDate || null,
-    createdDate: asset.CreatedDate || null,
-    modifiedDate: asset.ModifiedDate || null,
+    acquisitionDate: realDate(asset.AcquisitionDate),
+    expectedReplacementDate: realDate(asset.ExpectedReplacementDate),
+    createdDate: realDate(asset.CreatedDate),
+    modifiedDate: realDate(asset.ModifiedDate),
     parentName: asset.ParentName || "",
     externalId: asset.ExternalID || "",
     configurationItemId: asset.ConfigurationItemID ? String(asset.ConfigurationItemID) : "",
