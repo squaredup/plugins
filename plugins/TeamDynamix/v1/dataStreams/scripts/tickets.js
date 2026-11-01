@@ -3,6 +3,10 @@
 // through untouched, a few hundred tickets overrun the ~6MB stream response cap and the tile
 // fails with Function.ResponseSizeTooLarge rather than anything diagnosable. So this projects
 // to a working set. Everything dropped here is either unbounded or not dashboard-usable.
+//
+// Each shaped cell carries raw, value and formatted copies, so even an empty date costs about
+// 90 bytes a row. Respond-by, goes-off-hold, estimate, form, reference code and requestor email
+// were dropped to keep a 2,000-ticket tile well under the ~6MB cap (about 2.9KB a row before).
 
 // StatusClass is an integer enum on the wire; dashboards need to group and read it as text.
 const STATUS_CLASS_NAMES = {
@@ -46,6 +50,10 @@ const ticketLink = (ticket) =>
         ? `${webBaseUrl}/${nextApp}/Apps/${ticket.AppID}/Tickets/TicketDet?TicketID=${ticket.ID}`
         : ticket.Uri || "";
 
+// An unset service, account, location and similar name can arrive as the literal "None" rather
+// than empty, so a breakdown tile's biggest bar is "None". Blank it so it reads as unset.
+const named = (value) => (value && value !== "None" ? value : "");
+
 // An empty assignee or group would otherwise group into an unlabelled bar or row, hiding
 // unassigned work, which is usually the first thing a service desk wants to see.
 const UNASSIGNED = "(Unassigned)";
@@ -69,18 +77,17 @@ result = (Array.isArray(data) ? data : []).map((ticket) => ({
     statusClassName: STATUS_CLASS_NAMES[ticket.StatusClass] || "Unknown",
     priorityName: ticket.PriorityName || "",
     priorityOrder: typeof ticket.PriorityOrder === "number" ? ticket.PriorityOrder : null,
-    typeName: ticket.TypeName || "",
-    classificationName: ticket.ClassificationName || "",
-    urgencyName: ticket.UrgencyName || "",
-    impactName: ticket.ImpactName || "",
-    accountName: ticket.AccountName || "",
-    serviceName: ticket.ServiceName || "",
-    locationName: ticket.LocationName || "",
-    sourceName: ticket.SourceName || "",
-    responsibleFullName: ticket.ResponsibleFullName || UNASSIGNED,
-    responsibleGroupName: ticket.ResponsibleGroupName || UNASSIGNED,
+    typeName: named(ticket.TypeName),
+    classificationName: named(ticket.ClassificationName),
+    urgencyName: named(ticket.UrgencyName),
+    impactName: named(ticket.ImpactName),
+    accountName: named(ticket.AccountName),
+    serviceName: named(ticket.ServiceName),
+    locationName: named(ticket.LocationName),
+    sourceName: named(ticket.SourceName),
+    responsibleFullName: named(ticket.ResponsibleFullName) || UNASSIGNED,
+    responsibleGroupName: named(ticket.ResponsibleGroupName) || UNASSIGNED,
     requestorName: ticket.RequestorName || "",
-    requestorEmail: ticket.RequestorEmail || "",
     createdDate: realDate(ticket.CreatedDate),
     modifiedDate: realDate(ticket.ModifiedDate),
     completedDate: realDate(ticket.CompletedDate),
@@ -88,15 +95,9 @@ result = (Array.isArray(data) ? data : []).map((ticket) => ({
     daysOld: typeof ticket.DaysOld === "number" ? ticket.DaysOld : null,
     slaName: ticket.SlaName || "",
     isSlaViolated: Boolean(ticket.IsSlaViolated),
-    isSlaRespondByViolated: Boolean(ticket.IsSlaRespondByViolated),
     isSlaResolveByViolated: Boolean(ticket.IsSlaResolveByViolated),
-    respondByDate: realDate(ticket.RespondByDate),
     resolveByDate: realDate(ticket.ResolveByDate),
     isOnHold: Boolean(ticket.IsOnHold),
-    goesOffHoldDate: realDate(ticket.GoesOffHoldDate),
     actualMinutes: typeof ticket.ActualMinutes === "number" ? ticket.ActualMinutes : null,
-    estimatedMinutes: typeof ticket.EstimatedMinutes === "number" ? ticket.EstimatedMinutes : null,
-    formName: ticket.FormName || "",
-    refCode: ticket.RefCode || "",
     appId: String(ticket.AppID ?? "")
 }));

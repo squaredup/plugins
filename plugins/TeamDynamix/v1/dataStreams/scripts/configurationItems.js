@@ -5,9 +5,9 @@
 // asset application's CMDB is almost all asset mirrors (49,000+ in one real tenant), and one
 // unpaged search for it ran the stream out of memory before this script could drop them.
 // Tiles stay on the unpaged search, capped below: walking hundreds of 250-row pages (the API's
-// maximum page size) is fine every 12 hours but far too slow for a tile. The unpaged search
-// does take MaxResults, but it would count the asset mirrors dropped below, so the tile cap is
-// applied here instead.
+// maximum page size) is fine every 12 hours but far too slow for a tile. The unpaged search's
+// MaxResults counts the asset mirrors dropped below, so it only guards memory; the number of
+// rows a tile shows is capped at the end of this script instead.
 
 // BackingItemType is an integer enum on the wire. A CI can be backed by a service record
 // elsewhere in TeamDynamix, which is worth showing — but not as "47". 87 isn't in the
@@ -22,6 +22,10 @@ const BACKING_ITEM_TYPE_NAMES = {
 // both would list each asset twice in search, pickers and counts. Only standalone items are
 // kept, which is also what TeamDynamix itself means by a configuration item count.
 const ASSET_BACKING_ITEM_TYPE = 27;
+
+// An unset owner, department, location and similar name can arrive as the literal "None"
+// rather than empty, so a breakdown tile's biggest bar is "None". Blank it so it reads as unset.
+const named = (value) => (value && value !== "None" ? value : "");
 
 // TeamDynamix never sends null for an unset date: it sends 0001-01-01T00:00:00 (.NET's minimum
 // date), which SquaredUp displays as 12/31/1900 and which passes "not empty" filters. Anything
@@ -46,6 +50,19 @@ const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
 const items = Array.isArray(data) ? data : Array.isArray(data?.Data) ? data.Data : [];
 
+// The tile stream asks for at most 10,000 items (its postBody MaxResults). Unlimited, a CMDB
+// of 49,000 asset mirrors ran the stream out of memory with no useful message. If the limit is
+// reached, standalone items may be missing, so say so rather than show a silently short list.
+const TILE_SEARCH_LIMIT = 10000;
+if (Array.isArray(data) && data.length >= TILE_SEARCH_LIMIT) {
+    throw new Error(
+        "This asset application's CMDB has more than 10,000 configuration items, mostly copies " +
+            "of its assets, which is too many to load in a tile. Turn on Import assets, " +
+            "configuration items, accounts and locations in the data source's Advanced options " +
+            "to import its standalone configuration items instead."
+    );
+}
+
 const rows = items
     .filter((item) => item.BackingItemType !== ASSET_BACKING_ITEM_TYPE)
     .map((item) => ({
@@ -58,14 +75,14 @@ const rows = items
             : item.Uri || "",
         typeName: item.TypeName || "",
         isActive: Boolean(item.IsActive),
-        ownerFullName: item.OwnerFullName || "",
-        owningDepartmentName: item.OwningDepartmentName || "",
-        owningGroupName: item.OwningGroupName || "",
-        locationName: item.LocationName || "",
-        maintenanceScheduleName: item.MaintenanceScheduleName || "",
+        ownerFullName: named(item.OwnerFullName),
+        owningDepartmentName: named(item.OwningDepartmentName),
+        owningGroupName: named(item.OwningGroupName),
+        locationName: named(item.LocationName),
+        maintenanceScheduleName: named(item.MaintenanceScheduleName),
         backingItemType: BACKING_ITEM_TYPE_NAMES[item.BackingItemType] || "",
         isSystemMaintained: Boolean(item.IsSystemMaintained),
-        externalSourceName: item.ExternalSourceName || "",
+        externalSourceName: named(item.ExternalSourceName),
         externalId: item.ExternalID || "",
         // Note the Utc suffix: configuration items use CreatedDateUtc / ModifiedDateUtc where
         // tickets and assets use CreatedDate / ModifiedDate.

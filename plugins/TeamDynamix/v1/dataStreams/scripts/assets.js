@@ -24,6 +24,11 @@ const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
 const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
 const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
+// An unset manufacturer, model, supplier, location, owner or department arrives as the literal
+// name "None" rather than empty, so a breakdown tile's biggest bar is "None". Blank it so empty
+// filters and tile SQL treat it as unset.
+const named = (value) => (value && value !== "None" ? value : "");
+
 result = (Array.isArray(data) ? data : []).map((asset) => ({
     // Asset IDs are only unique within an application, so the graph id has to carry the app
     // too — two asset apps in the same tenant can both have an asset 1041.
@@ -36,20 +41,20 @@ result = (Array.isArray(data) ? data : []).map((asset) => ({
     statusName: asset.StatusName || "",
     tag: asset.Tag || "",
     serialNumber: asset.SerialNumber || "",
-    manufacturerName: asset.ManufacturerName || "",
-    productModelName: asset.ProductModelName || "",
-    supplierName: asset.SupplierName || "",
-    locationName: asset.LocationName || "",
-    locationRoomName: asset.LocationRoomName || "",
-    owningCustomerName: asset.OwningCustomerName || "",
-    owningDepartmentName: asset.OwningDepartmentName || "",
-    requestingCustomerName: asset.RequestingCustomerName || "",
+    manufacturerName: named(asset.ManufacturerName),
+    productModelName: named(asset.ProductModelName),
+    supplierName: named(asset.SupplierName),
+    locationName: named(asset.LocationName),
+    locationRoomName: named(asset.LocationRoomName),
+    owningCustomerName: named(asset.OwningCustomerName),
+    owningDepartmentName: named(asset.OwningDepartmentName),
+    requestingCustomerName: named(asset.RequestingCustomerName),
     purchaseCost: typeof asset.PurchaseCost === "number" ? asset.PurchaseCost : null,
     acquisitionDate: realDate(asset.AcquisitionDate),
     expectedReplacementDate: realDate(asset.ExpectedReplacementDate),
     createdDate: realDate(asset.CreatedDate),
     modifiedDate: realDate(asset.ModifiedDate),
-    parentName: asset.ParentName || "",
+    parentName: named(asset.ParentName),
     externalId: asset.ExternalID || "",
     configurationItemId: asset.ConfigurationItemID ? String(asset.ConfigurationItemID) : "",
     appId: String(asset.AppID ?? ""),
