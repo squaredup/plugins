@@ -1,0 +1,47 @@
+{
+    "name": "assetCount",
+    "displayName": "Asset Count",
+    "description": "Number of assets in an asset application, optionally only those in or out of service (exact, not limited by Maximum assets)",
+    "tags": ["Assets", "Inventory"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/assets/search/paged",
+        "getArgs": [
+            { "key": "pageSize", "value": "1" },
+            { "key": "pageNumber", "value": "1" }
+        ],
+        "postBody": {
+            "OnlyParentAssets": false,
+            "IsInService": "{{typeof inService === 'undefined' || !inService || inService === 'all' ? null : inService === 'inService'}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "assetCount.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Asset App"] }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "inService",
+            "label": "Service state",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "inService", "label": "In service" },
+                { "value": "outOfService", "label": "Out of service" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "assets", "displayName": "Assets", "shape": "number", "role": "value" }
+    ],
+    "timeframes": ["none"],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

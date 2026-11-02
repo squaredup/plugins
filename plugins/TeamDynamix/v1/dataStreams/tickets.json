@@ -8,14 +8,15 @@
         "httpMethod": "post",
         "endpointPath": "api/{{object.rawId}}/tickets/search",
         "postBody": {
-            "MaxResults": "{{maxResults || dataSource.maxRecords || 500}}",
-            "StatusClassIDs": "{{Array.isArray(statusClass) && statusClass.length ? statusClass.map(Number) : (statusClass ? [Number(statusClass)] : null)}}",
-            "CreatedDateFrom": "{{(typeof timeframe === 'undefined' || timeframe.enum === 'none' || (dateField || 'Created') !== 'Created') ? null : timeframe.start}}",
-            "CreatedDateTo": "{{(typeof timeframe === 'undefined' || timeframe.enum === 'none' || (dateField || 'Created') !== 'Created') ? null : timeframe.end}}",
-            "ModifiedDateFrom": "{{(typeof timeframe === 'undefined' || timeframe.enum === 'none' || dateField !== 'Modified') ? null : timeframe.start}}",
-            "ModifiedDateTo": "{{(typeof timeframe === 'undefined' || timeframe.enum === 'none' || dateField !== 'Modified') ? null : timeframe.end}}",
-            "ClosedDateFrom": "{{(typeof timeframe === 'undefined' || timeframe.enum === 'none' || dateField !== 'Closed') ? null : timeframe.start}}",
-            "ClosedDateTo": "{{(typeof timeframe === 'undefined' || timeframe.enum === 'none' || dateField !== 'Closed') ? null : timeframe.end}}"
+            "MaxResults": "{{(typeof maxResults !== 'undefined' && maxResults) || dataSource.maxRecords || 2000}}",
+            "StatusClassIDs": "{{typeof statusClass === 'undefined' || !statusClass || !statusClass.length ? null : [].concat(statusClass).map(Number)}}",
+            "CreatedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Created' ? null : timeframe.start}}",
+            "CreatedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Created' ? null : timeframe.end}}",
+            "ModifiedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Modified' ? null : timeframe.start}}",
+            "ModifiedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Modified' ? null : timeframe.end}}",
+            "ClosedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Closed' ? null : timeframe.start}}",
+            "ClosedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Closed' ? null : timeframe.end}}",
+            "PrimaryResponsibilityGroupIDs": "{{typeof groups !== 'undefined' && Array.isArray(groups) && groups.length ? groups.flatMap((o) => o.rawId).map(Number) : null}}"
         },
         "paging": { "mode": "none" },
         "postRequestScript": "tickets.js",
@@ -56,6 +57,15 @@
                 { "value": "3", "label": "Completed" },
                 { "value": "4", "label": "Cancelled" }
             ]
+        },
+        {
+            "type": "objects",
+            "name": "groups",
+            "label": "Group(s)",
+            "help": "Matches the group a ticket is assigned to, not groups that only own one of its tasks.",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["TeamDynamix Group"] }
+            }
         },
         {
             "type": "number",
@@ -99,7 +109,6 @@
         { "name": "responsibleFullName", "displayName": "Assigned To", "shape": "string" },
         { "name": "responsibleGroupName", "displayName": "Assigned Group", "shape": "string" },
         { "name": "requestorName", "displayName": "Requestor", "shape": "string" },
-        { "name": "requestorEmail", "displayName": "Requestor Email", "shape": "string", "visible": false },
         { "name": "createdDate", "displayName": "Created", "shape": "date", "role": "timestamp" },
         { "name": "modifiedDate", "displayName": "Modified", "shape": "date" },
         { "name": "completedDate", "displayName": "Completed", "shape": "date" },
@@ -107,16 +116,10 @@
         { "name": "daysOld", "displayName": "Age (days)", "shape": "number" },
         { "name": "slaName", "displayName": "SLA", "shape": "string" },
         { "name": "isSlaViolated", "displayName": "SLA Violated", "shape": "boolean" },
-        { "name": "isSlaRespondByViolated", "displayName": "Respond By Missed", "shape": "boolean", "visible": false },
         { "name": "isSlaResolveByViolated", "displayName": "Resolve By Missed", "shape": "boolean", "visible": false },
-        { "name": "respondByDate", "displayName": "Respond By", "shape": "date", "visible": false },
         { "name": "resolveByDate", "displayName": "Resolve By", "shape": "date" },
         { "name": "isOnHold", "displayName": "On Hold", "shape": "boolean" },
-        { "name": "goesOffHoldDate", "displayName": "Goes Off Hold", "shape": "date", "visible": false },
         { "name": "actualMinutes", "displayName": "Actual", "shape": "minutes" },
-        { "name": "estimatedMinutes", "displayName": "Estimated", "shape": "minutes", "visible": false },
-        { "name": "formName", "displayName": "Form", "shape": "string", "visible": false },
-        { "name": "refCode", "displayName": "Reference Code", "shape": "string", "visible": false },
         { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false }
     ],
     "defaultShaping": {

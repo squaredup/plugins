@@ -7,16 +7,27 @@
 // and Attributes are never included in search results — only loading an asset individually
 // returns them, which this stream doesn't do.
 
+// TeamDynamix never sends null for an unset date: it sends 0001-01-01T00:00:00 (.NET's minimum
+// date), which SquaredUp displays as 12/31/1900 and which passes "not empty" filters. Anything
+// before 1901-01-02 is treated as unset, which covers that value however it is normalised.
+const UNSET_DATE_BEFORE = Date.parse("1901-01-02T00:00:00Z");
+const realDate = (value) => (value && Date.parse(value) >= UNSET_DATE_BEFORE ? value : null);
+
 // A sandbox Web API address (/SBTDWebApi) needs the matching sandbox web app (/SBTDNext) —
-// otherwise every sandbox asset link points at the production app instead. SBTDNext is
-// inferred from the same SB-prefix convention as SBTDWebApi; the API spec has no web UI
-// paths to confirm it against.
+// otherwise every sandbox asset link points at the production app instead. The API spec has
+// no web UI paths; SBTDNext follows the same SB prefix as SBTDWebApi, confirmed on a real
+// sandbox tenant.
 const rawBaseUrl = String(context?.dataSources?.[0]?.baseUrl || "")
     .trim()
     .replace(/\/+$/, "");
 const isSandbox = /\/SBTDWebApi$/i.test(rawBaseUrl);
 const webBaseUrl = rawBaseUrl.replace(/\/(SB)?TDWebApi$/i, "");
 const nextApp = isSandbox ? "SBTDNext" : "TDNext";
+
+// An unset manufacturer, model, supplier, location, owner or department arrives as the literal
+// name "None" rather than empty, so a breakdown tile's biggest bar is "None". Blank it so empty
+// filters and tile SQL treat it as unset.
+const named = (value) => (value && value !== "None" ? value : "");
 
 result = (Array.isArray(data) ? data : []).map((asset) => ({
     // Asset IDs are only unique within an application, so the graph id has to carry the app
@@ -30,20 +41,20 @@ result = (Array.isArray(data) ? data : []).map((asset) => ({
     statusName: asset.StatusName || "",
     tag: asset.Tag || "",
     serialNumber: asset.SerialNumber || "",
-    manufacturerName: asset.ManufacturerName || "",
-    productModelName: asset.ProductModelName || "",
-    supplierName: asset.SupplierName || "",
-    locationName: asset.LocationName || "",
-    locationRoomName: asset.LocationRoomName || "",
-    owningCustomerName: asset.OwningCustomerName || "",
-    owningDepartmentName: asset.OwningDepartmentName || "",
-    requestingCustomerName: asset.RequestingCustomerName || "",
+    manufacturerName: named(asset.ManufacturerName),
+    productModelName: named(asset.ProductModelName),
+    supplierName: named(asset.SupplierName),
+    locationName: named(asset.LocationName),
+    locationRoomName: named(asset.LocationRoomName),
+    owningCustomerName: named(asset.OwningCustomerName),
+    owningDepartmentName: named(asset.OwningDepartmentName),
+    requestingCustomerName: named(asset.RequestingCustomerName),
     purchaseCost: typeof asset.PurchaseCost === "number" ? asset.PurchaseCost : null,
-    acquisitionDate: asset.AcquisitionDate || null,
-    expectedReplacementDate: asset.ExpectedReplacementDate || null,
-    createdDate: asset.CreatedDate || null,
-    modifiedDate: asset.ModifiedDate || null,
-    parentName: asset.ParentName || "",
+    acquisitionDate: realDate(asset.AcquisitionDate),
+    expectedReplacementDate: realDate(asset.ExpectedReplacementDate),
+    createdDate: realDate(asset.CreatedDate),
+    modifiedDate: realDate(asset.ModifiedDate),
+    parentName: named(asset.ParentName),
     externalId: asset.ExternalID || "",
     configurationItemId: asset.ConfigurationItemID ? String(asset.ConfigurationItemID) : "",
     appId: String(asset.AppID ?? ""),
