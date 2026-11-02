@@ -210,6 +210,18 @@ if (String(method).toLowerCase() === "post" && TEAM_TICKETS_PATH.test(url.pathna
     }
     const groupIds = [].concat(search?.PrimaryResponsibilityGroupIDs || []).filter((id) => Number(id) > 0);
 
+    // A failed lookup must not be mistaken for "no ticketing application": that path searches
+    // an arbitrary application and the tiles show no data, as if the team had no tickets.
+    const lookupError = (response) => {
+        const resetAt = response.headers.get("X-RateLimit-Reset");
+        return response.status === 429
+            ? "TeamDynamix rate limit reached while finding the team's ticketing application" +
+                  (resetAt ? ` (resets at ${resetAt})` : "") +
+                  ". This will load again after that."
+            : `TeamDynamix couldn't look up the team's ticketing application (HTTP ${response.status}).`;
+    };
+    let failedLookup = null;
+
     // Votes per application, so a mixed selection searches where most of the groups work. A tie
     // goes to the lowest ID, so the choice is stable between refreshes.
     const votes = {};
@@ -235,6 +247,8 @@ if (String(method).toLowerCase() === "post" && TEAM_TICKETS_PATH.test(url.pathna
                         [groupId]: { appIds, expiryTime: Date.now() + GROUP_APPS_CACHE_MS }
                     }
                 };
+            } else {
+                failedLookup = failedLookup || response;
             }
         }
 
@@ -246,6 +260,12 @@ if (String(method).toLowerCase() === "post" && TEAM_TICKETS_PATH.test(url.pathna
     let appId = Object.keys(votes)
         .map(Number)
         .sort((a, b) => votes[b] - votes[a] || a - b)[0];
+
+    // Some lookups can fail and still leave an answer from the rest, which is searched.
+    if (!appId && failedLookup) {
+        api.report.error(lookupError(failedLookup));
+        return;
+    }
 
     // A group with no ticketing application, such as a managers' group, can't have tickets
     // assigned to it. Raising an error for that shows every tile on the Team Performance
@@ -266,6 +286,9 @@ if (String(method).toLowerCase() === "post" && TEAM_TICKETS_PATH.test(url.pathna
                     .map((app) => app.AppID)
                     .sort((a, b) => a - b);
                 state = { ...state, ticketApps: { appIds: ticketAppIds, expiryTime: Date.now() + GROUP_APPS_CACHE_MS } };
+            } else {
+                api.report.error(lookupError(response));
+                return;
             }
         }
         appId = ticketAppIds?.[0];
