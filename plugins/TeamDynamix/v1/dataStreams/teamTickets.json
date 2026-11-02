@@ -1,0 +1,133 @@
+{
+    "name": "teamTickets",
+    "displayName": "Team Tickets",
+    "description": "Tickets assigned to one or more groups, one row per ticket, searched in the ticketing application the groups work in",
+    "tags": ["Tickets", "Service Management"],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/team/tickets/search",
+        "postBody": {
+            "MaxResults": "{{(typeof maxResults !== 'undefined' && maxResults) || dataSource.maxRecords || 2000}}",
+            "StatusClassIDs": "{{typeof statusClass === 'undefined' || !statusClass || !statusClass.length ? null : [].concat(statusClass).map(Number)}}",
+            "CreatedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Created' ? null : timeframe.start}}",
+            "CreatedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Created' ? null : timeframe.end}}",
+            "ModifiedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Modified' ? null : timeframe.start}}",
+            "ModifiedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Modified' ? null : timeframe.end}}",
+            "ClosedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Closed' ? null : timeframe.start}}",
+            "ClosedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Closed' ? null : timeframe.end}}",
+            "PrimaryResponsibilityGroupIDs": "{{objects.map((o) => Number(o.rawId))}}",
+            "SlaViolationStatus": "{{typeof sla !== 'undefined' && sla === 'violated' ? true : null}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "tickets.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/teamTickets.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Group"] }
+    },
+    "manualConfigApply": true,
+    "ui": [
+        {
+            "type": "switch",
+            "name": "dateField",
+            "label": "Timeframe applies to",
+            "defaultValue": "Created",
+            "help": "Which ticket date the selected timeframe filters on. Set the timeframe to **None** to ignore dates entirely and return the current backlog.",
+            "options": [
+                { "value": "Created", "label": "Created" },
+                { "value": "Modified", "label": "Last modified" },
+                { "value": "Closed", "label": "Closed" }
+            ],
+            "tileEditorStep": ["Timeframe"]
+        },
+        {
+            "type": "choiceChips",
+            "name": "statusClass",
+            "label": "Status",
+            "isMulti": true,
+            "help": "Leave empty for all tickets.",
+            "options": [
+                { "value": "1", "label": "New" },
+                { "value": "2", "label": "In Process" },
+                { "value": "5", "label": "On Hold" },
+                { "value": "6", "label": "Requested" },
+                { "value": "3", "label": "Completed" },
+                { "value": "4", "label": "Cancelled" }
+            ]
+        },
+        {
+            "type": "switch",
+            "name": "sla",
+            "label": "SLA",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "violated", "label": "Violated only" }
+            ]
+        },
+        {
+            "type": "number",
+            "name": "maxResults",
+            "label": "Maximum tickets",
+            "help": "The TeamDynamix ticket search returns a single unpaged result set, so this is a hard ceiling on how many tickets the tile can see.",
+            "validation": { "min": 1, "max": 10000, "valueAsNumber": true }
+        }
+    ],
+    "metadata": [
+        { "name": "title", "displayName": "Title", "shape": "string", "role": "label" },
+        { "name": "ticketId", "displayName": "Ticket ID", "shape": "string", "role": "id" },
+        { "name": "link", "displayName": "Link", "shape": ["url", { "label": "Open in TeamDynamix" }], "role": "link" },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["SLA violated"],
+                        "warning": ["On hold"],
+                        "success": ["Completed"],
+                        "unknown": ["Open", "Cancelled"]
+                    }
+                }
+            ]
+        },
+        { "name": "statusName", "displayName": "Status", "shape": "string" },
+        { "name": "statusClassName", "displayName": "Status Class", "shape": "string" },
+        { "name": "priorityName", "displayName": "Priority", "shape": "string" },
+        { "name": "priorityOrder", "displayName": "Priority Order", "shape": "number", "visible": false },
+        { "name": "typeName", "displayName": "Type", "shape": "string" },
+        { "name": "classificationName", "displayName": "Classification", "shape": "string" },
+        { "name": "urgencyName", "displayName": "Urgency", "shape": "string", "visible": false },
+        { "name": "impactName", "displayName": "Impact", "shape": "string", "visible": false },
+        { "name": "accountName", "displayName": "Account", "shape": "string" },
+        { "name": "serviceName", "displayName": "Service", "shape": "string" },
+        { "name": "locationName", "displayName": "Location", "shape": "string" },
+        { "name": "sourceName", "displayName": "Source", "shape": "string" },
+        { "name": "responsibleFullName", "displayName": "Assigned To", "shape": "string" },
+        { "name": "responsibleGroupName", "displayName": "Assigned Group", "shape": "string" },
+        { "name": "requestorName", "displayName": "Requestor", "shape": "string" },
+        { "name": "createdDate", "displayName": "Created", "shape": "date", "role": "timestamp" },
+        { "name": "modifiedDate", "displayName": "Modified", "shape": "date" },
+        { "name": "completedDate", "displayName": "Completed", "shape": "date" },
+        { "name": "respondedDate", "displayName": "Responded", "shape": "date", "visible": false },
+        { "name": "daysOld", "displayName": "Age (days)", "shape": "number" },
+        { "name": "slaName", "displayName": "SLA", "shape": "string" },
+        { "name": "isSlaViolated", "displayName": "SLA Violated", "shape": "boolean" },
+        { "name": "isSlaResolveByViolated", "displayName": "Resolve By Missed", "shape": "boolean", "visible": false },
+        { "name": "resolveByDate", "displayName": "Resolve By", "shape": "date" },
+        { "name": "isOnHold", "displayName": "On Hold", "shape": "boolean" },
+        { "name": "actualMinutes", "displayName": "Actual", "shape": "minutes" },
+        { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": {
+        "sort": { "by": [["createdDate", "desc"]] }
+    },
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "dashboard"
+}

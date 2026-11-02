@@ -188,3 +188,97 @@ if (cmdbSearch) {
         body = bodyIsString ? JSON.stringify(search) : search;
     }
 }
+
+// --- team tickets --------------------------------------------------------------
+//
+// A ticket search belongs to one ticketing application, but the Team Tickets stream is scoped to
+// groups, which TeamDynamix doesn't tie to a single application. So that stream posts to a
+// placeholder path, and this swaps in the ticketing application the selected groups work in.
+// Searching every application instead would cost one search each against a rate limit shared
+// by the whole organization. Groups from a different application than most of the selection
+// match nothing in this search.
+const TEAM_TICKETS_PATH = /\/api\/team\/tickets\/search\/?$/i;
+const GROUP_APPS_CACHE_MS = 60 * 60 * 1000;
+
+if (String(method).toLowerCase() === "post" && TEAM_TICKETS_PATH.test(url.pathname)) {
+    const bodyIsString = typeof body === "string";
+    let search = null;
+    try {
+        search = bodyIsString ? JSON.parse(body) : body;
+    } catch {
+        search = null;
+    }
+    const groupIds = [].concat(search?.PrimaryResponsibilityGroupIDs || []).filter((id) => Number(id) > 0);
+
+    // Votes per application, so a mixed selection searches where most of the groups work. A tie
+    // goes to the lowest ID, so the choice is stable between refreshes.
+    const votes = {};
+    for (const groupId of groupIds) {
+        const cached = state?.groupApps?.[groupId];
+        let appIds = cached && cached.expiryTime > Date.now() ? cached.appIds : null;
+
+        if (!appIds) {
+            const appsUrl = new URL(url.href);
+            appsUrl.pathname = appsUrl.pathname.replace(TEAM_TICKETS_PATH, `/api/groups/${groupId}/applications`);
+            const response = await fetch(appsUrl.href, {
+                headers: { Accept: "application/json", Authorization: `Bearer ${state.token}` }
+            });
+            if (response.ok) {
+                const apps = await response.json();
+                appIds = (Array.isArray(apps) ? apps : [])
+                    .filter((app) => app.AppClass === "TDTickets")
+                    .map((app) => app.AppID);
+                state = {
+                    ...state,
+                    groupApps: {
+                        ...(state?.groupApps || {}),
+                        [groupId]: { appIds, expiryTime: Date.now() + GROUP_APPS_CACHE_MS }
+                    }
+                };
+            }
+        }
+
+        for (const appId of appIds || []) {
+            votes[appId] = (votes[appId] || 0) + 1;
+        }
+    }
+
+    let appId = Object.keys(votes)
+        .map(Number)
+        .sort((a, b) => votes[b] - votes[a] || a - b)[0];
+
+    // A group with no ticketing application, such as a managers' group, can't have tickets
+    // assigned to it. Raising an error for that shows every tile on the Team Performance
+    // dashboard as "Script error", so search any ticketing application instead: the group
+    // filter matches nothing and the tiles show no data, which is the true answer.
+    if (!appId && groupIds.length) {
+        let ticketAppIds = state?.ticketApps?.expiryTime > Date.now() ? state.ticketApps.appIds : null;
+        if (!ticketAppIds) {
+            const appsUrl = new URL(url.href);
+            appsUrl.pathname = appsUrl.pathname.replace(TEAM_TICKETS_PATH, "/api/applications");
+            const response = await fetch(appsUrl.href, {
+                headers: { Accept: "application/json", Authorization: `Bearer ${state.token}` }
+            });
+            if (response.ok) {
+                const apps = await response.json();
+                ticketAppIds = (Array.isArray(apps) ? apps : [])
+                    .filter((app) => app.AppClass === "TDTickets" && app.Active !== false)
+                    .map((app) => app.AppID)
+                    .sort((a, b) => a - b);
+                state = { ...state, ticketApps: { appIds: ticketAppIds, expiryTime: Date.now() + GROUP_APPS_CACHE_MS } };
+            }
+        }
+        appId = ticketAppIds?.[0];
+    }
+
+    if (!appId) {
+        api.report.error(
+            groupIds.length
+                ? "No TeamDynamix ticketing application is visible to the admin service account."
+                : "Select one or more TeamDynamix groups."
+        );
+        return;
+    }
+
+    url.pathname = url.pathname.replace(TEAM_TICKETS_PATH, `/api/${appId}/tickets/search`);
+}

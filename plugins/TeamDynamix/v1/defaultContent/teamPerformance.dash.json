@@ -1,0 +1,1414 @@
+{
+    "name": "Team Performance",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [
+        "{{variables.[Team]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "b4644805-b175-57cd-9c8c-bcaea7adfac8",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Backlog Now",
+                    "description": "Open tickets for the selected teams right now, whatever the dashboard timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"o\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\", \"statusClassName\" = 'On Hold' AS \"onHold\" FROM \"open\")\nSELECT COUNT(*) AS \"open\",\n  COUNT(*) FILTER (WHERE NOT \"onHold\") AS \"active\",\n  COUNT(*) FILTER (WHERE \"onHold\") AS \"onHold\",\n  COUNT(*) FILTER (WHERE \"tech\" = '(Unassigned)') AS \"unassigned\",\n  COUNT(*) FILTER (WHERE NOT \"onHold\" AND \"daysOld\" > 7) AS \"activeOlderThan7d\",\n  ROUND(MEDIAN(\"daysOld\"), 1) AS \"medianAgeDays\"\nFROM \"o\"",
+                            "tables": [
+                                {
+                                    "tableName": "open",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "statusClass": [
+                                                    "1",
+                                                    "2",
+                                                    "5",
+                                                    "6"
+                                                ]
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "open",
+                                        "type": "quantitative",
+                                        "title": "Open",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "active",
+                                        "type": "quantitative",
+                                        "title": "Active",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "onHold",
+                                        "type": "quantitative",
+                                        "title": "On hold",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "unassigned",
+                                        "type": "quantitative",
+                                        "title": "Unassigned",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "activeOlderThan7d",
+                                        "type": "quantitative",
+                                        "title": "Active > 7 days",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "medianAgeDays",
+                                        "type": "quantitative",
+                                        "title": "Median age (days)",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    },
+                    "timeframe": "none"
+                }
+            },
+            {
+                "i": "abb1ac20-1abc-5918-96de-498be40604b9",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "This Period",
+                    "description": "Tickets opened and closed in the dashboard timeframe, and the median time to resolve",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"c\" AS (SELECT * FROM \"created\"),\n\"d\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\" FROM \"closed\")\nSELECT (SELECT COUNT(*) FROM \"c\") AS \"opened\",\n  (SELECT COUNT(*) FROM \"d\") AS \"closed\",\n  ROUND((SELECT MEDIAN(DATE_DIFF('minute', \"createdDate\", \"completedDate\")) / 1440.0 FROM \"d\" WHERE \"statusClassName\" = 'Completed' AND \"completedDate\" IS NOT NULL), 1) AS \"medianResolveDays\"",
+                            "tables": [
+                                {
+                                    "tableName": "created",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Created"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "closed",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Closed"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "opened",
+                                        "type": "quantitative",
+                                        "title": "Opened",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "closed",
+                                        "type": "quantitative",
+                                        "title": "Closed",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "medianResolveDays",
+                                        "type": "quantitative",
+                                        "title": "Median resolve (days)",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 1
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bad5ed24-d763-574f-8820-4524eda3f411",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Resolved by Due Date",
+                    "description": "Tickets resolved in the dashboard timeframe that had a due date, and the share resolved by it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"d\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\" FROM \"closed\")\nSELECT ROUND(100.0 * COUNT(*) FILTER (WHERE \"completedDate\" <= \"resolveByDate\") / NULLIF(COUNT(*), 0), 1) AS \"resolvedByDuePct\"\nFROM \"d\" WHERE \"statusClassName\" = 'Completed' AND \"completedDate\" IS NOT NULL AND \"resolveByDate\" IS NOT NULL",
+                            "tables": [
+                                {
+                                    "tableName": "closed",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Closed"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "resolvedByDuePct",
+                                    "type": "quantitative",
+                                    "title": "Resolved by due date"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeLabelText": "% on time",
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.8,
+                                        "color": "#ef4444"
+                                    },
+                                    {
+                                        "to": 0.95,
+                                        "color": "#f59e0b"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#22c55e"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "65abfdbe-fd7d-5e64-8f90-43e3df2b58b4",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Insights",
+                    "description": "Rules over the open backlog and the period's arrivals and closures",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"o\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\", \"statusClassName\" = 'On Hold' AS \"onHold\" FROM \"open\"),\n\"c\" AS (SELECT * FROM \"created\"),\n\"d\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\" FROM \"closed\"),\n\"t\" AS (SELECT \"tech\", COUNT(*) AS \"n\" FROM \"o\" WHERE \"tech\" <> '(Unassigned)' GROUP BY \"tech\"),\n\"top\" AS (SELECT \"tech\", \"n\" FROM \"t\" ORDER BY \"n\" DESC, \"tech\" LIMIT 1),\n\"oldest\" AS (SELECT \"ticketId\", \"daysOld\", \"tech\" FROM \"o\" WHERE NOT \"onHold\" ORDER BY \"daysOld\" DESC NULLS LAST LIMIT 1),\n\"s\" AS (\n  SELECT\n    (SELECT COUNT(*) FROM \"o\" WHERE NOT \"onHold\") AS \"active\",\n    (SELECT COUNT(*) FROM \"o\" WHERE \"onHold\") AS \"onHold\",\n    (SELECT COUNT(*) FROM \"c\") AS \"opened\",\n    (SELECT COUNT(*) FROM \"d\") AS \"closed\",\n    (SELECT COUNT(*) FROM \"o\" WHERE NOT \"onHold\" AND \"daysOld\" > 7) AS \"gt7\",\n    (SELECT COUNT(*) FROM \"o\" WHERE NOT \"onHold\" AND \"daysOld\" > 30) AS \"gt30\",\n    (SELECT COUNT(*) FROM \"o\" WHERE \"onHold\" AND \"daysOld\" > 30) AS \"holdGt30\",\n    (SELECT COUNT(*) FROM \"o\" WHERE \"tech\" = '(Unassigned)') AS \"unassigned\",\n    (SELECT COUNT(*) FROM \"o\" WHERE (LOWER(\"priorityName\") LIKE '%high%' OR LOWER(\"priorityName\") LIKE '%critical%'\n OR LOWER(\"priorityName\") LIKE '%urgent%' OR LOWER(\"priorityName\") LIKE '%emergency%')) AS \"high\",\n    (SELECT COUNT(*) FROM \"o\" WHERE \"isSlaViolated\") AS \"slaViolated\",\n    (SELECT MEDIAN(\"n\") FROM \"t\") AS \"medianLoad\"\n)\nSELECT \"severity\", \"rule\", \"insight\" FROM (\n  SELECT 1 AS \"ord\", 'Capacity' AS \"rule\",\n    CASE WHEN \"opened\" > 1.1 * \"closed\" THEN 'warning' ELSE 'success' END AS \"severity\",\n    CASE WHEN \"opened\" > \"closed\"\n      THEN 'Arrivals outpaced closures: ' || \"opened\" || ' opened, ' || \"closed\" || ' closed (net +' || (\"opened\" - \"closed\") || ').'\n      ELSE 'Closures kept pace with arrivals: ' || \"opened\" || ' opened, ' || \"closed\" || ' closed (net ' || (\"opened\" - \"closed\") || ').' END AS \"insight\"\n  FROM \"s\"\n  UNION ALL\n  SELECT 2, 'SLA',\n    CASE WHEN \"slaViolated\" > 0 THEN 'error' ELSE 'success' END,\n    CASE WHEN \"slaViolated\" = 0 THEN 'No open ticket has breached its SLA.'\n         WHEN \"slaViolated\" = 1 THEN '1 open ticket has breached its SLA.'\n         ELSE \"slaViolated\" || ' open tickets have breached their SLA.' END\n  FROM \"s\"\n  UNION ALL\n  SELECT 3, 'Aging',\n    CASE WHEN \"gt7\" > 0.5 * \"active\" THEN 'error' WHEN \"gt7\" > 0 THEN 'warning' ELSE 'success' END,\n    \"gt7\" || ' of ' || \"active\" || ' active tickets (' || COALESCE(ROUND(100.0 * \"gt7\" / NULLIF(\"active\", 0))::INTEGER, 0)\n      || '%) are older than 7 days. ' || \"onHold\" || ' more are on hold, waiting on someone else.'\n  FROM \"s\"\n  UNION ALL\n  SELECT 4, 'Stale',\n    CASE WHEN \"gt30\" > 0 THEN 'error' WHEN \"holdGt30\" > 0 THEN 'warning' ELSE 'success' END,\n    \"gt30\" || CASE WHEN \"gt30\" = 1 THEN ' active ticket is' ELSE ' active tickets are' END || ' older than 30 days'\n      || COALESCE('; the oldest is #' || (SELECT \"ticketId\" FROM \"oldest\") || ' (' || (SELECT ROUND(\"daysOld\")::INTEGER FROM \"oldest\")\n         || ' days, ' || (SELECT \"tech\" FROM \"oldest\") || ')', '')\n      || '. ' || \"holdGt30\" || ' on-hold ' || CASE WHEN \"holdGt30\" = 1 THEN 'ticket has' ELSE 'tickets have' END || ' been open over 30 days.'\n  FROM \"s\"\n  UNION ALL\n  SELECT 5, 'Ownership',\n    CASE WHEN \"unassigned\" > 0 THEN 'warning' ELSE 'success' END,\n    CASE WHEN \"unassigned\" = 0 THEN 'Every open ticket has a named technician.'\n         WHEN \"unassigned\" = 1 THEN '1 open ticket has no named technician.'\n         ELSE \"unassigned\" || ' open tickets have no named technician.' END\n  FROM \"s\"\n  UNION ALL\n  SELECT 6, 'Balance',\n    CASE WHEN (SELECT \"n\" FROM \"top\") >= 2 * \"medianLoad\" THEN 'warning' ELSE 'success' END,\n    COALESCE((SELECT \"tech\" || ' holds ' || \"n\" FROM \"top\") || ' open tickets against a team median of ' || ROUND(\"medianLoad\", 1) || '.',\n             'No open tickets are assigned to a named technician.')\n  FROM \"s\"\n  UNION ALL\n  SELECT 7, 'Priority',\n    CASE WHEN \"high\" > 0 THEN 'warning' ELSE 'success' END,\n    CASE WHEN \"high\" = 1 THEN '1 high or critical priority ticket is open.'\n         ELSE \"high\" || ' high or critical priority tickets are open.' END\n  FROM \"s\"\n) ORDER BY \"ord\"",
+                            "tables": [
+                                {
+                                    "tableName": "open",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "statusClass": [
+                                                    "1",
+                                                    "2",
+                                                    "5",
+                                                    "6"
+                                                ]
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "created",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Created"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "closed",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Closed"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity",
+                                        "title": "",
+                                        "renderer": {
+                                            "type": "status",
+                                            "showLabel": false
+                                        },
+                                        "width": 40
+                                    },
+                                    {
+                                        "field": "rule",
+                                        "title": "Rule",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Capacity": "#3b82f6",
+                                                "SLA": "#ef4444",
+                                                "Aging": "#f59e0b",
+                                                "Stale": "#ef4444",
+                                                "Ownership": "#f59e0b",
+                                                "Balance": "#a855f7",
+                                                "Priority": "#f97316"
+                                            }
+                                        },
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "insight",
+                                        "title": "Insight",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableWrapText": true,
+                                "richTableNoHeader": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8568b64a-4517-555a-b294-b1481a349ad3",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Where Tickets Went",
+                    "description": "Tickets opened in the dashboard timeframe: team, then classification, then where each ticket is now",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"c\" AS (SELECT * FROM \"created\"),\n\"x\" AS (SELECT \"responsibleGroupName\" AS \"team\",\n    CASE WHEN \"classificationName\" = '' THEN '(No classification)' ELSE \"classificationName\" END AS \"cls\",\n    CASE WHEN \"statusClassName\" = 'Completed' THEN 'Resolved' WHEN \"statusClassName\" = 'Cancelled' THEN 'Cancelled'\n         WHEN \"statusClassName\" = 'On Hold' THEN 'On hold' ELSE 'Still open' END AS \"outcome\"\n  FROM \"c\"),\n\"topCls\" AS (SELECT \"cls\" FROM \"x\" GROUP BY \"cls\" ORDER BY COUNT(*) DESC, \"cls\" LIMIT 6),\n\"y\" AS (SELECT \"team\", CASE WHEN \"cls\" IN (SELECT \"cls\" FROM \"topCls\") THEN \"cls\" ELSE 'Other' END AS \"cls\", \"outcome\" FROM \"x\")\nSELECT \"team\" AS \"source\", \"cls\" AS \"target\", COUNT(*) AS \"tickets\" FROM \"y\" GROUP BY 1, 2\nUNION ALL\nSELECT \"cls\", \"outcome\", COUNT(*) FROM \"y\" GROUP BY 1, 2",
+                            "tables": [
+                                {
+                                    "tableName": "created",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Created"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sankey",
+                            "encoding": {
+                                "source": {
+                                    "field": "source",
+                                    "type": "nominal"
+                                },
+                                "target": {
+                                    "field": "target",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "tickets",
+                                    "type": "quantitative",
+                                    "title": "Tickets"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 12,
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#ec4899",
+                                    "#14b8a6",
+                                    "#0ea5e9",
+                                    "#a855f7",
+                                    "#06b6d4",
+                                    "#f97316"
+                                ],
+                                "mappedColors": {
+                                    "Resolved": "#22c55e",
+                                    "Cancelled": "#94a3b8",
+                                    "On hold": "#f59e0b",
+                                    "Still open": "#3b82f6",
+                                    "Other": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9529b9c8-3bec-5485-bdf6-b1ab1601cdce",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Arrivals vs Closures",
+                    "description": "Tickets opened and closed per day",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"c\" AS (SELECT * FROM \"created\"),\n\"d\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\" FROM \"closed\")\nSELECT STRFTIME(DATE_TRUNC('day', \"day\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\",\n       SUM(\"opened\") AS \"opened\", SUM(\"closed\") AS \"closed\" FROM (\n  SELECT \"createdDate\" AS \"day\", 1 AS \"opened\", 0 AS \"closed\" FROM \"c\"\n  UNION ALL\n  SELECT \"completedDate\", 0, 1 FROM \"d\" WHERE \"completedDate\" IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "created",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Created"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "closed",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Closed"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSmooth": true,
+                                "cartesianSymbol": "none",
+                                "mappedColors": {
+                                    "opened": "#f59e0b",
+                                    "closed": "#22c55e"
+                                },
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "401d0404-1707-579b-ba51-49abc1d89e3e",
+                "x": 2,
+                "y": 5,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Backlog Aging",
+                    "description": "Open tickets by age: active, and on hold waiting on someone else",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"o\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\", \"statusClassName\" = 'On Hold' AS \"onHold\" FROM \"open\")\nSELECT \"bucket\", COUNT(*) FILTER (WHERE NOT \"onHold\") AS \"active\", COUNT(*) FILTER (WHERE \"onHold\") AS \"onHold\" FROM (\n  SELECT *, CASE WHEN \"daysOld\" <= 2 THEN '0-2 days' WHEN \"daysOld\" <= 7 THEN '3-7 days'\n                 WHEN \"daysOld\" <= 14 THEN '8-14 days' WHEN \"daysOld\" <= 30 THEN '15-30 days'\n                 ELSE 'Over 30 days' END AS \"bucket\",\n            CASE WHEN \"daysOld\" <= 2 THEN 1 WHEN \"daysOld\" <= 7 THEN 2 WHEN \"daysOld\" <= 14 THEN 3\n                 WHEN \"daysOld\" <= 30 THEN 4 ELSE 5 END AS \"ord\"\n  FROM \"o\")\nGROUP BY \"bucket\", \"ord\" ORDER BY \"ord\"",
+                            "tables": [
+                                {
+                                    "tableName": "open",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "statusClass": [
+                                                    "1",
+                                                    "2",
+                                                    "5",
+                                                    "6"
+                                                ]
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "bucket",
+                                    "type": "nominal",
+                                    "title": "Age"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "mappedColors": {
+                                    "active": "#3b82f6",
+                                    "onHold": "#94a3b8"
+                                },
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 3
+                            }
+                        }
+                    },
+                    "timeframe": "none"
+                }
+            },
+            {
+                "i": "833f3bb4-c4ea-5f9d-abfd-ffecd949a524",
+                "x": 3,
+                "y": 5,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Priority Mix",
+                    "description": "Open tickets by priority",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"o\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\", \"statusClassName\" = 'On Hold' AS \"onHold\" FROM \"open\")\nSELECT CASE WHEN \"priorityName\" = '' THEN '(None)' ELSE \"priorityName\" END AS \"priority\", COUNT(*) AS \"open\"\nFROM \"o\" GROUP BY 1 ORDER BY MIN(\"priorityOrder\"), \"priority\"",
+                            "tables": [
+                                {
+                                    "tableName": "open",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "statusClass": [
+                                                    "1",
+                                                    "2",
+                                                    "5",
+                                                    "6"
+                                                ]
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "priority",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "open",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 70,
+                                "pieDonutCenterValue": "total",
+                                "pieLabels": "none",
+                                "piePadAngle": 2,
+                                "pieBorderRadius": 4,
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Emergency": "#ef4444",
+                                    "High": "#f97316",
+                                    "Medium": "#f59e0b",
+                                    "Low": "#94a3b8"
+                                }
+                            }
+                        }
+                    },
+                    "timeframe": "none"
+                }
+            },
+            {
+                "i": "88ed00c0-03d0-58e9-b89a-9d2ffe551dc3",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Staff Workload",
+                    "description": "Open work per technician against the team median, and what each closed in the dashboard timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"o\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\", \"statusClassName\" = 'On Hold' AS \"onHold\" FROM \"open\"),\n\"d\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\" FROM \"closed\"),\n\"ow\" AS (SELECT \"tech\", COUNT(*) AS \"open\", COUNT(*) FILTER (WHERE \"onHold\") AS \"onHold\",\n           COUNT(*) FILTER (WHERE NOT \"onHold\" AND \"daysOld\" > 7) AS \"activeOlderThan7d\",\n           COUNT(*) FILTER (WHERE NOT \"onHold\" AND \"daysOld\" > 30) AS \"activeOlderThan30d\",\n           MAX(\"daysOld\") AS \"oldestDays\"\n         FROM \"o\" GROUP BY \"tech\"),\n\"cw\" AS (SELECT \"tech\", COUNT(*) AS \"closed\",\n           MEDIAN(DATE_DIFF('minute', \"createdDate\", \"completedDate\")) FILTER (WHERE \"statusClassName\" = 'Completed' AND \"completedDate\" IS NOT NULL) / 60.0 AS \"medianResolveHours\"\n         FROM \"d\" GROUP BY \"tech\"),\n\"g\" AS (SELECT \"tech\", STRING_AGG(DISTINCT \"responsibleGroupName\", ', ' ORDER BY \"responsibleGroupName\") AS \"team\" FROM (\n           SELECT \"tech\", \"responsibleGroupName\" FROM \"o\" UNION ALL SELECT \"tech\", \"responsibleGroupName\" FROM \"d\") GROUP BY \"tech\"),\n\"m\" AS (SELECT MEDIAN(\"open\") AS \"teamMedian\" FROM \"ow\" WHERE \"tech\" <> '(Unassigned)')\nSELECT \"g\".\"tech\" AS \"technician\", \"g\".\"team\",\n       COALESCE(\"open\", 0) AS \"open\", COALESCE(\"onHold\", 0) AS \"onHold\",\n       COALESCE(\"activeOlderThan7d\", 0) AS \"activeOlderThan7d\", COALESCE(\"activeOlderThan30d\", 0) AS \"activeOlderThan30d\",\n       ROUND(\"oldestDays\") AS \"oldestDays\",\n       COALESCE(\"cw\".\"closed\", 0) AS \"closedInPeriod\", ROUND(\"medianResolveHours\", 1) AS \"medianResolveHours\",\n       ROUND(100.0 * COALESCE(\"open\", 0) / NULLIF((SELECT \"teamMedian\" FROM \"m\"), 0)) AS \"loadVsMedianPct\"\nFROM \"g\" LEFT JOIN \"ow\" ON \"ow\".\"tech\" = \"g\".\"tech\" LEFT JOIN \"cw\" ON \"cw\".\"tech\" = \"g\".\"tech\"\nORDER BY \"open\" DESC, \"closedInPeriod\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "open",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "statusClass": [
+                                                    "1",
+                                                    "2",
+                                                    "5",
+                                                    "6"
+                                                ]
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "closed",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Closed"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "technician",
+                                        "title": "Technician",
+                                        "renderer": {
+                                            "type": "text",
+                                            "colors": {
+                                                "(Unassigned)": "#ef4444"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "team",
+                                        "title": "Team",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "open",
+                                        "title": "Open",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#3b82f6"
+                                        }
+                                    },
+                                    {
+                                        "field": "onHold",
+                                        "title": "On hold",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "activeOlderThan7d",
+                                        "title": "Active > 7d",
+                                        "renderer": {
+                                            "type": "number",
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#22c55e"
+                                                },
+                                                {
+                                                    "to": 3,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "activeOlderThan30d",
+                                        "title": "Active > 30d",
+                                        "renderer": {
+                                            "type": "number",
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#22c55e"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "oldestDays",
+                                        "title": "Oldest (days)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "closedInPeriod",
+                                        "title": "Closed",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#22c55e"
+                                        }
+                                    },
+                                    {
+                                        "field": "medianResolveHours",
+                                        "title": "Median resolve (h)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "loadVsMedianPct",
+                                        "title": "Load vs median",
+                                        "renderer": {
+                                            "type": "number",
+                                            "suffix": "%",
+                                            "decimals": 0,
+                                            "thresholds": [
+                                                {
+                                                    "to": 150,
+                                                    "color": "#22c55e"
+                                                },
+                                                {
+                                                    "to": 200,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "open",
+                                    "direction": "desc"
+                                },
+                                "richTableCellPadding": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1a1b29f3-4c48-5965-8249-b1c31bdf5f7b",
+                "x": 0,
+                "y": 12,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Demand by Service",
+                    "description": "Tickets opened in the dashboard timeframe for the eight busiest services, split by classification",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"c\" AS (SELECT * FROM \"created\"),\n\"x\" AS (SELECT CASE WHEN \"serviceName\" = '' THEN '(No service)' ELSE \"serviceName\" END AS \"service\",\n               CASE WHEN \"classificationName\" = '' THEN '(No classification)' ELSE \"classificationName\" END AS \"classification\"\n        FROM \"c\"),\n\"topSvc\" AS (SELECT \"service\" FROM \"x\" GROUP BY \"service\" ORDER BY COUNT(*) DESC, \"service\" LIMIT 8)\nSELECT \"service\", \"classification\", COUNT(*) AS \"tickets\"\nFROM \"x\" WHERE \"service\" IN (SELECT \"service\" FROM \"topSvc\") GROUP BY 1, 2 ORDER BY \"tickets\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "created",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Created"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "treemap",
+                            "encoding": {
+                                "label": {
+                                    "field": "classification",
+                                    "type": "nominal"
+                                },
+                                "parent": {
+                                    "field": "service",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "tickets",
+                                    "type": "quantitative",
+                                    "title": "Tickets"
+                                }
+                            },
+                            "style": {
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#ec4899",
+                                    "#14b8a6",
+                                    "#0ea5e9",
+                                    "#a855f7",
+                                    "#06b6d4",
+                                    "#f97316"
+                                ],
+                                "showLabels": true,
+                                "treemapGap": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "82017584-55c1-553e-bb21-fb854b89feb6",
+                "x": 2,
+                "y": 12,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "When Tickets Arrive",
+                    "description": "Tickets opened in the dashboard timeframe by weekday and hour (UTC)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"c\" AS (SELECT * FROM \"created\")\nSELECT STRFTIME(\"createdDate\", '%w %a') AS \"weekday\", LPAD(HOUR(\"createdDate\")::VARCHAR, 2, '0') || ':00' AS \"hourUtc\",\n       COUNT(*) AS \"tickets\"\nFROM \"c\" GROUP BY 1, 2 ORDER BY 1, 2",
+                            "tables": [
+                                {
+                                    "tableName": "created",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "dateField": "Created"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "heatmap",
+                            "encoding": {
+                                "x": {
+                                    "field": "hourUtc",
+                                    "type": "nominal",
+                                    "title": "Hour (UTC)"
+                                },
+                                "y": {
+                                    "field": "weekday",
+                                    "type": "nominal",
+                                    "title": "Weekday"
+                                },
+                                "color": {
+                                    "field": "tickets",
+                                    "type": "quantitative",
+                                    "title": "Tickets"
+                                }
+                            },
+                            "style": {
+                                "colorScheme": "squaredUpBlue",
+                                "heatmapCellBorderRadius": 2,
+                                "heatmapCellBorderWidth": 2,
+                                "heatmapShowColorScale": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ed46736a-3403-5250-b730-e35174e33619",
+                "x": 0,
+                "y": 15,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Open Tickets",
+                    "description": "Every open ticket for the selected teams, active work first, oldest first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH \"o\" AS (SELECT *, CASE WHEN COALESCE(\"responsibleFullName\", '') IN ('', '(Unassigned)') THEN '(Unassigned)' ELSE \"responsibleFullName\" END AS \"tech\", \"statusClassName\" = 'On Hold' AS \"onHold\" FROM \"open\")\nSELECT \"link\", \"ticketId\", \"title\", \"responsibleGroupName\" AS \"team\", \"tech\" AS \"owner\",\n       \"priorityName\" AS \"priority\", \"statusName\" AS \"status\", ROUND(\"daysOld\", 1) AS \"ageDays\",\n       \"createdDate\", \"resolveByDate\",\n       CASE WHEN \"isSlaViolated\" THEN 'SLA violated'\n            WHEN NOT \"onHold\" AND \"daysOld\" > 30 THEN 'Stale'\n            WHEN \"tech\" = '(Unassigned)' THEN 'Unassigned'\n            WHEN \"onHold\" THEN 'On hold'\n            ELSE 'OK' END AS \"flag\"\nFROM \"o\" ORDER BY \"onHold\", \"daysOld\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "open",
+                                    "config": {
+                                        "variables": [
+                                            "{{variables.[Team]}}"
+                                        ],
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[teamTickets]}}",
+                                            "name": "teamTickets",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "statusClass": [
+                                                    "1",
+                                                    "2",
+                                                    "5",
+                                                    "6"
+                                                ]
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Teams]}}",
+                                            "workspace": "{{workspaceId}}",
+                                            "variable": "{{variables.[Team]}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Team]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "link",
+                                        "title": "ID",
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "ticketId"
+                                        },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "title",
+                                        "title": "Title",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "team",
+                                        "title": "Team",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "owner",
+                                        "title": "Owner",
+                                        "renderer": {
+                                            "type": "text",
+                                            "colors": {
+                                                "(Unassigned)": "#ef4444"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "priority",
+                                        "title": "Priority",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "*Critical*": "#ef4444",
+                                                "*Emergency*": "#ef4444",
+                                                "*High*": "#f97316",
+                                                "*Medium*": "#f59e0b"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ageDays",
+                                        "title": "Age (days)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "createdDate",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "resolveByDate",
+                                        "title": "Due",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "flag",
+                                        "title": "Flag",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "SLA violated": "#ef4444",
+                                                "Stale": "#ef4444",
+                                                "Unassigned": "#f59e0b",
+                                                "On hold": "#94a3b8",
+                                                "OK": "#22c55e"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "flag",
+                                    "colors": {
+                                        "SLA violated": "rgba(239,68,68,0.15)",
+                                        "Stale": "rgba(239,68,68,0.10)",
+                                        "Unassigned": "rgba(245,158,11,0.12)"
+                                    }
+                                },
+                                "richTableCellPadding": 4
+                            }
+                        }
+                    },
+                    "timeframe": "none"
+                }
+            }
+        ]
+    }
+}
