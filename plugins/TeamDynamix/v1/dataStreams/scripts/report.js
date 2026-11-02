@@ -21,7 +21,10 @@ const columns = Array.isArray(data?.DisplayedColumns) ? data.DisplayedColumns : 
 const used = new Set();
 const names = columns.map((column) => {
     const header = String(column.HeaderText || column.ColumnName).replace(/\./g, " ").trim();
-    const name = used.has(header) ? `${header} (${column.ColumnName})` : header;
+    let name = header;
+    for (let n = 1; used.has(name); n++) {
+        name = n === 1 ? `${header} (${column.ColumnName})` : `${header} (${column.ColumnName} ${n})`;
+    }
     used.add(name);
     // Built-in ID columns (AssetID, TicketID…) are numbers on the wire, which would be shown
     // with a thousands separator ("42,665"), so they are passed as text.
