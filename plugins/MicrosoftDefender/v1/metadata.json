@@ -6,7 +6,7 @@
         "name": "SquaredUp Labs",
         "type": "labs"
     },
-    "description": "Visualize Defender alerts, incidents, Secure Score and vulnerabilities, plus devices and threat detections with advanced hunting.",
+    "description": "Visualize Defender alerts, incidents and Secure Score, plus devices, vulnerabilities and threat detections with advanced hunting.",
     "category": "Monitoring",
     "type": "hybrid",
     "schemaVersion": "2.0",
@@ -14,24 +14,30 @@
         "plugin": "WebAPI",
         "majorVersion": "1",
         "config": {
-            "authMode": "none",
-            "baseUrl": "https://graph.microsoft.com/v1.0/security/",
-            "showScripting": true,
-            "scriptingVariables": [
+            "oauth2TokenExtraArgs": [
                 {
-                    "key": "tenantId",
-                    "value": "{{tenantId}}"
+                    "value": "client_credentials",
+                    "key": "grant_type"
                 },
                 {
-                    "key": "clientId",
-                    "value": "{{clientId}}"
-                },
-                {
-                    "key": "clientSecret",
-                    "value": "{{clientSecret}}"
+                    "value": "https://graph.microsoft.com/.default",
+                    "key": "scope"
                 }
             ],
-            "preRequestScript": "preRequest.js"
+            "oauth2ClientSecret": "{{clientSecret}}",
+            "oauth2ClientSecretLocationDuringAuth": "body",
+            "authMode": "oauth2",
+            "oauth2GrantType": "clientCredentials",
+            "baseUrl": "https://graph.microsoft.com/v1.0/security/",
+            "oauth2TokenExtraHeaders": [
+                {
+                    "value": "application/x-www-form-urlencoded",
+                    "key": "Content-Type"
+                }
+            ],
+            "oauth2TokenUrl": "https://login.microsoftonline.com/{{tenantId}}/oauth2/v2.0/token",
+            "oauth2ClientId": "{{clientId}}",
+            "oauth2Scope": "https://graph.microsoft.com/.default"
         }
     },
     "links": [
