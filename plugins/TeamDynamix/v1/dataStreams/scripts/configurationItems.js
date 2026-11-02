@@ -1,13 +1,12 @@
 // Serves both CI tiles (configurationItems, the unpaged cmdb/search) and the import
 // (configurationItemsIndex, cmdb/search/paged, which wraps each page in { Data: [...] }).
 //
-// The import has to page. TeamDynamix creates a configuration item for every asset, so a big
-// asset application's CMDB is almost all asset mirrors (49,000+ in one real tenant), and one
-// unpaged search for it ran the stream out of memory before this script could drop them.
-// Tiles stay on the unpaged search, capped below: walking hundreds of 250-row pages (the API's
-// maximum page size) is fine every 12 hours but far too slow for a tile. The unpaged search's
-// MaxResults counts the asset mirrors dropped below, so it only guards memory; the number of
-// rows a tile shows is capped at the end of this script instead.
+// TeamDynamix creates a configuration item for every asset, so a big asset application's CMDB
+// is almost all asset mirrors (49,000+ in one real tenant). Both streams set ExcludeAssetCopies,
+// which preRequest.js turns into a TypeIDs filter so TeamDynamix leaves the mirrors out. The
+// BackingItemType check below stays as a backstop for when that filter can't be applied (the
+// type list request failed), in which case the mirrors still arrive and are dropped here.
+// The import still pages, as a large standalone CMDB would otherwise be one huge response.
 
 // BackingItemType is an integer enum on the wire. A CI can be backed by a service record
 // elsewhere in TeamDynamix, which is worth showing — but not as "47". 87 isn't in the
@@ -50,16 +49,14 @@ const nextApp = isSandbox ? "SBTDNext" : "TDNext";
 
 const items = Array.isArray(data) ? data : Array.isArray(data?.Data) ? data.Data : [];
 
-// The tile stream asks for at most 10,000 items (its postBody MaxResults). Unlimited, a CMDB
-// of 49,000 asset mirrors ran the stream out of memory with no useful message. If the limit is
-// reached, standalone items may be missing, so say so rather than show a silently short list.
+// The tile stream asks for at most 10,000 items (its postBody MaxResults), as a guard on
+// memory. Reaching it means items may be missing, so say so rather than show a short list.
 const TILE_SEARCH_LIMIT = 10000;
 if (Array.isArray(data) && data.length >= TILE_SEARCH_LIMIT) {
     throw new Error(
-        "This asset application's CMDB has more than 10,000 configuration items, mostly copies " +
-            "of its assets, which is too many to load in a tile. Turn on Import assets, " +
-            "configuration items, accounts and locations in the data source's Advanced options " +
-            "to import its standalone configuration items instead."
+        "This asset application's CMDB returned more than 10,000 configuration items, which is " +
+            "too many to load in a tile. Turn on Import assets, configuration items, accounts " +
+            "and locations in the data source's Advanced options to import them instead."
     );
 }
 
