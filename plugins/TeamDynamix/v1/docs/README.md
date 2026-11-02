@@ -106,7 +106,6 @@ Tickets are deliberately **not** imported as objects. They are high-volume trans
 | Function.ResponseSizeTooLarge | A list tile returned more than about 6 MB. Lower **Maximum tickets** (or assets), or add a status, group or timeframe filter. |
 | TeamDynamix rate limit reached while signing in | As above, but the sign-in request itself was throttled. The tile recovers after the reset time it shows. |
 | This asset application's CMDB returned 10,000 or more configuration items | See **Configuration item tiles stop when TeamDynamix returns 10,000 or more CMDB rows** above. |
-| This data source hasn't picked up the plugin's latest sign-in script | A **Team Tickets** tile (or the **Team Performance** dashboard) on a data source added before version 1.2.0. Open the data source and select **Test and update**. |
 | No TeamDynamix ticketing application is visible to the admin service account | A **Team Tickets** tile found no ticketing application at all. Grant the service account access to one in TDAdmin. |
 
 To check the BEID and Web Services Key outside SquaredUp, sign in to TDAdmin and confirm both on the **Organization detail** page, and that the admin service account shows as **Active**.
