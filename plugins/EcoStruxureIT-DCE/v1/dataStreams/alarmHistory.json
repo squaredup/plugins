@@ -1,7 +1,7 @@
 {
     "name": "alarmHistory",
     "displayName": "Alarm History",
-    "description": "Resolved alarms that started within the timeframe, optionally filtered by device",
+    "description": "Alarms resolved within the timeframe, optionally filtered by device (across all devices, the last 24 hours at most)",
     "tags": [
         "Alerts",
         "Device"
@@ -9,15 +9,23 @@
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
-        "endpointPath": "v1/alarms/history",
+        "endpointPath": "{{ typeof device !== 'undefined' && Array.isArray(device) && device.length === 1 ? 'v1/devices/' + encodeURIComponent([].concat(device[0].rawId)[0]) + '/alarms/history' : 'v1/alarms/history' }}",
         "getArgs": [
             {
+                "key": "startTime",
+                "value": "{{ typeof device !== 'undefined' && Array.isArray(device) && device.length === 1 ? String(new Date(timeframe.start).getTime()) : null }}"
+            },
+            {
+                "key": "endTime",
+                "value": "{{ typeof device !== 'undefined' && Array.isArray(device) && device.length === 1 ? String(new Date(timeframe.end).getTime()) : null }}"
+            },
+            {
                 "key": "startDateTime",
-                "value": "{{ String(new Date(timeframe.start).getTime()) }}"
+                "value": "{{ typeof device !== 'undefined' && Array.isArray(device) && device.length === 1 ? null : String(Math.max(new Date(timeframe.start).getTime(), new Date(timeframe.end).getTime() - 86400000)) }}"
             },
             {
                 "key": "endDateTime",
-                "value": "{{ String(new Date(timeframe.end).getTime()) }}"
+                "value": "{{ typeof device !== 'undefined' && Array.isArray(device) && device.length === 1 ? null : String(new Date(timeframe.end).getTime()) }}"
             }
         ],
         "postRequestScript": "alarms.js",
@@ -48,6 +56,16 @@
             "displayName": "Alarm",
             "shape": "string",
             "role": "label"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "shape": "string"
         },
         {
             "name": "severityText",
@@ -101,13 +119,6 @@
             "objectPropertyPath": "name"
         },
         {
-            "name": "sensorName",
-            "displayName": "Sensor",
-            "sourceId": "sensorGuid",
-            "sourceType": "Sensor",
-            "objectPropertyPath": "name"
-        },
-        {
             "name": "recommendedAction",
             "displayName": "Recommended Action",
             "shape": "string"
@@ -150,6 +161,8 @@
         {
             "name": "deviceGuid",
             "displayName": "Device ID",
+            "sourceId": "deviceGuid",
+            "sourceType": "Device",
             "shape": "string",
             "visible": false
         },

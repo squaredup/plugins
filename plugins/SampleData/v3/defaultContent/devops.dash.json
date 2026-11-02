@@ -1,0 +1,750 @@
+{
+    "name": "DevOps & DORA",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "6a756969-72d5-4eec-884f-f67e23a17fd7",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Deployment Frequency",
+                    "description": "Average production deployments per day",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(COUNT(*) / (DATE_DIFF('day', MIN(\"timestamp\"), MAX(\"timestamp\")) + 1), 1) AS \"deploysPerDay\" FROM \"dataset\"",
+                        "metadata": [
+                            {
+                                "name": "deploysPerDay",
+                                "displayName": "Deployments per day",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 1,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "deploysPerDay",
+                                "comparisonColumn": "none",
+                                "label": "Deployments per day"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "deploysPerDay",
+                                        "type": "quantitative",
+                                        "title": "Deployments per day"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f17d4c8f-ca4f-492a-8708-e8d1ba558d1f",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Lead Time for Changes",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "leadTimeHours"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "leadTimeHours_mean",
+                                "comparisonColumn": "none",
+                                "label": "Average hours from commit to production"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "leadTimeHours_mean",
+                                        "type": "quantitative",
+                                        "title": "Average hours from commit to production"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "731950d2-27a1-4e9b-9991-7b75ed716bf8",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Change Failure Rate",
+                    "description": "Share of deployments that caused a failure in production",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(100.0 * SUM(CASE WHEN \"changeFailure\" THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) AS \"changeFailureRate\" FROM \"dataset\"",
+                        "metadata": [
+                            {
+                                "name": "changeFailureRate",
+                                "displayName": "Change failure rate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "changeFailureRate",
+                                "comparisonColumn": "none",
+                                "label": "Deployments that caused a failure"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "changeFailureRate",
+                                        "type": "quantitative",
+                                        "title": "Deployments that caused a failure"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2e36172e-98b9-46e1-8b6f-eeb6a5c2889d",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Time to Restore",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "timeToRestoreMinutes"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "timeToRestoreMinutes_mean",
+                                "comparisonColumn": "none",
+                                "label": "Average time to restore after a failed change"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "timeToRestoreMinutes_mean",
+                                        "type": "quantitative",
+                                        "title": "Average time to restore after a failed change"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "76f341fb-58f3-4a60-a3b2-b6fd6aa4d306",
+                "x": 0,
+                "y": 2,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Deployments per Day by Team",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "timestamp",
+                                    "byDay"
+                                ],
+                                [
+                                    "team",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "timestamp_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "timestamp_byDay",
+                                "yAxisData": [
+                                    "count"
+                                ],
+                                "xAxisGroup": "team_uniqueValues",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": false,
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "stacked",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": true,
+                                "range": {
+                                    "type": "auto"
+                                }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Deployments"
+                                },
+                                "series": {
+                                    "field": "team_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Team"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a70d5885-9321-49ea-826b-26c5538df350",
+                "x": 3,
+                "y": 2,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Deployment Outcomes",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "status",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "count",
+                                "labelColumn": "status_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "status_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Status"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Deployments"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table",
+                                "mappedColors": {
+                                    "Succeeded": "#2fb344",
+                                    "Failed": "#d63939"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2ad9307e-6ff4-4725-8d77-1918b13f5106",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Lead Time Distribution",
+                    "description": "How many deployments took each length of time from commit to production",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "histogram",
+                            "encoding": {
+                                "x": {
+                                    "field": "leadTimeHours",
+                                    "type": "quantitative",
+                                    "title": "Lead time (hours)"
+                                }
+                            },
+                            "style": {
+                                "histogramBins": 12,
+                                "colors": [
+                                    "#206bc4"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3b9df9e5-74a3-4f73-905e-500f0079bc26",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Pipeline Health",
+                    "description": "Worst deployment outcome per pipeline per day; amber means a deployment caused a failure",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "healthHistory",
+                            "encoding": {
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Finished"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "State"
+                                },
+                                "label": {
+                                    "field": "pipeline",
+                                    "type": "nominal",
+                                    "title": "Pipeline"
+                                }
+                            },
+                            "style": {
+                                "historySlots": 30,
+                                "statusGridLabelWidth": 140,
+                                "historyBarHeight": 18
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "855ed3a9-3af9-4d9d-b2bf-2a3b55bf5672",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Deployments",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[deployments]}}",
+                        "name": "deployments",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "timestamp",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 50
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pipelines]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "timestamp",
+                                    "pipeline",
+                                    "service",
+                                    "team",
+                                    "version",
+                                    "status",
+                                    "changeFailure",
+                                    "state",
+                                    "durationMinutes",
+                                    "leadTimeHours"
+                                ],
+                                "hiddenColumns": [
+                                    "deploymentId",
+                                    "pipelineId",
+                                    "tool",
+                                    "timeToRestoreMinutes"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "timestamp",
+                                        "title": "Finished",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "pipeline",
+                                        "title": "Pipeline",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "service",
+                                        "title": "Service",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "team",
+                                        "title": "Team",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "version",
+                                        "title": "Version",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Succeeded": "#2fb344",
+                                                "Failed": "#d63939"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "changeFailure",
+                                        "title": "Caused a failure",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No",
+                                            "trueColor": "#d63939",
+                                            "falseColor": "#9ba3af"
+                                        }
+                                    },
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "durationMinutes",
+                                        "title": "Duration",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": " min"
+                                        }
+                                    },
+                                    {
+                                        "field": "leadTimeHours",
+                                        "title": "Lead time",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": " h"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "state",
+                                    "colors": {
+                                        "error": "rgba(214,57,57,0.15)",
+                                        "warning": "rgba(245,159,0,0.15)"
+                                    }
+                                },
+                                "richTableSort": {
+                                    "field": "timestamp",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

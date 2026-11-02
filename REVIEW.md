@@ -95,6 +95,7 @@ When suggesting changes:
 - timeframe - Data streams that don't support time-based filtering must explicitly declare `"none"` as an available timeframe. Omitting this causes UI warnings and incorrect default behaviour in OOB dashboards.
 - Numeric values - Return raw numeric values rather than pre-formatted strings (e.g. return `1234.56` not `"£1,234.56"`). Use column format expressions in dashboards for display formatting.
 - Column shapes - Use the `bytes` shape for columns representing byte sizes; SquaredUp will automatically display the most appropriate unit (e.g. 4.2 GB). Check for other applicable semantic shapes such as `timestamp` and `duration`.
+- List values - A column holding several values (tags, topics, addresses) uses `"shape": ["array", { "itemShape": "<shape>" }]`, not a comma-joined string, and not a second display column alongside it. An `objectPropertyPath` column reading a list property declares the same shape.
 - Timestamps - SquaredUp expects ISO 8601 strings for timestamp columns. If the upstream API returns Unix timestamps, the script must convert them.
 - Expressions - Where a transformation can be expressed using `map`, prefer it over a mustache-style value expression, or complex processing in a script for performance.
 - Deduplication - If multiple data streams share the same API endpoint and differ only by a filter, consider merging them into a single stream with a UI parameter to control the filter.
@@ -105,7 +106,7 @@ When suggesting changes:
 ### Source types (indexDefinitions/)
 
 - Name source types after how they are referred to in the upstream product or API (e.g. `agent`, `device`). Do not prefix them with the plugin name (e.g. avoid `NinjaOne Device`). A separate friendly display name can be configured if needed (via custom_types.json).
-- objectMapping.properties - Never use `id`, `state`, or a `__`-prefixed name as a property name; they fail the import at graph write. Rename instead, e.g. `{ "status": "state" }`. `rawId`, `sourceId`, `sourceType`, `name` and `label` are silently overwritten, so mapping them does nothing.
+- objectMapping.properties - Never use `id`, `state`, `tags`, or a `__`-prefixed name as a property name; they fail the import at graph write. Rename instead, e.g. `{ "status": "state" }` or `{ "checkTags": "tags" }`. `rawId`, `sourceId`, `sourceType`, `name` and `label` are silently overwritten, so mapping them does nothing.
 - pageSize - For APIs where a tenant can hold tens of thousands of objects, check the import stream's `pageSize` against both import limits: ~6MB per page and ~220 pages per import run. See the build-plugin skill's index-defs.md, "Large imports".
 
 ### Documentation - (docs/README.md)

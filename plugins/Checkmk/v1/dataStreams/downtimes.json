@@ -1,0 +1,39 @@
+{
+    "name": "downtimes",
+    "displayName": "Downtimes",
+    "description": "Scheduled host and service downtimes",
+    "tags": ["Maintenance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/domain-types/downtime/collections/all",
+        "getArgs": [
+            { "key": "query", "value": "{{ typeof host === 'undefined' || !host || !host.length ? null : JSON.stringify({ op: 'or', expr: host.map(o => ({ op: '=', left: 'host_name', right: String([].concat(o.rawId)[0]) })) }) }}" }
+        ],
+        "postRequestScript": "downtimes.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/checkmkError.js" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "host",
+            "label": "Host(s) (optional)",
+            "objectLimit": 25,
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Host"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "hostName", "displayName": "Host", "shape": "string" },
+        { "sourceId": "hostName", "sourceType": "Host", "name": "hostName" },
+        { "name": "service", "displayName": "Service", "shape": "string" },
+        { "name": "comment", "displayName": "Comment", "shape": "string", "role": "label" },
+        { "name": "author", "displayName": "Author", "shape": "string" },
+        { "name": "start", "displayName": "Start", "shape": "date" },
+        { "name": "end", "displayName": "End", "shape": "date" },
+        { "name": "active", "displayName": "Active", "shape": "boolean" },
+        { "name": "recurring", "displayName": "Recurring", "shape": "boolean" },
+        { "name": "downtimeId", "displayName": "Downtime ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

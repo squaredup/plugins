@@ -20,7 +20,7 @@ You will need your organization's **BEID** and **Web Services Key**.
 | **BEID** | A GUID identifying your TeamDynamix organization. Exchanged with the Web Services Key for a session token. | TDAdmin → **Organization detail**. | Yes |
 | **Web Services Key** | The secret paired with the BEID. Stored encrypted and never displayed again. | TDAdmin → **Organization detail**. | Yes |
 | **Maximum records per request** | Caps how many records a single search returns. Defaults to 2000. | Advanced options — leave as-is unless you hit the limits described below. | No |
-| **Ignore certificate errors** | Accepts self-signed or otherwise untrusted certificates. Enable only when the Web API endpoint cannot present a certificate trusted by a public certificate authority — a self-hosted instance can still have a properly trusted certificate and should not need this. | Advanced options. | No |
+| **Ignore certificate errors** | Accepts self-signed or otherwise untrusted certificates. Enable only when the Web API endpoint cannot present a certificate trusted by a public certificate authority — a self-hosted instance can still have a properly trusted certificate and should not need this. | Added by SquaredUp to every data source. | No |
 
 On save, the plugin signs in, then checks that at least one TeamDynamix application is visible to the service account and that accounts and departments can be read. A failure at the first step means the address, BEID or Web Services Key is wrong, or the service account is inactive. A failure at the second means the credentials work but the service account has not been granted access to any application.
 
@@ -46,15 +46,16 @@ The out-of-the-box dashboards are an organization-wide **Overview**, a **Service
 - **Knowledge Base Articles** — knowledge base articles in a client portal application. Article bodies are excluded.
 - **Time Entries** — time logged against tickets, projects and tasks, account-wide.
 - **Locations** — active locations with their ticket, asset, configuration item and user counts, account-wide.
-- **Accounts**, **Groups**, **Applications**, **Current User** — account-wide reference data. These back the import and setup checks and are hidden from the tile editor; the imported objects are visible in the graph instead.
+- **Applications** — every active application the service account can see, with its Type and Class and the object type it's imported as. Use it to check which applications are recognised as ticketing or Assets/CIs applications.
+- **Accounts**, **Groups**, **Current User** — account-wide reference data. These back the import and setup checks and are hidden from the tile editor; the imported objects are visible in the graph instead.
 
 ## What gets indexed
 
 | Object type | API source | Represents |
 | ----------- | ---------- | ---------- |
-| **TeamDynamix Ticketing App** | `GET /api/applications` (type `Ticketing`) | A ticketing application, e.g. your service desk. Scope ticket tiles to one of these. |
-| **TeamDynamix Asset App** | `GET /api/applications` (type `Assets/CI`) | An asset and CMDB application. Scope asset and configuration item tiles to one of these. |
-| **TeamDynamix Application** | `GET /api/applications` (all other types) | Any other application — client portal, projects or external. Scope project, service and knowledge base tiles to one of these. |
+| **TeamDynamix Ticketing App** | `GET /api/applications` (class `TDTickets`, or a type starting "Ticket") | A ticketing application, e.g. your service desk. Scope ticket tiles to one of these. |
+| **TeamDynamix Asset App** | `GET /api/applications` (class `TDAssets`, or a type starting "Asset") | An asset and CMDB application. Scope asset and configuration item tiles to one of these. |
+| **TeamDynamix Application** | `GET /api/applications` (everything else) | Any other application — client portal, projects or external. Scope project, service and knowledge base tiles to one of these. |
 | **TeamDynamix Account** | `GET /api/accounts` | An account or department. |
 | **TeamDynamix Location** | `GET /api/locations` | A physical location, with its rolled-up counts and coordinates. |
 | **TeamDynamix Group** | `POST /api/groups/search` | A group used to assign and route work. |

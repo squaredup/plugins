@@ -1,0 +1,133 @@
+{
+    "name": "runbookStatus",
+    "displayName": "Runbook Status",
+    "description": "Latest run of a runbook in each environment it can run in, in lifecycle order",
+    "tags": [
+        "Deployments"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{object.spaceId}}/progression/runbooks/{{object.rawId}}",
+        "postRequestScript": "runbookStatus.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Runbook"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "environmentName",
+            "displayName": "Environment",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['state'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Success"
+                        ],
+                        "error": [
+                            "Failed",
+                            "TimedOut"
+                        ],
+                        "warning": [
+                            "Canceled",
+                            "Cancelling",
+                            "AwaitingIntervention"
+                        ],
+                        "unknown": [
+                            "Queued",
+                            "Executing"
+                        ],
+                        "unmonitored": [
+                            "NeverRun"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "detail",
+            "displayName": "Detail",
+            "shape": "string"
+        },
+        {
+            "name": "lastRunTime",
+            "displayName": "Last Run",
+            "shape": "date"
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": "seconds"
+        },
+        {
+            "name": "runBy",
+            "displayName": "Run By",
+            "shape": "string"
+        },
+        {
+            "name": "snapshotName",
+            "displayName": "Snapshot",
+            "shape": "string"
+        },
+        {
+            "name": "errorMessage",
+            "displayName": "Error",
+            "shape": "string"
+        },
+        {
+            "name": "environmentSortOrder",
+            "displayName": "Environment Order",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "runbookId",
+            "displayName": "Runbook ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "environmentId",
+            "displayName": "Environment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "taskId",
+            "displayName": "Task ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "environmentId",
+            "sourceType": "Environment",
+            "name": "environmentName"
+        }
+    ],
+    "timeframes": false
+}

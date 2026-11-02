@@ -1,0 +1,698 @@
+{
+    "name": "Eddi",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [
+        "{{variables.[Eddi]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "ca8e8c12-6f2a-5ab6-86c3-15dccfc97f10",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Diverter",
+                    "description": "Current diversion status; amber means no data in the last 15 minutes",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "deviceName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{status}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d2ce8c00-d0b2-545d-af48-65726f4988e9",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Heating Now",
+                    "description": "Power going to the immersion heater right now, against a 3.6 kW maximum",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(\"power\" / 1000, 2) AS \"heatKw\" FROM \"dataset\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "heatKw",
+                                    "type": "quantitative",
+                                    "title": "Heating (kW)"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 3.6,
+                                "labelFormat": "{{{{raw}}}}{{value}} kW{{{{/raw}}}}",
+                                "gaugeBands": [
+                                    {
+                                        "to": 1,
+                                        "color": "#F0506E"
+                                    }
+                                ],
+                                "gaugeLabelText": "Heating now"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ba92341b-e875-569a-aec3-10629c1e295a",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tank Temperatures",
+                    "description": "Readings from the tank probes in °C, against an 80 °C scale; empty when no probe is fitted",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"tank\", \"temperature\" FROM (SELECT 'Tank 1' AS \"tank\", \"tank1Temperature\" AS \"temperature\" FROM \"dataset\" UNION ALL SELECT 'Tank 2', \"tank2Temperature\" FROM \"dataset\") WHERE \"temperature\" IS NOT NULL ORDER BY \"tank\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "temperature",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "tank",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridMax": 80,
+                                "ringGridTrackWidth": 8,
+                                "labelFontSize": 13,
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 0.5,
+                                        "color": "#38BDF8"
+                                    },
+                                    {
+                                        "to": 0.7,
+                                        "color": "#F5A623"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#F0506E"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2ec99bce-4a96-530f-812b-f6d147eccc8b",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Diverter Details",
+                    "description": "Active heater, energy heated today and supply readings",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "activeHeater",
+                                        "title": "Active heater",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "energy",
+                                        "title": "Heated today",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " kWh"
+                                        }
+                                    },
+                                    {
+                                        "field": "boosting",
+                                        "title": "Boosting",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No"
+                                        }
+                                    },
+                                    {
+                                        "field": "gridPower",
+                                        "title": "Grid now",
+                                        "renderer": {
+                                            "type": "number",
+                                            "suffix": " W"
+                                        }
+                                    },
+                                    {
+                                        "field": "voltage",
+                                        "title": "Supply voltage",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": " V"
+                                        }
+                                    },
+                                    {
+                                        "field": "frequency",
+                                        "title": "Grid frequency",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " Hz"
+                                        }
+                                    },
+                                    {
+                                        "field": "lastUpdated",
+                                        "title": "Last reading",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true,
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "baf2d700-cc00-56d3-ab20-22174a65e9de",
+                "x": 0,
+                "y": 2,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Surplus Captured (30 Days)",
+                    "description": "kWh of solar surplus the Eddi turned into hot water, out of everything diverted plus everything exported to the grid over the last 30 days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "SELECT 'kWh to hot water' AS \"metric\", ROUND(SUM(\"diverted\"), 1) AS \"captured\", ROUND(SUM(\"diverted\") + SUM(\"export\"), 1) AS \"available\" FROM \"dataset\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "captured",
+                                    "type": "quantitative"
+                                },
+                                "max": {
+                                    "field": "available",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "metric",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridTrackWidth": 8,
+                                "labelFontSize": 13,
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 1,
+                                        "color": "#F5A623"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6f3a7696-3108-5cad-b260-e22c36056f7d",
+                "x": 1,
+                "y": 2,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CT Clamps",
+                    "description": "Live power through each CT clamp on this Eddi; a grid clamp turns green when exporting",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[ctReadings]}}",
+                        "name": "ctReadings",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"ctType\", \"power\" FROM \"dataset\" ORDER BY \"ct\" DESC"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "ctType",
+                                    "type": "nominal",
+                                    "title": "CT"
+                                },
+                                "y": {
+                                    "field": "power",
+                                    "type": "quantitative",
+                                    "title": "Power (W)"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "labelFormat": "{{{{raw}}}}{{value}} W{{{{/raw}}}}",
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianColorRules": [
+                                    {
+                                        "label": "Grid",
+                                        "lt": 0,
+                                        "color": "#2BB673"
+                                    },
+                                    {
+                                        "label": "Grid",
+                                        "color": "#8E6CEF"
+                                    },
+                                    {
+                                        "label": "Generation",
+                                        "color": "#F5A623"
+                                    },
+                                    {
+                                        "labelContains": "Load",
+                                        "color": "#F0506E"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3504453d-f20c-5195-bbe1-9cce36e82a2f",
+                "x": 0,
+                "y": 4,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Heating vs Surplus",
+                    "description": "Average power diverted to and boosted into the hot water, against power exported to the grid that could have been diverted, in kW",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "power"
+                        },
+                        "sql": "SELECT \"timestamp\", \"series\", \"kw\" FROM (SELECT \"timestamp\", 'Diverted' AS \"series\", \"diverted\" AS \"kw\" FROM \"dataset\" UNION ALL SELECT \"timestamp\", 'Boosted', \"boosted\" FROM \"dataset\" UNION ALL SELECT \"timestamp\", 'Exported', \"export\" FROM \"dataset\") ORDER BY \"timestamp\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "kw",
+                                    "type": "quantitative",
+                                    "title": "kW",
+                                    "aggregate": "avg"
+                                },
+                                "series": {
+                                    "field": "series",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSymbol": "none",
+                                "mappedColors": {
+                                    "Diverted": "#F5A623",
+                                    "Boosted": "#8E6CEF",
+                                    "Exported": "#2BB673"
+                                },
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "kW"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "997f88e1-816d-5004-b6a0-123f358b6e69",
+                "x": 0,
+                "y": 7,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Hot Water and Spare Solar",
+                    "description": "Each whole day's energy diverted and boosted into the hot water, next to the surplus exported to the grid that day",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH b AS (SELECT DATE_TRUNC('day', MIN(\"timestamp\") + INTERVAL 23 HOUR) AS lo, DATE_TRUNC('day', MAX(\"timestamp\")) AS hi FROM \"dataset\"), x AS (SELECT \"dataset\".* FROM \"dataset\", b WHERE \"timestamp\" >= b.lo AND \"timestamp\" < b.hi) SELECT STRFTIME(DATE_TRUNC('day', \"timestamp\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", ROUND(SUM(\"diverted\"), 2) AS \"diverted\", ROUND(SUM(\"boosted\"), 2) AS \"boosted\", ROUND(SUM(\"export\"), 2) AS \"surplusExported\" FROM x GROUP BY 1 ORDER BY 1"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal"
+                                }
+                            },
+                            "style": {
+                                "colors": [
+                                    "#F5A623",
+                                    "#8E6CEF",
+                                    "#2BB673"
+                                ],
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2,
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "kWh"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ad6285b9-a767-5a4d-a3af-010d9b284c8c",
+                "x": 0,
+                "y": 11,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Boost Schedules",
+                    "description": "Boost timer slots configured on this Eddi",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[boostSchedules]}}",
+                        "name": "boostSchedules",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "target",
+                                        "title": "Output",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "defaultColor": "#64748B"
+                                        }
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Starts",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "days",
+                                        "title": "Days",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "color": "#F0506E"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4009c536-c449-5552-a3c5-a07b9d64cddb",
+                "x": 2,
+                "y": 11,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Eddi Properties",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Eddis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Eddi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Eddi]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": [
+                                    "name",
+                                    "serial",
+                                    "firmware",
+                                    "heater1Name",
+                                    "heater2Name",
+                                    "ctTypes"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "links",
+                                    "type",
+                                    "label",
+                                    "sourceId",
+                                    "sourceType",
+                                    "sourceName"
+                                ],
+                                "columnDisplayNames": {
+                                    "heater1Name": "Heater 1",
+                                    "heater2Name": "Heater 2",
+                                    "ctTypes": "CT types"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

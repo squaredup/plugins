@@ -1,0 +1,33 @@
+{
+    "name": "flagEvaluations",
+    "displayName": "Flag Evaluations",
+    "description": "Evaluation counts for a feature flag over time, by variation",
+    "tags": ["Usage", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "usage/evaluations/{{object.projectKey}}/{{environmentKey || 'production'}}/{{object.flagKey}}",
+        "getArgs": [
+            { "key": "from", "value": "{{timeframe.unixStart * 1000}}" },
+            { "key": "to", "value": "{{timeframe.unixEnd * 1000}}" }
+        ],
+        "headers": [{ "key": "LD-API-Version", "value": "beta" }],
+        "postRequestScript": "flagEvaluations.js"
+    },
+    "ui": [
+        {
+            "name": "environmentKey",
+            "label": "Environment key",
+            "type": "text",
+            "defaultValue": "production",
+            "placeholder": "production"
+        }
+    ],
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Flag"] } },
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "variation", "displayName": "Variation", "role": "label" },
+        { "name": "evaluations", "displayName": "Evaluations", "shape": "number", "role": "value" }
+    ],
+    "timeframes": true
+}

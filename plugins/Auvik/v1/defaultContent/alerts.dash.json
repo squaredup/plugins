@@ -1,0 +1,823 @@
+{
+    "name": "Alerts",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "contents": [
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'Open') AS \"open\", COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'Open' AND \"severity[Expanded].rawState\" IN ('critical', 'emergency')) AS \"critical\" FROM \"dataset\""
+                    },
+                    "description": "Alerts raised in the last 30 days that are still open, and how many are critical or emergency",
+                    "timeframe": "last30days",
+                    "title": "Needs Attention",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "open",
+                                        "title": "Open",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "critical",
+                                        "title": "Critical",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2,
+                                "scalarValueColor": "#f59e0b"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "d04dae3e-5b94-4dda-9946-b2aef128dee1",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH r AS (SELECT CAST(EPOCH(\"resolvedOn\") - EPOCH(\"detectedOn\") AS DOUBLE) AS secs FROM \"dataset\" WHERE \"resolvedOn\" IS NOT NULL), m AS (SELECT AVG(secs) AS mean_s, MEDIAN(secs) AS median_s FROM r) SELECT (SELECT COUNT(*) FROM \"dataset\") AS \"raised\", (SELECT COUNT(*) FROM \"dataset\" WHERE \"status[Expanded].rawState\" = 'Resolved') AS \"resolved\", CASE WHEN m.mean_s IS NULL THEN '-' WHEN m.mean_s < 3600 THEN CAST(CAST(ROUND(m.mean_s / 60) AS BIGINT) AS VARCHAR) || 'm' WHEN m.mean_s < 86400 THEN CAST(CAST(FLOOR(m.mean_s / 3600) AS BIGINT) AS VARCHAR) || 'h ' || CAST(CAST(FLOOR((m.mean_s % 3600) / 60) AS BIGINT) AS VARCHAR) || 'm' ELSE CAST(CAST(FLOOR(m.mean_s / 86400) AS BIGINT) AS VARCHAR) || 'd ' || CAST(CAST(FLOOR((m.mean_s % 86400) / 3600) AS BIGINT) AS VARCHAR) || 'h' END AS \"mttr\", CASE WHEN m.median_s IS NULL THEN '-' WHEN m.median_s < 3600 THEN CAST(CAST(ROUND(m.median_s / 60) AS BIGINT) AS VARCHAR) || 'm' WHEN m.median_s < 86400 THEN CAST(CAST(FLOOR(m.median_s / 3600) AS BIGINT) AS VARCHAR) || 'h ' || CAST(CAST(FLOOR((m.median_s % 3600) / 60) AS BIGINT) AS VARCHAR) || 'm' ELSE CAST(CAST(FLOOR(m.median_s / 86400) AS BIGINT) AS VARCHAR) || 'd ' || CAST(CAST(FLOOR((m.median_s % 86400) / 3600) AS BIGINT) AS VARCHAR) || 'h' END AS \"median\" FROM m"
+                    },
+                    "description": "Alerts raised and cleared in the timeframe, with the mean and median time it took to clear them",
+                    "title": "Alert Flow",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "raised",
+                                        "title": "Raised",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "resolved",
+                                        "title": "Resolved",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "field": "mttr",
+                                        "title": "Mean time to resolve",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "median",
+                                        "title": "Median time to resolve",
+                                        "type": "nominal"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "8bf37e2e-2087-4df7-bdd6-06b031e9b8a9",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 1,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(CAST(COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'Resolved') AS DOUBLE) * 100 / NULLIF(COUNT(*), 0), 1) AS \"cleared\", CAST(COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'Resolved') AS VARCHAR) || ' of ' || CAST(COUNT(*) AS VARCHAR) || ' cleared' AS \"detail\" FROM \"dataset\""
+                    },
+                    "description": "Share of the alerts raised in the timeframe that have since cleared",
+                    "title": "Cleared Rate",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "detail",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "cleared",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 0.5
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 0.8
+                                    },
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 1
+                                    }
+                                ],
+                                "ringGridTrackWidth": 10
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "afd81d29-65f4-40e6-8709-360090ffe3b1",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 3,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"detectedOn\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", UPPER(SUBSTR(\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(\"severity[Expanded].rawState\", 2) AS \"severity\", CAST(COUNT(*) AS DOUBLE) AS \"alerts\" FROM \"dataset\" GROUP BY ALL ORDER BY \"day\", MIN(\"severityLevel\")"
+                    },
+                    "description": "Alerts raised each day in the timeframe, stacked by severity",
+                    "title": "Alert Trend by Severity",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "severity",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "day",
+                                    "title": "Day",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "alerts",
+                                    "title": "Alerts",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Emergency": "#b91c1c",
+                                    "Info": "#3b82f6",
+                                    "Warning": "#f59e0b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "b663d71d-670d-43a8-b2a2-3d510cf44409",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH d AS (SELECT * FROM (VALUES (1, 'Mon'), (2, 'Tue'), (3, 'Wed'), (4, 'Thu'), (5, 'Fri'), (6, 'Sat'), (7, 'Sun')) t(dn, day)), h AS (SELECT CAST(range AS BIGINT) AS hr FROM range(0, 24)), a AS (SELECT ISODOW(\"detectedOn\") AS dn, HOUR(\"detectedOn\") AS hr, COUNT(*) AS n FROM \"dataset\" GROUP BY ALL) SELECT d.day AS \"day\", LPAD(CAST(h.hr AS VARCHAR), 2, '0') AS \"hour\", CAST(COALESCE(a.n, 0) AS DOUBLE) AS \"alerts\" FROM d CROSS JOIN h LEFT JOIN a ON a.dn = d.dn AND a.hr = h.hr ORDER BY d.dn DESC, h.hr"
+                    },
+                    "description": "Alerts raised over the last 30 days by hour of day and day of week (UTC), to spot noisy schedules such as backups or scans",
+                    "timeframe": "last30days",
+                    "title": "When Alerts Fire",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "heatmap",
+                            "encoding": {
+                                "color": {
+                                    "field": "alerts",
+                                    "title": "Alerts",
+                                    "type": "quantitative"
+                                },
+                                "x": {
+                                    "field": "hour",
+                                    "title": "Hour (UTC)",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "day",
+                                    "title": "Day",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "colorScheme": "squaredUpBlue",
+                                "heatmapCellBorderRadius": 2,
+                                "heatmapCellBorderWidth": 2,
+                                "heatmapColorScaleReversed": true,
+                                "heatmapShowColorScale": false
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "31de5913-b460-4fb6-a447-3de6ef3811ce",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT UPPER(SUBSTR(a.\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(a.\"severity[Expanded].rawState\", 2) AS \"severity\", a.\"name\" AS \"alert\", CASE WHEN a.\"entityName\" IS NULL OR a.\"entityName\" LIKE 'Object not found%' OR a.\"entityName\" LIKE 'No % value' THEN '-' ELSE a.\"entityName\" END AS \"affected\", TRIM(REGEXP_REPLACE(a.\"description\", '[[:space:]]+', ' ', 'g')) AS \"details\", COALESCE(t.\"name\", a.\"tenantName\") AS \"site\", a.\"detectedOn\" AS \"raised\", a.\"tickets\" AS \"tickets\", a.\"link\" AS \"link\" FROM \"alerts\" a LEFT JOIN \"tenants\" t ON t.\"id\" = a.\"tenantId\" WHERE a.\"status[Expanded].rawState\" = 'Open' ORDER BY a.\"severityLevel\", a.\"detectedOn\" DESC",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        },
+                                        "timeframe": "last30days"
+                                    },
+                                    "tableName": "alerts"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[tenants]}}",
+                                            "name": "tenants"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "tenants"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Alerts raised in the last 30 days that are still open, most severe first. Click a row to open it in Auvik",
+                    "timeframe": "last30days",
+                    "title": "Open Alerts",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity",
+                                        "renderer": {
+                                            "colors": {
+                                                "Critical": "#ef4444",
+                                                "Emergency": "#b91c1c",
+                                                "Info": "#2563eb",
+                                                "Warning": "#d97706"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Severity",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "alert",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Alert"
+                                    },
+                                    {
+                                        "field": "affected",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Affected"
+                                    },
+                                    {
+                                        "field": "details",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Details"
+                                    },
+                                    {
+                                        "field": "site",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Site"
+                                    },
+                                    {
+                                        "field": "raised",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Open since"
+                                    },
+                                    {
+                                        "field": "tickets",
+                                        "renderer": {
+                                            "color": "#6366f1",
+                                            "type": "tag-list"
+                                        },
+                                        "title": "Tickets"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "Critical": "rgba(239,68,68,0.10)",
+                                        "Emergency": "rgba(185,28,28,0.14)"
+                                    },
+                                    "field": "severity"
+                                },
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "51430fe0-ca17-4fdb-8823-b78205d01757",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH a AS (SELECT * FROM \"dataset\" WHERE \"entityType\" = 'Device' AND \"entityName\" IS NOT NULL AND \"entityName\" NOT LIKE 'Object not found%' AND \"entityName\" NOT LIKE 'No % value'), ids AS (SELECT \"entityName\", \"entityId\", ROW_NUMBER() OVER (PARTITION BY \"entityName\" ORDER BY \"entityId\") AS rn, COUNT(*) OVER (PARTITION BY \"entityName\") AS dup FROM (SELECT DISTINCT \"entityName\", \"entityId\" FROM a)), top AS (SELECT \"entityId\", COUNT(*) AS total FROM a GROUP BY 1 ORDER BY total DESC LIMIT 8) SELECT CASE WHEN i.dup > 1 THEN a.\"entityName\" || ' #' || i.rn ELSE a.\"entityName\" END AS \"device\", UPPER(SUBSTR(a.\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(a.\"severity[Expanded].rawState\", 2) AS \"severity\", CAST(COUNT(*) AS DOUBLE) AS \"alerts\" FROM a JOIN ids i ON a.\"entityId\" = i.\"entityId\" JOIN top t ON a.\"entityId\" = t.\"entityId\" GROUP BY ALL ORDER BY MAX(t.total) DESC, \"device\", MIN(a.\"severityLevel\")"
+                    },
+                    "description": "Devices that raised the most alerts in the timeframe, by severity",
+                    "title": "Noisiest Devices",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "severity",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "device",
+                                    "title": "Device",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "alerts",
+                                    "title": "Alerts",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Emergency": "#b91c1c",
+                                    "Info": "#3b82f6",
+                                    "Warning": "#f59e0b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "c70f321c-c025-4f92-8f44-e04a740b5a87",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 9,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH top AS (SELECT \"name\", COUNT(*) AS total FROM \"dataset\" GROUP BY 1 ORDER BY total DESC, \"name\" LIMIT 8) SELECT a.\"name\" AS \"alert\", UPPER(SUBSTR(a.\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(a.\"severity[Expanded].rawState\", 2) AS \"severity\", CAST(COUNT(*) AS DOUBLE) AS \"alerts\" FROM \"dataset\" a JOIN top t ON a.\"name\" = t.\"name\" GROUP BY ALL ORDER BY MAX(t.total) DESC, \"alert\", MIN(a.\"severityLevel\")"
+                    },
+                    "description": "The alerts that fired most often in the timeframe, by severity",
+                    "title": "Noisiest Alert Types",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "severity",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "alert",
+                                    "title": "Alert",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "alerts",
+                                    "title": "Times raised",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Emergency": "#b91c1c",
+                                    "Info": "#3b82f6",
+                                    "Warning": "#f59e0b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "3ddb3209-7b4b-41bd-9c3b-2352b223cf71",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 9,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH b AS (SELECT * FROM (VALUES (1, 'Under 15m', 0, 900), (2, '15m to 1h', 900, 3600), (3, '1h to 4h', 3600, 14400), (4, '4h to 1d', 14400, 86400), (5, '1d to 3d', 86400, 259200), (6, 'Over 3d', 259200, 1000000000)) t(ord, bucket, lo, hi)), r AS (SELECT CAST(EPOCH(\"resolvedOn\") - EPOCH(\"detectedOn\") AS DOUBLE) AS secs FROM \"dataset\" WHERE \"resolvedOn\" IS NOT NULL) SELECT b.bucket AS \"bucket\", CAST(COUNT(r.secs) AS DOUBLE) AS \"alerts\" FROM b LEFT JOIN r ON r.secs >= b.lo AND r.secs < b.hi GROUP BY b.ord, b.bucket ORDER BY b.ord"
+                    },
+                    "description": "How long the alerts that cleared in the timeframe stayed open",
+                    "title": "Time to Resolve",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "bucket",
+                                    "title": "Time to resolve",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "alerts",
+                                    "title": "Alerts",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianColorRules": [
+                                    {
+                                        "color": "#22c55e",
+                                        "label": "Under 15m"
+                                    },
+                                    {
+                                        "color": "#14b8a6",
+                                        "label": "15m to 1h"
+                                    },
+                                    {
+                                        "color": "#0ea5e9",
+                                        "label": "1h to 4h"
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "label": "4h to 1d"
+                                    },
+                                    {
+                                        "color": "#f97316",
+                                        "label": "1d to 3d"
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "label": "Over 3d"
+                                    }
+                                ],
+                                "cartesianShowHorizontalGridLines": false,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "0269a59d-abf4-419d-b020-b41fa9982575",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 12,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH a AS (SELECT \"tenantId\", COUNT(*) AS raised, COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'Open') AS open, COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'Open' AND \"severity[Expanded].rawState\" IN ('critical', 'emergency')) AS critical FROM \"alerts\" GROUP BY 1) SELECT t.\"name\" AS \"site\", CASE WHEN COALESCE(a.critical, 0) > 0 THEN 'error' WHEN COALESCE(a.open, 0) > 0 THEN 'warning' ELSE 'success' END AS \"health\", COALESCE(a.open, 0) AS \"open\", COALESCE(a.critical, 0) AS \"critical\", COALESCE(a.raised, 0) AS \"raised\" FROM \"tenants\" t LEFT JOIN a ON a.\"tenantId\" = t.\"id\" WHERE t.\"tenantType\" = 'client' ORDER BY \"critical\" DESC, \"open\" DESC, \"raised\" DESC",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        },
+                                        "timeframe": "last30days"
+                                    },
+                                    "tableName": "alerts"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[tenants]}}",
+                                            "name": "tenants"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "tenants"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Each site coloured by its worst open alert in the last 30 days: red for critical or emergency, amber for any other open alert",
+                    "timeframe": "last30days",
+                    "title": "Site Health",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "site",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "open",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 14,
+                                "secondaryFontSize": 11,
+                                "statusGridBlockGap": 6,
+                                "statusGridColumnsPerRow": 3,
+                                "statusGridMaxBlockHeight": 120,
+                                "statusGridOrderByField": "open",
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{open}} open · {{critical}} critical · {{raised}} raised{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "155c9c93-6f89-4a2b-b0fe-c9f4b577f1e2",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 12,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT UPPER(SUBSTR(a.\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(a.\"severity[Expanded].rawState\", 2) AS \"severity\", a.\"name\" AS \"alert\", CASE WHEN a.\"entityName\" IS NULL OR a.\"entityName\" LIKE 'Object not found%' OR a.\"entityName\" LIKE 'No % value' THEN '-' ELSE a.\"entityName\" END AS \"affected\", COALESCE(t.\"name\", a.\"tenantName\") AS \"site\", a.\"detectedOn\" AS \"raised\", a.\"resolvedOn\" AS \"cleared\", CASE WHEN CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) IS NULL THEN '-' WHEN CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) < 3600 THEN CAST(CAST(ROUND(CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) / 60) AS BIGINT) AS VARCHAR) || 'm' WHEN CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) < 86400 THEN CAST(CAST(FLOOR(CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) / 3600) AS BIGINT) AS VARCHAR) || 'h ' || CAST(CAST(FLOOR((CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) % 3600) / 60) AS BIGINT) AS VARCHAR) || 'm' ELSE CAST(CAST(FLOOR(CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) / 86400) AS BIGINT) AS VARCHAR) || 'd ' || CAST(CAST(FLOOR((CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) % 86400) / 3600) AS BIGINT) AS VARCHAR) || 'h' END AS \"duration\", CAST(EPOCH(a.\"resolvedOn\") - EPOCH(a.\"detectedOn\") AS DOUBLE) / 60 AS \"minutes\", a.\"link\" AS \"link\" FROM \"alerts\" a LEFT JOIN \"tenants\" t ON t.\"id\" = a.\"tenantId\" WHERE a.\"status[Expanded].rawState\" = 'Resolved' ORDER BY COALESCE(a.\"resolvedOn\", a.\"detectedOn\") DESC",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        }
+                                    },
+                                    "tableName": "alerts"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[tenants]}}",
+                                            "name": "tenants"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "tenants"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Alerts raised in the timeframe that have cleared, most recent first, with how long each stayed open. Click a row to open it in Auvik",
+                    "title": "Recently Resolved",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity",
+                                        "renderer": {
+                                            "colors": {
+                                                "Critical": "#ef4444",
+                                                "Emergency": "#b91c1c",
+                                                "Info": "#2563eb",
+                                                "Warning": "#d97706"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Severity",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "alert",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Alert"
+                                    },
+                                    {
+                                        "field": "affected",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Affected"
+                                    },
+                                    {
+                                        "field": "site",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Site"
+                                    },
+                                    {
+                                        "field": "raised",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Raised"
+                                    },
+                                    {
+                                        "field": "cleared",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Cleared"
+                                    },
+                                    {
+                                        "align": "right",
+                                        "field": "duration",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Open for",
+                                        "width": 110
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "755f65b2-3f2e-4642-b4f9-747dde8ddb71",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 15,
+                "z": 0
+            }
+        ],
+        "version": 1
+    }
+}

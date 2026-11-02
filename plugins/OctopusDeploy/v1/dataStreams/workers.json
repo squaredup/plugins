@@ -1,0 +1,184 @@
+{
+    "name": "workers",
+    "displayName": "Workers",
+    "description": "Workers with their current health status, worker pools and agent versions",
+    "tags": [
+        "Infrastructure",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/workers",
+        "getArgs": [
+            {
+                "key": "workerPoolIds",
+                "value": "{{ object.rawId.startsWith('WorkerPools-') ? object.rawId : null }}"
+            },
+            {
+                "key": "ids",
+                "value": "{{ object.rawId.startsWith('Workers-') ? object.rawId : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "take",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "Items"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "skip"
+            }
+        },
+        "postRequestScript": "workers.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Worker Pool",
+                "Worker"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "Id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "Name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['IsDisabled'] ? 'Disabled' : $['HealthStatus'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Healthy"
+                        ],
+                        "warning": [
+                            "HasWarnings"
+                        ],
+                        "error": [
+                            "Unhealthy",
+                            "Unavailable"
+                        ],
+                        "unknown": [
+                            "Unknown"
+                        ],
+                        "unmonitored": [
+                            "Disabled"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "HealthStatus",
+            "displayName": "Health Status",
+            "shape": "string"
+        },
+        {
+            "name": "StatusSummary",
+            "displayName": "Status Summary",
+            "shape": "string"
+        },
+        {
+            "name": "IsDisabled",
+            "displayName": "Disabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "WorkerPoolIds",
+            "displayName": "Worker Pool IDs",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        {
+            "name": "CommunicationStyle",
+            "displayName": "Communication Style",
+            "shape": "string"
+        },
+        {
+            "name": "OperatingSystem",
+            "displayName": "Operating System",
+            "shape": "string"
+        },
+        {
+            "name": "ShellName",
+            "displayName": "Shell",
+            "shape": "string"
+        },
+        {
+            "name": "TentacleVersion",
+            "displayName": "Tentacle Version",
+            "shape": "string"
+        },
+        {
+            "name": "TentacleUpgrade",
+            "displayName": "Tentacle Upgrade",
+            "shape": "string"
+        },
+        {
+            "name": "HasLatestCalamari",
+            "displayName": "Latest Calamari",
+            "shape": "boolean"
+        },
+        {
+            "name": "agentStatus",
+            "displayName": "Agent Status",
+            "computed": true,
+            "valueExpression": "{{ $['TentacleUpgrade'] === 'Required' ? 'Upgrade required' : ($['TentacleUpgrade'] === 'Suggested' ? 'Upgrade suggested' : ($['HasLatestCalamari'] === false ? 'Calamari update' : 'Up to date')) }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Up to date"
+                        ],
+                        "warning": [
+                            "Upgrade suggested",
+                            "Calamari update"
+                        ],
+                        "error": [
+                            "Upgrade required"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "SpaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "Id",
+            "sourceType": "Worker",
+            "name": "Name"
+        }
+    ],
+    "timeframes": false
+}
