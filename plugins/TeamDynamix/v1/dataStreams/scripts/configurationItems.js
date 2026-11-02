@@ -54,7 +54,7 @@ const items = Array.isArray(data) ? data : Array.isArray(data?.Data) ? data.Data
 const TILE_SEARCH_LIMIT = 10000;
 if (Array.isArray(data) && data.length >= TILE_SEARCH_LIMIT) {
     throw new Error(
-        "This asset application's CMDB returned more than 10,000 configuration items, which is " +
+        "This asset application's CMDB returned 10,000 or more configuration items, which is " +
             "too many to load in a tile. Turn on Import assets, configuration items, accounts " +
             "and locations in the data source's Advanced options to import them instead."
     );
