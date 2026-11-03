@@ -8,7 +8,7 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){browserRenderingEventsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count avg{avgConcurrentSessions} min{earliestBrowserStartTime} max{latestBrowserEndTime} dimensions{date sessionId {{breakdown}}}}}}}",
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){browserRenderingEventsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count avg{avgConcurrentSessions} min{earliestBrowserStartTime} max{latestBrowserEndTime} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} sessionId {{breakdown}}}}}}}",
             "variables": {
                 "accountTag": "{{object.rawId}}",
                 "start": "{{timeframe.start}}",
@@ -45,7 +45,7 @@
     "metadata": [
         {
             "name": "date",
-            "displayName": "Date",
+            "displayName": "Time",
             "shape": "date",
             "role": "timestamp"
         },
@@ -89,5 +89,5 @@
             "visible": false
         }
     ],
-    "timeframes": ["last24hours", "last7days", "last30days"]
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
 }

@@ -1,7 +1,7 @@
 {
     "name": "zoneTraffic",
     "displayName": "Zone Traffic",
-    "description": "Hourly HTTP request, cache and bandwidth totals for a zone",
+    "description": "HTTP request, cache and bandwidth totals for a zone (hourly up to 2 days, daily beyond)",
     "tags": [
         "Zone",
         "Analytics"
@@ -11,11 +11,11 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){httpRequests1hGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){dimensions{datetime}sum{requests cachedRequests bytes cachedBytes threats pageViews encryptedRequests}uniq{uniques}}}}}",
+            "query": "query($zoneTag:string!,$start:{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'Time!' : 'Date!' }},$end:{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'Time!' : 'Date!' }}){viewer{zones(filter:{zoneTag:$zoneTag}){rows: {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'httpRequests1hGroups' : 'httpRequests1dGroups' }}(limit:10000,filter:{ {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}_geq:$start, {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}_ASC]){dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}}sum{requests cachedRequests bytes cachedBytes threats pageViews encryptedRequests}uniq{uniques}}}}}",
             "variables": {
                 "zoneTag": "{{object.rawId}}",
-                "start": "{{timeframe.start}}",
-                "end": "{{timeframe.end}}"
+                "start": "{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? timeframe.start : timeframe.start.split('T')[0] }}",
+                "end": "{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? timeframe.end : new Date((timeframe.unixEnd - 1) * 1000).toISOString().split('T')[0] }}"
             }
         },
         "postRequestScript": "zoneTraffic.js",
@@ -106,6 +106,13 @@
     ],
     "timeframes": [
         "last12hours",
-        "last24hours"
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear"
     ]
 }

@@ -8,7 +8,7 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$applicationId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){containersMetricsAdaptiveGroups(limit:10000,filter:{applicationId:$applicationId,datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count avg{cpuUtilization memory containerUptime} sum{rxBytes txBytes} dimensions{date {{breakdown}}}}}}}",
+            "query": "query($accountTag:string!,$applicationId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){containersMetricsAdaptiveGroups(limit:10000,filter:{applicationId:$applicationId,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 619200 ? 'datetimeHour' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeSixHours' : 'date' }}_ASC]){count avg{cpuUtilization memory containerUptime} sum{rxBytes txBytes} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 619200 ? 'datetimeHour' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeSixHours' : 'date' }} {{breakdown}}}}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "applicationId": "{{object.rawId}}",
@@ -47,7 +47,7 @@
     "metadata": [
         {
             "name": "date",
-            "displayName": "Date",
+            "displayName": "Time",
             "shape": "date",
             "role": "timestamp"
         },
@@ -89,5 +89,5 @@
             "shape": "bytes"
         }
     ],
-    "timeframes": ["last24hours", "last7days", "last30days"]
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
 }

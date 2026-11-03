@@ -8,7 +8,7 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$bucketName:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){r2StorageAdaptiveGroups(limit:10000,filter:{bucketName:$bucketName,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_ASC]){max{objectCount payloadSize metadataSize uploadCount}dimensions{datetime}}}}}",
+            "query": "query($accountTag:string!,$bucketName:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){r2StorageAdaptiveGroups(limit:10000,filter:{bucketName:$bucketName,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){max{objectCount payloadSize metadataSize uploadCount}dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}}}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "bucketName": "{{object.name}}",
@@ -57,5 +57,5 @@
             "shape": "number"
         }
     ],
-    "timeframes": ["last12hours", "last24hours", "last7days", "last30days"]
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth", "lastMonth"]
 }

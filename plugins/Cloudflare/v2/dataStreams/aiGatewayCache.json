@@ -8,12 +8,12 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$gateway:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){aiGatewayCacheAdaptiveGroups(limit:10000,filter:{gateway:$gateway,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count dimensions{date cacheOp}}}}}",
+            "query": "query($accountTag:string!,$gateway:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){aiGatewayCacheAdaptiveGroups(limit:10000,filter:{gateway:$gateway,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} cacheOp}}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "gateway": "{{object.name}}",
-                "start": "{{timeframe.start.split('T')[0]}}",
-                "end": "{{timeframe.end.split('T')[0]}}"
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
             }
         },
         "pathToData": "data.viewer.accounts.0.aiGatewayCacheAdaptiveGroups",
@@ -34,7 +34,7 @@
     "metadata": [
         {
             "name": "dimensions.date",
-            "displayName": "Date",
+            "displayName": "Time",
             "shape": "date",
             "role": "timestamp"
         },
@@ -53,5 +53,5 @@
             "role": "value"
         }
     ],
-    "timeframes": ["last7days", "last30days"]
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
 }

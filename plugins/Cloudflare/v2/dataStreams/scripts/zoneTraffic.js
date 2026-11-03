@@ -10,6 +10,10 @@ if (data && data.errors && data.errors.length) {
 // scoped to several zones cannot tell which rows belong to which zone. Stamp the
 // scoped zone's tag and name onto every row so tiles and SQL can group by zone.
 // Column names keep the dotted form the previous expandInnerObjects config produced.
+//
+// The query reads httpRequests1hGroups for short timeframes and httpRequests1dGroups
+// for long ones (the hourly dataset is capped at 3 days), aliasing either to `rows`.
+// On the daily dataset dimensions.datetime holds a YYYY-MM-DD date.
 
 const zone = (context.objects && context.objects[0]) || {};
 const zoneTag = zone.rawId || "";
@@ -21,7 +25,7 @@ const groups =
         data.data.viewer &&
         data.data.viewer.zones &&
         data.data.viewer.zones[0] &&
-        data.data.viewer.zones[0].httpRequests1hGroups) ||
+        data.data.viewer.zones[0].rows) ||
     [];
 
 result = groups.map((row) => {

@@ -1,19 +1,19 @@
 {
     "name": "vectorizeQueries",
     "displayName": "Vectorize Queries",
-    "description": "Daily query count and query latency for a Vectorize index",
+    "description": "Query count and query latency for a Vectorize index",
     "tags": ["Database", "Analytics"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$indexName:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){vectorizeV2QueriesAdaptiveGroups(limit:10000,filter:{indexName:$indexName,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count avg{requestDurationMs} dimensions{date}}}}}",
+            "query": "query($accountTag:string!,$indexName:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){vectorizeV2QueriesAdaptiveGroups(limit:10000,filter:{indexName:$indexName,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count avg{requestDurationMs} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}}}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "indexName": "{{object.name}}",
-                "start": "{{timeframe.start.split('T')[0]}}",
-                "end": "{{timeframe.end.split('T')[0]}}"
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
             }
         },
         "pathToData": "data.viewer.accounts.0.vectorizeV2QueriesAdaptiveGroups",
@@ -34,7 +34,7 @@
     "metadata": [
         {
             "name": "dimensions.date",
-            "displayName": "Date",
+            "displayName": "Time",
             "shape": "date",
             "role": "timestamp"
         },
@@ -50,5 +50,5 @@
             "shape": "milliseconds"
         }
     ],
-    "timeframes": ["last7days", "last30days"]
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
 }

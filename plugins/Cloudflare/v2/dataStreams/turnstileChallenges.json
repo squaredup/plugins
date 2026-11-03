@@ -8,7 +8,7 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$siteKey:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){turnstileAdaptiveGroups(limit:5000,filter:{siteKey:$siteKey,datetime_geq:$start,datetime_leq:$end},orderBy:[date_ASC]){count dimensions{date {{breakdown}}}}}}}",
+            "query": "query($accountTag:string!,$siteKey:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){turnstileAdaptiveGroups(limit:5000,filter:{siteKey:$siteKey,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "siteKey": "{{object.rawId}}",
@@ -42,7 +42,7 @@
     "metadata": [
         {
             "name": "date",
-            "displayName": "Date",
+            "displayName": "Time",
             "shape": "date",
             "role": "timestamp"
         },

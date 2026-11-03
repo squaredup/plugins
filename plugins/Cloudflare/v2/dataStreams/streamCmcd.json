@@ -1,19 +1,19 @@
 {
     "name": "streamCmcd",
     "displayName": "Stream Playback Quality",
-    "description": "Daily playback quality metrics for a Cloudflare Stream video, grouped by a selectable dimension",
+    "description": "Playback quality metrics for a Cloudflare Stream video, grouped by a selectable dimension",
     "tags": ["Media"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$videoId:string,$start:Date,$end:Date){viewer{accounts(filter:{accountTag:$accountTag}){streamCMCDAdaptiveGroups(limit:10000,filter:{videoId:$videoId,date_geq:$start,date_leq:$end},orderBy:[date_ASC]){count avg{bufferStarvationDuration initialBufferStarvationDuration encodedBitrate} dimensions{date {{breakdown}}}}}}}",
+            "query": "query($accountTag:string!,$videoId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){streamCMCDAdaptiveGroups(limit:10000,filter:{videoId:$videoId,datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count avg{bufferStarvationDuration initialBufferStarvationDuration encodedBitrate} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "videoId": "{{object.rawId}}",
-                "start": "{{timeframe.start.split('T')[0]}}",
-                "end": "{{timeframe.end.split('T')[0]}}"
+                "start": "{{ new Date((timeframe.unixStart + 60) * 1000).toISOString() }}",
+                "end": "{{timeframe.end}}"
             }
         },
         "postRequestScript": "streamCmcd.js",
@@ -47,7 +47,7 @@
     "metadata": [
         {
             "name": "date",
-            "displayName": "Date",
+            "displayName": "Time",
             "shape": "date",
             "role": "timestamp"
         },
@@ -79,5 +79,5 @@
             "shape": "number"
         }
     ],
-    "timeframes": ["last24hours", "last7days"]
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days"]
 }

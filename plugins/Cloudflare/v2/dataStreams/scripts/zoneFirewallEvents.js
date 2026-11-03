@@ -2,7 +2,31 @@
 // postRequestScript bypasses the stream's declarative errorHandling entirely,
 // so the error is raised here or it would be swallowed into an empty result.
 if (data && data.errors && data.errors.length) {
-    throw new Error("Cloudflare GraphQL error: " + data.errors[0].message);
+    const message = data.errors[0].message || "";
+    // The range and history Cloudflare allows for firewall events depend on the zone's
+    // plan, so the stream offers timeframes only higher plans can serve. When a plan's
+    // limit rejects one, say so rather than surfacing the raw quota error alone.
+    // String methods rather than a regex: backslash escapes do not survive into the
+    // deployed script.
+    const limitText = (marker, lead) => {
+        const at = message.indexOf(marker);
+        if (at < 0) return null;
+        const rest = message.slice(at + marker.length).trim();
+        return lead + rest.split(" ")[0].split(",")[0];
+    };
+    const limit =
+        limitText("cannot request a time range wider than", "a range of ") ||
+        limitText("cannot request data older than", "the last ");
+    if (limit) {
+        throw new Error(
+            "Cloudflare's plan for this zone limits firewall events to " +
+                limit +
+                ". Choose a shorter timeframe - longer ranges need a higher Cloudflare plan. (" +
+                message +
+                ")"
+        );
+    }
+    throw new Error("Cloudflare GraphQL error: " + message);
 }
 
 // dataStreams/scripts/zoneFirewallEvents.js

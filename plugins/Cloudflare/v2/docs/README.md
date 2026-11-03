@@ -66,7 +66,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 
 ## Data streams
 
-- **Zone Traffic** - hourly requests, bandwidth, cached traffic, threats, page views and cache hit ratio for a zone.
+- **Zone Traffic** - requests, bandwidth, cached traffic, threats, page views and cache hit ratio for a zone, hourly for timeframes up to two days and daily beyond.
 - **Zone Traffic Breakdown** - requests, bytes and visits for a zone grouped by a dimension you choose (country, status code, cache status, host, device type, HTTP protocol or content type).
 - **Zone Firewall Events** - firewall and WAF event counts for a zone by action, grouped by rule, service, country, host, user agent or path.
 - **Load Balancing Requests** - load balancer request counts for a zone by load balancer, pool, origin and edge location.
@@ -76,16 +76,16 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Worker Invocations** - requests, errors, subrequests and CPU-time percentiles for one Worker script.
 - **R2 Operations** - requests and response bytes against an R2 bucket by operation type and outcome.
 - **R2 Storage** - stored object count, payload size, metadata size and upload count for an R2 bucket over time.
-- **KV Operations** - daily request counts and latency percentiles for a KV namespace by operation type.
-- **KV Storage** - daily stored key count and byte size for a KV namespace.
-- **D1 Queries** - daily read and write query counts, rows read and written, response bytes and query-time percentiles for a D1 database.
-- **D1 Storage** - daily stored size of a D1 database.
+- **KV Operations** - request counts and latency percentiles for a KV namespace by operation type.
+- **KV Storage** - stored key count and byte size for a KV namespace.
+- **D1 Queries** - read and write query counts, rows read and written, response bytes and query-time percentiles for a D1 database.
+- **D1 Storage** - stored size of a D1 database.
 - **Queue Message Operations** - message write, read and delete operations on a queue with outcome, consumer type, lag time and retry count.
 - **Queue Backlog** - average messages and bytes waiting in a queue over time.
 - **Pages Deployments** - deployment history for a Pages project with environment, status, branch, commit and URL.
 - **Tunnel Connections** - active connector connections for a Tunnel with edge location, origin IP, connector version and architecture.
 - **Load Balancer Pool Health** - per-origin health, response code, response time and failure reason for a pool at each Cloudflare edge location.
-- **Access Logins** - daily Zero Trust login attempts for an Access application by identity provider, country and outcome.
+- **Access Logins** - Zero Trust login attempts for an Access application by identity provider, country and outcome.
 - **DNS Analytics** - authoritative DNS query volume and response time for a zone, grouped by query name, query type, response code or edge location.
 - **Email Routing** - forwarded and rejected messages for a zone by action, status and rule.
 - **DMARC Reports** - DMARC alignment for a zone by sending source, with pass rate and message volume.
@@ -112,7 +112,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Images Unique Transformations** - daily count of unique image transformations served for an account.
 - **Pages Functions Invocations** - requests, errors and CPU time for the Pages Functions running in an account, by function.
 - **Browser Rendering** - Browser Rendering session count and duration for an account.
-- **Stream Minutes Viewed** - daily minutes viewed for a Cloudflare Stream video.
+- **Stream Minutes Viewed** - minutes viewed for a Cloudflare Stream video.
 - **Stream Playback Quality** - playback buffering and bitrate for a Stream video, by country, resolution or stream type.
 - **Realtime Usage** - ingress and egress bandwidth for a Realtime application by track type.
 - **Turnstile Challenges** - challenges served by a Turnstile widget, by event type or action.
@@ -193,23 +193,40 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 
 - **One-to-many relationships only correlate on their first value.** The import serialises an array-valued property to a JSON string (`["a.com","b.com"]`) rather than storing it as a multi-valued property, and correlation conditions only offer `equals`, so an array can never match a scalar. Where a Cloudflare object names several others - a Turnstile widget's allowed domains, a Pages project's custom domains, a queue's consumers and producers - the plugin stores the full list as a readable string for display and a separate `primary*` property holding the first entry, and correlates on that. A widget covering three zones therefore draws an edge to one of them. The same constraint is why Kubernetes, the only other plugin here shipping correlation rules, joins on `primaryBackendServiceName` rather than the full backend list.
 
-- **Analytics timeframes are capped per dataset, and the caps are short.** Cloudflare's GraphQL Analytics API limits how wide a single query's time range can be, and the limit differs for every dataset. These were measured against a Pro-plan account:
+- **Analytics timeframes are capped per dataset and per plan.** Cloudflare's GraphQL Analytics API limits both how wide a single query can be and how far back it can reach, and the limits differ for every dataset. Each stream offers the timeframes its dataset allows. These limits were read from Cloudflare's own `settings` API for a Pro and a Free zone and confirmed by querying each stream at every offered timeframe:
 
-    | Widest single query | Data streams |
-    | ------------------- | ------------ |
-    | **1 day** | Zone Firewall Events |
-    | **~3 days** | Zone Traffic, Load Balancing Requests, Health Check Events |
-    | **~1 week** | DNS Analytics, Access Logins, Turnstile Challenges |
-    | **8 days** | Zone Traffic Breakdown |
-    | **~30-32 days** | the Gateway streams, KV, D1, R2, Queues, Workers AI, Durable Objects, Vectorize, Hyperdrive, Cache Reserve, Email Routing, DMARC, Images, AI Gateway, AutoRAG, Containers, Pipelines, Realtime, Browser Rendering, Stream |
-    | **~93 days** | Web Analytics Page Loads, Core Web Vitals |
-    | **~179 days** | Audit Logs |
+    | Widest query / history kept | Data streams | Longest timeframe offered |
+    | --------------------------- | ------------ | ------------------------- |
+    | **1 day / 3 days** on Pro; none on Free | Zone Firewall Events | Last 24 hours (Last 7 and 30 days on higher plans - see below) |
+    | **3 days / 3 days** | Health Check Events, Load Balancing Requests | Last 24 hours |
+    | **7 days** | Access Logins, Turnstile Challenges, Network Error Logs, Page Shield Reports | Last 7 days |
+    | **30-31 days / 31 days** | Gateway HTTP Requests and Network Sessions, Stream Playback Quality, DNS Analytics, Zone Traffic Breakdown | Last 30 days |
+    | **31-32 days / 31-32 days** | Gateway DNS Queries, Email Routing, DMARC Reports, Images Requests, AI Gateway Cache and Errors, AutoRAG, Browser Rendering, Container Metrics, Hyperdrive, Queue Consumer Metrics, Realtime Usage, Vectorize, Workers AI | This month |
+    | **32-62 days / 62-92 days** | Worker Invocations, Pages Functions, KV, D1, R2, Durable Objects, Queue Backlog and Message Operations, Pipeline Ingestion, Cache Reserve, AI Gateway Requests, DNS Firewall Analytics, Stream Minutes Viewed | Last month |
+    | **61 days, daily only** | Images Unique Transformations | This month |
+    | **93 days / 184 days** | Web Analytics Page Loads, Core Web Vitals | This quarter |
+    | **180 days / 540 days** | Audit Logs | Last quarter |
+    | **365 days, daily** | Zone Traffic (hourly up to two days, then daily) | This year |
 
-    Every one of these was measured against the live API by widening the range until Cloudflare rejected it - none is documented. Caps may differ on other plans, and a few sit so close to a boundary that the next-widest option had to be dropped.
+    *This month*, *This quarter* and *This year* end in the future; Cloudflare counts only the part that has elapsed, so they fit a cap the full period would not. Where a cap is exactly as wide as a timeframe - a 7-day cap and Last 7 days - the query starts one minute late, because Cloudflare measures the range up to the moment it receives the query and would otherwise reject it by the request's latency.
 
-    Longer ranges are not offered because Cloudflare rejects them outright. Caps may differ on Free, Business and Enterprise plans.
+    Limits can be wider on Business and Enterprise plans. **Zone Firewall Events** is the one stream that offers timeframes a Pro plan cannot serve (Last 7 days and Last 30 days); on a plan whose limit is shorter, the tile shows an error naming the plan's limit rather than empty data. To see the limits for your own account, run this in the **GraphQL Query** stream with the **None** timeframe, a `zoneTag` in **Variables**, and **Path to rows** set to `data.viewer.zones`:
 
-- **Daily-granularity datasets have no intraday view.** KV, D1 and Access analytics are aggregated by day, so their shortest timeframe is Last 7 days.
+    ```graphql
+    query ($zoneTag: string!) {
+      viewer {
+        zones(filter: { zoneTag: $zoneTag }) {
+          settings {
+            firewallEventsAdaptiveGroups { maxDuration notOlderThan }
+          }
+        }
+      }
+    }
+    ```
+
+    `maxDuration` and `notOlderThan` are in seconds; swap in any other dataset name, or query `accounts(filter: { accountTag: $accountTag })` for account-level datasets.
+
+- **Time buckets follow the timeframe.** Time-series streams return one row per minute for Last hour, per 5 minutes up to 12 hours, per 15 minutes up to a day, hourly up to a week, then six-hourly or hourly up to a month (daily for R2 Operations) and daily beyond. Streams grouped by a dimension you choose, which can have many values, use coarser buckets to stay inside Cloudflare's row cap: 5 minutes for Last hour, 15 minutes up to 12 hours, hourly up to a day and daily beyond. A tile can aggregate these into coarser buckets but never finer ones.
 - **R2 must be activated before it returns anything.** If R2 has never been enabled in the Cloudflare dashboard, the import step for R2 buckets fails with *"Please enable R2 through the Cloudflare Dashboard"*. The step is optional, so the rest of the import still succeeds - but no R2 objects or metrics appear.
 - **Zero Trust Access must be enabled** for the Access application import to work; otherwise Cloudflare returns *"Access is not enabled"*.
 - **Web Analytics must be enabled per zone.** The RUM datasets are account-scoped and filtered to a zone by hostname, so a zone without the Web Analytics beacon installed returns nothing even though the query succeeds. Traffic from hosts that are not Cloudflare zones is not reachable from a zone-scoped tile.
@@ -219,9 +236,9 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 - **Pages endpoints cap page size at 10.** Cloudflare rejects any larger `per_page` on the Pages API, so Pages projects and deployments are fetched ten at a time.
 - **Some resource lists are not paged.** R2 buckets, D1 databases, Queues, load balancer pools, Access applications, Vectorize indexes, Hyperdrive configs, Worker scripts and Worker routes are imported in a single request each. Where Cloudflare's paging behaviour could be proven against real data it is used (zones, accounts, DNS records, Pages projects, KV namespaces, Tunnels and Durable Object namespaces all page); the rest were left unpaged because the endpoint either ignores the paging parameters outright — as `workers/scripts` does — or holds too few records in the tested account to confirm they are honoured. If an account holds more of one of these than Cloudflare returns on a single page, the remainder is not imported.
 - **Rate limits.** The REST API allowed 1,200 requests per 300 seconds on the token tested, and Cloudflare documents a separate limit of 300 GraphQL queries per 5 minutes. Every analytics stream issues one request per selected object, so very large estates can hit these limits.
-- **Long timeframes on per-minute analytics can return a partial series.** Cloudflare caps a GraphQL result at 10,000 rows, and the streams that break down by `datetime` produce one row per minute per dimension value - Worker Invocations, Pages Functions Invocations, Durable Object Invocations and Subrequests, D1 Queries, Queue Backlog and Consumer Metrics, R2 Operations and Storage, Cache Reserve Storage, Gateway HTTP Requests, Container Metrics, Pipeline Ingestion, Browser Rendering, Realtime Usage and Audit Logs. A busy resource can exceed 10,000 rows well inside `last30days`; because the queries order by time ascending, the excess is dropped from the end and the tile shows the earliest part of the range as though the series simply stopped. Prefer a narrower timeframe when a chart appears to end early.
+- **A breakdown with very many values is truncated.** Cloudflare caps a GraphQL result at 10,000 rows (5,000 on some streams here). The time buckets above keep time-series streams well inside it, but a breakdown such as DNS Analytics by query name on a busy zone can still exceed it. Those streams order by count, so the rows dropped are the least frequent values rather than the most recent part of the range.
 
-- **Hand-written GraphQL queries are unbounded.** The **GraphQL Query** stream runs whatever you give it, so it can hit limits the built-in streams are tuned to avoid: a large `limit` on a multi-dimension dataset can exceed the ~6 MB response cap, and a timeframe wider than that dataset's own cap fails outright. Prefer the pre-aggregated `*Groups` datasets over raw event datasets, and keep `limit` modest. The stream does not page, so your `limit` is the ceiling.
+- **Hand-written GraphQL queries are unbounded.** The **GraphQL Query** stream runs whatever you give it, so it can hit limits the built-in streams are tuned to avoid: a large `limit` on a multi-dimension dataset can exceed the ~6 MB response cap, and a timeframe wider than that dataset's own cap fails with Cloudflare's error naming the limit. Prefer the pre-aggregated `*Groups` datasets over raw event datasets, and keep `limit` modest. The stream does not page, so your `limit` is the ceiling.
 - **Some analytics are only available on paid plans.** Page Shield and Network Error Logs return an authorization error on plans without them; Cache Reserve, Load Balancing and Health Checks are add-ons. An unentitled feature shows no data rather than an error in most tiles.
 - **A failed Cloudflare query can look like "no data".** Cloudflare answers a failed GraphQL query with HTTP 200 and an `errors` array, which the platform does not treat as a failure. Streams that use a post-request script raise these errors explicitly, but the simpler declarative streams will show an empty tile instead of an error message.
 - **Costs are unitless.** Cloudflare's AI Gateway analytics reports cost without stating a currency, so the plugin shows a plain number rather than assuming one.
