@@ -1,0 +1,101 @@
+{
+    "name": "zoneFirewallEventVolume",
+    "displayName": "Zone Firewall Event Volume",
+    "description": "Firewall event counts over time for a zone, optionally filtered by action and service (up to 30 days on every plan)",
+    "tags": ["Zone", "Security"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$filter:ZoneFirewallEventsAdaptiveByTimeGroupsFilter_InputObject){viewer{zones(filter:{zoneTag:$zoneTag}){firewallEventsAdaptiveByTimeGroups(limit:10000,filter:$filter,orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "filter": "{{ Object.assign({ datetime_geq: new Date((timeframe.unixStart + 60) * 1000).toISOString(), datetime_leq: timeframe.end }, (typeof actions !== 'undefined' && actions ? [].concat(typeof actions === 'string' && actions.trim().charAt(0) === '[' ? JSON.parse(actions) : actions).map((v) => (v && v.value !== undefined ? v.value : v)).filter((v) => v) : []).length ? { action_in: (typeof actions !== 'undefined' && actions ? [].concat(typeof actions === 'string' && actions.trim().charAt(0) === '[' ? JSON.parse(actions) : actions).map((v) => (v && v.value !== undefined ? v.value : v)).filter((v) => v) : []) } : {}, (typeof sources !== 'undefined' && sources ? [].concat(typeof sources === 'string' && sources.trim().charAt(0) === '[' ? JSON.parse(sources) : sources).map((v) => (v && v.value !== undefined ? v.value : v)).filter((v) => v) : []).length ? { source_in: (typeof sources !== 'undefined' && sources ? [].concat(typeof sources === 'string' && sources.trim().charAt(0) === '[' ? JSON.parse(sources) : sources).map((v) => (v && v.value !== undefined ? v.value : v)).filter((v) => v) : []) } : {}) }}"
+            }
+        },
+        "postRequestScript": "zoneFirewallEventVolume.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Zone"]
+        }
+    },
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "actions",
+            "label": "Action(s)",
+            "isMulti": true,
+            "isClearable": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "block", "label": "Block" },
+                    { "value": "managed_challenge", "label": "Managed challenge" },
+                    { "value": "challenge", "label": "Interactive challenge" },
+                    { "value": "jschallenge", "label": "JS challenge" },
+                    { "value": "log", "label": "Log" },
+                    { "value": "skip", "label": "Skip" },
+                    { "value": "allow", "label": "Allow" }
+                ]
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "sources",
+            "label": "Service(s)",
+            "isMulti": true,
+            "isClearable": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "firewallManaged", "label": "Managed rules" },
+                    { "value": "firewallCustom", "label": "Custom rules" },
+                    { "value": "rateLimit", "label": "Rate limiting rules" },
+                    { "value": "bic", "label": "Browser Integrity Check" },
+                    { "value": "securityLevel", "label": "Security level" },
+                    { "value": "ip", "label": "IP Access rules" },
+                    { "value": "uaBlock", "label": "User Agent Blocking" },
+                    { "value": "zoneLockdown", "label": "Zone Lockdown" },
+                    { "value": "botFight", "label": "Bot Fight Mode" }
+                ]
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "events",
+            "displayName": "Events",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "zoneName",
+            "displayName": "Zone",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "zoneTag",
+            "displayName": "Zone Tag",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days"]
+}

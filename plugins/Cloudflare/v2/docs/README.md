@@ -69,6 +69,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Zone Traffic** - requests, bandwidth, cached traffic, threats, page views and cache hit ratio for a zone, hourly for timeframes up to two days and daily beyond.
 - **Zone Traffic Breakdown** - requests, bytes and visits for a zone grouped by a dimension you choose (country, status code, cache status, host, device type, HTTP protocol or content type).
 - **Zone Firewall Events** - firewall and WAF event counts for a zone by action, grouped by rule, service, country, host, user agent or path.
+- **Zone Firewall Event Volume** - firewall and WAF event counts over time for a zone, optionally filtered by action and service, for up to 30 days on every plan.
 - **Load Balancing Requests** - load balancer request counts for a zone by load balancer, pool, origin and edge location.
 - **DNS Records** - every DNS record in a zone with type, content, TTL, proxy status and tags.
 - **SSL Certificates** - certificate packs for a zone with issuer, validation method, expiry date and days until expiry.
@@ -198,6 +199,7 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
     | Widest query / history kept | Data streams | Longest timeframe offered |
     | --------------------------- | ------------ | ------------------------- |
     | **1 day / 3 days** on Pro; none on Free | Zone Firewall Events | Last 24 hours (Last 7 and 30 days on higher plans - see below) |
+    | **30 days / 31 days** on every plan | Zone Firewall Event Volume | Last 30 days |
     | **3 days / 3 days** | Health Check Events, Load Balancing Requests | Last 24 hours |
     | **7 days** | Access Logins, Network Error Logs, Page Shield Reports | Last 7 days |
     | **7 days** on Free; **30 days** on Enterprise | Turnstile Challenges | Last 7 days (Last 30 days on Enterprise Turnstile) |
@@ -213,7 +215,7 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 
     Limits can be wider on Business and Enterprise plans. Two streams offer timeframes that only higher plans can serve, and on a plan whose limit is shorter the tile shows an error naming that limit rather than empty data:
 
-    - **Zone Firewall Events** offers Last 7 days and Last 30 days. Its grouped dataset, `firewallEventsAdaptiveGroups`, allows 1 day on Pro and is not available on Free. Cloudflare publishes 30-31 day limits for Security Events, but [those apply to the raw event dataset](https://developers.cloudflare.com/waf/analytics/security-events/#limits), which returns individual events rather than counts.
+    - **Zone Firewall Events** offers Last 7 days and Last 30 days. Its grouped dataset, `firewallEventsAdaptiveGroups`, allows 1 day on Pro and is not available on Free. Cloudflare publishes 30-31 day limits for Security Events, but [those apply to the raw event dataset](https://developers.cloudflare.com/waf/analytics/security-events/#limits), which returns individual events rather than counts. Use **Zone Firewall Event Volume** for longer ranges: its dataset counts every event for up to 30 days on every plan, including Free, but can only filter by action and service rather than break down by them.
     - **Turnstile Challenges** offers Last 30 days, which [Cloudflare documents](https://developers.cloudflare.com/turnstile/plans/) as the Enterprise lookback; Free is limited to 7 days.
 
     To see the limits for your own account, run this in the **GraphQL Query** stream with the **None** timeframe, a `zoneTag` in **Variables**, and **Path to rows** set to `data.viewer.zones`:
