@@ -1,0 +1,93 @@
+{
+    "name": "serviceErrorRate",
+    "displayName": "Service Error Rate",
+    "description": "Proportion of a service's requests that failed (requires Jaeger's metrics backend)",
+    "tags": [
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Service"
+        }
+    },
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/metrics/errors",
+        "getArgs": [
+            {
+                "key": "service",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "endTs",
+                "value": "{{timeframe.unixEnd * 1000}}"
+            },
+            {
+                "key": "lookback",
+                "value": "{{(timeframe.unixEnd - timeframe.unixStart) * 1000}}"
+            },
+            {
+                "key": "step",
+                "value": "{{(timeframe.unixEnd - timeframe.unixStart) * 5}}"
+            },
+            {
+                "key": "groupByOperation",
+                "value": "{{groupByOperation || null}}"
+            }
+        ],
+        "headers": [],
+        "postRequestScript": "serviceErrorRate.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.msg"
+        }
+    },
+    "ui": [
+        {
+            "name": "groupByOperation",
+            "label": "Split by operation",
+            "type": "checkbox",
+            "help": "Returns one series per operation instead of one for the service as a whole."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "service",
+            "displayName": "Service",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "operation",
+            "displayName": "Operation",
+            "shape": "string"
+        },
+        {
+            "name": "value",
+            "displayName": "Error Rate",
+            "shape": [
+                "percent",
+                {
+                    "asZeroToOne": true
+                }
+            ],
+            "role": "value"
+        }
+    ]
+}

@@ -1,0 +1,763 @@
+{
+    "name": "Zappi",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [
+        "{{variables.[Zappi]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "432cd23f-143c-523b-bd5d-a373b70a1f91",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Charger",
+                    "description": "Current charging status; amber means no data in the last 15 minutes, red means a fault",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "deviceName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{status}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f0f63bf0-b971-53cd-802f-355e7482e722",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Charging Now",
+                    "description": "Power going to the EV right now, against a 7.4 kW single-phase maximum",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(\"power\" / 1000, 2) AS \"chargeKw\" FROM \"dataset\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "chargeKw",
+                                    "type": "quantitative",
+                                    "title": "Charging (kW)"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 7.4,
+                                "labelFormat": "{{{{raw}}}}{{value}} kW{{{{/raw}}}}",
+                                "gaugeBands": [
+                                    {
+                                        "to": 1,
+                                        "color": "#4F7CFF"
+                                    }
+                                ],
+                                "gaugeLabelText": "Charging now"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b55c7387-7999-5c37-9749-2f22f53b10ab",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "This Session",
+                    "description": "Energy added in the current or most recent charging session, with a rough range estimate at 3.5 miles per kWh",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(\"energy\", 1) AS \"energy\", ROUND(\"energy\" * 3.5) AS \"estMiles\" FROM \"dataset\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "energy",
+                                        "type": "quantitative",
+                                        "title": "kWh this session"
+                                    },
+                                    {
+                                        "field": "estMiles",
+                                        "type": "quantitative",
+                                        "title": "≈ miles added"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 1
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d5f5abda-b4af-58dd-9bb5-c0f2f19b0128",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Charger Details",
+                    "description": "Charging mode, plug state, minimum green level and supply readings",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "mode",
+                                        "title": "Mode",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Fast": "#F0506E",
+                                                "Eco*": "#2BB673",
+                                                "Stop": "#64748B"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "plugStatus",
+                                        "title": "Plug",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Charging": "#4F7CFF",
+                                                "Fault": "#F0506E",
+                                                "EV disconnected": "#64748B",
+                                                "*": "#8E6CEF"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "minGreenLevel",
+                                        "title": "Min green level",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "boosting",
+                                        "title": "Boosting",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No"
+                                        }
+                                    },
+                                    {
+                                        "field": "voltage",
+                                        "title": "Supply voltage",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": " V"
+                                        }
+                                    },
+                                    {
+                                        "field": "frequency",
+                                        "title": "Grid frequency",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " Hz"
+                                        }
+                                    },
+                                    {
+                                        "field": "lastUpdated",
+                                        "title": "Last reading",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true,
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e8f83352-27ee-50d6-baad-0a7bb0e4c283",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CT Clamps",
+                    "description": "Live power through each CT clamp on this Zappi; the grid clamp turns green when exporting",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[ctReadings]}}",
+                        "name": "ctReadings",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"ctType\", \"power\" FROM \"dataset\" ORDER BY \"ct\" DESC"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "ctType",
+                                    "type": "nominal",
+                                    "title": "CT"
+                                },
+                                "y": {
+                                    "field": "power",
+                                    "type": "quantitative",
+                                    "title": "Power (W)"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "labelFormat": "{{{{raw}}}}{{value}} W{{{{/raw}}}}",
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianColorRules": [
+                                    {
+                                        "label": "Grid",
+                                        "lt": 0,
+                                        "color": "#2BB673"
+                                    },
+                                    {
+                                        "label": "Grid",
+                                        "color": "#8E6CEF"
+                                    },
+                                    {
+                                        "label": "Generation",
+                                        "color": "#F5A623"
+                                    },
+                                    {
+                                        "labelContains": "Load",
+                                        "color": "#4F7CFF"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3a90d010-2b54-5355-a516-923386204df4",
+                "x": 2,
+                "y": 2,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Charge Sources (30 Days)",
+                    "description": "EV energy over the last 30 days: diverted (Eco and Eco+ charging, mostly surplus solar) against boosted (timed or manual grid boost)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "SELECT \"source\", \"energy\" FROM (SELECT 'Diverted' AS \"source\", ROUND(SUM(\"diverted\"), 1) AS \"energy\" FROM \"dataset\" UNION ALL SELECT 'Boosted', ROUND(SUM(\"boosted\"), 1) FROM \"dataset\") WHERE \"energy\" > 0"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "source",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "energy",
+                                    "type": "quantitative",
+                                    "title": "kWh"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLabels": "percent",
+                                "mappedColors": {
+                                    "Diverted": "#F5A623",
+                                    "Boosted": "#8E6CEF"
+                                },
+                                "pieLegendStyle": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e721a9dd-5fcf-5e66-958d-8d1b6b505546",
+                "x": 0,
+                "y": 4,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Charging Power",
+                    "description": "Average diverted and boosted charging power in kW, with the site's solar generation for context",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "power"
+                        },
+                        "sql": "SELECT \"timestamp\", \"series\", \"kw\" FROM (SELECT \"timestamp\", 'Diverted' AS \"series\", \"diverted\" AS \"kw\" FROM \"dataset\" UNION ALL SELECT \"timestamp\", 'Boosted', \"boosted\" FROM \"dataset\" UNION ALL SELECT \"timestamp\", 'Solar generation', \"generation\" FROM \"dataset\") ORDER BY \"timestamp\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "kw",
+                                    "type": "quantitative",
+                                    "title": "kW",
+                                    "aggregate": "avg"
+                                },
+                                "series": {
+                                    "field": "series",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSymbol": "none",
+                                "mappedColors": {
+                                    "Diverted": "#F5A623",
+                                    "Boosted": "#8E6CEF",
+                                    "Solar generation": "#94A3B8"
+                                },
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "kW"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8fbbe1c4-3496-5c41-980a-87c8837ba49f",
+                "x": 0,
+                "y": 7,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Charging",
+                    "description": "Energy charged into the EV on each of the last 29 whole days, split into diverted and boosted",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH b AS (SELECT DATE_TRUNC('day', MIN(\"timestamp\") + INTERVAL 23 HOUR) AS lo, DATE_TRUNC('day', MAX(\"timestamp\")) AS hi FROM \"dataset\"), x AS (SELECT \"dataset\".* FROM \"dataset\", b WHERE \"timestamp\" >= b.lo AND \"timestamp\" < b.hi) SELECT STRFTIME(DATE_TRUNC('day', \"timestamp\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", ROUND(SUM(\"diverted\"), 2) AS \"diverted\", ROUND(SUM(\"boosted\"), 2) AS \"boosted\" FROM x GROUP BY 1 ORDER BY 1"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "colors": [
+                                    "#F5A623",
+                                    "#8E6CEF"
+                                ],
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2,
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "kWh"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ef2875b5-f45e-5ed1-8084-3225f693eca9",
+                "x": 2,
+                "y": 7,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "When the EV Charges",
+                    "description": "kWh charged in each hour (UTC) of the last 29 whole days; off-peak tariff windows show up as a band",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last30days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[energyHistory]}}",
+                        "name": "energyHistory",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "measure": "energy"
+                        },
+                        "sql": "WITH b AS (SELECT DATE_TRUNC('day', MIN(\"timestamp\") + INTERVAL 23 HOUR) AS lo, DATE_TRUNC('day', MAX(\"timestamp\")) AS hi FROM \"dataset\"), x AS (SELECT \"dataset\".* FROM \"dataset\", b WHERE \"timestamp\" >= b.lo AND \"timestamp\" < b.hi), s AS (SELECT \"timestamp\", SUM(\"diverted\" + \"boosted\") AS v FROM x GROUP BY \"timestamp\"), d AS (SELECT DISTINCT CAST(\"timestamp\" AS DATE) AS d FROM s), h AS (SELECT \"range\" AS h FROM range(24)) SELECT STRFTIME(d.d, '%a %d %b') AS \"day\", LPAD(CAST(h.h AS VARCHAR), 2, '0') || ':00' AS \"hour\", ROUND(COALESCE(s.v, 0), 2) AS \"charged\" FROM d CROSS JOIN h LEFT JOIN s ON CAST(s.\"timestamp\" AS DATE) = d.d AND HOUR(s.\"timestamp\") = h.h ORDER BY d.d, h.h"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "heatmap",
+                            "encoding": {
+                                "x": {
+                                    "field": "hour",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "day",
+                                    "type": "nominal"
+                                },
+                                "color": {
+                                    "field": "charged",
+                                    "type": "quantitative",
+                                    "title": "EV charge (kWh)"
+                                }
+                            },
+                            "style": {
+                                "colorScheme": "squaredUpBlue",
+                                "heatmapCellBorderWidth": 1,
+                                "heatmapCellBorderRadius": 2,
+                                "heatmapColorScaleReversed": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ae722478-ea0d-5d1a-8f89-15bd5d45138e",
+                "x": 0,
+                "y": 11,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Boost Schedules",
+                    "description": "Boost timer slots configured on this Zappi",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[boostSchedules]}}",
+                        "name": "boostSchedules",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "slot",
+                                        "title": "Slot",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "width": 60
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Starts",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "duration",
+                                        "title": "Minutes",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    {
+                                        "field": "days",
+                                        "title": "Days",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "color": "#4F7CFF"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "slot",
+                                    "direction": "asc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ee5f0238-5097-5286-b065-3bc8f83b0e93",
+                "x": 2,
+                "y": 11,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Zappi Properties",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Zappis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Zappi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Zappi]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": [
+                                    "name",
+                                    "serial",
+                                    "firmware",
+                                    "phases",
+                                    "ctTypes"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "links",
+                                    "type",
+                                    "label",
+                                    "sourceId",
+                                    "sourceType",
+                                    "sourceName"
+                                ],
+                                "columnDisplayNames": {
+                                    "ctTypes": "CT types"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

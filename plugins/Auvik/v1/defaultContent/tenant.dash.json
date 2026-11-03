@@ -1,0 +1,1516 @@
+{
+    "name": "Tenant",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [
+        "{{variables.[Auvik Tenant]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "contents": [
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[tenants]}}",
+                        "name": "tenants",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"name\" AS \"tenant\", \"status\" AS \"health\", CASE \"tenantType\" WHEN 'client' THEN 'Site' WHEN 'multiClient' THEN 'Multi-site' WHEN 'corporateIt' THEN 'Corporate IT' ELSE COALESCE(\"tenantType\", 'Tenant') END || ' · ' || COALESCE(\"status[Expanded].rawState\", 'Unknown') AS \"detail\" FROM \"dataset\""
+                    },
+                    "description": "This tenant's Auvik subscription state and whether it is a site or a multi-site",
+                    "timeframe": "none",
+                    "title": "Site Status",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "tenant",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 16,
+                                "secondaryFontSize": 12,
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{detail}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "f71c345a-12f3-4b78-ac90-e5a204a3d6db",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(CAST(COUNT(*) FILTER (WHERE \"onlineStatus\" = 'success') AS DOUBLE) * 100 / COUNT(*), 1) AS \"online\", CAST(COUNT(*) FILTER (WHERE \"onlineStatus\" = 'success') AS VARCHAR) || ' of ' || CAST(COUNT(*) AS VARCHAR) || ' online' AS \"label\" FROM \"dataset\""
+                    },
+                    "description": "Share of this tenant's devices that Auvik currently reports as online",
+                    "timeframe": "none",
+                    "title": "Devices Online",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "label",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "online",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 0.9
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 0.98
+                                    },
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 1
+                                    }
+                                ],
+                                "ringGridTrackWidth": 10
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "4af61a1a-7587-4998-ac9b-84c0cd82a3f2",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 1,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "status": "open",
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "Alerts raised in the last 30 days that are still open",
+                    "timeframe": "last30days",
+                    "title": "Open Alerts",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "count",
+                                        "field": "name",
+                                        "title": "Open alerts",
+                                        "type": "nominal"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarValueColor": "#f59e0b"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "915b29a1-2daf-47fa-b0d2-3ad65be572b8",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 2,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[usage]}}",
+                        "name": "usage",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "Average monitored devices and total device-days Auvik counted for this tenant over the last 30 days",
+                    "timeframe": "last30days",
+                    "title": "Billable Usage",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "averageDevices",
+                                        "title": "Avg devices",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "deviceDays",
+                                        "title": "Device-days",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2,
+                                "scalarValueColor": "#6366f1"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "9ceefeb4-3ec5-4361-9206-8af921d81a89",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 3,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COALESCE(\"tenantName\", 'Unknown site') AS \"site\", CASE WHEN COUNT(*) FILTER (WHERE \"onlineStatus\" = 'error') > 0 THEN 'error' WHEN COUNT(*) FILTER (WHERE \"onlineStatus\" = 'warning') > 0 THEN 'warning' ELSE 'success' END AS \"health\", COUNT(*) FILTER (WHERE \"onlineStatus\" = 'success') AS \"online\", COUNT(*) AS \"devices\" FROM \"dataset\" GROUP BY 1 ORDER BY \"devices\" DESC"
+                    },
+                    "description": "Each site in this tenant by its Auvik domain, coloured by its worst device status. A single site shows itself",
+                    "timeframe": "none",
+                    "title": "Sites",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "site",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 14,
+                                "secondaryFontSize": 11,
+                                "statusGridBlockGap": 6,
+                                "statusGridColumnsPerRow": 3,
+                                "statusGridMaxBlockHeight": 120,
+                                "statusGridOrderByField": "devices",
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{online}} of {{devices}} devices online{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "c3b11d6e-ee5b-488b-95c1-c8da6e381b0f",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH d AS (SELECT CASE WHEN \"deviceType\" = 'ups' THEN 'UPS' WHEN \"deviceType\" IS NULL OR \"deviceType\" = 'unknown' THEN 'Unclassified' ELSE UPPER(SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 1, 1)) || SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 2) END AS \"type\", CASE \"onlineStatus[Expanded].rawState\" WHEN 'online' THEN 'Online' WHEN 'offline' THEN 'Offline' WHEN 'unreachable' THEN 'Unreachable' WHEN 'lowerLayerDown' THEN 'Link down' WHEN 'dormant' THEN 'Dormant' WHEN 'testing' THEN 'Testing' WHEN 'notPresent' THEN 'Not present' ELSE 'Status unknown' END AS \"status\" FROM \"dataset\"), r AS (SELECT \"type\", ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC, \"type\") AS rn FROM d GROUP BY \"type\") SELECT CASE WHEN r.rn <= 7 THEN d.\"type\" ELSE 'Other types' END AS \"type\", d.\"status\", CAST(COUNT(*) AS DOUBLE) AS \"devices\" FROM d JOIN r ON r.\"type\" = d.\"type\" GROUP BY ALL ORDER BY \"devices\" DESC"
+                    },
+                    "description": "How each type of device at this site is faring: every type flows into the status its devices are in, so trouble shows up as red or amber on the right",
+                    "timeframe": "none",
+                    "title": "Health by Device Type",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sankey",
+                            "encoding": {
+                                "source": {
+                                    "field": "type",
+                                    "type": "nominal"
+                                },
+                                "target": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 12,
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}}{{{{/raw}}}}",
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#ec4899",
+                                    "#14b8a6",
+                                    "#0ea5e9",
+                                    "#a855f7",
+                                    "#06b6d4",
+                                    "#f97316"
+                                ],
+                                "mappedColors": {
+                                    "Online": "#22c55e",
+                                    "Offline": "#ef4444",
+                                    "Unreachable": "#b91c1c",
+                                    "Link down": "#ef4444",
+                                    "Dormant": "#f59e0b",
+                                    "Testing": "#f59e0b",
+                                    "Not present": "#475569",
+                                    "Status unknown": "#64748b",
+                                    "Unclassified": "#475569",
+                                    "Other types": "#64748b",
+                                    "Firewall": "#ec4899",
+                                    "Switch": "#6366f1",
+                                    "L3 Switch": "#4f46e5",
+                                    "Router": "#8b5cf6",
+                                    "Access Point": "#14b8a6",
+                                    "Virtual Machine": "#0ea5e9",
+                                    "Virtual Appliance": "#06b6d4",
+                                    "Hypervisor": "#a855f7",
+                                    "Server": "#3b82f6",
+                                    "Workstation": "#38bdf8",
+                                    "UPS": "#f97316",
+                                    "Controller": "#d946ef",
+                                    "Wireless Controller": "#d946ef",
+                                    "Printer": "#2dd4bf",
+                                    "Phone": "#c084fc",
+                                    "Voip Phone": "#c084fc",
+                                    "Storage": "#7c3aed",
+                                    "Stack": "#818cf8"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "489e7034-257d-4875-82c1-839083ec98dd",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [
+                                [
+                                    "detectedOn",
+                                    "byDay"
+                                ],
+                                [
+                                    "severity[Expanded].rawState",
+                                    "uniqueValues"
+                                ]
+                            ]
+                        },
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "Alerts raised each day over the last 30 days, by severity",
+                    "timeframe": "last30days",
+                    "title": "Alert Trend",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "severity[Expanded].rawState_uniqueValues",
+                                    "title": "Severity",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "detectedOn_byDay",
+                                    "title": "Day",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "count",
+                                    "title": "Alerts",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "critical": "#ef4444",
+                                    "emergency": "#b91c1c",
+                                    "info": "#3b82f6",
+                                    "warning": "#f59e0b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "000179a5-6207-4118-88cd-d37667cfe7d9",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT CASE WHEN \"deviceType\" = 'ups' THEN 'UPS' WHEN \"deviceType\" IS NULL OR \"deviceType\" = 'unknown' THEN 'Unclassified' ELSE UPPER(SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 1, 1)) || SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 2) END AS \"type\", COALESCE(\"vendorName\", 'Unknown vendor') AS \"vendor\", CAST(COUNT(*) AS DOUBLE) AS \"devices\" FROM \"dataset\" GROUP BY ALL ORDER BY \"devices\" DESC"
+                    },
+                    "description": "This tenant's devices grouped by device type, then vendor",
+                    "timeframe": "none",
+                    "title": "What's on the Network",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "treemap",
+                            "encoding": {
+                                "label": {
+                                    "field": "vendor",
+                                    "type": "nominal"
+                                },
+                                "parent": {
+                                    "field": "type",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#ec4899",
+                                    "#14b8a6",
+                                    "#0ea5e9",
+                                    "#22c55e",
+                                    "#f59e0b",
+                                    "#f97316",
+                                    "#a855f7",
+                                    "#06b6d4"
+                                ],
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}}{{{{/raw}}}}",
+                                "mappedColors": {
+                                    "Unclassified": "#475569"
+                                },
+                                "showLabels": true,
+                                "treemapGap": 2
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "fc9a60b3-6248-4ba6-8967-7ecf78d252d3",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "metric": "device/cpuUtilization",
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[metrics]}}",
+                        "name": "metrics",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "This tenant's devices with the highest average CPU utilization",
+                    "title": "Busiest CPUs",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "label": {
+                                    "field": "entityName",
+                                    "type": "nominal"
+                                },
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "sparklineLimit": 8,
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineThresholds": [
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 70
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 90
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 1000
+                                    }
+                                ],
+                                "sparklineValue": "average"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "7cecd318-80db-462e-8907-bff97d350b38",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 8,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "metric": "device/memoryUtilization",
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[metrics]}}",
+                        "name": "metrics",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "This tenant's devices with the highest average memory utilization",
+                    "title": "Memory Pressure",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "label": {
+                                    "field": "entityName",
+                                    "type": "nominal"
+                                },
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "sparklineLimit": 8,
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineThresholds": [
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 70
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 90
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 1000
+                                    }
+                                ],
+                                "sparklineValue": "average"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "0e30ccda-2c4e-4c08-9be0-3ad14168e0aa",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 8,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "metric": "device/bandwidth",
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "filter": {
+                            "filters": [
+                                {
+                                    "column": "series",
+                                    "operation": "equals",
+                                    "value": "Total"
+                                }
+                            ],
+                            "multiOperation": "and"
+                        },
+                        "id": "{{dataStreams.[metrics]}}",
+                        "name": "metrics",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "This tenant's devices moving the most traffic, average Mbps in and out",
+                    "title": "Top Talkers",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "label": {
+                                    "field": "entityName",
+                                    "type": "nominal"
+                                },
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "sparklineColor": "#3b82f6",
+                                "sparklineLimit": 8,
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineValue": "average"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "1233745b-9cf1-4e15-a092-4680b57abcc5",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 11,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[interfaces]}}",
+                        "name": "interfaces",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH s AS (SELECT \"deviceName\" AS \"device\", CASE WHEN \"operationalStatus[Expanded].rawState\" = 'online' THEN 'Connected' WHEN \"operationalStatus[Expanded].rawState\" = 'adminDown' THEN 'Disabled' ELSE 'Not connected' END AS \"state\" FROM \"dataset\" WHERE \"deviceName\" IS NOT NULL AND \"deviceName\" NOT LIKE 'Object not found%'), top AS (SELECT \"device\" FROM s GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 10) SELECT \"device\", \"state\", CAST(COUNT(*) AS DOUBLE) AS \"ports\" FROM s WHERE \"device\" IN (SELECT \"device\" FROM top) GROUP BY \"device\", \"state\" ORDER BY CASE \"state\" WHEN 'Connected' THEN 0 WHEN 'Not connected' THEN 1 ELSE 2 END, \"device\""
+                    },
+                    "description": "Connected, unconnected and disabled ports on this tenant's devices with the most interfaces",
+                    "timeframe": "none",
+                    "title": "Ports in Use",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "state",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "device",
+                                    "title": "Device",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "ports",
+                                    "title": "Ports",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Connected": "#22c55e",
+                                    "Disabled": "#1e293b",
+                                    "Not connected": "#475569"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "25427346-c5b6-4ed9-a7d3-08527e79d109",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 11,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "status": "open",
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "severityLevel",
+                                    "asc"
+                                ],
+                                [
+                                    "detectedOn",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "description": "Alerts raised in the last 30 days that are still open, most severe first. Click a row to open it in Auvik",
+                    "timeframe": "last30days",
+                    "title": "Alerts to Action",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity[Expanded].rawState",
+                                        "renderer": {
+                                            "colors": {
+                                                "critical": "#ef4444",
+                                                "emergency": "#b91c1c",
+                                                "info": "#2563eb",
+                                                "warning": "#d97706"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Severity",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "name",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Alert"
+                                    },
+                                    {
+                                        "field": "entityName",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Affected"
+                                    },
+                                    {
+                                        "field": "entityType",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Type",
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "detectedOn",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Raised"
+                                    },
+                                    {
+                                        "align": "center",
+                                        "field": "dispatched",
+                                        "renderer": {
+                                            "falseColor": "#64748b",
+                                            "trueColor": "#16a34a",
+                                            "type": "boolean"
+                                        },
+                                        "title": "Notified",
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "tenantName",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Site"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.08)"
+                                    },
+                                    "field": "severity"
+                                },
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "f1470630-727f-4b33-9ebd-d1da3f81eda5",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 14,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"name\" AS \"device\", CASE WHEN \"onlineStatus[Expanded].rawState\" = 'lowerLayerDown' THEN 'Lower layer down' WHEN \"onlineStatus[Expanded].rawState\" = 'notPresent' THEN 'Not present' ELSE UPPER(SUBSTR(COALESCE(\"onlineStatus[Expanded].rawState\", 'unknown'), 1, 1)) || SUBSTR(COALESCE(\"onlineStatus[Expanded].rawState\", 'unknown'), 2) END AS \"state\", \"onlineStatus\" AS \"health\", CASE WHEN \"deviceType\" = 'ups' THEN 'UPS' WHEN \"deviceType\" IS NULL OR \"deviceType\" = 'unknown' THEN 'Unclassified' ELSE UPPER(SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 1, 1)) || SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 2) END AS \"type\", \"vendorName\" AS \"vendor\", \"makeModel\" AS \"model\", \"ipAddresses\" AS \"ips\", \"softwareVersion\" AS \"software\", \"lastSeenTime\" AS \"lastSeen\", \"tenantName\" AS \"site\", \"link\" FROM \"dataset\" ORDER BY CASE \"onlineStatus\" WHEN 'error' THEN 0 WHEN 'warning' THEN 1 WHEN 'unknown' THEN 2 ELSE 3 END, LOWER(\"name\")"
+                    },
+                    "description": "Every device Auvik has discovered in this tenant, offline devices first. Click a row to open it in Auvik",
+                    "timeframe": "none",
+                    "title": "Device Inventory",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "device",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Device"
+                                    },
+                                    {
+                                        "field": "state",
+                                        "renderer": {
+                                            "colors": {
+                                                "Dormant": "#d97706",
+                                                "Lower layer down": "#dc2626",
+                                                "Offline": "#dc2626",
+                                                "Online": "#16a34a",
+                                                "Testing": "#d97706",
+                                                "Unreachable": "#dc2626"
+                                            },
+                                            "defaultColor": "#64748b",
+                                            "type": "badge"
+                                        },
+                                        "title": "Status",
+                                        "width": 100
+                                    },
+                                    {
+                                        "field": "type",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Type"
+                                    },
+                                    {
+                                        "field": "vendor",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Vendor"
+                                    },
+                                    {
+                                        "field": "model",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Model"
+                                    },
+                                    {
+                                        "field": "ips",
+                                        "renderer": {
+                                            "separator": ",",
+                                            "type": "tag-list"
+                                        },
+                                        "title": "IP addresses"
+                                    },
+                                    {
+                                        "field": "software",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Software"
+                                    },
+                                    {
+                                        "field": "lastSeen",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Last seen"
+                                    },
+                                    {
+                                        "field": "site",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Site"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.08)",
+                                        "warning": "rgba(245,158,11,0.08)"
+                                    },
+                                    "field": "health"
+                                },
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "a4d19d0a-3a4d-4144-acd5-74b7d2eeca58",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 18,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "coverage": "warranty",
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[deviceSupport]}}",
+                        "name": "deviceSupport",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "warrantyCoverageStatus",
+                                    "desc"
+                                ],
+                                [
+                                    "daysUntilWarrantyExpiry",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "description": "Hardware warranty and service contract cover for this tenant's devices, expired cover first",
+                    "timeframe": "none",
+                    "title": "Warranty Coverage",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "deviceName",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Device"
+                                    },
+                                    {
+                                        "field": "warrantyCoverageStatus[Expanded].rawState",
+                                        "renderer": {
+                                            "colors": {
+                                                "Active": "#16a34a",
+                                                "Available": "#d97706",
+                                                "Covered": "#16a34a",
+                                                "Expired": "#dc2626",
+                                                "Not Covered": "#dc2626",
+                                                "NotCovered": "#dc2626",
+                                                "Security only": "#d97706",
+                                                "securityOnly": "#d97706"
+                                            },
+                                            "defaultColor": "#64748b",
+                                            "type": "badge"
+                                        },
+                                        "title": "Warranty",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "warrantyExpirationDate",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Expires"
+                                    },
+                                    {
+                                        "field": "serviceCoverageStatus[Expanded].rawState",
+                                        "renderer": {
+                                            "colors": {
+                                                "Active": "#16a34a",
+                                                "Available": "#d97706",
+                                                "Covered": "#16a34a",
+                                                "Expired": "#dc2626",
+                                                "Not Covered": "#dc2626",
+                                                "NotCovered": "#dc2626",
+                                                "Security only": "#d97706",
+                                                "securityOnly": "#d97706"
+                                            },
+                                            "defaultColor": "#64748b",
+                                            "type": "badge"
+                                        },
+                                        "title": "Service",
+                                        "width": 110
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.08)"
+                                    },
+                                    "field": "warrantyCoverageStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "a5d99a26-40b3-4168-ba27-9c57c0a5f6f0",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 22,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "coverage": "lifecycle",
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[deviceSupport]}}",
+                        "name": "deviceSupport",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "deviceName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "description": "Where each device sits in its vendor's end-of-life cycle. Red means that milestone has passed",
+                    "timeframe": "none",
+                    "title": "Vendor Lifecycle",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "deviceName",
+                                    "type": "nominal"
+                                },
+                                "statuses": [
+                                    {
+                                        "field": "salesAvailability",
+                                        "title": "On sale",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "softwareMaintenanceStatus",
+                                        "title": "Software",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "securitySoftwareMaintenanceStatus",
+                                        "title": "Security",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "lastSupportStatus",
+                                        "title": "Support",
+                                        "type": "nominal"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "labelFontSize": 12,
+                                "statusGridBlockGap": 4
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "2b6a08c9-251b-4ddb-acc1-44035cee717a",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 22,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[networks]}}",
+                        "name": "networks",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"type\", \"scan\", CAST(COUNT(*) AS DOUBLE) AS \"networks\" FROM (SELECT CASE \"networkType\" WHEN 'routed' THEN 'Routed' WHEN 'vlan' THEN 'VLAN' WHEN 'wifi' THEN 'Wi-Fi' WHEN 'layer2' THEN 'Layer 2' WHEN 'loopback' THEN 'Loopback' WHEN 'network' THEN 'Network' WHEN 'internet' THEN 'Internet' ELSE COALESCE(\"networkType\", 'Other') END AS \"type\", CASE \"scanStatus\" WHEN 'success' THEN 'Scanning' WHEN 'error' THEN 'Scan failed' WHEN 'warning' THEN 'Pending' WHEN 'unmonitored' THEN 'Not scanned' ELSE 'Unknown' END AS \"scan\", CASE \"scanStatus\" WHEN 'success' THEN 0 WHEN 'warning' THEN 1 WHEN 'error' THEN 2 WHEN 'unmonitored' THEN 3 ELSE 4 END AS \"rank\" FROM \"dataset\") GROUP BY \"type\", \"scan\", \"rank\" ORDER BY \"rank\", \"networks\" DESC"
+                    },
+                    "description": "This tenant's networks by type, and whether Auvik is scanning them for devices",
+                    "timeframe": "none",
+                    "title": "Network Discovery",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "scan",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "type",
+                                    "title": "Network type",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "networks",
+                                    "title": "Networks",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Not scanned": "#475569",
+                                    "Pending": "#f59e0b",
+                                    "Scan failed": "#ef4444",
+                                    "Scanning": "#22c55e",
+                                    "Unknown": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "034cf5e3-363b-404f-a06c-7438dae3ba94",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 25,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "tenant": {
+                                "scope": "{{scopes.[Auvik Tenants]}}",
+                                "variable": "{{variables.[Auvik Tenant]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[remoteSessions]}}",
+                        "name": "remoteSessions",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "dateStarted",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "description": "Who opened a remote session to a device in this tenant over the last 30 days, newest first",
+                    "timeframe": "last30days",
+                    "title": "Remote Access",
+                    "variables": [
+                        "{{variables.[Auvik Tenant]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "dateStarted",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Started"
+                                    },
+                                    {
+                                        "field": "user",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "User"
+                                    },
+                                    {
+                                        "field": "deviceName",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Device"
+                                    },
+                                    {
+                                        "field": "category",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Type"
+                                    },
+                                    {
+                                        "field": "status",
+                                        "renderer": {
+                                            "type": "status"
+                                        },
+                                        "title": "Status",
+                                        "width": 80
+                                    },
+                                    {
+                                        "align": "right",
+                                        "field": "durationSeconds",
+                                        "renderer": {
+                                            "decimals": 0,
+                                            "suffix": " s",
+                                            "type": "number"
+                                        },
+                                        "title": "Duration"
+                                    },
+                                    {
+                                        "field": "cause",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Cause"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableFontSize": 13
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "6c55f53d-1d0d-4c50-bcac-419a0f1581a2",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 25,
+                "z": 0
+            }
+        ],
+        "version": 1
+    }
+}

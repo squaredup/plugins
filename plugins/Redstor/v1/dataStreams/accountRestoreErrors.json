@@ -1,0 +1,38 @@
+{
+    "name": "accountRestoreErrors",
+    "displayName": "Account Restore Errors",
+    "description": "Restore error and warning messages for an account",
+    "tags": ["Restore"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/restores/status/accounts/errors",
+        "getArgs": [{ "key": "accountId", "value": "{{object.rawId}}" }],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "maxResults", "value": "100" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "queryArg", "path": "pageToken" }
+        },
+        "pathToData": "results",
+        "errorHandling": { "type": "script", "script": "errorHandling/accountRestoreErrors.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Account"] } },
+    "metadata": [
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "message", "displayName": "Message", "shape": "string", "role": "label" },
+        { "name": "category", "displayName": "Category", "shape": "string" },
+        { "name": "type", "displayName": "Type", "shape": "string" },
+        { "name": "count", "displayName": "Count", "shape": "number" },
+        { "name": "extraInfo", "displayName": "Error Message", "shape": "string" },
+        { "name": "productId", "displayName": "Service ID", "shape": "number", "visible": false },
+        {
+            "name": "serviceName",
+            "displayName": "Service",
+            "sourceId": "productId",
+            "sourceType": "Service",
+            "objectPropertyPath": "name"
+        }
+    ],
+    "timeframes": false
+}

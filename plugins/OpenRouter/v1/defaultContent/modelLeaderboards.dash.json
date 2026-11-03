@@ -1,0 +1,1363 @@
+{
+    "name": "Model Leaderboards",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 6,
+        "version": 1,
+        "contents": [
+            {
+                "i": "0c4d2c18-8f65-42e2-9a44-cdd6c0efe180",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 4,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Models On OpenRouter (This Month)",
+                    "description": "Top 10 models by tokens so far this month, compared with the same days of last month. Rank change is against last month's ranking over those days.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "-- Month to date vs the same days of last month: last month only counts days up to\n-- the latest day this month has data for, so a partial month compares like for like.\n-- Dates arrive as ISO strings (YYYY-MM-DD...), so month and day are sliced from the text.\n-- Timeframe edges are local time but dates are UTC, so each table can spill a day into the\n-- neighbouring month. Last month is the month most of LastMonth's rows fall in (it is never\n-- empty, unlike ThisMonth on the 1st), and this month is the one after it.\nWITH days AS (\n    SELECT 'this' AS source, CAST(date AS VARCHAR) AS day, model_permaslug AS slug, total_tokens\n    FROM ThisMonth\n    WHERE model_permaslug <> 'other'\n    UNION ALL\n    SELECT 'last' AS source, CAST(date AS VARCHAR) AS day, model_permaslug AS slug, total_tokens\n    FROM LastMonth\n    WHERE model_permaslug <> 'other'\n),\nprevious AS (\n    SELECT mode(substr(day, 1, 7)) AS previous_month\n    FROM days\n    WHERE source = 'last'\n),\nmonths AS (\n    SELECT\n        strftime(CAST(previous_month || '-01' AS DATE) + INTERVAL 1 MONTH, '%Y-%m') AS month,\n        previous_month\n    FROM previous\n),\ncutoff AS (\n    SELECT\n        m.month,\n        m.previous_month,\n        (SELECT max(CAST(substr(day, 9, 2) AS INTEGER)) FROM days WHERE source = 'this' AND substr(day, 1, 7) = m.month) AS last_day\n    FROM months m\n),\nthis_month AS (\n    SELECT d.slug, sum(d.total_tokens) AS tokens\n    FROM days d, cutoff\n    WHERE d.source = 'this' AND substr(d.day, 1, 7) = cutoff.month\n    GROUP BY d.slug\n),\nlast_month AS (\n    SELECT\n        d.slug,\n        sum(d.total_tokens) AS tokens,\n        row_number() OVER (ORDER BY sum(d.total_tokens) DESC) AS rank\n    FROM days d, cutoff\n    WHERE d.source = 'last'\n        AND substr(d.day, 1, 7) = cutoff.previous_month\n        AND CAST(substr(d.day, 9, 2) AS INTEGER) <= cutoff.last_day\n    GROUP BY d.slug\n),\nranked AS (\n    SELECT\n        slug,\n        tokens,\n        row_number() OVER (ORDER BY tokens DESC) AS rank\n    FROM this_month\n),\nby_slug AS (\n    SELECT\n        permaslug AS slug,\n        id,\n        name\n    FROM Models\n    -- Datasets key models by permaslug; a :batch model shares its base's, so keep one\n    QUALIFY row_number() OVER (PARTITION BY permaslug ORDER BY length(id), id) = 1\n)\nSELECT\n    r.rank,\n    m.id,\n    -- Models missing from the models stream (e.g. stealth models) link to their OpenRouter page\n    CASE WHEN m.id IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(m.id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' ELSE 'https://openrouter.ai/' || r.slug END AS url,\n    COALESCE(m.name, r.slug) AS name,\n    r.tokens,\n    l.tokens AS lastTokens,\n    (r.tokens - l.tokens) / l.tokens AS change,\n    COALESCE('#' || CAST(l.rank AS VARCHAR), 'New') AS lastRank,\n    l.rank - r.rank AS rankChange\nFROM ranked r\nLEFT JOIN last_month l ON l.slug = r.slug\nLEFT JOIN by_slug m ON m.slug = r.slug\nWHERE r.rank <= 10\nORDER BY r.rank",
+                            "tables": [
+                                {
+                                    "tableName": "ThisMonth",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[rankings]}}",
+                                            "name": "rankings",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "period": "day"
+                                            }
+                                        },
+                                        "timeframe": "thisMonth"
+                                    }
+                                },
+                                {
+                                    "tableName": "LastMonth",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[rankings]}}",
+                                            "name": "rankings",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "period": "day"
+                                            }
+                                        },
+                                        "timeframe": "lastMonth"
+                                    }
+                                },
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "rank",
+                                "displayName": "Rank",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "url",
+                                "displayName": "Model Link",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "name",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "tokens",
+                                "displayName": "Tokens (This Month)",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "lastTokens",
+                                "displayName": "Same Days Last Month",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "change",
+                                "displayName": "Token Change",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "asZeroToOne": true,
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "lastRank",
+                                "displayName": "Last Month Rank",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "rankChange",
+                                "displayName": "Rank Change",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "rank",
+                                        "title": "#",
+                                        "align": "right",
+                                        "width": 50,
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "url",
+                                        "title": "Model",
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "name"
+                                        }
+                                    },
+                                    {
+                                        "field": "tokens",
+                                        "title": "Tokens (This Month)",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "lastTokens",
+                                        "title": "Same Days Last Month",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        }
+                                    },
+                                    {
+                                        "field": "change",
+                                        "title": "Token Change",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "delta"
+                                        }
+                                    },
+                                    {
+                                        "field": "lastRank",
+                                        "title": "Last Month Rank",
+                                        "align": "center",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "New": "rgba(22, 163, 74, 0.55)"
+                                            },
+                                            "defaultColor": "rgba(71, 85, 105, 0.5)"
+                                        }
+                                    },
+                                    {
+                                        "field": "rankChange",
+                                        "title": "Rank Change",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "delta"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "rank",
+                                    "name",
+                                    "tokens",
+                                    "lastTokens",
+                                    "change",
+                                    "lastRank",
+                                    "rankChange"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "url"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1e2875d1-b28b-4f04-ab27-47b78899619d",
+                "x": 0,
+                "y": 4,
+                "w": 6,
+                "h": 4,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Intelligence Index Vs Input Price (Top 20)",
+                    "description": "Top 20 models by Artificial Analysis Intelligence Index, against their input price. Higher and further left is better value.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        id,\n        name AS model,\n        author,\n        inputPrice,\n        \"benchmarks.artificial_analysis.intelligence_index\" AS intelligence\n    FROM Models\n    WHERE \"benchmarks.artificial_analysis.intelligence_index\" IS NOT NULL\n        AND inputPrice IS NOT NULL\n    QUALIFY row_number() OVER (PARTITION BY canonical_slug ORDER BY length(id), id) = 1\n)\nSELECT\n    id,\n    model,\n    '/drilldown/node?sourceId=Model%2F' || replace(replace(id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' AS url,\n    author,\n    inputPrice,\n    intelligence\nFROM by_slug\nORDER BY intelligence DESC\nLIMIT 20",
+                            "tables": [
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "model",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "url",
+                                "displayName": "Link",
+                                "shape": [
+                                    "url",
+                                    {
+                                        "label": "Model page"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "author",
+                                "displayName": "Author",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "inputPrice",
+                                "displayName": "Input Price ($/1M Tokens)",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "intelligence",
+                                "displayName": "Intelligence Index",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scatter",
+                            "encoding": {
+                                "x": {
+                                    "field": "inputPrice",
+                                    "type": "quantitative",
+                                    "title": "Input Price ($/1M Tokens)"
+                                },
+                                "y": {
+                                    "field": "intelligence",
+                                    "type": "quantitative",
+                                    "title": "Intelligence Index"
+                                },
+                                "color": {
+                                    "field": "author",
+                                    "type": "nominal",
+                                    "title": "Author"
+                                }
+                            },
+                            "style": {
+                                "cartesianShowXAxisTitle": true,
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisRangeMode": "fit",
+                                "cartesianPointRadius": 7,
+                                "cartesianShowVerticalGridLines": true,
+                                "legendPosition": "bottom",
+                                "cartesianTooltipTemplate": "{{{{raw}}}}{{model}}: {{value}}{{{{/raw}}}}"
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "model",
+                                    "url",
+                                    "author",
+                                    "inputPrice",
+                                    "intelligence"
+                                ],
+                                "hiddenColumns": [
+                                    "id"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3eec66c4-de77-40ee-b403-37620ac6ec6b",
+                "x": 0,
+                "y": 8,
+                "w": 3,
+                "h": 3,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top GPQA Models By Accuracy And Cost",
+                    "description": "Top 15 models by accuracy on GPQA Diamond, graduate-level science questions that can't be answered by searching.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        permaslug AS slug,\n        id,\n        name\n    FROM Models\n    -- Datasets key models by permaslug; a :batch model shares its base's, so keep one\n    QUALIFY row_number() OVER (PARTITION BY permaslug ORDER BY length(id), id) = 1\n)\nSELECT\n    row_number() OVER (ORDER BY b.score DESC) AS rank,\n    m.id,\n    -- Models missing from the models stream (e.g. stealth models) link to their OpenRouter page\n    CASE WHEN m.id IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(m.id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' ELSE 'https://openrouter.ai/' || b.model END AS url,\n    COALESCE(m.name, b.modelName) AS model,\n    b.score AS accuracy,\n    b.avgCostPerTask\nFROM Benchmarks b\nLEFT JOIN by_slug m ON m.slug = b.model\nWHERE b.benchmark = 'gpqa_diamond' AND b.metric = 'accuracy'\nORDER BY b.score DESC\nLIMIT 15",
+                            "tables": [
+                                {
+                                    "tableName": "Benchmarks",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[benchmarks]}}",
+                                            "name": "benchmarks",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "source": "openrouter"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "rank",
+                                "displayName": "Rank",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "url",
+                                "displayName": "Model Link",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "model",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "accuracy",
+                                "displayName": "Accuracy",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "asZeroToOne": true,
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "avgCostPerTask",
+                                "displayName": "Avg Cost Per Task",
+                                "shape": [
+                                    "currency",
+                                    {
+                                        "code": "USD",
+                                        "decimalPlaces": 3
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "rank",
+                                        "title": "#",
+                                        "align": "right",
+                                        "width": 40,
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "url",
+                                        "title": "Model",
+                                        "width": 240,
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "model"
+                                        }
+                                    },
+                                    {
+                                        "field": "accuracy",
+                                        "title": "Accuracy",
+                                        "align": "right",
+                                        "width": 110,
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "avgCostPerTask",
+                                        "title": "Avg Cost Per Task",
+                                        "renderer": {
+                                            "type": "bar"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "rank",
+                                    "model",
+                                    "accuracy",
+                                    "avgCostPerTask"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "url"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "df0c3dda-bfa5-48a0-babf-ed96590b4be2",
+                "x": 3,
+                "y": 8,
+                "w": 3,
+                "h": 3,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Models For Website Design",
+                    "description": "Top 15 models by Elo rating on Design Arena's website arena, from head-to-head votes. Win rate is how often voters picked the model's site.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH by_slug AS (\n    SELECT\n        permaslug AS slug,\n        id\n    FROM Models\n    -- Datasets key models by permaslug; a :batch model shares its base's, so keep one\n    QUALIFY row_number() OVER (PARTITION BY permaslug ORDER BY length(id), id) = 1\n)\n-- Design Arena's own names keep reasoning-effort variants apart (e.g. \"(xhigh)\", \"Max\")\nSELECT\n    row_number() OVER (ORDER BY b.score DESC) AS rank,\n    m.id,\n    -- Models missing from the models stream (e.g. stealth models) link to their OpenRouter page\n    CASE WHEN m.id IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(m.id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' ELSE 'https://openrouter.ai/' || b.model END AS url,\n    b.modelName AS model,\n    b.score AS elo,\n    b.winRate,\n    b.avgDurationMs\nFROM Benchmarks b\nLEFT JOIN by_slug m ON m.slug = b.model\nWHERE b.benchmark = 'website' AND b.metric = 'elo'\nORDER BY b.score DESC\nLIMIT 15",
+                            "tables": [
+                                {
+                                    "tableName": "Benchmarks",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[benchmarks]}}",
+                                            "name": "benchmarks",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "source": "design-arena"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "rank",
+                                "displayName": "Rank",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "url",
+                                "displayName": "Model Link",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "model",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "elo",
+                                "displayName": "Elo",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "winRate",
+                                "displayName": "Win Rate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "avgDurationMs",
+                                "displayName": "Avg Build Time",
+                                "shape": "milliseconds"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "rank",
+                                        "title": "#",
+                                        "align": "right",
+                                        "width": 40,
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "url",
+                                        "title": "Model",
+                                        "width": 240,
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "model"
+                                        }
+                                    },
+                                    {
+                                        "field": "elo",
+                                        "title": "Elo",
+                                        "align": "right",
+                                        "width": 80,
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "winRate",
+                                        "title": "Win Rate",
+                                        "align": "right",
+                                        "width": 100,
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "avgDurationMs",
+                                        "title": "Avg Build Time",
+                                        "renderer": {
+                                            "type": "bar"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "rank",
+                                    "model",
+                                    "elo",
+                                    "winRate",
+                                    "avgDurationMs"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "url"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "22bac160-9e66-4597-b230-270811258056",
+                "x": 4,
+                "y": 0,
+                "w": 2,
+                "h": 4,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "OpenRouter Token Share By Author (This Month)",
+                    "description": "",
+                    "timeframe": "thisMonth",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[rankings]}}",
+                        "name": "rankings",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "model_permaslug",
+                                    "operation": "notequals",
+                                    "value": "other"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "author",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "total_tokens"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "total_tokens_sum",
+                                    "desc"
+                                ]
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "total_tokens_sum",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "author_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Author"
+                                },
+                                "value": {
+                                    "field": "total_tokens_sum",
+                                    "type": "quantitative",
+                                    "title": "Tokens"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 55,
+                                "pieDonutCenterValue": "total",
+                                "pieLegendStyle": "table"
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "total_tokens_sum",
+                                "labelColumn": "author_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": true,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "071c926f-0d3c-4192-962f-d191aa03dcbc",
+                "x": 0,
+                "y": 11,
+                "w": 6,
+                "h": 4,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Models On OpenRouter By Week (This Year)",
+                    "description": "Each week's 20 most used models across OpenRouter, by tokens. All other models in that week are combined into Other.",
+                    "timeframe": "thisYear",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[rankings]}}",
+                        "name": "rankings",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "period": "week",
+                            "top": 20
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "date",
+                                    "type": "temporal",
+                                    "title": "Week"
+                                },
+                                "y": {
+                                    "field": "total_tokens",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "title": "Tokens"
+                                },
+                                "series": {
+                                    "field": "model_permaslug",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date",
+                                "yAxisColumn": [
+                                    "total_tokens"
+                                ],
+                                "seriesColumn": "model_permaslug",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "yAxisLabel": "Tokens",
+                                "showYAxisLabel": true,
+                                "showTrendLine": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a3384d79-77a8-49c0-bb08-62d6744303e1",
+                "x": 0,
+                "y": 15,
+                "w": 6,
+                "h": 4,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Task Leaders",
+                    "description": "Models that are the most used model for at least one task on OpenRouter over the last 7 days, with the tasks they lead.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "-- One row per model that is the most used model for at least one task\nWITH leaders AS (\n    SELECT\n        topModel AS slug,\n        count(*) AS tasksLed,\n        string_agg(DISTINCT category, ', ' ORDER BY category) AS categories,\n        string_agg(task, ', ' ORDER BY usageShare DESC) AS leads,\n        sum(usageShare) AS requestShare\n    FROM Tasks\n    WHERE topModel IS NOT NULL\n    GROUP BY topModel\n),\nby_slug AS (\n    SELECT\n        permaslug AS slug,\n        id,\n        name\n    FROM Models\n    -- Datasets key models by permaslug; a :batch model shares its base's, so keep one\n    QUALIFY row_number() OVER (PARTITION BY permaslug ORDER BY length(id), id) = 1\n)\nSELECT\n    row_number() OVER (ORDER BY l.tasksLed DESC, l.requestShare DESC) AS rank,\n    m.id,\n    -- Models missing from the models stream (e.g. stealth models) link to their OpenRouter page\n    CASE WHEN m.id IS NOT NULL THEN '/drilldown/node?sourceId=Model%2F' || replace(replace(m.id, '/', '%2F'), ':', '%3A') || '&__configId={{configId}}' ELSE 'https://openrouter.ai/' || l.slug END AS url,\n    COALESCE(m.name, l.slug) AS model,\n    l.tasksLed,\n    l.categories,\n    l.leads\nFROM leaders l\nLEFT JOIN by_slug m ON m.slug = l.slug\nORDER BY rank",
+                            "tables": [
+                                {
+                                    "tableName": "Tasks",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[taskClassifications]}}",
+                                            "name": "taskClassifications",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "Models",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[models]}}",
+                                            "name": "models",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "rank",
+                                "displayName": "Rank",
+                                "shape": "number"
+                            },
+                            {
+                                "name": "id",
+                                "displayName": "Model ID",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "url",
+                                "displayName": "Model Link",
+                                "shape": "string",
+                                "visible": false
+                            },
+                            {
+                                "name": "model",
+                                "displayName": "Model",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "tasksLed",
+                                "displayName": "Tasks Led",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "categories",
+                                "displayName": "Categories",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "leads",
+                                "displayName": "Leads (Busiest First)",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "rank",
+                                        "title": "#",
+                                        "align": "right",
+                                        "width": 40,
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "url",
+                                        "title": "Model",
+                                        "width": 260,
+                                        "renderer": {
+                                            "type": "link",
+                                            "labelField": "model"
+                                        }
+                                    },
+                                    {
+                                        "field": "tasksLed",
+                                        "title": "Tasks Led",
+                                        "align": "right",
+                                        "width": 90,
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        }
+                                    },
+                                    {
+                                        "field": "categories",
+                                        "title": "Categories",
+                                        "width": 260,
+                                        "renderer": {
+                                            "type": "tag-list"
+                                        }
+                                    },
+                                    {
+                                        "field": "leads",
+                                        "title": "Leads (Busiest First)",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableWrapText": true
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "rank",
+                                    "model",
+                                    "tasksLed",
+                                    "categories",
+                                    "leads"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "url"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "37f6bcdf-02a2-4c2a-861d-c9515d1c2092",
+                "x": 0,
+                "y": 19,
+                "w": 6,
+                "h": 8,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Claude Code Cost Per Session",
+                    "description": "Median cost of one Claude Code session routed through OpenRouter, by model and session length. Users can pick any model on OpenRouter, so many aren't Anthropic's.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sessionCost]}}",
+                        "name": "sessionCost",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "harness": "claude-code"
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "sessionLengthOrder",
+                                    "asc"
+                                ],
+                                [
+                                    "median_session_cost_usd",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scatter",
+                            "encoding": {
+                                "x": {
+                                    "field": "model_permaslug",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                },
+                                "y": {
+                                    "field": "median_session_cost_usd",
+                                    "type": "quantitative",
+                                    "title": "Median Session Cost ($)"
+                                },
+                                "color": {
+                                    "field": "sessionLength",
+                                    "type": "nominal",
+                                    "title": "Session Length"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianYAxisScale": "log",
+                                "cartesianXAxisLabelRotation": 45,
+                                "cartesianXAxisTickDensity": "dense",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Median Session Cost ($, log scale)",
+                                "cartesianShowVerticalGridLines": true
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "model_permaslug",
+                                    "sessionLength",
+                                    "median_session_cost_usd",
+                                    "app_name"
+                                ],
+                                "hiddenColumns": [
+                                    "app_slug",
+                                    "turn_range",
+                                    "sessionLengthOrder",
+                                    "asOf",
+                                    "citation"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "56d4d9f8-9cc4-4852-9306-2997d9e87000",
+                "x": 0,
+                "y": 27,
+                "w": 6,
+                "h": 8,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Agentic Models Compared",
+                    "description": "Higher is better on every axis. Affordability scores price per 1M tokens on a log scale, from 100 at $0.01 or less to 0 at $1,000 or more. Change the ceiling with the Affordability ceiling parameter.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[models]}}",
+                        "name": "models",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "benchmarks.artificial_analysis.agentic_index",
+                                    "operation": "greaterthan",
+                                    "value": "0"
+                                },
+                                {
+                                    "column": "benchmarks.artificial_analysis.intelligence_index",
+                                    "operation": "greaterthan",
+                                    "value": "0"
+                                },
+                                {
+                                    "column": "benchmarks.artificial_analysis.coding_index",
+                                    "operation": "greaterthan",
+                                    "value": "0"
+                                },
+                                {
+                                    "column": "name",
+                                    "operation": "notcontains",
+                                    "value": "(batch)"
+                                },
+                                {
+                                    "column": "name",
+                                    "operation": "notcontains",
+                                    "value": "(free)"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "benchmarks.artificial_analysis.agentic_index",
+                                    "desc"
+                                ],
+                                [
+                                    "benchmarks.artificial_analysis.intelligence_index",
+                                    "desc"
+                                ],
+                                [
+                                    "benchmarks.artificial_analysis.coding_index",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "radar",
+                            "encoding": {
+                                "series": {
+                                    "field": "name",
+                                    "type": "nominal",
+                                    "title": "Model"
+                                },
+                                "axes": [
+                                    {
+                                        "field": "benchmarks.artificial_analysis.intelligence_index",
+                                        "type": "quantitative",
+                                        "title": "Intelligence Index"
+                                    },
+                                    {
+                                        "field": "benchmarks.artificial_analysis.coding_index",
+                                        "type": "quantitative",
+                                        "title": "Coding Index"
+                                    },
+                                    {
+                                        "field": "benchmarks.artificial_analysis.agentic_index",
+                                        "type": "quantitative",
+                                        "title": "Agentic Index"
+                                    },
+                                    {
+                                        "field": "inputAffordability",
+                                        "type": "quantitative",
+                                        "title": "Input Affordability"
+                                    },
+                                    {
+                                        "field": "outputAffordability",
+                                        "type": "quantitative",
+                                        "title": "Output Affordability"
+                                    },
+                                    {
+                                        "field": "cacheReadAffordability",
+                                        "type": "quantitative",
+                                        "title": "Cache Read Affordability"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "legendPosition": "right",
+                                "radarShape": "polygon",
+                                "radarFill": false,
+                                "radarRadius": 80
+                            }
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "columnOrder": [
+                                    "name",
+                                    "author",
+                                    "benchmarks.artificial_analysis.intelligence_index",
+                                    "benchmarks.artificial_analysis.coding_index",
+                                    "benchmarks.artificial_analysis.agentic_index",
+                                    "inputPrice",
+                                    "outputPrice",
+                                    "cacheReadPrice"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "canonical_slug",
+                                    "permaslug",
+                                    "cacheReadPrice",
+                                    "top_provider.max_completion_tokens",
+                                    "inputModalities",
+                                    "outputModalities",
+                                    "knowledge_cutoff",
+                                    "created",
+                                    "expiration_date",
+                                    "pricing.prompt",
+                                    "pricing.completion",
+                                    "pricing.input_cache_read",
+                                    "inputAffordability",
+                                    "outputAffordability",
+                                    "cacheReadAffordability",
+                                    "architecture.input_modalities",
+                                    "architecture.output_modalities"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "679f0166-77c4-47c1-9ae5-7e4c1721f718",
+                "x": 0,
+                "y": 35,
+                "w": 6,
+                "h": 1,
+                "config": {
+                    "_type": "tile/text",
+                    "title": "",
+                    "description": "",
+                    "visualisation": {
+                        "config": {
+                            "content": "Benchmarks: Artificial Analysis ([artificialanalysis.ai](https://artificialanalysis.ai)), Design Arena ([www.designarena.ai](https://www.designarena.ai)), and OpenRouter evals ([openrouter.ai](https://openrouter.ai)), via OpenRouter ([openrouter.ai/rankings](https://openrouter.ai/rankings)).  \nRankings, tasks, and session cost: OpenRouter ([openrouter.ai/rankings](https://openrouter.ai/rankings)). Tasks cover the 7 days to yesterday (UTC); session cost is refreshed weekly.  \nLicensed under CC BY 4.0.",
+                            "fontSize": 12,
+                            "align": "left",
+                            "autoSize": true
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

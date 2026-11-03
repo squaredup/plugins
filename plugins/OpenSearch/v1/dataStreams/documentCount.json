@@ -1,0 +1,57 @@
+{
+    "name": "documentCount",
+    "displayName": "Document Count",
+    "description": "Number of documents in one or more indices, optionally matching a query",
+    "tags": ["Search"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "matches": "none",
+    "manualConfigApply": true,
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "{{index}}/_count",
+        "getArgs": [],
+        "headers": [],
+        "postBody": "{{ (() => { let raw = typeof query === 'undefined' || query === null || query === '' ? {} : query; if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = {}; } } const clause = raw && raw.query ? raw.query : (raw && Object.keys(raw).length ? raw : { match_all: {} }); const field = typeof timeField === 'string' ? timeField.trim() : ''; const tf = typeof timeframe !== 'undefined' ? timeframe : null; if (!field || !tf || !tf.start || tf.enum === 'none') { return { query: clause }; } return { query: { bool: { must: [ clause ], filter: [ { range: { [field]: { gte: tf.start, lte: tf.end, format: 'strict_date_optional_time' } } } ] } } }; })() }}",
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.root_cause.0.reason" }
+    },
+    "ui": [
+        {
+            "name": "index",
+            "type": "autocomplete",
+            "label": "Index",
+            "validation": {
+                "required": true
+            },
+            "placeholder": "Select an index or pattern",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "indexNames",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "name": "query",
+            "type": "json",
+            "label": "Query",
+            "defaultValue": {
+                "match_all": {}
+            },
+            "help": "Accepts a Query DSL clause, or a request body with a query property."
+        },
+        {
+            "name": "timeField",
+            "type": "text",
+            "label": "Time field",
+            "placeholder": "@timestamp",
+            "help": "Counts only documents in the tile's timeframe using this date field. Leave empty to ignore the timeframe."
+        }
+    ],
+    "supportsNoneTimeframe": true,
+    "requiresParameterTimeframe": true,
+    "defaultTimeframe": "none",
+    "metadata": [
+        { "name": "count", "displayName": "Documents", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }], "role": "value" }
+    ]
+}

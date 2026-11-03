@@ -1,0 +1,176 @@
+{
+    "name": "auditEvents",
+    "displayName": "Audit Events",
+    "description": "Octopus audit log of who changed or did what and when, such as deployments, configuration changes and logins",
+    "tags": [
+        "Audit"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/events",
+        "getArgs": [
+            {
+                "key": "from",
+                "value": "{{ timeframe.start }}"
+            },
+            {
+                "key": "to",
+                "value": "{{ timeframe.end }}"
+            },
+            {
+                "key": "regarding",
+                "value": "{{ object.rawId.startsWith('Spaces-') ? null : object.rawId }}"
+            },
+            {
+                "key": "eventCategories",
+                "value": "{{ (typeof category !== 'undefined' && category && category.length) ? [].concat(category).join(',') : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "take",
+                "value": "200"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "Items"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "skip"
+            }
+        },
+        "postRequestScript": "auditEvents.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Project",
+                "Environment",
+                "Tenant",
+                "Runbook",
+                "Deployment Target",
+                "Worker"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "category",
+            "label": "Category(s)",
+            "isMulti": true,
+            "options": [
+                { "value": "DeploymentQueued", "label": "Deployment queued" },
+                { "value": "DeploymentStarted", "label": "Deployment started" },
+                { "value": "DeploymentSucceeded", "label": "Deployment succeeded" },
+                { "value": "DeploymentFailed", "label": "Deployment failed" },
+                { "value": "Created", "label": "Created" },
+                { "value": "Modified", "label": "Modified" },
+                { "value": "Deleted", "label": "Deleted" },
+                { "value": "LoginSucceeded", "label": "Login succeeded" },
+                { "value": "LoginFailed", "label": "Login failed" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "Message",
+            "displayName": "Message",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "Category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "Username",
+            "displayName": "User",
+            "shape": "string"
+        },
+        {
+            "name": "IsService",
+            "displayName": "Service Account",
+            "shape": "boolean"
+        },
+        {
+            "name": "Occurred",
+            "displayName": "Occurred",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "IpAddress",
+            "displayName": "IP Address",
+            "shape": "string"
+        },
+        {
+            "name": "ProjectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "EnvironmentId",
+            "displayName": "Environment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "SpaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "sourceId": "ProjectId",
+            "sourceType": "Project",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ object && object.name ? object.name : '' }}"
+        },
+        {
+            "name": "environmentName",
+            "displayName": "Environment",
+            "sourceId": "EnvironmentId",
+            "sourceType": "Environment",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ object && object.name ? object.name : '' }}"
+        },
+        {
+            "sourceId": "ProjectId",
+            "sourceType": "Project",
+            "name": "projectName"
+        },
+        {
+            "sourceId": "EnvironmentId",
+            "sourceType": "Environment",
+            "name": "environmentName"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ]
+}

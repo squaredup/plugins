@@ -1,0 +1,530 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "8f34d2cc-0962-4d85-8f8c-4ee90b7eb853",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Seats Used",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[licenses]}}",
+                        "name": "licenses",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "seats_assigned",
+                                        "type": "quantitative",
+                                        "title": "Seats Used"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a417d00b-16d1-419a-b202-5da9daa40db8",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Active Users",
+                    "description": "Authors with at least one merged pull request.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[pullRequests]}}",
+                        "name": "pullRequests",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "status": "merged"
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "distinctCount",
+                                    "names": [
+                                        "author_id"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "author_id_distinctCount",
+                                        "type": "quantitative",
+                                        "title": "Active Users"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e844ce7e-97ea-4df3-9631-d9b9adb0fb1c",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "PRs Merged",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[pullRequests]}}",
+                        "name": "pullRequests",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "status": "merged"
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "count",
+                                        "type": "quantitative",
+                                        "title": "PRs Merged"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c8ffc787-8014-403d-b14f-ce822aad9c40",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Acceptance Rate",
+                    "description": "Share of CodeRabbit findings that were accepted.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT AVG(\"acceptedCount\") * 100 AS \"acceptanceRate\" FROM \"dataset1\"",
+                            "tables": [
+                                {
+                                    "tableName": "dataset1",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[reviewComments]}}",
+                                            "name": "reviewComments",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "acceptanceRate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "acceptanceRate",
+                                    "type": "quantitative",
+                                    "title": "Acceptance Rate"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.6,
+                                        "color": "#DE0038"
+                                    },
+                                    {
+                                        "to": 0.8,
+                                        "color": "#E18700"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#259A51"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3788ab33-9823-42b0-afa2-5debd33cc683",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Estimated Review Hours",
+                    "description": "Review effort CodeRabbit estimated for merged pull requests.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT SUM(\"estimated_review_minutes\") / 60.0 AS \"estimatedReviewHours\" FROM \"dataset1\"",
+                            "tables": [
+                                {
+                                    "tableName": "dataset1",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pullRequests]}}",
+                                            "name": "pullRequests",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "status": "merged"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "estimatedReviewHours",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "estimatedReviewHours",
+                                        "type": "quantitative",
+                                        "title": "Hours"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "aa0ec097-07f9-4e7c-9ba9-43cc4672eedf",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Findings Posted",
+                    "description": "CodeRabbit review findings on merged pull requests.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[reviewComments]}}",
+                        "name": "reviewComments",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "count",
+                                        "type": "quantitative",
+                                        "title": "Findings Posted"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b2ac0510-47ad-4b90-9e1d-7e5ce560d666",
+                "x": 0,
+                "y": 4,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "PRs Merged Per Day",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[pullRequests]}}",
+                        "name": "pullRequests",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "status": "merged"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "merged_at",
+                                    "byDay"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "merged_at_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "merged_at_byDay",
+                                    "type": "temporal",
+                                    "title": "Merged"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "PRs Merged"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "colors": [
+                                    "#FF570A"
+                                ],
+                                "cartesianColorRules": [
+                                    {
+                                        "gte": 0,
+                                        "color": "#FF570A"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4dba54bd-de9b-4d44-ad70-2de31d70cdbd",
+                "x": 2,
+                "y": 4,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Acceptance Rate Over Time",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT\n    STRFTIME(DATE_TRUNC('day', \"merged_at\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\",\n    AVG(\"acceptedCount\") * 100 AS \"acceptanceRate\"\nFROM \"dataset1\"\nWHERE \"merged_at\" IS NOT NULL\nGROUP BY 1\nORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "dataset1",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[reviewComments]}}",
+                                            "name": "reviewComments",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "day",
+                                "shape": "date"
+                            },
+                            {
+                                "name": "acceptanceRate",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Merged"
+                                },
+                                "y": {
+                                    "field": "acceptanceRate",
+                                    "type": "quantitative",
+                                    "title": "Acceptance Rate"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianYAxisMin": 0,
+                                "cartesianYAxisMax": 100,
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

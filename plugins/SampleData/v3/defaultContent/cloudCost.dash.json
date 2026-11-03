@@ -1,0 +1,862 @@
+{
+    "name": "Cloud Cost",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "61521a75-d92f-4245-9e54-009bbcfbbdb8",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend This Month",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "costUsd_sum",
+                                "comparisonColumn": "none",
+                                "label": "Month-to-date cloud spend"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "costUsd_sum",
+                                        "type": "quantitative",
+                                        "title": "Month-to-date cloud spend"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5ccaff0b-5298-4a94-a49a-961bc3d52ffe",
+                "x": 1,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Spend vs Budget This Month",
+                    "description": "Month-to-date spend against the month-to-date budget",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "budgetUsd"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bullet",
+                            "encoding": {
+                                "value": {
+                                    "field": "costUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Spend"
+                                },
+                                "target": {
+                                    "field": "budgetUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Budget"
+                                }
+                            },
+                            "style": {
+                                "bulletFillColor": "#206bc4",
+                                "gaugeTargetColor": "#d63939"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "80ddef55-3509-4c48-8892-c8f83f01b0d4",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Services Over Budget",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COUNT(*) AS \"overBudget\" FROM (SELECT \"service\", SUM(\"costUsd\") AS \"cost\", SUM(\"budgetUsd\") AS \"budget\" FROM \"dataset\" GROUP BY \"service\") WHERE \"cost\" > \"budget\"",
+                        "metadata": [
+                            {
+                                "name": "overBudget",
+                                "displayName": "Services over budget",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "overBudget",
+                                "comparisonColumn": "none",
+                                "label": "Services over budget this month"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "overBudget",
+                                        "type": "quantitative",
+                                        "title": "Services over budget this month"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1cff0bf2-188d-44f7-a892-54c09f370e16",
+                "x": 0,
+                "y": 2,
+                "w": 3,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Spend vs Budget",
+                    "description": "Total daily cloud spend against the daily budget",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "date",
+                                    "byDay"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "budgetUsd"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date_byDay",
+                                "yAxisColumn": [
+                                    "costUsd_sum",
+                                    "budgetUsd_sum"
+                                ],
+                                "seriesColumn": "none",
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "legendPosition": "bottom",
+                                "cartesianSymbol": "none",
+                                "colors": [
+                                    "#206bc4",
+                                    "#d63939"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "529e20f6-bc02-4ea5-8a23-f2819eefe233",
+                "x": 3,
+                "y": 2,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost by Category",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "category",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "costUsd_sum",
+                                "labelColumn": "category_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "category_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Category"
+                                },
+                                "value": {
+                                    "field": "costUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Cost"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2c6cbf94-0193-4270-b014-ef2f5f4bca35",
+                "x": 0,
+                "y": 6,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost by Service",
+                    "description": "Cloud spend per service, grouped by owning team",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "team",
+                                    "uniqueValues"
+                                ],
+                                [
+                                    "service",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "treemap",
+                            "encoding": {
+                                "label": {
+                                    "field": "service_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                },
+                                "value": {
+                                    "field": "costUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Cost"
+                                },
+                                "parent": {
+                                    "field": "team_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Team"
+                                }
+                            },
+                            "style": {
+                                "treemapGap": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "daf09d7e-466d-4f50-8258-93dea38795a5",
+                "x": 2,
+                "y": 6,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost by Team",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "team",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "costUsd_sum",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "team_uniqueValues",
+                                "yAxisData": [
+                                    "costUsd_sum"
+                                ],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": false,
+                                "showYAxisLabel": false,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "horizontal",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": {
+                                    "type": "auto"
+                                }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "team_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Team"
+                                },
+                                "y": {
+                                    "field": "costUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Cost"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "colors": [
+                                    "#206bc4"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7ed3c86b-ee88-4bd0-b921-e7398fe6311b",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Compute Cost by Service",
+                    "description": "Compute spend per service per day; look for services that step up",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "category",
+                                    "operation": "equals",
+                                    "value": "Compute"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "date",
+                                    "byDay"
+                                ],
+                                [
+                                    "service",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "date_byDay",
+                                "yAxisColumn": [
+                                    "costUsd_sum"
+                                ],
+                                "seriesColumn": "service_uniqueValues",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "costUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Compute cost"
+                                },
+                                "series": {
+                                    "field": "service_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "right",
+                                "cartesianSymbol": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "afd5ea56-402a-41ea-8a03-83dd80c569e8",
+                "x": 0,
+                "y": 13,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Budget Status by Service",
+                    "description": "Month-to-date spend against budget for each service",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"service\", \"team\", SUM(\"costUsd\") AS \"costUsd\", SUM(\"budgetUsd\") AS \"budgetUsd\", ROUND(100.0 * SUM(\"costUsd\") / NULLIF(SUM(\"budgetUsd\"), 0), 1) AS \"budgetUsedPercent\", CASE WHEN SUM(\"costUsd\") > SUM(\"budgetUsd\") THEN 'error' WHEN SUM(\"costUsd\") > 0.95 * SUM(\"budgetUsd\") THEN 'warning' ELSE 'success' END AS \"state\" FROM \"dataset\" GROUP BY \"service\", \"team\" ORDER BY \"budgetUsedPercent\" DESC",
+                        "metadata": [
+                            {
+                                "name": "service",
+                                "displayName": "Service"
+                            },
+                            {
+                                "name": "team",
+                                "displayName": "Team"
+                            },
+                            {
+                                "name": "costUsd",
+                                "displayName": "Spend",
+                                "shape": [
+                                    "usd",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "budgetUsd",
+                                "displayName": "Budget",
+                                "shape": [
+                                    "usd",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "budgetUsedPercent",
+                                "displayName": "Budget used",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "state",
+                                "displayName": "State",
+                                "shape": "state"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "service",
+                                    "team",
+                                    "costUsd",
+                                    "budgetUsd",
+                                    "budgetUsedPercent",
+                                    "state"
+                                ],
+                                "hiddenColumns": []
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "service",
+                                        "title": "Service",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "team",
+                                        "title": "Team",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "costUsd",
+                                        "title": "Spend",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "prefix": "$"
+                                        }
+                                    },
+                                    {
+                                        "field": "budgetUsd",
+                                        "title": "Budget",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "prefix": "$"
+                                        }
+                                    },
+                                    {
+                                        "field": "budgetUsedPercent",
+                                        "title": "Budget used",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "state",
+                                    "colors": {
+                                        "error": "rgba(214,57,57,0.15)",
+                                        "warning": "rgba(245,159,0,0.15)"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "state",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "state"
+                            ]
+                        },
+                        "frequency": 180
+                    }
+                }
+            }
+        ]
+    }
+}

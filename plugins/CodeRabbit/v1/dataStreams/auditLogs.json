@@ -1,0 +1,52 @@
+{
+    "name": "auditLogs",
+    "displayName": "Audit logs",
+    "description": "Organization audit log entries for administrative actions",
+    "tags": ["Activity", "Security"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/audit-logs",
+        "pathToData": "data",
+        "expandInnerObjects": true,
+        "getArgs": [
+            { "key": "date_from", "value": "{{timeframe.start}}" },
+            { "key": "date_to", "value": "{{timeframe.end}}" },
+            { "key": "search", "value": "{{search || null}}" }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "text",
+            "name": "search",
+            "label": "Search user name",
+            "placeholder": "Enter a user name",
+            "help": "Supports partial or full name matching"
+        }
+    ],
+    "metadata": [
+        { "name": "createdAt", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "actionLabel", "displayName": "Action", "shape": "string", "role": "label" },
+        { "name": "action", "displayName": "Action key", "shape": "string", "visible": false },
+        { "name": "actor.name", "displayName": "Actor", "shape": "string" },
+        { "name": "actor.subtitle", "displayName": "Actor role", "shape": "string" },
+        { "name": "actor.isBot", "displayName": "Bot", "shape": "boolean", "visible": false },
+        { "name": "resourceTypeLabel", "displayName": "Resource type", "shape": "string" },
+        { "name": "resourceSummary", "displayName": "Resource", "shape": "string" },
+        { "name": "ipAddress", "displayName": "IP address", "shape": "string" },
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id", "visible": false }
+    ],
+    "timeframes": true
+}

@@ -1,0 +1,68 @@
+{
+    "name": "serviceDependencies",
+    "displayName": "Service Dependencies",
+    "description": "Call dependencies into and out of a service, one row per parent-child pair",
+    "tags": [
+        "Services"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Service"
+        }
+    },
+    "timeframes": false,
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/dependencies",
+        "pathToData": "data",
+        "getArgs": [
+            {
+                "key": "service",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "lookback",
+                "value": "{{dataSource.dependencyStorage === 'spans' ? 3600000 : 172800000}}"
+            }
+        ],
+        "headers": [],
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.msg"
+        }
+    },
+    "metadata": [
+        {
+            "name": "key",
+            "displayName": "Dependency",
+            "computed": true,
+            "valueExpression": "{{ $['parent'] + ' -> ' + $['child'] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "parent",
+            "displayName": "Parent Service",
+            "shape": "string"
+        },
+        {
+            "name": "child",
+            "displayName": "Child Service",
+            "shape": "string"
+        },
+        {
+            "name": "callCount",
+            "displayName": "Call Count",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        }
+    ]
+}

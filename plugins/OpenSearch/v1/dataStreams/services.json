@@ -1,0 +1,40 @@
+{
+    "name": "services",
+    "displayName": "Services",
+    "description": "Services found in OpenTelemetry logs, with log, warning and error counts (requires Import OpenTelemetry services)",
+    "tags": ["Logs", "Services"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "{{ (dataSource.indexOtelServices === true || dataSource.indexOtelServices === 'true') && dataSource.otelLogIndexPattern ? dataSource.otelLogIndexPattern.trim() : 'squaredup-otel-disabled-*' }}/_search",
+        "getArgs": [
+            { "key": "allow_no_indices", "value": "true" },
+            { "key": "ignore_unavailable", "value": "true" }
+        ],
+        "postBody": "{{ (() => { const svc = dataSource.otelServiceField || 'resource.service.name.keyword'; const layout = svc.match(/^(.*)service[.]name([.]keyword)?$/) || ['', '', '']; const attr = (name) => (layout[1] || '') + name + (layout[2] || ''); const ts = dataSource.otelTimestampField || '@timestamp'; const sev = dataSource.otelSeverityField || 'severity.number'; const names = (typeof service !== 'undefined' && Array.isArray(service)) ? service.map((o) => [].concat(o.rawId)[0]) : []; const tf = typeof timeframe !== 'undefined' ? timeframe : null; const span = (tf && tf.start && tf.enum !== 'none') ? { gte: tf.start, lte: tf.end, format: 'strict_date_optional_time' } : { gte: 'now-24h' }; const filter = [ { range: { [ts]: span } } ]; if (names.length) { filter.push({ terms: { [svc]: names } }); } return { size: 0, track_total_hits: false, query: { bool: { filter: filter } }, aggs: { services: { terms: { field: svc, size: 1000 }, aggs: { warnings: { filter: { range: { [sev]: { gte: 13, lt: 17 } } } }, errors: { filter: { range: { [sev]: { gte: 17 } } } }, environment: { terms: { field: attr('deployment.environment'), size: 20 } }, environmentName: { terms: { field: attr('deployment.environment.name'), size: 20 } }, k8sNamespaces: { terms: { field: attr('k8s.namespace.name'), size: 50 } }, k8sDeployments: { terms: { field: attr('k8s.deployment.name'), size: 50 } } } } } }; })() }}",
+        "postRequestScript": "services.js",
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.root_cause.0.reason" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "service",
+            "label": "Service (optional)",
+            "matches": { "sourceType": { "type": "equals", "value": "Service" } }
+        }
+    ],
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "metadata": [
+        { "name": "service", "displayName": "Service", "shape": "string", "role": "label" },
+        { "sourceId": "service", "sourceType": "Service", "name": "service" },
+        { "name": "logs", "displayName": "Logs", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        { "name": "warnings", "displayName": "Warnings", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        { "name": "errors", "displayName": "Errors", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }], "role": "value" },
+        { "name": "errorRate", "displayName": "Error Rate", "shape": ["percent", { "decimalPlaces": 2 }] },
+        { "name": "environments", "displayName": "Environments", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "k8sNamespaces", "displayName": "Kubernetes Namespaces", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "k8sDeployments", "displayName": "Kubernetes Deployments", "shape": ["array", { "itemShape": "string" }] }
+    ]
+}

@@ -1,0 +1,133 @@
+{
+    "name": "pings",
+    "displayName": "Pings",
+    "description": "Pings received by a check, including job run times (requires a read-write API key)",
+    "tags": ["Monitoring", "Events"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "checks/{{object.uuid || object.rawId}}/pings/",
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "pings.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/pings.js"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Check"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "checkId",
+            "displayName": "Check ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "checkName",
+            "displayName": "Check",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "checkTags",
+            "displayName": "Tags",
+            "sourceId": "checkId",
+            "sourceType": "Check",
+            "objectPropertyPath": "checkTags",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "result",
+            "displayName": "Result",
+            "computed": true,
+            "valueExpression": "{{ $['type'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["success"],
+                        "error": ["fail"],
+                        "unknown": ["start", "log", "ign"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "duration",
+            "displayName": "Duration",
+            "shape": "seconds"
+        },
+        {
+            "name": "exitstatus",
+            "displayName": "Exit status",
+            "shape": "number"
+        },
+        {
+            "name": "method",
+            "displayName": "Method",
+            "shape": "string"
+        },
+        {
+            "name": "scheme",
+            "displayName": "Scheme",
+            "shape": "string"
+        },
+        {
+            "name": "remote_addr",
+            "displayName": "Source IP",
+            "shape": "string"
+        },
+        {
+            "name": "ua",
+            "displayName": "User agent",
+            "shape": "string"
+        },
+        {
+            "name": "rid",
+            "displayName": "Run ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "n",
+            "displayName": "Ping number",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "sourceId": "checkId",
+            "sourceType": "Check",
+            "name": "checkName"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [["date", "desc"]]
+        }
+    }
+}

@@ -1,0 +1,56 @@
+{
+    "name": "nodes",
+    "displayName": "Nodes",
+    "description": "Current heap, memory, CPU, load and disk usage for each node in the cluster",
+    "tags": ["Cluster", "Nodes"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "_cat/nodes",
+        "getArgs": [
+            { "key": "format", "value": "json" },
+            { "key": "full_id", "value": "true" },
+            { "key": "bytes", "value": "b" },
+            { "key": "time", "value": "ms" },
+            { "key": "s", "value": "name" },
+            {
+                "key": "h",
+                "value": "id,name,ip,version,node.roles,cluster_manager,heap.percent,heap.current,heap.max,ram.percent,ram.current,ram.max,cpu,load_1m,load_5m,load_15m,disk.used,disk.total,disk.used_percent,uptime"
+            }
+        ],
+        "postRequestScript": "nodes.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "node",
+            "label": "Node (optional)",
+            "matches": { "sourceType": { "type": "equals", "value": "Node" } }
+        }
+    ],
+    "timeframes": false,
+    "metadata": [
+        { "name": "name", "displayName": "Node", "shape": "string", "role": "label" },
+        { "sourceId": "id", "sourceType": "Node", "name": "name" },
+        { "name": "id", "displayName": "Node ID", "shape": "string", "visible": false },
+        { "name": "isClusterManager", "displayName": "Cluster Manager", "shape": "boolean" },
+        { "name": "roles", "displayName": "Roles", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "heap.percent", "displayName": "Heap Used (%)", "shape": ["percent", { "decimalPlaces": 0 }], "role": "value" },
+        { "name": "heap.current", "displayName": "Heap Used", "shape": "bytes" },
+        { "name": "heap.max", "displayName": "Heap Max", "shape": "bytes" },
+        { "name": "ram.percent", "displayName": "Memory Used (%)", "shape": ["percent", { "decimalPlaces": 0 }] },
+        { "name": "ram.current", "displayName": "Memory Used", "shape": "bytes" },
+        { "name": "ram.max", "displayName": "Memory Total", "shape": "bytes" },
+        { "name": "cpu", "displayName": "CPU (%)", "shape": ["percent", { "decimalPlaces": 0 }] },
+        { "name": "load_1m", "displayName": "Load (1m)", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "load_5m", "displayName": "Load (5m)", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "load_15m", "displayName": "Load (15m)", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "disk.used_percent", "displayName": "Disk Used (%)", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "disk.used", "displayName": "Disk Used", "shape": "bytes" },
+        { "name": "disk.total", "displayName": "Disk Total", "shape": "bytes" },
+        { "name": "uptime", "displayName": "Uptime", "shape": ["milliseconds", { "formatDuration": true }] },
+        { "name": "version", "displayName": "Version", "shape": "string" },
+        { "name": "ip", "displayName": "IP Address", "shape": "string" }
+    ]
+}

@@ -1,0 +1,67 @@
+{
+    "name": "serviceLogs",
+    "displayName": "Service Logs",
+    "description": "Most recent OpenTelemetry log records by service, newest first (requires Import OpenTelemetry services)",
+    "tags": ["Logs", "Services"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "manualConfigApply": true,
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "{{ (dataSource.indexOtelServices === true || dataSource.indexOtelServices === 'true') && dataSource.otelLogIndexPattern ? dataSource.otelLogIndexPattern.trim() : 'squaredup-otel-disabled-*' }}/_search",
+        "getArgs": [
+            { "key": "allow_no_indices", "value": "true" },
+            { "key": "ignore_unavailable", "value": "true" }
+        ],
+        "postBody": "{{ (() => { const svc = dataSource.otelServiceField || 'resource.service.name.keyword'; const ts = dataSource.otelTimestampField || '@timestamp'; const sev = dataSource.otelSeverityField || 'severity.number'; const names = (typeof service !== 'undefined' && Array.isArray(service)) ? service.map((o) => [].concat(o.rawId)[0]) : []; const tf = typeof timeframe !== 'undefined' ? timeframe : null; const span = (tf && tf.start && tf.enum !== 'none') ? { gte: tf.start, lte: tf.end, format: 'strict_date_optional_time' } : { gte: 'now-24h' }; const filter = [ { range: { [ts]: span } } ]; if (names.length) { filter.push({ terms: { [svc]: names } }); } const picked = typeof minimumSeverity !== 'undefined' && minimumSeverity !== null ? [].concat(minimumSeverity)[0] : null; const floor = Number(picked && typeof picked === 'object' ? picked.value : picked); if (floor > 0) { filter.push({ range: { [sev]: { gte: floor } } }); } const size = Math.min(Math.max(Number(typeof limit !== 'undefined' && limit ? limit : 100), 1), 1000); return { size: size, track_total_hits: false, sort: [ { [ts]: { order: 'desc' } } ], query: { bool: { filter: filter } } }; })() }}",
+        "postRequestScript": "serviceLogs.js",
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.root_cause.0.reason" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "service",
+            "label": "Service (optional)",
+            "matches": { "sourceType": { "type": "equals", "value": "Service" } }
+        },
+        {
+            "type": "autocomplete",
+            "name": "minimumSeverity",
+            "label": "Minimum severity",
+            "isMulti": false,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "5", "label": "Debug" },
+                    { "value": "9", "label": "Info" },
+                    { "value": "13", "label": "Warn" },
+                    { "value": "17", "label": "Error" },
+                    { "value": "21", "label": "Fatal" }
+                ]
+            }
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Maximum records",
+            "defaultValue": 100,
+            "validation": { "min": 1, "max": 1000 }
+        }
+    ],
+    "timeframes": true,
+    "metadata": [
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "service", "displayName": "Service", "shape": "string", "role": "label" },
+        { "sourceId": "service", "sourceType": "Service", "name": "service" },
+        { "name": "serviceEnvironments", "displayName": "Service Environments", "sourceId": "service", "sourceType": "Service", "objectPropertyPath": "environments", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "serviceK8sNamespaces", "displayName": "Service Kubernetes Namespaces", "sourceId": "service", "sourceType": "Service", "objectPropertyPath": "k8sNamespaces", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "severity", "displayName": "Severity", "shape": ["state", { "map": { "error": ["Error", "Fatal"], "warning": ["Warn"], "success": ["Info", "Debug", "Trace"], "unknown": ["Unspecified"] } }] },
+        { "name": "message", "displayName": "Message", "shape": "string", "role": "value" },
+        { "name": "traceId", "displayName": "Trace ID", "shape": "string" },
+        { "name": "spanId", "displayName": "Span ID", "shape": "string", "visible": false },
+        { "name": "pod", "displayName": "Pod", "shape": "string" },
+        { "name": "_index", "displayName": "Index", "shape": "string", "visible": false },
+        { "name": "_id", "displayName": "Document ID", "shape": "string", "visible": false }
+    ]
+}

@@ -1,0 +1,53 @@
+{
+    "name": "deviceList",
+    "displayName": "Devices",
+    "description": "Managed devices, optionally filtered to a customer or site, one row per device",
+    "tags": ["Customer", "Site", "Device"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ (typeof orgUnit !== 'undefined' && orgUnit && orgUnit.length) ? 'api/org-units/' + (Array.isArray(orgUnit[0].rawId) ? orgUnit[0].rawId[0] : orgUnit[0].rawId) + '/devices' : 'api/devices' }}",
+        "pathToData": "data",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "pageSize", "value": "1000" },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "pageNumber" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "orgUnit",
+            "label": "Customer or Site (optional)",
+            "objectLimit": 1,
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["Customer", "Site"] }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "longName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "Device"
+        },
+        { "name": "deviceId", "shape": "number", "visible": false },
+        { "name": "deviceClass", "displayName": "Device Class", "shape": "string" },
+        { "name": "supportedOs", "displayName": "OS", "shape": "string" },
+        { "name": "isProbe", "displayName": "Probe", "shape": "boolean" },
+        { "name": "licenseMode", "displayName": "License Mode", "shape": "string" },
+        { "name": "customerId", "shape": "number", "visible": false },
+        { "name": "siteId", "shape": "number", "visible": false },
+        { "pattern": ".*" }
+    ],
+    "timeframes": false
+}

@@ -578,7 +578,7 @@ Always use `displayName` — column names in scripts are often terse API field n
 - **Explicit set only**: list each column; unlisted columns are hidden.
 - **Mix**: list specific columns with shapes/roles, then add the pattern for the rest.
 
-**Type inference**: SquaredUp infers column types from the JS primitive returned. Return the correct primitive type from your script — don't coerce to string. Declared `shape` overrides inference.
+**Type inference**: SquaredUp infers column types from the JS primitive returned. Return the correct primitive type from your script — don't coerce to string. Declared `shape` overrides inference. A list is the exception — it is never inferred; an array is serialised to a JSON string unless the column declares the `array` shape (see [List columns](#list-columns-array-shape)).
 
 ### Shapes
 
@@ -626,7 +626,13 @@ _Special_
 | `"guid"`       | GUID                                                                                        |
 | `"customunit"` | Custom unit label. Options: `prefix`, `separator`                                           |
 
-**Array form** — use when you need formatting options:
+_List_
+
+| Shape     | Notes                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| `"array"` | A list of values. Options: `itemShape` (any shape above). See [List columns](#list-columns-array-shape) |
+
+**With options** — use the `[name, options]` form when you need formatting options:
 
 ```json
 { "name": "price", "shape": ["number", { "decimalPlaces": 2 }] }
@@ -635,6 +641,38 @@ _Special_
 { "name": "health", "shape": ["state", { "map": { "success": ["ok","active"], "error": ["failed","down"], "warning": ["degraded"] } }] }
 { "name": "cost", "shape": ["currency", { "code": "jpy" }] }
 ```
+
+### List columns (`array` shape)
+
+When a field holds several values — tags, topics, IP addresses, environments — and should stay a list, declare the `array` shape:
+
+```json
+{ "name": "topics", "displayName": "Topics", "shape": ["array", { "itemShape": "string" }] }
+{ "name": "ports", "displayName": "Ports", "shape": ["array", { "itemShape": ["number", { "thousandsSeparator": false }] }] }
+{ "name": "seenAt", "displayName": "Seen at", "shape": ["array", { "itemShape": "date" }] }
+```
+
+Without it the platform serialises the array to a JSON string (`"[\"devops\",\"cli\"]"`). Don't work around that by joining to a comma-separated string or adding a display twin of the column: one list column feeds table display, tile filtering, the import and `objectPropertyPath` read-back.
+
+**`itemShape`** takes any shape from the tables above, in either form: a name (`"string"`, `"number"`, `"boolean"`, `"date"`, `"url"`, `"state"`, `"bytes"`, `"seconds"`, `"percent"`, …) or `[name, options]`. Each member is converted to and formatted as that shape. `"shape": "array"` with no `itemShape` infers it from the first non-null member. Declare it anyway, so the column's type doesn't depend on whichever row came first.
+
+**The value** is a real JS array of primitives: the raw API array via `pathToData`, or an array your script builds (split a delimited string here, rather than in the tile). A serialised JSON array string, for example from a `valueExpression`, is parsed back into members too.
+
+| Member                                         | Result                                                                                                 |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `null`                                         | Dropped                                                                                                |
+| An object, alongside primitives                | Dropped                                                                                                |
+| Every member an object (`[{ "name": "a" }]`)   | The whole cell stays a JSON string. Map to primitives in the script first: `tags.map((t) => t.name)`   |
+| Not convertible (`"abc"` with a `number` item) | The whole cell becomes no data, not a shorter list                                                     |
+| Empty list                                     | An empty list, rendered blank                                                                          |
+
+**Downstream behaviour:**
+
+- **Display:** the members are joined with `, `.
+- **Tile filters** test each member. `contains` and `equals` keep a row if any member matches, and a negated filter drops a row if any member matches. Numeric and date comparisons need a `number` or `date` `itemShape`. They are refused on a list of strings, just as on a string column.
+- **Not a scalar:** a list column is never picked as a tile's value column, so scalar, gauge and bar tiles still need a separate numeric column.
+- **Import:** a list column mapped into `objectMapping.properties` is written as a multi-value graph property. See [index-defs.md](index-defs.md).
+- **Read-back:** an `objectPropertyPath` column that reads a list property must declare the `array` shape as well. Without it you get only the first value. See [Object property lookup](#object-property-lookup).
 
 ### Roles
 
@@ -738,7 +776,13 @@ Replace a raw ID column with a human-readable property from a related indexed ob
 // Combine properties
 { "name": "AgentLabel", "sourceId": "AgentID", "sourceType": "my-agent",
   "objectPropertyPath": "name", "valueExpression": "{{ object.name }} ({{ object.company }})" }
+
+// Read back a multi-value property — the array shape returns every value, not just the first
+{ "name": "repoTopics", "displayName": "Repository topics", "sourceId": "repoId", "sourceType": "Repository",
+  "objectPropertyPath": "topics", "shape": ["array", { "itemShape": "string" }] }
 ```
+
+Appending a related object's list property this way lets tiles filter and group a stream's rows by it (e.g. issues filtered by their repository's topics). See [List columns](#list-columns-array-shape).
 
 ---
 
