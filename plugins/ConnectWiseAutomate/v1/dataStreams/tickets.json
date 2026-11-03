@@ -1,0 +1,172 @@
+{
+    "name": "tickets",
+    "displayName": "Tickets",
+    "description": "Automate tickets with status, priority and the client and computer they relate to (optionally filtered by client or open tickets only)",
+    "tags": [
+        "Tickets",
+        "Service Management"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "tickets",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "condition",
+                "value": "{{ [(typeof client !== 'undefined' && client && client.length ? 'Client.Id in (' + client.flatMap((o) => o.rawId).join(',') + ')' : null), (typeof ticketState !== 'undefined' && ticketState === 'open' ? \"Status.Name != 'Resolved'\" : null)].filter(Boolean).join(' and ') || null }}"
+            },
+            {
+                "key": "orderBy",
+                "value": "Id desc"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "."
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "client",
+            "label": "Client(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Client"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "ticketState",
+            "label": "Tickets",
+            "options": [
+                {
+                    "value": "open",
+                    "label": "Open only"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Client.Id",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "clientId",
+            "displayName": "Client ID",
+            "computed": true,
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['Client.Id'] == null ? null : String($['Client.Id']) }}"
+        },
+        {
+            "name": "Id",
+            "displayName": "Ticket",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false
+                }
+            ],
+            "role": "id"
+        },
+        {
+            "name": "Subject",
+            "displayName": "Subject",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "Status.Name",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Resolved"
+                        ],
+                        "warning": [
+                            "Stalled"
+                        ],
+                        "error": [
+                            "New",
+                            "Open"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Priority.Name",
+            "displayName": "Priority",
+            "shape": "string"
+        },
+        {
+            "name": "Client.Name",
+            "displayName": "Client",
+            "shape": "string",
+            "sourceId": "clientId",
+            "sourceType": "Client"
+        },
+        {
+            "name": "SupportLevel",
+            "displayName": "Support level",
+            "shape": "number"
+        },
+        {
+            "name": "ExternalID",
+            "displayName": "PSA ticket",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false
+                }
+            ],
+            "valueExpression": "{{ $['ExternalID'] ? $['ExternalID'] : null }}"
+        },
+        {
+            "name": "Computer.Name",
+            "displayName": "Computer",
+            "shape": "string"
+        },
+        {
+            "name": "StartedDate",
+            "displayName": "Started",
+            "shape": "date"
+        },
+        {
+            "name": "UpdatedDate",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

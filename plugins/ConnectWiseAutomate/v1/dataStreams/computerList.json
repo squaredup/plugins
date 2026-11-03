@@ -1,0 +1,68 @@
+{
+    "name": "computerList",
+    "displayName": "Computer List",
+    "description": "Automate computers with identity fields only, one row per computer (import only)",
+    "tags": [
+        "Devices"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "computers",
+        "getArgs": [
+            {
+                "key": "includeFields",
+                "value": "Id,ComputerName,Client,Location,Type,OperatingSystemName,DomainName,SerialNumber"
+            },
+            {
+                "key": "orderBy",
+                "value": "Id asc"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "."
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "clientId",
+            "displayName": "Client ID",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ $['Client.Id'] == null ? null : String($['Client.Id']) }}"
+        },
+        {
+            "name": "locationId",
+            "displayName": "Location ID",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ $['Location.Id'] == null ? null : String($['Location.Id']) }}"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false,
+    "visibility": {
+        "type": "hidden"
+    }
+}
