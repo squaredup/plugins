@@ -7,6 +7,7 @@
     "config": {
         "httpMethod": "post",
         "endpointPath": "graphql",
+        "headers": [{ "key": "X-Rate-Limit-Type", "value": "account-based" }],
         "postBody": {
             "query": "query($accountTag:string!,$namespaceId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){kvOperationsAdaptiveGroups(limit:10000,filter:{namespaceId:$namespaceId,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_DESC]){sum{requests}dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} actionType}quantiles{latencyMsP50 latencyMsP90 latencyMsP99}}}}}",
             "variables": {
@@ -16,8 +17,7 @@
                 "end": "{{timeframe.end}}"
             }
         },
-        "pathToData": "data.viewer.accounts.0.kvOperationsAdaptiveGroups",
-        "expandInnerObjects": true,
+        "postRequestScript": "graphqlRows.js",
         "errorHandling": {
             "type": "path",
             "realm": "payload",

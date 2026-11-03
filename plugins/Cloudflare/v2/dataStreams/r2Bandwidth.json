@@ -1,0 +1,70 @@
+{
+    "name": "r2Bandwidth",
+    "displayName": "R2 Bandwidth",
+    "description": "Bytes downloaded from and uploaded to an R2 bucket",
+    "tags": [
+        "Storage",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "headers": [
+            {
+                "key": "X-Rate-Limit-Type",
+                "value": "account-based"
+            }
+        ],
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$bucketName:string!){viewer{accounts(filter:{accountTag:$accountTag}){r2BandwidthUsageAdaptiveGroups(limit:10000,filter:{bucketName:$bucketName,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){sum{bytesDownload bytesUpload} dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} }}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "bucketName": "{{object.name}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare R2 Bucket"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sum.bytesDownload",
+            "displayName": "Downloaded",
+            "shape": "bytes",
+            "role": "value"
+        },
+        {
+            "name": "sum.bytesUpload",
+            "displayName": "Uploaded",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth"
+    ]
+}

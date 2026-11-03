@@ -1,0 +1,133 @@
+{
+    "name": "accountTraffic",
+    "displayName": "Account Traffic",
+    "description": "HTTP requests, bandwidth and visits across every zone in an account, grouped by zone or another selectable dimension",
+    "tags": [
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "headers": [
+            {
+                "key": "X-Rate-Limit-Type",
+                "value": "account-based"
+            }
+        ],
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){httpRequestsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count sum{edgeResponseBytes visits} dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown || 'zoneTag'}} }}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "accountTraffic.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Account"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "zoneTag",
+            "options": [
+                {
+                    "value": "zoneTag",
+                    "label": "Zone"
+                },
+                {
+                    "value": "clientCountryName",
+                    "label": "Country"
+                },
+                {
+                    "value": "edgeResponseStatus",
+                    "label": "Status code"
+                },
+                {
+                    "value": "cacheStatus",
+                    "label": "Cache status"
+                },
+                {
+                    "value": "clientRequestHTTPHost",
+                    "label": "Host"
+                },
+                {
+                    "value": "clientDeviceType",
+                    "label": "Device type"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "zoneTag",
+            "displayName": "Zone Tag",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "zoneName",
+            "displayName": "Zone",
+            "sourceId": "zoneTag",
+            "sourceType": "Cloudflare Zone",
+            "objectPropertyPath": "name",
+            "shape": "string"
+        },
+        {
+            "name": "requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "bytes",
+            "displayName": "Bandwidth",
+            "shape": "bytes"
+        },
+        {
+            "name": "visits",
+            "displayName": "Visits",
+            "shape": "number"
+        },
+        {
+            "name": "accountName",
+            "displayName": "Account",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth"
+    ]
+}

@@ -10,6 +10,7 @@
     "config": {
         "httpMethod": "post",
         "endpointPath": "graphql",
+        "headers": [{ "key": "X-Rate-Limit-Type", "value": "account-based" }],
         "postBody": {
             "query": "query($accountTag:string!,$gateway:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){aiGatewayRequestsAdaptiveGroups(limit:10000,filter:{gateway:$gateway,datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}} sum{cost tokensIn tokensOut totalTokens cachedRequests erroredRequests} quantiles{durationMsP50 durationMsP95}}}}}",
             "variables": {
@@ -19,8 +20,7 @@
                 "end": "{{timeframe.end}}"
             }
         },
-        "pathToData": "data.viewer.accounts.0.aiGatewayRequestsAdaptiveGroups",
-        "expandInnerObjects": true,
+        "postRequestScript": "graphqlRows.js",
         "paging": {
             "mode": "none"
         },

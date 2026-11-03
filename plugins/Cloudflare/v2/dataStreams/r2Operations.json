@@ -7,6 +7,7 @@
     "config": {
         "httpMethod": "post",
         "endpointPath": "graphql",
+        "headers": [{ "key": "X-Rate-Limit-Type", "value": "account-based" }],
         "postBody": {
             "query": "query($accountTag:string!,$bucketName:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){r2OperationsAdaptiveGroups(limit:10000,filter:{bucketName:$bucketName,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 619200 ? 'datetimeHour' : 'date' }}_ASC]){sum{requests responseBytes}dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 619200 ? 'datetimeHour' : 'date' }} actionType actionStatus}}}}}",
             "variables": {
@@ -16,8 +17,7 @@
                 "end": "{{timeframe.end}}"
             }
         },
-        "pathToData": "data.viewer.accounts.0.r2OperationsAdaptiveGroups",
-        "expandInnerObjects": true,
+        "postRequestScript": "graphqlRows.js",
         "paging": { "mode": "none" },
         "errorHandling": {
             "type": "path",

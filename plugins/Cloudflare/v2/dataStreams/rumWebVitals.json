@@ -7,6 +7,7 @@
     "config": {
         "httpMethod": "post",
         "endpointPath": "graphql",
+        "headers": [{ "key": "X-Rate-Limit-Type", "value": "account-based" }],
         "postBody": {
             "query": "query($accountTag:string!,$start:Time!,$end:Time!,$hostFilter:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumWebVitalsEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end,requestHost_like:$hostFilter},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}} quantiles{largestContentfulPaintP75 interactionToNextPaintP75 firstInputDelayP75 cumulativeLayoutShiftP75}}}}}",
             "variables": {
@@ -16,8 +17,7 @@
                 "hostFilter": "{{'%' + object.name}}"
             }
         },
-        "expandInnerObjects": true,
-        "pathToData": "data.viewer.accounts.0.rumWebVitalsEventsAdaptiveGroups",
+        "postRequestScript": "graphqlRows.js",
         "errorHandling": {
             "type": "path",
             "realm": "payload",

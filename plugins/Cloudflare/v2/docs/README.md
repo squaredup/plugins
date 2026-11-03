@@ -70,19 +70,28 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Zone Traffic Breakdown** - requests, bytes and visits for a zone grouped by a dimension you choose (country, status code, cache status, host, device type, HTTP protocol or content type).
 - **Zone Firewall Events** - firewall and WAF event counts for a zone by action, grouped by rule, service, country, host, user agent or path.
 - **Zone Firewall Event Volume** - firewall and WAF event counts over time for a zone, optionally filtered by action and service, for up to 30 days on every plan.
+- **Account Traffic** - requests, bandwidth and visits across every zone in an account in one query, grouped by zone, country, status code, cache status, host or device type.
 - **Load Balancing Requests** - load balancer request counts for a zone by load balancer, pool, origin and edge location.
 - **DNS Records** - every DNS record in a zone with type, content, TTL, proxy status and tags.
 - **SSL Certificates** - certificate packs for a zone with issuer, validation method, expiry date and days until expiry.
 - **Health Checks** - standalone health checks configured on a zone with status, address, interval and failure reason.
 - **Worker Invocations** - requests, errors, subrequests and CPU-time percentiles for one Worker script.
+- **Worker Subrequests** - outbound requests a Worker makes, with bytes and P50/P99 response time, grouped by host, cache status, status code or outcome.
+- **Worker Cron Trigger Runs** - each scheduled run of a Worker with its schedule, outcome and CPU time, so a failing cron trigger is visible.
+- **Worker Static Asset Requests** - requests served from a Worker's static assets, by status code, cache status or host.
+- **Worker Cache Requests** - Cache API requests a Worker makes, by cache status.
+- **Worker Smart Placement** - requests and duration for a Worker, split by whether Smart Placement ran it near its back end.
+- **Workers Build Minutes** - Workers Builds minutes used by an account.
 - **R2 Operations** - requests and response bytes against an R2 bucket by operation type and outcome.
 - **R2 Storage** - stored object count, payload size, metadata size and upload count for an R2 bucket over time.
+- **R2 Bandwidth** - bytes downloaded from and uploaded to an R2 bucket.
 - **KV Operations** - request counts and latency percentiles for a KV namespace by operation type.
 - **KV Storage** - stored key count and byte size for a KV namespace.
 - **D1 Queries** - read and write query counts, rows read and written, response bytes and query-time percentiles for a D1 database.
 - **D1 Storage** - stored size of a D1 database.
 - **Queue Message Operations** - message write, read and delete operations on a queue with outcome, consumer type, lag time and retry count.
 - **Queue Backlog** - average messages and bytes waiting in a queue over time.
+- **Queue Delayed Backlog** - average delayed messages waiting in a queue.
 - **Pages Deployments** - deployment history for a Pages project with environment, status, branch, commit and URL.
 - **Tunnel Connections** - active connector connections for a Tunnel with edge location, origin IP, connector version and architecture.
 - **Load Balancer Pool Health** - per-origin health, response code, response time and failure reason for a pool at each Cloudflare edge location.
@@ -97,6 +106,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Page Shield Reports** - client-side scripts and resources observed on a zone.
 - **Web Analytics Page Loads** - page views and visits for a zone's hostnames, grouped by country, device type or referrer.
 - **Core Web Vitals** - P75 Largest Contentful Paint, Interaction to Next Paint and Cumulative Layout Shift for a zone's hostnames.
+- **Web Analytics Page Load Timing** - P75 DNS, connection, request, response, first contentful paint and page load times for a zone's hostnames.
 - **Gateway DNS Queries** - Zero Trust Gateway DNS resolutions for an account by policy decision, category, location or query type.
 - **Gateway HTTP Requests** - Zero Trust Gateway proxied web requests for an account by action, host or category.
 - **Gateway Network Sessions** - Zero Trust Gateway TCP and UDP sessions for an account by action, destination, protocol or device.
@@ -106,6 +116,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Vectorize Queries** - query volume and average latency for a Vectorize index.
 - **Vectorize Storage** - stored vector count and dimensions for a Vectorize index.
 - **Hyperdrive Queries** - query volume and average latency for a Hyperdrive configuration.
+- **Hyperdrive Connection Pool** - pool size, free slots and waiting clients for a Hyperdrive configuration.
 - **Gateway Network Sessions** - Zero Trust Gateway TCP and UDP sessions for an account by action, destination, protocol or device.
 - **DNS Firewall Analytics** - DNS Firewall cluster query volume, response codes and processing time for an account.
 - **Audit Logs** - account audit activity grouped by action, actor or resource type.
@@ -125,6 +136,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Pipeline Ingestion** - records and bytes ingested by a pipeline.
 - **Queue Consumer Metrics** - average consumer concurrency for a queue.
 - **Durable Object Subrequests** - uncached subrequest body size for a Durable Object namespace.
+- **Durable Object Activity** - active time, CPU time, storage operations, limit errors, peak memory and WebSocket connections for a Durable Object namespace.
 - **D1 Query Insights** - query counts, rows touched and query duration percentiles for a D1 database.
 - **GraphQL Query** - runs any query you write against Cloudflare's GraphQL Analytics API, for the many datasets this plugin has no dedicated stream for.
 
@@ -201,13 +213,13 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
     | **1 day / 3 days** on Pro; none on Free | Zone Firewall Events | Last 24 hours (Last 7 and 30 days on higher plans - see below) |
     | **30 days / 31 days** on every plan | Zone Firewall Event Volume | Last 30 days |
     | **3 days / 3 days** | Health Check Events, Load Balancing Requests | Last 24 hours |
-    | **7 days** | Access Logins, Network Error Logs, Page Shield Reports | Last 7 days |
+    | **7 days** | Access Logins, Network Error Logs, Page Shield Reports, Worker Cron Trigger Runs | Last 7 days |
     | **7 days** on Free; **30 days** on Enterprise | Turnstile Challenges | Last 7 days (Last 30 days on Enterprise Turnstile) |
     | **30-31 days / 31 days** | Gateway HTTP Requests and Network Sessions, Stream Playback Quality, DNS Analytics, Zone Traffic Breakdown | Last 30 days |
-    | **31-32 days / 31-32 days** | Gateway DNS Queries, Email Routing, DMARC Reports, Images Requests, AI Gateway Cache and Errors, AutoRAG, Browser Rendering, Container Metrics, Hyperdrive, Queue Consumer Metrics, Realtime Usage, Vectorize, Workers AI | This month |
-    | **32-62 days / 62-92 days** | Worker Invocations, Pages Functions, KV, D1, R2, Durable Objects, Queue Backlog and Message Operations, Pipeline Ingestion, Cache Reserve, AI Gateway Requests, DNS Firewall Analytics, Stream Minutes Viewed | Last month |
+    | **31-32 days / 31-32 days** | Gateway DNS Queries, Email Routing, DMARC Reports, Images Requests, AI Gateway Cache and Errors, AutoRAG, Browser Rendering, Container Metrics, Hyperdrive, Queue Consumer Metrics, Realtime Usage, Vectorize, Workers AI, Account Traffic, Worker Static Asset Requests, Worker Smart Placement, Workers Build Minutes, Hyperdrive Connection Pool, R2 Bandwidth | This month |
+    | **32-62 days / 62-92 days** | Worker Invocations, Pages Functions, KV, D1, R2, Durable Objects, Queue Backlog and Message Operations, Pipeline Ingestion, Cache Reserve, AI Gateway Requests, DNS Firewall Analytics, Stream Minutes Viewed, Worker Subrequests, Worker Cache Requests, Queue Delayed Backlog, Durable Object Activity | Last month |
     | **61 days, daily only** | Images Unique Transformations | This month |
-    | **93 days / 184 days** | Web Analytics Page Loads, Core Web Vitals | This quarter |
+    | **93 days / 184 days** | Web Analytics Page Loads, Core Web Vitals, Web Analytics Page Load Timing | This quarter |
     | **180 days / 540 days** | Audit Logs | Last quarter |
     | **365 days, daily** | Zone Traffic (hourly up to two days, then daily) | This year |
 
@@ -243,12 +255,13 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 - **Load balancing analytics is gated per zone**, not per account. Zones without the Load Balancing add-on return an authorization error rather than empty data.
 - **Pages endpoints cap page size at 10.** Cloudflare rejects any larger `per_page` on the Pages API, so Pages projects and deployments are fetched ten at a time.
 - **Some resource lists are not paged.** R2 buckets, D1 databases, Queues, load balancer pools, Access applications, Vectorize indexes, Hyperdrive configs, Worker scripts and Worker routes are imported in a single request each. Where Cloudflare's paging behaviour could be proven against real data it is used (zones, accounts, DNS records, Pages projects, KV namespaces, Tunnels and Durable Object namespaces all page); the rest were left unpaged because the endpoint either ignores the paging parameters outright — as `workers/scripts` does — or holds too few records in the tested account to confirm they are honoured. If an account holds more of one of these than Cloudflare returns on a single page, the remainder is not imported.
-- **Rate limits.** The REST API allowed 1,200 requests per 300 seconds on the token tested, and Cloudflare documents a separate limit of 300 GraphQL queries per 5 minutes. Every analytics stream issues one request per selected object, so very large estates can hit these limits.
+- **Rate limits.** The REST API allowed 1,200 requests per 300 seconds on the token tested. GraphQL queries are by default limited to 300 per 5 minutes per token, so the analytics streams opt into Cloudflare's [account-based rate limiting](https://developers.cloudflare.com/analytics/graphql-api/account-based-rate-limiting/), which gives each account and each zone its own 300-per-5-minutes budget instead. Every analytics stream issues one request per selected object, so a tile scoped to hundreds of objects can still reach a per-account limit. The **GraphQL Query** stream keeps the per-token limit, because account-based limiting does not support queries that list several zones at the top level.
 - **A breakdown with very many values is truncated.** Cloudflare caps a GraphQL result at 10,000 rows (5,000 on some streams here). The time buckets above keep time-series streams well inside it, but a breakdown such as DNS Analytics by query name on a busy zone can still exceed it. Those streams order by count, so the rows dropped are the least frequent values rather than the most recent part of the range.
 
 - **Hand-written GraphQL queries are unbounded.** The **GraphQL Query** stream runs whatever you give it, so it can hit limits the built-in streams are tuned to avoid: a large `limit` on a multi-dimension dataset can exceed the ~6 MB response cap, and a timeframe wider than that dataset's own cap fails with Cloudflare's error naming the limit. Prefer the pre-aggregated `*Groups` datasets over raw event datasets, and keep `limit` modest. The stream does not page, so your `limit` is the ceiling.
-- **Some analytics are only available on paid plans.** Page Shield and Network Error Logs return an authorization error on plans without them; Cache Reserve, Load Balancing and Health Checks are add-ons. An unentitled feature shows no data rather than an error in most tiles.
-- **A failed Cloudflare query can look like "no data".** Cloudflare answers a failed GraphQL query with HTTP 200 and an `errors` array, which the platform does not treat as a failure. Streams that use a post-request script raise these errors explicitly, but the simpler declarative streams will show an empty tile instead of an error message.
+- **Some analytics are only available on paid plans.** Page Shield and Network Error Logs return an authorization error on plans without them; Cache Reserve, Load Balancing and Health Checks are add-ons. A tile for a feature the zone or account is not entitled to shows Cloudflare's authorization error rather than empty data.
+- **Account Traffic shows zones it cannot name by their zone tag.** The stream resolves each zone tag to an imported zone's name. Traffic for a zone the token cannot list - for example one outside the token's zone resources - appears as *Object not found: Cloudflare Zone/&lt;tag&gt;*.
+- **Tunnel bandwidth is not available.** Cloudflare exposes `cloudflared` traffic metrics from each connector's local metrics endpoint rather than through the API, so Tunnels show connector health only.
 - **Costs are unitless.** Cloudflare's AI Gateway analytics reports cost without stating a currency, so the plugin shows a plain number rather than assuming one.
 - **Pages Functions cannot be scoped to a single project.** Cloudflare identifies Pages Functions by an internal script name with no published mapping to the project, so this stream reports all Pages Functions in the account, with the function name as a column.
 - **The first import only populates accounts and zones.** Everything below them - Workers, KV namespaces, queues, tunnels, Stream videos, Turnstile widgets and the rest - is imported by steps that run against the accounts and zones the same import has just created, and on a brand new data source those objects are not yet visible when those steps start. They are skipped with a warning, and the **next import picks them all up**. Trigger a re-import from the data source page after adding the plugin rather than waiting for the scheduled one.
