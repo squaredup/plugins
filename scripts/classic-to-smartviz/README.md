@@ -56,7 +56,7 @@ On top of the like-for-like conversion, these rules improve a tile where the rep
 A tile is reported as blocked, and left classic, when converting it would mean guessing:
 
 - **A table that shows all columns** of a stream that does not declare its full column list.
-- **A table with more than 12 columns.** A SmartViz table holds at most 12.
+- **A table with more than 50 columns.** A SmartViz table holds at most 50.
 - **A line or bar chart that plots some, but not all, of a stream's numeric columns.** SmartViz plots one y column, or every numeric column.
 - **A scalar, gauge or donut set to pick its columns automatically**, when the stream does not declare them.
 

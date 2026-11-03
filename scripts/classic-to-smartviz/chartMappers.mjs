@@ -281,7 +281,7 @@ export const toBarChart = (classicConfig, tileColumns) => {
 /**
  * Reads a classic scalar or gauge `value`: a column name, or a reduction `{ type, columns }` over all rows.
  * A value column the tile no longer has falls back to its only numeric column, as classic's default does.
- * A count needs a field to point at, so it borrows any column the tile is known to have.
+ * A count is flagged `isRowCount`; a gauge has no row count, so it borrows any column the tile is known to have.
  */
 const toValueChannel = (value, tileColumns, notes) => {
     if (typeof value === 'string' && isSet(value)) {
@@ -305,9 +305,10 @@ const toValueChannel = (value, tileColumns, notes) => {
     if (aggregate === 'count') {
         const anyField = value.columns?.[0] ?? tileColumns.columns[0]?.name;
 
-        return anyField
-            ? { channel: { field: anyField, type: 'quantitative', aggregate: 'count', title: 'Count' } }
-            : { blockedReason: 'counts rows, and the stream declares no column to count' };
+        return {
+            isRowCount: true,
+            ...(anyField && { channel: { field: anyField, type: 'quantitative', aggregate: 'count', title: 'Count' } })
+        };
     }
 
     if (aggregate && value.columns?.length === 1) {
@@ -320,7 +321,7 @@ const toValueChannel = (value, tileColumns, notes) => {
 /** Converts a classic `data-stream-scalar` config to a scalar spec. */
 export const toScalar = (classicConfig, tileColumns) => {
     const notes = [];
-    const { channel, blockedReason } = toValueChannel(classicConfig.value, tileColumns, notes);
+    const { channel, isRowCount, blockedReason } = toValueChannel(classicConfig.value, tileColumns, notes);
 
     if (blockedReason) {
         return { blockedReason };
@@ -329,19 +330,21 @@ export const toScalar = (classicConfig, tileColumns) => {
     const comparisonField = findConfiguredColumn(tileColumns, classicConfig.comparisonColumn, 'comparison', notes);
     const labelPosition = classicConfig.labelPosition;
 
-    if (!findColumn(tileColumns.columns, channel.field)) {
+    if (!isRowCount && !findColumn(tileColumns.columns, channel.field)) {
         notes.push(`value column ${channel.field} is not declared by the stream; typed as a number`);
     }
 
     const labelText = typeof classicConfig.label === 'string' ? classicConfig.label : '';
 
     /** Classic shows no label unless one is set, where SmartViz would show the field name. */
-    const style = labelText
+    const labelStyle = labelText
         ? { scalarLabelText: labelText, ...(labelPosition && labelPosition !== 'bottom' && { scalarLabelPosition: labelPosition }) }
         : { scalarLabelPosition: 'none' };
+    const style = { ...labelStyle, ...(isRowCount && { scalarRowCount: true }) };
 
+    /** A row count reads no column, so it needs no value channel. */
     const encoding = {
-        values: [channel],
+        values: isRowCount ? [] : [channel],
         ...(comparisonField && { comparison: toChannel(tileColumns, comparisonField, 'quantitative') })
     };
 
@@ -355,6 +358,10 @@ export const toGauge = (classicConfig, tileColumns) => {
 
     if (blockedReason) {
         return { blockedReason };
+    }
+
+    if (!channel) {
+        return { blockedReason: 'counts rows, and the stream declares no column to count' };
     }
 
     const minimumField = findConfiguredColumn(tileColumns, classicConfig.minimumColumn, 'minimum', notes);

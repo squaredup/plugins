@@ -1,6 +1,6 @@
 import { findColumn, getColumnTitle, isKnownColumn } from './columns.mjs';
 
-const MAX_TABLE_COLUMNS = 12;
+const MAX_TABLE_COLUMNS = 50;
 
 const isSet = (value) => value !== undefined && value !== null && value !== '' && value !== 'auto' && value !== 'none';
 
