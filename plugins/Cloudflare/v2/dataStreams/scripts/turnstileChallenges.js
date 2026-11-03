@@ -10,6 +10,22 @@
 // real error instead of silently shaping to zero rows.
 const graphqlErrors = (data && data.errors) || [];
 if (graphqlErrors.length) {
+    // Turnstile analytics look back 7 days on the Free plan and 30 on Enterprise, so the
+    // stream offers Last 30 days. Name the plan limit when it rejects one. String methods
+    // rather than a regex: backslash escapes do not survive into the deployed script.
+    const message = (graphqlErrors[0] && graphqlErrors[0].message) || "";
+    const marker = "cannot request a time range wider than";
+    const at = message.indexOf(marker);
+    if (at >= 0) {
+        const limit = message.slice(at + marker.length).trim().split(" ")[0].split(",")[0];
+        throw new Error(
+            "Cloudflare's Turnstile plan for this account limits analytics to a range of " +
+                limit +
+                ". Choose a shorter timeframe - Enterprise Turnstile allows up to 30 days. (" +
+                message +
+                ")"
+        );
+    }
     throw new Error(
         "Cloudflare GraphQL error: " +
             graphqlErrors.map((e) => (e && e.message) || JSON.stringify(e)).join(" | ")

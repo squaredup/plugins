@@ -199,7 +199,8 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
     | --------------------------- | ------------ | ------------------------- |
     | **1 day / 3 days** on Pro; none on Free | Zone Firewall Events | Last 24 hours (Last 7 and 30 days on higher plans - see below) |
     | **3 days / 3 days** | Health Check Events, Load Balancing Requests | Last 24 hours |
-    | **7 days** | Access Logins, Turnstile Challenges, Network Error Logs, Page Shield Reports | Last 7 days |
+    | **7 days** | Access Logins, Network Error Logs, Page Shield Reports | Last 7 days |
+    | **7 days** on Free; **30 days** on Enterprise | Turnstile Challenges | Last 7 days (Last 30 days on Enterprise Turnstile) |
     | **30-31 days / 31 days** | Gateway HTTP Requests and Network Sessions, Stream Playback Quality, DNS Analytics, Zone Traffic Breakdown | Last 30 days |
     | **31-32 days / 31-32 days** | Gateway DNS Queries, Email Routing, DMARC Reports, Images Requests, AI Gateway Cache and Errors, AutoRAG, Browser Rendering, Container Metrics, Hyperdrive, Queue Consumer Metrics, Realtime Usage, Vectorize, Workers AI | This month |
     | **32-62 days / 62-92 days** | Worker Invocations, Pages Functions, KV, D1, R2, Durable Objects, Queue Backlog and Message Operations, Pipeline Ingestion, Cache Reserve, AI Gateway Requests, DNS Firewall Analytics, Stream Minutes Viewed | Last month |
@@ -210,7 +211,12 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 
     *This month*, *This quarter* and *This year* end in the future; Cloudflare counts only the part that has elapsed, so they fit a cap the full period would not. Where a cap is exactly as wide as a timeframe - a 7-day cap and Last 7 days - the query starts one minute late, because Cloudflare measures the range up to the moment it receives the query and would otherwise reject it by the request's latency.
 
-    Limits can be wider on Business and Enterprise plans. **Zone Firewall Events** is the one stream that offers timeframes a Pro plan cannot serve (Last 7 days and Last 30 days); on a plan whose limit is shorter, the tile shows an error naming the plan's limit rather than empty data. To see the limits for your own account, run this in the **GraphQL Query** stream with the **None** timeframe, a `zoneTag` in **Variables**, and **Path to rows** set to `data.viewer.zones`:
+    Limits can be wider on Business and Enterprise plans. Two streams offer timeframes that only higher plans can serve, and on a plan whose limit is shorter the tile shows an error naming that limit rather than empty data:
+
+    - **Zone Firewall Events** offers Last 7 days and Last 30 days. Its grouped dataset, `firewallEventsAdaptiveGroups`, allows 1 day on Pro and is not available on Free. Cloudflare publishes 30-31 day limits for Security Events, but [those apply to the raw event dataset](https://developers.cloudflare.com/waf/analytics/security-events/#limits), which returns individual events rather than counts.
+    - **Turnstile Challenges** offers Last 30 days, which [Cloudflare documents](https://developers.cloudflare.com/turnstile/plans/) as the Enterprise lookback; Free is limited to 7 days.
+
+    To see the limits for your own account, run this in the **GraphQL Query** stream with the **None** timeframe, a `zoneTag` in **Variables**, and **Path to rows** set to `data.viewer.zones`:
 
     ```graphql
     query ($zoneTag: string!) {
