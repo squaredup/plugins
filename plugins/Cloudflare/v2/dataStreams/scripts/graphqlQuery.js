@@ -16,7 +16,16 @@ if (graphqlErrors.length) {
     const messages = graphqlErrors
         .map((e) => (e && e.message) || JSON.stringify(e))
         .filter(Boolean);
-    throw new Error('Cloudflare GraphQL error: ' + messages.join(' | '));
+    const joined = messages.join(' | ');
+    // The default query filters on $zoneTag, which is null until a zone is selected.
+    if (joined.indexOf('empty zone filters') >= 0 || joined.indexOf('empty account filters') >= 0) {
+        throw new Error(
+            'Select a zone or account in "Zone or account", or remove the $zoneTag / $accountTag filter from the query. (' +
+                joined +
+                ')'
+        );
+    }
+    throw new Error('Cloudflare GraphQL error: ' + joined);
 }
 
 // Every array in the response, as a dot path - used to make path errors actionable.
@@ -53,16 +62,25 @@ const requestedPath = String(
     (context && context.config && context.config.pathToData) || ''
 ).trim();
 
-if (!requestedPath) {
-    throw new Error('Set "Path to rows" to the path of the array of rows in the query response.' + candidates());
+// With no path set, use the first array of rows that has no array of rows inside it -
+// for a typical query that is data.viewer.<zones|accounts>.0.<dataset>. A query that
+// reads several datasets or several zones needs an explicit path.
+const leafArrayPath = () => {
+    const paths = arrayPaths(body, '', 0, []);
+    return paths.find((path) => !paths.some((other) => other.indexOf(path + '.') === 0));
+};
+const path = requestedPath || leafArrayPath();
+
+if (!path) {
+    throw new Error('The query returned no array of rows.' + candidates());
 }
 
 // Tolerate a path written with or without the leading `data.` envelope.
-let rows = walk(body, requestedPath);
-if (rows === undefined) rows = walk(body.data, requestedPath);
+let rows = walk(body, path);
+if (rows === undefined) rows = walk(body.data, path);
 
 if (rows === undefined || rows === null) {
-    throw new Error('Nothing found at "' + requestedPath + '".' + candidates());
+    throw new Error('Nothing found at "' + path + '".' + candidates());
 }
 if (!Array.isArray(rows)) {
     rows = [rows];

@@ -1,7 +1,7 @@
 {
     "name": "graphqlQuery",
     "displayName": "GraphQL Query",
-    "description": "Rows returned by a user-supplied Cloudflare GraphQL Analytics query",
+    "description": "Rows returned by a Cloudflare GraphQL Analytics query you write, optionally for a chosen zone or account",
     "tags": [
         "Analytics"
     ],
@@ -12,7 +12,7 @@
         "endpointPath": "graphql",
         "postBody": {
             "query": "{{query}}",
-            "variables": "{{ Object.assign(typeof timeframe !== 'undefined' && timeframe && timeframe.start ? { start: timeframe.start, end: timeframe.end, startDate: timeframe.start.split('T')[0], endDate: timeframe.end.split('T')[0] } : {}, typeof variables === 'string' ? JSON.parse(variables || '{}') : (variables || {})) }}"
+            "variables": "{{ ((u) => { const picked = typeof target !== 'undefined' && Array.isArray(target) ? target : []; const zones = picked.filter((o) => u(o.sourceType) === 'Cloudflare Zone'); const account = picked.find((o) => u(o.sourceType) === 'Cloudflare Account'); const fromTarget = {}; if (zones.length) { fromTarget.zoneTag = u(zones[0].rawId); fromTarget.zoneTags = zones.map((o) => u(o.rawId)); fromTarget.accountTag = u(zones[0].accountId); } if (account) fromTarget.accountTag = u(account.rawId); const fromTimeframe = typeof timeframe !== 'undefined' && timeframe && timeframe.start ? { start: timeframe.start, end: timeframe.end, startDate: timeframe.start.split('T')[0], endDate: timeframe.end.split('T')[0] } : {}; const own = typeof variables === 'string' ? JSON.parse(variables || '{}') : variables || {}; return Object.assign(fromTimeframe, fromTarget, own); })(((v) => (Array.isArray(v) ? v[0] : v))) }}"
         },
         "postRequestScript": "graphqlQuery.js",
         "errorHandling": {
@@ -24,12 +24,26 @@
     "matches": "none",
     "ui": [
         {
+            "type": "objects",
+            "name": "target",
+            "label": "Zone or account (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Cloudflare Zone",
+                        "Cloudflare Account"
+                    ]
+                }
+            }
+        },
+        {
             "type": "code",
             "name": "query",
             "label": "GraphQL query",
             "language": "graphql",
-            "help": "A query for the Cloudflare GraphQL Analytics API. These variables are always sent and can be declared in the query: `$start` / `$end` (`Time!`, ISO 8601, the selected timeframe) and `$startDate` / `$endDate` (`Date!`, `YYYY-MM-DD`). Cloudflare's scalar names are case sensitive - `string!` is lower case, `Time!` and `Date!` are not. Each analytics node has its own maximum query window and retention, which vary by Cloudflare plan (as little as 1 day on some nodes) - a wider timeframe fails with Cloudflare's error naming the limit. For a fixed window, select the **None** timeframe and write the dates into the query's own filter. See the [Cloudflare GraphQL Analytics docs](https://developers.cloudflare.com/analytics/graphql-api/).",
-            "defaultValue": "query ($start: Time!, $end: Time!) {\n  viewer {\n    zones(limit: 1) {\n      httpRequests1hGroups(\n        limit: 1000\n        filter: { datetime_geq: $start, datetime_leq: $end }\n        orderBy: [datetime_ASC]\n      ) {\n        dimensions {\n          datetime\n        }\n        sum {\n          requests\n          bytes\n          cachedRequests\n          threats\n        }\n        uniq {\n          uniques\n        }\n      }\n    }\n  }\n}",
+            "help": "Declare any of these variables to use them: `$start` / `$end` (`Time!`) and `$startDate` / `$endDate` (`Date!`) from the timeframe, and `$zoneTag`, `$zoneTags` (`[string!]`) and `$accountTag` (`string`) from the selected zone or account. Each dataset limits how wide a timeframe it accepts; a wider one fails with the limit named. See the [GraphQL Analytics docs](https://developers.cloudflare.com/analytics/graphql-api/).",
+            "defaultValue": "query ($zoneTag: string, $start: Time!, $end: Time!) {\n  viewer {\n    zones(filter: { zoneTag: $zoneTag }, limit: 1) {\n      httpRequests1hGroups(\n        limit: 1000\n        filter: { datetime_geq: $start, datetime_leq: $end }\n        orderBy: [datetime_ASC]\n      ) {\n        dimensions {\n          datetime\n        }\n        sum {\n          requests\n          bytes\n          cachedRequests\n          threats\n        }\n        uniq {\n          uniques\n        }\n      }\n    }\n  }\n}",
             "validation": {
                 "required": true
             }
@@ -39,19 +53,15 @@
             "name": "variables",
             "label": "Variables",
             "language": "json",
-            "help": "Extra GraphQL variables as a JSON object, for example `{ \"zoneTag\": \"<zone id>\" }` or `{ \"accountTag\": \"<account id>\" }`. These are merged with the built-in `start`, `end`, `startDate` and `endDate` variables; a value set here of the same name wins.",
+            "help": "Extra variables as a JSON object, for example `{ \"limit\": 50 }`. A value here overrides the built-in variable of the same name.",
             "defaultValue": {}
         },
         {
             "type": "text",
             "name": "pathToData",
             "label": "Path to rows",
-            "placeholder": "data.viewer.zones.0.httpRequests1hGroups",
-            "help": "Dot path to the array of rows in the query response, for example `data.viewer.zones.0.httpRequests1hGroups`. Nested fields in each row become dot-notation columns such as `sum.requests`. If the path is wrong, the error lists the array paths the response actually contains.",
-            "defaultValue": "data.viewer.zones.0.httpRequests1hGroups",
-            "validation": {
-                "required": true
-            }
+            "placeholder": "Automatic",
+            "help": "Leave empty to use the first array of rows in the response. Set a dot path, such as `data.viewer.zones.0.httpRequests1hGroups`, when the query reads several datasets or zones."
         }
     ],
     "metadata": [
