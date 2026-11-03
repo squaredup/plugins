@@ -37,7 +37,7 @@ let rows = (data.data || []).flatMap((bucket) =>
         const commaAt = lineItem.indexOf(",");
         const model = commaAt === -1 ? lineItem : lineItem.slice(0, commaAt).trim();
         return {
-            date: new Date(bucket.start_time * 1000).toISOString(),
+            date: bucket.start_time,
             amount: Number(r.amount && r.amount.value) || 0,
             currency: (r.amount && r.amount.currency) || "usd",
             project_id: r.project_id,

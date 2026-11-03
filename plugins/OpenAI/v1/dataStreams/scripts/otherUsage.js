@@ -12,7 +12,7 @@ const MEASURES = {
     audio_transcriptions: { field: "seconds", unit: "seconds" },
     vector_stores: { field: "usage_bytes", unit: "bytes" },
     code_interpreter_sessions: { field: "num_sessions", unit: "sessions" },
-    file_search_calls: { field: "num_requests", unit: "calls" },
+    file_search_calls: { field: "num_model_requests", unit: "calls" },
     web_search_calls: { field: "num_model_requests", unit: "calls" },
 };
 const measure = MEASURES[usageType] || { field: "num_model_requests", unit: "requests" };
@@ -30,13 +30,14 @@ let rows = (data.data || []).flatMap((bucket) =>
         const { object, ...extra } = r;
         return {
             ...extra,
-            // The API returns Unix seconds; SquaredUp expects ISO 8601
-            date: new Date(bucket.start_time * 1000).toISOString(),
+            date: bucket.start_time,
             usageType,
             model: r.model,
             project_id: r.project_id,
-            // File search reports num_requests and code interpreter num_sessions instead of num_model_requests
-            requests: r.num_model_requests ?? r.num_requests ?? r.num_sessions,
+            requests:
+                r.num_model_requests !== undefined
+                    ? r.num_model_requests
+                    : r.num_sessions,
             quantity: r[measure.field],
             unit: measure.unit,
         };
