@@ -1,0 +1,1115 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "contents": [
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(CAST(COUNT(*) FILTER (WHERE \"onlineStatus\" = 'success') AS DOUBLE) * 100 / COUNT(*), 1) AS \"online\" FROM \"dataset\""
+                    },
+                    "description": "Share of devices Auvik currently reports as online",
+                    "timeframe": "none",
+                    "title": "Devices Online",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "online",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 0.9
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 0.98
+                                    },
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 1
+                                    }
+                                ],
+                                "ringGridTrackWidth": 10
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "e5d25f67-66a4-4232-8d0c-0f00f1e8923d",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT COUNT(*) FILTER (WHERE \"status\" = 'error') AS \"open\", COUNT(*) FILTER (WHERE \"status\" = 'error' AND \"severity[Expanded].rawState\" IN ('critical', 'emergency')) AS \"critical\" FROM \"alerts\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        },
+                                        "timeframe": "last30days"
+                                    },
+                                    "tableName": "alerts"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Alerts raised in the last 30 days that are still open, and how many of them are critical or emergency",
+                    "timeframe": "last30days",
+                    "title": "Open Alerts",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "open",
+                                        "title": "Open",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "critical",
+                                        "title": "Critical",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2,
+                                "scalarValueColor": "#f59e0b"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "dda05a07-8f3c-4d7d-bd74-af74cbc88874",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 1,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT (SELECT COUNT(*) FROM \"devices\") AS \"devices\", (SELECT COUNT(*) FROM \"networks\") AS \"networks\", (SELECT COUNT(*) FROM \"tenants\") AS \"sites\", (SELECT COUNT(DISTINCT \"vendorName\") FROM \"devices\") AS \"vendors\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[devices]}}",
+                                            "name": "devices"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "devices"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[networks]}}",
+                                            "name": "networks"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "networks"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[tenants]}}",
+                                            "name": "tenants"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "tenants"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Devices, networks, sites and hardware vendors Auvik has discovered",
+                    "timeframe": "none",
+                    "title": "Your Estate",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "devices",
+                                        "title": "Devices",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "networks",
+                                        "title": "Networks",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "sites",
+                                        "title": "Sites",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "vendors",
+                                        "title": "Vendors",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "ed01f255-4eee-47de-8bba-08c9db9e4084",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH d AS (SELECT CASE WHEN \"deviceType\" = 'ups' THEN 'UPS' WHEN \"deviceType\" IS NULL OR \"deviceType\" = 'unknown' THEN 'Unclassified' ELSE UPPER(SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 1, 1)) || SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 2) END AS \"type\", CASE \"onlineStatus[Expanded].rawState\" WHEN 'online' THEN 'Online' WHEN 'offline' THEN 'Offline' WHEN 'unreachable' THEN 'Unreachable' WHEN 'lowerLayerDown' THEN 'Link down' WHEN 'dormant' THEN 'Dormant' WHEN 'testing' THEN 'Testing' WHEN 'notPresent' THEN 'Not present' ELSE 'Status unknown' END AS \"status\" FROM \"dataset\"), r AS (SELECT \"type\", ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC, \"type\") AS rn FROM d GROUP BY \"type\") SELECT CASE WHEN r.rn <= 7 THEN d.\"type\" ELSE 'Other types' END AS \"type\", d.\"status\", CAST(COUNT(*) AS DOUBLE) AS \"devices\" FROM d JOIN r ON r.\"type\" = d.\"type\" GROUP BY ALL ORDER BY \"devices\" DESC"
+                    },
+                    "description": "How each type of device is faring: every type flows into the status its devices are in, so trouble shows up as red or amber on the right",
+                    "timeframe": "none",
+                    "title": "Health by Device Type",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sankey",
+                            "encoding": {
+                                "source": {
+                                    "field": "type",
+                                    "type": "nominal"
+                                },
+                                "target": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 12,
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}}{{{{/raw}}}}",
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#ec4899",
+                                    "#14b8a6",
+                                    "#0ea5e9",
+                                    "#a855f7",
+                                    "#06b6d4",
+                                    "#f97316"
+                                ],
+                                "mappedColors": {
+                                    "Online": "#22c55e",
+                                    "Offline": "#ef4444",
+                                    "Unreachable": "#b91c1c",
+                                    "Link down": "#ef4444",
+                                    "Dormant": "#f59e0b",
+                                    "Testing": "#f59e0b",
+                                    "Not present": "#475569",
+                                    "Status unknown": "#64748b",
+                                    "Unclassified": "#475569",
+                                    "Other types": "#64748b",
+                                    "Firewall": "#ec4899",
+                                    "Switch": "#6366f1",
+                                    "L3 Switch": "#4f46e5",
+                                    "Router": "#8b5cf6",
+                                    "Access Point": "#14b8a6",
+                                    "Virtual Machine": "#0ea5e9",
+                                    "Virtual Appliance": "#06b6d4",
+                                    "Hypervisor": "#a855f7",
+                                    "Server": "#3b82f6",
+                                    "Workstation": "#38bdf8",
+                                    "UPS": "#f97316",
+                                    "Controller": "#d946ef",
+                                    "Wireless Controller": "#d946ef",
+                                    "Printer": "#2dd4bf",
+                                    "Phone": "#c084fc",
+                                    "Voip Phone": "#c084fc",
+                                    "Storage": "#7c3aed",
+                                    "Stack": "#818cf8"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "f93e589d-9fe3-4228-9a10-c48f0229c959",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT CASE WHEN \"deviceType\" = 'ups' THEN 'UPS' WHEN \"deviceType\" IS NULL OR \"deviceType\" = 'unknown' THEN 'Unclassified' ELSE UPPER(SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 1, 1)) || SUBSTR(REGEXP_REPLACE(\"deviceType\", '([A-Z])', ' \\1', 'g'), 2) END AS \"type\", COALESCE(\"vendorName\", 'Unknown vendor') AS \"vendor\", CAST(COUNT(*) AS DOUBLE) AS \"devices\" FROM \"dataset\" GROUP BY ALL ORDER BY \"devices\" DESC"
+                    },
+                    "description": "Discovered devices grouped by device type, then vendor",
+                    "timeframe": "none",
+                    "title": "Inventory by Type and Vendor",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "treemap",
+                            "encoding": {
+                                "label": {
+                                    "field": "vendor",
+                                    "type": "nominal"
+                                },
+                                "parent": {
+                                    "field": "type",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#ec4899",
+                                    "#14b8a6",
+                                    "#0ea5e9",
+                                    "#22c55e",
+                                    "#f59e0b",
+                                    "#f97316",
+                                    "#a855f7",
+                                    "#06b6d4"
+                                ],
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}}{{{{/raw}}}}",
+                                "mappedColors": {
+                                    "Unclassified": "#475569"
+                                },
+                                "showLabels": true,
+                                "treemapGap": 2
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "54ac6092-d25e-4116-aa31-cf005885ab43",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"detectedOn\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", UPPER(SUBSTR(\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(\"severity[Expanded].rawState\", 2) AS \"severity\", CAST(COUNT(*) AS DOUBLE) AS \"alerts\" FROM \"alerts\" GROUP BY ALL ORDER BY \"day\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        },
+                                        "timeframe": "last7days"
+                                    },
+                                    "tableName": "alerts"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Alerts raised each day over the last 7 days, by severity",
+                    "timeframe": "last7days",
+                    "title": "Alert Activity",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "severity",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "day",
+                                    "title": "Day",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "alerts",
+                                    "title": "Alerts",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Emergency": "#b91c1c",
+                                    "Info": "#3b82f6",
+                                    "Warning": "#f59e0b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "a1ab5427-daab-493a-9d29-a054fef69c44",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT \"name\" AS \"alert\", CAST(COUNT(*) AS DOUBLE) AS \"alerts\" FROM \"alerts\" GROUP BY ALL ORDER BY \"alerts\" DESC",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        },
+                                        "timeframe": "last7days"
+                                    },
+                                    "tableName": "alerts"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Which alerts fired most often over the last 7 days",
+                    "timeframe": "last7days",
+                    "title": "Most Frequent Alerts",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "alert",
+                                    "title": "Alert",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "alerts",
+                                    "title": "Times raised",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianColorRules": [
+                                    {
+                                        "color": "#8b5cf6",
+                                        "gte": 5
+                                    },
+                                    {
+                                        "color": "#6366f1",
+                                        "gte": 0
+                                    }
+                                ],
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "abae9bba-fc8b-4fc3-9fdd-6b3dfd3a30dc",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH ids AS (SELECT \"entityName\", \"entityId\", ROW_NUMBER() OVER (PARTITION BY \"entityName\" ORDER BY \"entityId\") AS rn, COUNT(*) OVER (PARTITION BY \"entityName\") AS dup FROM (SELECT DISTINCT \"entityName\", \"entityId\" FROM \"metric\")) SELECT d.\"timestamp\", CASE WHEN i.dup > 1 THEN d.\"entityName\" || ' #' || i.rn ELSE d.\"entityName\" END AS \"device\", d.\"value\" FROM \"metric\" d JOIN ids i ON d.\"entityId\" = i.\"entityId\" ORDER BY d.\"timestamp\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "metric": "device/cpuUtilization"
+                                            },
+                                            "id": "{{dataStreams.[metrics]}}",
+                                            "name": "metrics"
+                                        }
+                                    },
+                                    "tableName": "metric"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Devices with the highest average CPU utilization",
+                    "title": "Busiest CPUs",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "label": {
+                                    "field": "device",
+                                    "type": "nominal"
+                                },
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "sparklineLimit": 8,
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineThresholds": [
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 70
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 90
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 1000
+                                    }
+                                ],
+                                "sparklineValue": "average"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "561f4c1c-aabc-4799-9b98-e6353b456aaa",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 8,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH ids AS (SELECT \"entityName\", \"entityId\", ROW_NUMBER() OVER (PARTITION BY \"entityName\" ORDER BY \"entityId\") AS rn, COUNT(*) OVER (PARTITION BY \"entityName\") AS dup FROM (SELECT DISTINCT \"entityName\", \"entityId\" FROM \"metric\")) SELECT d.\"timestamp\", CASE WHEN i.dup > 1 THEN d.\"entityName\" || ' #' || i.rn ELSE d.\"entityName\" END AS \"device\", d.\"value\" FROM \"metric\" d JOIN ids i ON d.\"entityId\" = i.\"entityId\" ORDER BY d.\"timestamp\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "metric": "device/memoryUtilization"
+                                            },
+                                            "id": "{{dataStreams.[metrics]}}",
+                                            "name": "metrics"
+                                        }
+                                    },
+                                    "tableName": "metric"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Devices with the highest average memory utilization",
+                    "title": "Memory Pressure",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "label": {
+                                    "field": "device",
+                                    "type": "nominal"
+                                },
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "sparklineLimit": 8,
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineThresholds": [
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 70
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 90
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 1000
+                                    }
+                                ],
+                                "sparklineValue": "average"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "bbd4705e-d5ab-4ebd-b804-6c2d8376110b",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 8,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH ids AS (SELECT \"entityName\", \"entityId\", ROW_NUMBER() OVER (PARTITION BY \"entityName\" ORDER BY \"entityId\") AS rn, COUNT(*) OVER (PARTITION BY \"entityName\") AS dup FROM (SELECT DISTINCT \"entityName\", \"entityId\" FROM \"metric\")) SELECT d.\"timestamp\", CASE WHEN i.dup > 1 THEN d.\"entityName\" || ' #' || i.rn ELSE d.\"entityName\" END AS \"device\", d.\"value\" FROM \"metric\" d JOIN ids i ON d.\"entityId\" = i.\"entityId\" WHERE d.\"series\" = 'Total' ORDER BY d.\"timestamp\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "metric": "device/bandwidth"
+                                            },
+                                            "id": "{{dataStreams.[metrics]}}",
+                                            "name": "metrics"
+                                        }
+                                    },
+                                    "tableName": "metric"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Devices moving the most traffic, average Mbps in and out",
+                    "title": "Top Talkers",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "label": {
+                                    "field": "device",
+                                    "type": "nominal"
+                                },
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "sparklineColor": "#3b82f6",
+                                "sparklineLimit": 8,
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineValue": "average"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "731f3a28-155f-4c1d-bf40-29d2c8400d76",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 11,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH ids AS (SELECT \"entityName\", \"entityId\", ROW_NUMBER() OVER (PARTITION BY \"entityName\" ORDER BY \"entityId\") AS rn, COUNT(*) OVER (PARTITION BY \"entityName\") AS dup FROM (SELECT DISTINCT \"entityName\", \"entityId\" FROM \"metric\")) SELECT CASE WHEN i.dup > 1 THEN d.\"entityName\" || ' #' || i.rn ELSE d.\"entityName\" END AS \"device\", ROUND(ARG_MAX(d.\"value\", d.\"timestamp\"), 1) AS \"used\" FROM \"metric\" d JOIN ids i ON d.\"entityId\" = i.\"entityId\" GROUP BY ALL ORDER BY \"used\" DESC LIMIT 8",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "metric": "device/storageUtilization"
+                                            },
+                                            "id": "{{dataStreams.[metrics]}}",
+                                            "name": "metrics"
+                                        }
+                                    },
+                                    "tableName": "metric"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Devices with the highest storage utilization, latest reading",
+                    "title": "Fullest Storage",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "device",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "used",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 0.7
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 0.9
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 1
+                                    }
+                                ],
+                                "ringGridTrackWidth": 12
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "bfc7f222-a79f-4047-8dca-4998c9946491",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 11,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT UPPER(SUBSTR(\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(\"severity[Expanded].rawState\", 2) AS \"severity\", \"name\" AS \"alert\", \"entityName\" AS \"affected\", \"status[Expanded].rawState\" AS \"state\", \"detectedOn\", \"resolvedOn\", \"tenantName\" AS \"site\", \"link\" FROM \"alerts\" ORDER BY \"detectedOn\" DESC",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        },
+                                        "timeframe": "last7days"
+                                    },
+                                    "tableName": "alerts"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Alerts raised in the last 7 days, newest first. Click a row to open the alert in Auvik",
+                    "timeframe": "last7days",
+                    "title": "Recent Alerts",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity",
+                                        "renderer": {
+                                            "colors": {
+                                                "Critical": "#ef4444",
+                                                "Emergency": "#b91c1c",
+                                                "Info": "#2563eb",
+                                                "Warning": "#d97706"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Severity",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "alert",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Alert"
+                                    },
+                                    {
+                                        "field": "affected",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Affected"
+                                    },
+                                    {
+                                        "field": "state",
+                                        "renderer": {
+                                            "colors": {
+                                                "Open": "#dc2626",
+                                                "Paused": "#64748b",
+                                                "Resolved": "#16a34a"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Status",
+                                        "width": 100
+                                    },
+                                    {
+                                        "field": "detectedOn",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Raised"
+                                    },
+                                    {
+                                        "field": "resolvedOn",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Cleared"
+                                    },
+                                    {
+                                        "field": "site",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Site"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "Open": "rgba(239,68,68,0.08)"
+                                    },
+                                    "field": "state"
+                                },
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "6e745dc8-feec-485f-bf11-935cfc6f210c",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 14,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH s AS (SELECT \"deviceName\" AS \"device\", CASE WHEN \"operationalStatus[Expanded].rawState\" = 'online' THEN 'Connected' WHEN \"operationalStatus[Expanded].rawState\" = 'adminDown' THEN 'Disabled' ELSE 'Not connected' END AS \"state\" FROM \"ifaces\" WHERE \"deviceName\" IS NOT NULL AND \"deviceName\" NOT LIKE 'Object not found%'), top AS (SELECT \"device\" FROM s GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 10), agg AS (SELECT \"device\", \"state\", CAST(COUNT(*) AS DOUBLE) AS \"ports\" FROM s WHERE \"device\" IN (SELECT \"device\" FROM top) GROUP BY \"device\", \"state\") SELECT \"device\", \"state\", \"ports\" FROM agg ORDER BY CASE \"state\" WHEN 'Connected' THEN 0 WHEN 'Not connected' THEN 1 ELSE 2 END, \"device\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[interfaces]}}",
+                                            "name": "interfaces"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "ifaces"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Connected, unconnected and disabled ports on the devices with the most interfaces",
+                    "timeframe": "none",
+                    "title": "Ports in Use",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "state",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "device",
+                                    "title": "Device",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "ports",
+                                    "title": "Ports",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Connected": "#22c55e",
+                                    "Disabled": "#1e293b",
+                                    "Not connected": "#475569"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "6a08c545-66c1-41f4-a118-a39f5e69b45a",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 18,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT \"timestamp\", \"entityName\" AS \"check\", \"value\" FROM \"checks\" WHERE \"series\" = 'Average RTT' ORDER BY \"timestamp\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "metric": "service/pingTime"
+                                            },
+                                            "id": "{{dataStreams.[metrics]}}",
+                                            "name": "metrics"
+                                        }
+                                    },
+                                    "tableName": "checks"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Average round-trip time of each internet connection check",
+                    "title": "Internet Checks",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "label": {
+                                    "field": "check",
+                                    "type": "nominal"
+                                },
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineThresholds": [
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 50
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 150
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 100000
+                                    }
+                                ],
+                                "sparklineValue": "average"
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "7dba4452-7bf3-486f-817d-87372945cc76",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 18,
+                "z": 0
+            }
+        ],
+        "version": 1
+    }
+}

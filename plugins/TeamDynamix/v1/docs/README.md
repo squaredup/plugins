@@ -20,6 +20,7 @@ You will need your organization's **BEID** and **Web Services Key**.
 | **BEID** | A GUID identifying your TeamDynamix organization. Exchanged with the Web Services Key for a session token. | TDAdmin → **Organization detail**. | Yes |
 | **Web Services Key** | The secret paired with the BEID. Stored encrypted and never displayed again. | TDAdmin → **Organization detail**. | Yes |
 | **Maximum records per request** | Caps how many records a single search returns. Defaults to 2000. | Advanced options — leave as-is unless you hit the limits described below. | No |
+| **Import assets, configuration items, accounts and locations** | Adds each of these as an object in SquaredUp, so they appear in search and can be counted from the imported objects. Off by default: no tile or out-of-the-box dashboard needs them, and a large asset estate adds many objects. | Advanced options. | No |
 | **Ignore certificate errors** | Accepts self-signed or otherwise untrusted certificates. Enable only when the Web API endpoint cannot present a certificate trusted by a public certificate authority — a self-hosted instance can still have a properly trusted certificate and should not need this. | Added by SquaredUp to every data source. | No |
 
 On save, the plugin signs in, then checks that at least one TeamDynamix application is visible to the service account and that accounts and departments can be read. A failure at the first step means the address, BEID or Web Services Key is wrong, or the service account is inactive. A failure at the second means the credentials work but the service account has not been granted access to any application.
@@ -37,17 +38,19 @@ The out-of-the-box dashboards are an organization-wide **Overview**, a **Service
 
 ## Data streams
 
-- **Tickets** — tickets in a ticketing application, one row per ticket, with status, priority, assignment and SLA. Choose whether the timeframe filters on created, last-modified or closed date, or set the timeframe to **None** for the current backlog regardless of date.
+- **Tickets** — tickets in a ticketing application, one row per ticket, with status, priority, assignment and SLA. Choose whether the timeframe filters on created, last-modified or closed date, or set the timeframe to **None** for the current backlog regardless of date. Pick one or more imported groups under **Group(s)** to see only the tickets assigned to those teams; TeamDynamix does the filtering, so a team's tile isn't limited by the rest of the application's volume. Tickets with no assigned person or group show **(Unassigned)**.
+- **Ticket Count** — the exact number of tickets matching a status, group, SLA and date filter, as one value. Use it for counts: it isn't limited by **Maximum tickets**, so it stays right on an application with thousands of open tickets, and it costs one small request.
 - **Ticket Statuses** — the statuses configured in a ticketing application.
 - **Assets** — assets in an asset application, filterable by in-service state.
-- **Configuration Items** — configuration items in the CMDB of an asset application, filterable by active state.
+- **Asset Count** — the exact number of assets in an asset application, optionally only those in or out of service, as one value. Like **Ticket Count**, it isn't limited by the maximum records setting.
+- **Configuration Items** — standalone configuration items in the CMDB of an asset application, filterable by active state (active by default). TeamDynamix also creates a configuration item for every asset; those mirrors are left out, as the assets themselves are already available.
 - **Projects** — projects in a project application, with health, schedule and budget.
 - **Services** — service catalog services in a client portal application.
 - **Knowledge Base Articles** — knowledge base articles in a client portal application. Article bodies are excluded.
 - **Time Entries** — time logged against tickets, projects and tasks, account-wide.
 - **Locations** — active locations with their ticket, asset, configuration item and user counts, account-wide.
 - **Applications** — every active application the service account can see, with its Type and Class and the object type it's imported as. Use it to check which applications are recognised as ticketing or Assets/CIs applications.
-- **Accounts**, **Groups**, **Current User** — account-wide reference data. These back the import and setup checks and are hidden from the tile editor; the imported objects are visible in the graph instead.
+- **Accounts**, **Groups**, **Current User** — account-wide reference data. These back the import and setup checks and are hidden from the tile editor; the imported objects are visible in the graph instead. Four more hidden streams, **Accounts (Import)**, **Locations (Import)**, **Assets (Import)** and **Configuration Items (Import)**, feed the optional inventory import and return nothing while it's off.
 
 ## What gets indexed
 
@@ -56,11 +59,13 @@ The out-of-the-box dashboards are an organization-wide **Overview**, a **Service
 | **TeamDynamix Ticketing App** | `GET /api/applications` (class `TDTickets`, or a type starting "Ticket") | A ticketing application, e.g. your service desk. Scope ticket tiles to one of these. |
 | **TeamDynamix Asset App** | `GET /api/applications` (class `TDAssets`, or a type starting "Asset") | An asset and CMDB application. Scope asset and configuration item tiles to one of these. |
 | **TeamDynamix Application** | `GET /api/applications` (everything else) | Any other application — client portal, projects or external. Scope project, service and knowledge base tiles to one of these. |
-| **TeamDynamix Account** | `GET /api/accounts` | An account or department. |
-| **TeamDynamix Location** | `GET /api/locations` | A physical location, with its rolled-up counts and coordinates. |
+| **TeamDynamix Account** | `POST /api/accounts/search` | An account or department. Only with **Import assets, configuration items, accounts and locations** on. |
+| **TeamDynamix Location** | `POST /api/locations/search` | An active physical location, with its rolled-up counts and coordinates. Only with the import option on. |
 | **TeamDynamix Group** | `POST /api/groups/search` | A group used to assign and route work. |
-| **TeamDynamix Asset** | `POST /api/{appId}/assets/search` | A tracked asset. |
-| **TeamDynamix Configuration Item** | `POST /api/{appId}/cmdb/search` | A CMDB configuration item. |
+| **TeamDynamix Asset** | `POST /api/{appId}/assets/search` | A tracked asset, up to **Maximum records per request** per asset application. Only with the import option on. |
+| **TeamDynamix Configuration Item** | `POST /api/{appId}/cmdb/search/paged` | An active, standalone CMDB configuration item. Items that only mirror an asset are not imported. Only with the import option on. |
+
+Applications and groups are always imported: every data stream is scoped to an application, and the **Group(s)** ticket filter picks from the imported groups. The other types are optional because nothing in the plugin depends on them.
 
 **Relationships:** assets and configuration items are imported per application, so each one carries the `appId` of the asset application it came from.
 
@@ -70,12 +75,31 @@ Tickets are deliberately **not** imported as objects. They are high-volume trans
 
 ## Known limitations
 
-- **Searches are not paged, so results are capped.** The TeamDynamix search endpoints return a single unpaged result set — there is no way to walk through pages. Each search is therefore capped (2000 records by default, set per tile for tickets, assets, knowledge base articles and time entries). If a tile might exceed its cap, narrow it with a timeframe or a status filter rather than raising the cap, or the tile will silently show only part of your data.
-- **The configuration item search cannot be capped by TeamDynamix at all.** Unlike tickets and assets, the CMDB search endpoint accepts no maximum-results parameter and has no paged alternative that doesn't require a pre-existing saved search in TeamDynamix. The plugin works around this by capping the result to **Maximum records per request** itself, keeping the most recently modified items first. If a very large, unfiltered CMDB still fails to load, filter to **Active** only and lower that setting.
-- **Rate limits are per IP address and are easy to hit.** Ticket and time-entry searches allow 30 requests per minute; most other endpoints allow 60. The plugin does not pace its own requests — a dashboard with many TeamDynamix tiles refreshing together can be throttled. A throttled tile reports the time the limit resets and recovers on its own on the next refresh.
+- **List tiles are capped; counts aren't.** Each list tile makes one unpaged search, because walking TeamDynamix's paged searches (at most 250 records a page) is too slow for a tile. Each search is therefore capped (2000 records by default, set per tile for tickets, assets, knowledge base articles and time entries). A breakdown such as tickets by priority only covers the first 2000 matches, so narrow it with a status, group or timeframe filter. For a total, use **Ticket Count** or **Asset Count**, which are exact; the out-of-the-box count tiles already do.
+- **Ticket tiles have a size ceiling.** Each ticket row is about 2.3 KB once SquaredUp has formatted it, and a tile's response can't exceed about 6 MB, so a ticket tile fails with a response-size error above roughly 2,500 tickets. Keep **Maximum tickets** at 2000 or below. Requestor email, respond-by and goes-off-hold dates, estimates, form and reference code aren't returned, to keep rows small.
+- **Configuration item tiles stop at 10,000 CMDB items.** TeamDynamix's CMDB search returns a copy of every asset alongside the standalone items, and the plugin can only remove the copies after loading them. A tile therefore loads at most 10,000 items and shows at most **Maximum records per request** standalone ones, most recently modified first. An asset application with more than 10,000 items in its CMDB (usually one with that many assets) shows an error saying so; turn on the inventory import, which pages through the CMDB, to get its standalone items as objects.
+- **The configuration item import has a ceiling too.** An import run allows about 220 requests, and the CMDB import reads 250 items per request, so it covers roughly 50,000 CMDB items (asset copies included) across all asset applications.
+- **Imported assets are capped per asset application.** With the import option on, each asset application contributes at most **Maximum records per request** assets (2000 by default). An application with more assets than that is only partly imported. Asset tiles query TeamDynamix directly and aren't affected by the import.
+- **Rate limits are per IP address and are easy to hit.** Ticket and time-entry searches allow 30 requests per minute; most other endpoints allow 60. The plugin does not pace its own requests — a dashboard with many TeamDynamix tiles refreshing together can be throttled. Opening the **Service Desk** dashboard makes six ticket searches (tiles with identical settings share one). A throttled tile reports the time the limit resets and recovers on its own on the next refresh.
 - **Custom attributes are not available.** TeamDynamix's search endpoints (the ones every data stream in this plugin uses) never return custom attributes, attachments, or a few other detail-only fields, regardless of what the underlying record supports — only loading a single ticket, asset, configuration item, project or service individually returns them, which none of these streams do. There is no way to surface a tenant's custom fields without adding a per-record detail call for every row, which the search-based design of this plugin does not do.
 - **Wide records are trimmed.** A TeamDynamix ticket has over 100 fields, including the full HTML description and its attachment and task lists. Only dashboard-usable fields are returned, so ticket descriptions, attachments and task detail are not available.
 - **Time entries identify people by UID.** The time search returns the person's unique identifier rather than their name, so time cannot be grouped by person name.
-- **Sandbox paths are unverified.** The sandbox Web API path is assumed to be `/SBTDWebApi`, and ticket, asset, configuration item and knowledge base article links for a sandbox connection are built from the matching `/SBTDNext` or `/SBTDClient` web app path, following the same naming convention. Neither is confirmed against a real sandbox tenant, and the API documentation doesn't cover web UI paths at all. If a sandbox connection fails with a "no Web API found" error, or a sandbox record's link doesn't open, check the correct paths with TeamDynamix support.
-- **Imports run every 12 hours** by default, so newly added assets and configuration items appear in the graph on the next import.
-- **Read-only.** The plugin only ever reads from TeamDynamix. It calls no endpoint that creates, modifies or deletes data — only `GET` endpoints, `POST .../search` endpoints, and the `POST /api/auth/loginadmin` sign-in call.
+- **Sandbox paths follow an `SB` prefix.** A sandbox uses `/SBTDWebApi` for the Web API, and its ticket, asset, configuration item and knowledge base article links open in `/SBTDNext` or `/SBTDClient`. This has been checked against a real sandbox, but the API documentation doesn't cover web UI paths. If a sandbox connection fails with a "no Web API found" error, or a sandbox record's link doesn't open, check the paths with TeamDynamix support.
+- **Unset dates and names are blank.** TeamDynamix sends `0001-01-01` rather than an empty value for a date that was never set, such as an asset with no expected replacement date or a ticket that isn't completed, and the name `None` for an unset manufacturer, model, location, department or service. The plugin blanks both, so they don't appear as a 1900 date or a "None" bar, and are excluded by **is not empty** filters.
+- **Imports run every 12 hours** by default, so newly added groups, assets and configuration items appear in the graph on the next import. Turning the import option off removes the imported assets, configuration items, accounts and locations at the next import.
+- **Read-only.** The plugin only ever reads from TeamDynamix. It calls no endpoint that creates, modifies or deletes data — only `GET` endpoints, `POST .../search` and `.../search/paged` endpoints, and the `POST /api/auth/loginadmin` sign-in call.
+
+## Troubleshooting
+
+| Message | Likely cause |
+| ------- | ------------ |
+| TeamDynamix rejected the BEID and Web Services Key (HTTP 401) | The BEID or Web Services Key is wrong, or the admin service account isn't set to **Active** in TDAdmin. |
+| No TeamDynamix Web API found at … (HTTP 404) | The **Web API address** doesn't end in `/TDWebApi` (or `/SBTDWebApi` for a sandbox), or has the web app name (`/TDNext`) instead. |
+| TeamDynamix didn't respond | The address is wrong or the site isn't reachable from SquaredUp. |
+| TeamDynamix denied this request | The service account has no access to that application. Grant it in TDAdmin, then re-run the import. |
+| The specified application could not be found | A custom tile is scoped to the wrong kind of application. Services and knowledge base articles need a client portal application, and projects a project application; the tile editor only offers those. |
+| TeamDynamix rate limit reached | Too many TeamDynamix requests in the last minute, from this or other dashboards. The tile recovers after the reset time it shows. |
+| Function.ResponseSizeTooLarge | A list tile returned more than about 6 MB. Lower **Maximum tickets** (or assets), or add a status, group or timeframe filter. |
+| This asset application's CMDB has more than 10,000 configuration items | See **Configuration item tiles stop at 10,000 CMDB items** above. |
+
+To check the BEID and Web Services Key outside SquaredUp, sign in to TDAdmin and confirm both on the **Organization detail** page, and that the admin service account shows as **Active**.

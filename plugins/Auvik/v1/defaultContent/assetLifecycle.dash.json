@@ -1,0 +1,963 @@
+{
+    "name": "Asset Lifecycle",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "contents": [
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "coverage": "warranty"
+                        },
+                        "id": "{{dataStreams.[deviceSupport]}}",
+                        "name": "deviceSupport",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COALESCE(ROUND(CAST(COUNT(*) FILTER (WHERE \"warrantyCoverageStatus\" = 'success') AS DOUBLE) * 100 / NULLIF(COUNT(*), 0), 1), CAST(0 AS DOUBLE)) AS \"covered\" FROM \"dataset\""
+                    },
+                    "description": "Share of devices with a vendor warranty record whose warranty is still active",
+                    "timeframe": "none",
+                    "title": "Under Warranty",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "covered",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "color": "#ef4444",
+                                        "to": 0.5
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "to": 0.8
+                                    },
+                                    {
+                                        "color": "#22c55e",
+                                        "to": 1
+                                    }
+                                ],
+                                "ringGridTrackWidth": 10
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "84a4e834-29ee-4350-aab3-0def92da3fe4",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "coverage": "warranty"
+                        },
+                        "id": "{{dataStreams.[deviceSupport]}}",
+                        "name": "deviceSupport",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COUNT(*) FILTER (WHERE \"warrantyCoverageStatus\" = 'error' OR \"daysUntilWarrantyExpiry\" < 0) AS \"expired\", COUNT(*) FILTER (WHERE \"daysUntilWarrantyExpiry\" BETWEEN 0 AND 90) AS \"expiring\" FROM \"dataset\""
+                    },
+                    "description": "Devices whose warranty has expired, and those expiring in the next 90 days",
+                    "timeframe": "none",
+                    "title": "Warranty Risk",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "expired",
+                                        "title": "Expired",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "expiring",
+                                        "title": "Next 90 Days",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2,
+                                "scalarValueColor": "#ef4444"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "ca4a1048-b36e-485c-a812-080d2e2f7db5",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 1,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "coverage": "lifecycle"
+                        },
+                        "id": "{{dataStreams.[deviceSupport]}}",
+                        "name": "deviceSupport",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COUNT(*) FILTER (WHERE \"salesAvailability\" = 'error') AS \"endOfSale\", COUNT(*) FILTER (WHERE \"lastSupportStatus\" = 'error') AS \"endOfSupport\" FROM \"dataset\""
+                    },
+                    "description": "Devices the vendor no longer sells, and devices past their last date of vendor support",
+                    "timeframe": "none",
+                    "title": "End of Life",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "endOfSale",
+                                        "title": "End of Sale",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "endOfSupport",
+                                        "title": "End of Support",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2,
+                                "scalarValueColor": "#ef4444"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "30ab269c-ab36-46ad-a93c-2032d57bd80e",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 2,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT COUNT(*) FILTER (WHERE b.\"deviceId\" IS NOT NULL AND b.\"ageDays\" > 7) AS \"stale\", COUNT(*) FILTER (WHERE b.\"deviceId\" IS NULL) AS \"missing\" FROM \"devices\" d LEFT JOIN \"backups\" b ON b.\"deviceId\" = d.\"id\" WHERE d.\"deviceType\" IN ('switch','l3Switch','router','firewall','controller','stack','loadBalancer','utm','securityAppliance','voipSwitch')",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[devices]}}",
+                                            "name": "devices"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "devices"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "running": "running"
+                                            },
+                                            "id": "{{dataStreams.[configurationBackups]}}",
+                                            "name": "configurationBackups"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "backups"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Switches, routers, firewalls and controllers whose running config backup is over 7 days old, or missing altogether",
+                    "timeframe": "none",
+                    "title": "Backup Gaps",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "stale",
+                                        "title": "Stale",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "aggregate": "sum",
+                                        "field": "missing",
+                                        "title": "Missing",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2,
+                                "scalarValueColor": "#f59e0b"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "2e11fa0f-40a7-48e7-b5a2-40e811ce62d9",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 3,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH s AS (SELECT 'Warranty' AS \"contract\", 1 AS \"o\", \"warrantyCoverageStatus\" AS \"h\" FROM \"warranty\" UNION ALL SELECT 'Service contract', 2, \"serviceCoverageStatus\" FROM \"warranty\" UNION ALL SELECT 'Sales', 3, \"salesAvailability\" FROM \"lifecycle\" UNION ALL SELECT 'Software maintenance', 4, \"softwareMaintenanceStatus\" FROM \"lifecycle\" UNION ALL SELECT 'Security patches', 5, \"securitySoftwareMaintenanceStatus\" FROM \"lifecycle\" UNION ALL SELECT 'Vendor support', 6, \"lastSupportStatus\" FROM \"lifecycle\"), t AS (SELECT \"contract\", \"o\", CASE \"h\" WHEN 'success' THEN 'Active' WHEN 'warning' THEN 'Limited' WHEN 'error' THEN 'Expired' ELSE 'Unknown' END AS \"status\" FROM s), st AS (SELECT * FROM (VALUES (0, 'Active'), (1, 'Limited'), (2, 'Expired'), (3, 'Unknown')) v(\"so\", \"status\")), c AS (SELECT DISTINCT \"contract\", \"o\" FROM t) SELECT c.\"contract\", st.\"status\", CAST(COUNT(t.\"status\") AS DOUBLE) AS \"devices\" FROM c CROSS JOIN st LEFT JOIN t ON t.\"contract\" = c.\"contract\" AND t.\"status\" = st.\"status\" GROUP BY c.\"contract\", c.\"o\", st.\"status\", st.\"so\" ORDER BY c.\"o\", st.\"so\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "coverage": "warranty"
+                                            },
+                                            "id": "{{dataStreams.[deviceSupport]}}",
+                                            "name": "deviceSupport"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "warranty"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "coverage": "lifecycle"
+                                            },
+                                            "id": "{{dataStreams.[deviceSupport]}}",
+                                            "name": "deviceSupport"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "lifecycle"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Devices with vendor records by status of each warranty, service and lifecycle contract",
+                    "timeframe": "none",
+                    "title": "Contract Scorecard",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "contract",
+                                    "title": "Contract",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "devices",
+                                    "title": "Devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Active": "#22c55e",
+                                    "Expired": "#ef4444",
+                                    "Limited": "#f59e0b",
+                                    "Unknown": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "a402eef7-d4af-4e2b-9ec8-dd24e6f9be38",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "coverage": "warranty"
+                        },
+                        "id": "{{dataStreams.[deviceSupport]}}",
+                        "name": "deviceSupport",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH b AS (SELECT * FROM (VALUES (1, 'Expired'), (2, 'Next 30 days'), (3, '31–90 days'), (4, '3–6 months'), (5, '6–12 months'), (6, 'Over a year'), (7, 'No date')) v(\"o\", \"window\")), w AS (SELECT CASE WHEN \"daysUntilWarrantyExpiry\" IS NULL THEN 'No date' WHEN \"daysUntilWarrantyExpiry\" < 0 THEN 'Expired' WHEN \"daysUntilWarrantyExpiry\" <= 30 THEN 'Next 30 days' WHEN \"daysUntilWarrantyExpiry\" <= 90 THEN '31–90 days' WHEN \"daysUntilWarrantyExpiry\" <= 182 THEN '3–6 months' WHEN \"daysUntilWarrantyExpiry\" <= 365 THEN '6–12 months' ELSE 'Over a year' END AS \"window\" FROM \"dataset\") SELECT b.\"window\", CAST(COUNT(w.\"window\") AS DOUBLE) AS \"devices\" FROM b LEFT JOIN w ON w.\"window\" = b.\"window\" GROUP BY b.\"o\", b.\"window\" ORDER BY b.\"o\""
+                    },
+                    "description": "Devices by when their warranty expires, from already expired to more than a year away",
+                    "timeframe": "none",
+                    "title": "Warranty Runway",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "window",
+                                    "title": "Expires",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "devices",
+                                    "title": "Devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianColorRules": [
+                                    {
+                                        "color": "#b91c1c",
+                                        "label": "Expired"
+                                    },
+                                    {
+                                        "color": "#ef4444",
+                                        "label": "Next 30 days"
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "label": "31–90 days"
+                                    },
+                                    {
+                                        "color": "#14b8a6",
+                                        "label": "3–6 months"
+                                    },
+                                    {
+                                        "color": "#64748b",
+                                        "label": "No date"
+                                    },
+                                    {
+                                        "color": "#22c55e",
+                                        "gte": 0
+                                    }
+                                ],
+                                "cartesianShowHorizontalGridLines": false,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "57907a5b-b62b-4b37-b8a5-aa62defa6361",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "SELECT l.\"deviceName\" AS \"device\", l.\"salesAvailability\" AS \"sales\", l.\"softwareMaintenanceStatus\" AS \"software\", l.\"securitySoftwareMaintenanceStatus\" AS \"security\", l.\"lastSupportStatus\" AS \"support\", d.\"link\", (CASE WHEN l.\"lastSupportStatus\" = 'error' THEN 8 ELSE 0 END + CASE WHEN l.\"securitySoftwareMaintenanceStatus\" = 'error' THEN 4 ELSE 0 END + CASE WHEN l.\"softwareMaintenanceStatus\" = 'error' THEN 2 ELSE 0 END + CASE WHEN l.\"salesAvailability\" = 'error' THEN 1 ELSE 0 END) AS \"risk\" FROM \"lifecycle\" l LEFT JOIN \"devices\" d ON d.\"id\" = l.\"deviceId\" ORDER BY \"risk\" DESC, \"device\" LIMIT 30",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "coverage": "lifecycle"
+                                            },
+                                            "id": "{{dataStreams.[deviceSupport]}}",
+                                            "name": "deviceSupport"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "lifecycle"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[devices]}}",
+                                            "name": "devices"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "devices"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Vendor sales, software maintenance, security patch and support status for each device, worst first. Click a row to open the device in Auvik",
+                    "timeframe": "none",
+                    "title": "Lifecycle Matrix",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "device",
+                                    "type": "nominal"
+                                },
+                                "link": {
+                                    "field": "link",
+                                    "type": "nominal"
+                                },
+                                "statuses": [
+                                    {
+                                        "field": "sales",
+                                        "title": "Sales",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "software",
+                                        "title": "Software",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "security",
+                                        "title": "Security",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "support",
+                                        "title": "Support",
+                                        "type": "nominal"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "labelFontSize": 12,
+                                "statusGridBlockGap": 4
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "b21fe845-8560-4cde-b55b-29608b04d6ab",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH x AS (SELECT COALESCE(d.\"vendorName\", 'Unknown vendor') AS \"vendor\", CASE WHEN w.\"deviceId\" IS NOT NULL THEN 'Tracked' ELSE 'Untracked' END AS \"state\" FROM \"devices\" d LEFT JOIN \"warranty\" w ON w.\"deviceId\" = d.\"id\"), top AS (SELECT \"vendor\", COUNT(*) AS \"n\" FROM x GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 10), st AS (SELECT * FROM (VALUES (0, 'Tracked'), (1, 'Untracked')) v(\"so\", \"state\")) SELECT top.\"vendor\", st.\"state\", CAST(COUNT(x.\"state\") AS DOUBLE) AS \"devices\" FROM top CROSS JOIN st LEFT JOIN x ON x.\"vendor\" = top.\"vendor\" AND x.\"state\" = st.\"state\" GROUP BY top.\"vendor\", top.\"n\", st.\"state\", st.\"so\" ORDER BY top.\"n\" DESC, top.\"vendor\", st.\"so\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[devices]}}",
+                                            "name": "devices"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "devices"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "coverage": "warranty"
+                                            },
+                                            "id": "{{dataStreams.[deviceSupport]}}",
+                                            "name": "deviceSupport"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "warranty"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Devices per vendor that Auvik has warranty data for (tracked) and those it has none for (untracked), for the 10 largest vendors",
+                    "timeframe": "none",
+                    "title": "Vendor Blind Spots",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "state",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "vendor",
+                                    "title": "Vendor",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "devices",
+                                    "title": "Devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Tracked": "#14b8a6",
+                                    "Untracked": "#475569"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "0e7aa5d5-168a-47e7-a65f-3af805fd501f",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 5,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "running": "running"
+                        },
+                        "id": "{{dataStreams.[configurationBackups]}}",
+                        "name": "configurationBackups",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH ids AS (SELECT \"deviceName\", \"deviceId\", ROW_NUMBER() OVER (PARTITION BY \"deviceName\" ORDER BY \"deviceId\") AS rn, COUNT(*) OVER (PARTITION BY \"deviceName\") AS dup FROM (SELECT DISTINCT \"deviceName\", \"deviceId\" FROM \"dataset\")) SELECT CASE WHEN i.dup > 1 THEN d.\"deviceName\" || ' #' || i.rn ELSE d.\"deviceName\" END AS \"device\", CAST(d.\"ageDays\" AS DOUBLE) AS \"age\" FROM \"dataset\" d JOIN ids i ON d.\"deviceId\" = i.\"deviceId\" WHERE d.\"ageDays\" IS NOT NULL ORDER BY \"age\" DESC LIMIT 10"
+                    },
+                    "description": "Age in days of each device's current running config backup, oldest first. Amber after 7 days, red after 30",
+                    "timeframe": "none",
+                    "title": "Oldest Backups",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "device",
+                                    "title": "Device",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "age",
+                                    "title": "Age (days)",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianColorRules": [
+                                    {
+                                        "color": "#ef4444",
+                                        "gt": 30
+                                    },
+                                    {
+                                        "color": "#f59e0b",
+                                        "gt": 7
+                                    },
+                                    {
+                                        "color": "#22c55e",
+                                        "gte": 0
+                                    }
+                                ],
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "labelFormat": "{{{{raw}}}}{{value}} days{{{{/raw}}}}",
+                                "showLabels": true
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "43cfb1c7-2524-4ff9-880a-c92a06591aeb",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 8,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH x AS (SELECT CASE WHEN d.\"deviceType\" = 'ups' THEN 'UPS' WHEN d.\"deviceType\" IS NULL OR d.\"deviceType\" = 'unknown' THEN 'Unclassified' ELSE UPPER(SUBSTR(REGEXP_REPLACE(d.\"deviceType\", '([A-Z])', ' \\1', 'g'), 1, 1)) || SUBSTR(REGEXP_REPLACE(d.\"deviceType\", '([A-Z])', ' \\1', 'g'), 2) END AS \"type\", CASE WHEN b.\"deviceId\" IS NULL THEN 'No backup' WHEN b.\"ageDays\" <= 7 THEN 'Within 7 days' WHEN b.\"ageDays\" <= 30 THEN '8–30 days' ELSE 'Over 30 days' END AS \"backup\" FROM \"devices\" d LEFT JOIN \"backups\" b ON b.\"deviceId\" = d.\"id\" WHERE d.\"deviceType\" IN ('switch','l3Switch','router','firewall','controller','stack','loadBalancer','utm','securityAppliance','voipSwitch')), t AS (SELECT \"type\", COUNT(*) AS \"n\" FROM x GROUP BY 1), st AS (SELECT * FROM (VALUES (0, 'Within 7 days'), (1, '8–30 days'), (2, 'Over 30 days'), (3, 'No backup')) v(\"so\", \"backup\")) SELECT t.\"type\", st.\"backup\", CAST(COUNT(x.\"backup\") AS DOUBLE) AS \"devices\" FROM t CROSS JOIN st LEFT JOIN x ON x.\"type\" = t.\"type\" AND x.\"backup\" = st.\"backup\" GROUP BY t.\"type\", t.\"n\", st.\"backup\", st.\"so\" ORDER BY t.\"n\" DESC, t.\"type\", st.\"so\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[devices]}}",
+                                            "name": "devices"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "devices"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "running": "running"
+                                            },
+                                            "id": "{{dataStreams.[configurationBackups]}}",
+                                            "name": "configurationBackups"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "backups"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Network devices by device type and the age of their running config backup",
+                    "timeframe": "none",
+                    "title": "Backup Coverage",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "series": {
+                                    "field": "backup",
+                                    "type": "nominal"
+                                },
+                                "x": {
+                                    "field": "type",
+                                    "title": "Device type",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "devices",
+                                    "title": "Devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianShowStackedTotals": true,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "8–30 days": "#f59e0b",
+                                    "No backup": "#475569",
+                                    "Over 30 days": "#ef4444",
+                                    "Within 7 days": "#22c55e"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "52a69130-e466-4ae8-8713-e9ee46ce3fa2",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 8,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "sql": "WITH j AS (SELECT d.\"name\" AS \"device\", CASE WHEN d.\"deviceType\" = 'ups' THEN 'UPS' WHEN d.\"deviceType\" IS NULL OR d.\"deviceType\" = 'unknown' THEN 'Unclassified' ELSE UPPER(SUBSTR(REGEXP_REPLACE(d.\"deviceType\", '([A-Z])', ' \\1', 'g'), 1, 1)) || SUBSTR(REGEXP_REPLACE(d.\"deviceType\", '([A-Z])', ' \\1', 'g'), 2) END AS \"type\", TRIM(COALESCE(d.\"vendorName\", '') || ' ' || COALESCE(d.\"makeModel\", '')) AS \"model\", d.\"tenantName\" AS \"site\", d.\"link\", w.\"warrantyCoverageStatus\" AS \"wh\", w.\"warrantyExpirationDate\" AS \"expires\", w.\"daysUntilWarrantyExpiry\" AS \"days\", w.\"serviceCoverageStatus\" AS \"sh\", l.\"salesAvailability\" AS \"saleh\", l.\"lastSupportStatus\" AS \"suph\" FROM \"devices\" d LEFT JOIN \"warranty\" w ON w.\"deviceId\" = d.\"id\" LEFT JOIN \"lifecycle\" l ON l.\"deviceId\" = d.\"id\" WHERE w.\"deviceId\" IS NOT NULL OR l.\"deviceId\" IS NOT NULL), r AS (SELECT *, CASE WHEN \"suph\" = 'error' THEN 'End of support' WHEN \"wh\" = 'error' OR \"days\" < 0 THEN 'Warranty expired' WHEN \"days\" <= 90 THEN 'Expiring soon' WHEN \"sh\" = 'error' THEN 'Service expired' WHEN \"saleh\" = 'error' THEN 'End of sale' WHEN \"wh\" = 'success' AND \"suph\" = 'success' THEN 'Covered' ELSE 'Unverified' END AS \"risk\" FROM j) SELECT \"risk\", \"device\", \"type\", \"model\", \"site\", CASE \"wh\" WHEN 'success' THEN 'Covered' WHEN 'warning' THEN 'Limited' WHEN 'error' THEN 'Expired' WHEN 'unknown' THEN 'Unknown' ELSE 'No record' END AS \"warranty\", \"expires\", CASE \"sh\" WHEN 'success' THEN 'Covered' WHEN 'warning' THEN 'Limited' WHEN 'error' THEN 'Expired' WHEN 'unknown' THEN 'Unknown' ELSE 'No record' END AS \"service\", CASE \"suph\" WHEN 'success' THEN 'Supported' WHEN 'warning' THEN 'Limited' WHEN 'error' THEN 'Ended' WHEN 'unknown' THEN 'Unknown' ELSE 'No record' END AS \"support\", \"link\" FROM r ORDER BY CASE \"risk\" WHEN 'End of support' THEN 0 WHEN 'Warranty expired' THEN 1 WHEN 'Expiring soon' THEN 2 WHEN 'Service expired' THEN 3 WHEN 'End of sale' THEN 4 WHEN 'Unverified' THEN 5 ELSE 6 END, \"days\" NULLS LAST, \"device\"",
+                            "tables": [
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[devices]}}",
+                                            "name": "devices"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "devices"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "coverage": "warranty"
+                                            },
+                                            "id": "{{dataStreams.[deviceSupport]}}",
+                                            "name": "deviceSupport"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "warranty"
+                                },
+                                {
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "dataSourceConfig": {
+                                                "coverage": "lifecycle"
+                                            },
+                                            "id": "{{dataStreams.[deviceSupport]}}",
+                                            "name": "deviceSupport"
+                                        },
+                                        "timeframe": "none"
+                                    },
+                                    "tableName": "lifecycle"
+                                }
+                            ],
+                            "version": "2.0"
+                        },
+                        "id": "datastream-sql"
+                    },
+                    "description": "Every device with a vendor warranty or lifecycle record, worst risk first. Click a row to open the device in Auvik",
+                    "timeframe": "none",
+                    "title": "Devices at Risk",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "risk",
+                                        "renderer": {
+                                            "colors": {
+                                                "Covered": "#16a34a",
+                                                "End of sale": "#d97706",
+                                                "End of support": "#b91c1c",
+                                                "Expiring soon": "#d97706",
+                                                "Service expired": "#f97316",
+                                                "Unverified": "#64748b",
+                                                "Warranty expired": "#dc2626"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Risk",
+                                        "width": 140
+                                    },
+                                    {
+                                        "field": "device",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Device"
+                                    },
+                                    {
+                                        "field": "type",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Type"
+                                    },
+                                    {
+                                        "field": "model",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Model"
+                                    },
+                                    {
+                                        "field": "site",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Site"
+                                    },
+                                    {
+                                        "field": "warranty",
+                                        "renderer": {
+                                            "colors": {
+                                                "Covered": "#16a34a",
+                                                "Expired": "#dc2626",
+                                                "Limited": "#d97706",
+                                                "No record": "#475569",
+                                                "Unknown": "#64748b"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Warranty",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "expires",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Expires"
+                                    },
+                                    {
+                                        "field": "service",
+                                        "renderer": {
+                                            "colors": {
+                                                "Covered": "#16a34a",
+                                                "Expired": "#dc2626",
+                                                "Limited": "#d97706",
+                                                "No record": "#475569",
+                                                "Unknown": "#64748b"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Service",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "support",
+                                        "renderer": {
+                                            "colors": {
+                                                "Ended": "#dc2626",
+                                                "Limited": "#d97706",
+                                                "No record": "#475569",
+                                                "Supported": "#16a34a",
+                                                "Unknown": "#64748b"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Vendor Support",
+                                        "width": 130
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "End of support": "rgba(239,68,68,0.08)",
+                                        "Expiring soon": "rgba(245,158,11,0.08)",
+                                        "Warranty expired": "rgba(239,68,68,0.08)"
+                                    },
+                                    "field": "risk"
+                                },
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "68b7d297-8b24-4e80-b986-d49c798aa3c5",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 11,
+                "z": 0
+            }
+        ],
+        "version": 1
+    }
+}
