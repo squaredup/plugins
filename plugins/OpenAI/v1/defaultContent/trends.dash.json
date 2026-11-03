@@ -111,7 +111,7 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Month Over Month Spend",
-                    "description": "Change compares this month so far with the same days of last month.",
+                    "description": "Change compares completed days this month with the same days of last month.",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
@@ -119,7 +119,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "WITH t AS (SELECT SUM(\"amount\") AS v FROM \"thisMonth\"),\nl AS (SELECT SUM(\"amount\") AS v FROM \"lastMonth\"),\nltd AS (SELECT SUM(\"amount\") AS v FROM \"lastMonth\" WHERE EXTRACT(day FROM \"date\") <= EXTRACT(day FROM CURRENT_DATE))\nSELECT t.v AS \"thisMonth\", l.v AS \"lastMonth\", (t.v - ltd.v) * 100.0 / NULLIF(ltd.v, 0) AS \"change\"\nFROM t, l, ltd",
+                            "sql": "WITH t AS (SELECT SUM(\"amount\") AS v FROM \"thisMonth\" WHERE EXTRACT(day FROM \"date\") < EXTRACT(day FROM CURRENT_DATE)),\nl AS (SELECT SUM(\"amount\") AS v FROM \"lastMonth\"),\nltd AS (SELECT SUM(\"amount\") AS v FROM \"lastMonth\" WHERE EXTRACT(day FROM \"date\") < EXTRACT(day FROM CURRENT_DATE))\nSELECT t.v AS \"thisMonth\", l.v AS \"lastMonth\", (t.v - ltd.v) * 100.0 / NULLIF(ltd.v, 0) AS \"change\"\nFROM t, l, ltd",
                             "tables": [
                                 {
                                     "tableName": "thisMonth",
@@ -330,7 +330,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', '') AS fam, \"input_tokens\" + \"output_tokens\" AS v FROM \"usage\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"week\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"tokens\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
+                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('week', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', ''), 'Unknown') AS fam, \"input_tokens\" + \"output_tokens\" AS v FROM \"usage\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"week\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"tokens\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
                             "tables": [
                                 {
                                     "tableName": "usage",
@@ -413,7 +413,7 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Cost Per 1K Tokens",
-                    "description": "Chat & text spend divided by completion tokens, per week.",
+                    "description": "Chat & text spend divided by input and output tokens, per week.",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],

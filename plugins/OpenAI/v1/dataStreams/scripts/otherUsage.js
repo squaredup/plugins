@@ -12,7 +12,7 @@ const MEASURES = {
     audio_transcriptions: { field: "seconds", unit: "seconds" },
     vector_stores: { field: "usage_bytes", unit: "bytes" },
     code_interpreter_sessions: { field: "num_sessions", unit: "sessions" },
-    file_search_calls: { field: "num_model_requests", unit: "calls" },
+    file_search_calls: { field: "num_requests", unit: "calls" },
     web_search_calls: { field: "num_model_requests", unit: "calls" },
 };
 const measure = MEASURES[usageType] || { field: "num_model_requests", unit: "requests" };
@@ -37,7 +37,9 @@ let rows = (data.data || []).flatMap((bucket) =>
             requests:
                 r.num_model_requests !== undefined
                     ? r.num_model_requests
-                    : r.num_sessions,
+                    : r.num_sessions !== undefined
+                      ? r.num_sessions
+                      : r.num_requests,
             quantity: r[measure.field],
             unit: measure.unit,
         };

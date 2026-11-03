@@ -10,7 +10,6 @@ result = keys.map((k) => {
         name: k.name,
         redacted_value: k.redacted_value,
         projectId: unwrap(project.rawId),
-        projectName: unwrap(project.name),
         created_at: k.created_at,
         last_used_at: k.last_used_at,
         ownerType: k.owner?.type,

@@ -6,7 +6,7 @@ result = [
     {
         projectId: unwrap(project.rawId),
         // threshold_amount is in cents
-        limit: data.threshold_amount / 100,
+        limit: typeof data.threshold_amount === "number" ? data.threshold_amount / 100 : null,
         currency: data.currency,
         interval: data.interval,
         enforcement: data.enforcement?.status ?? null,
