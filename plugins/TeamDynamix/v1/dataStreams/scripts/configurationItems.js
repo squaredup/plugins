@@ -56,7 +56,7 @@ if (Array.isArray(data) && data.length >= TILE_SEARCH_LIMIT) {
     throw new Error(
         "This asset application's CMDB returned 10,000 or more configuration items, which is " +
             "too many to load in a tile. Turn on Import assets, configuration items, accounts " +
-            "and locations in the data source's Advanced options to import them instead."
+            "and locations in the data source's Advanced settings to import them instead."
     );
 }
 
