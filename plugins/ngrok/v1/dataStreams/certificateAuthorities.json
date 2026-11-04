@@ -1,0 +1,97 @@
+{
+    "name": "certificateAuthorities",
+    "displayName": "Certificate Authorities",
+    "description": "Certificate authorities used for mutual TLS, with days until expiry",
+    "tags": [
+        "Certificates",
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "certificate_authorities",
+        "pathToData": "certificate_authorities",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_page_uri"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "CA ID",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "subject_common_name",
+            "displayName": "Common name",
+            "role": "label"
+        },
+        {
+            "name": "description",
+            "displayName": "Description"
+        },
+        {
+            "name": "not_before",
+            "displayName": "Valid from",
+            "shape": "date"
+        },
+        {
+            "name": "not_after",
+            "displayName": "Expires",
+            "shape": "date"
+        },
+        {
+            "name": "daysUntilExpiry",
+            "displayName": "Days until expiry",
+            "computed": true,
+            "shape": "number",
+            "role": "value",
+            "valueExpression": "{{ $['not_after'] ? Math.floor((new Date($['not_after']).getTime() - Date.now()) / 86400000) : null }}"
+        },
+        {
+            "name": "expiryStatus",
+            "displayName": "Expiry status",
+            "computed": true,
+            "valueExpression": "{{ $['daysUntilExpiry'] == null ? null : $['daysUntilExpiry'] < 0 ? 'Expired' : $['daysUntilExpiry'] <= 7 ? 'Expires within 7 days' : $['daysUntilExpiry'] <= 30 ? 'Expires within 30 days' : 'Valid' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "Expired",
+                            "Expires within 7 days"
+                        ],
+                        "warning": [
+                            "Expires within 30 days"
+                        ],
+                        "success": [
+                            "Valid"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}

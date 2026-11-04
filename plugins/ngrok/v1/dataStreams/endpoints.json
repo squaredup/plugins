@@ -1,0 +1,153 @@
+{
+    "name": "endpoints",
+    "displayName": "Endpoints",
+    "description": "Active ngrok endpoints with their URL, type, protocol and traffic policy usage",
+    "tags": [
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "endpoints",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "{{ (typeof endpoint !== 'undefined' && endpoint && endpoint.length ? 'obj.id in [' + endpoint.flatMap((o) => o.rawId).map((i) => '\"' + i + '\"').join(',') + ']' : null) }}"
+            }
+        ],
+        "pathToData": "endpoints",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_page_uri"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "endpoint",
+            "label": "Endpoint(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Endpoint"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Endpoint ID",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "url",
+            "displayName": "URL",
+            "role": "label"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Endpoint",
+            "name": "url"
+        },
+        {
+            "name": "type",
+            "displayName": "Type (raw)",
+            "visible": false
+        },
+        {
+            "name": "endpointType",
+            "displayName": "Type",
+            "computed": true,
+            "valueExpression": "{{ ({ ephemeral: 'Agent', cloud: 'Cloud', edge: 'Edge' })[$['type']] || $['type'] }}"
+        },
+        {
+            "name": "proto",
+            "displayName": "Protocol"
+        },
+        {
+            "name": "bindings",
+            "displayName": "Bindings",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "region",
+            "displayName": "Region"
+        },
+        {
+            "name": "name",
+            "displayName": "Name"
+        },
+        {
+            "name": "description",
+            "displayName": "Description"
+        },
+        {
+            "name": "upstream_url",
+            "displayName": "Upstream URL"
+        },
+        {
+            "name": "pooling_enabled",
+            "displayName": "Pooling enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "traffic_policy",
+            "displayName": "Traffic policy",
+            "visible": false
+        },
+        {
+            "name": "hasTrafficPolicy",
+            "displayName": "Has traffic policy",
+            "computed": true,
+            "shape": "boolean",
+            "valueExpression": "{{ !!($['traffic_policy'] && String($['traffic_policy']).trim()) }}"
+        },
+        {
+            "name": "aiGateway",
+            "displayName": "AI Gateway",
+            "computed": true,
+            "shape": "boolean",
+            "valueExpression": "{{ /ai-gateway/.test(String($['traffic_policy'] || '')) }}"
+        },
+        {
+            "name": "domain.id",
+            "displayName": "Domain ID",
+            "visible": false
+        },
+        {
+            "name": "tunnel_session.id",
+            "displayName": "Agent session ID",
+            "visible": false
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}
