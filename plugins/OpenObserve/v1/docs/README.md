@@ -19,7 +19,7 @@ You will need your OpenObserve instance's **URL**, **port**, **organization iden
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ----------------- | -------- |
-| **URL** | The base URL of your OpenObserve instance, including the scheme (e.g. `http://51.8.18.48`) — no trailing slash or port. | The address you use to sign in to OpenObserve. | Yes |
+| **URL** | The base URL of your OpenObserve instance, including the scheme (e.g. `http://openobserve.example.com`) — no trailing slash or port. | The address you use to sign in to OpenObserve. | Yes |
 | **Port** | The port your OpenObserve instance listens on. | Defaults to `5080`, OpenObserve's standard port. | Yes |
 | **Organization** | The organization identifier used in every API call. | Defaults to `default`; check **IAM → Organizations** if you use a different one. | Yes |
 | **API Key** | The full base64-encoded `username:password`/`username:token` pair, sent unmodified as `Authorization: Basic <key>`. | Built from a Service Account's login identity + token, or a user's email + password (see Setup step 4). | Yes |
