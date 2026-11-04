@@ -1,0 +1,251 @@
+{
+    "name": "Endpoint",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [
+        "{{variables.[ngrok Endpoint]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "bd3a3f29-157e-41e2-b654-4907b9e49586",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Endpoint Configuration",
+                    "description": "Live configuration of this endpoint",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[endpoints]}}",
+                        "name": "endpoints",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "endpoint": {
+                                "variable": "{{variables.[ngrok Endpoint]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[ngrok Endpoints]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[ngrok Endpoint]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": [
+                                    "url",
+                                    "endpointType",
+                                    "proto",
+                                    "bindings",
+                                    "region",
+                                    "upstream_url",
+                                    "pooling_enabled",
+                                    "hasTrafficPolicy",
+                                    "aiGateway",
+                                    "name",
+                                    "description",
+                                    "created_at"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d0b7f811-d54f-4500-b7b6-ef83b54147f9",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Endpoint Details",
+                    "description": "Properties imported for this endpoint",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[ngrok Endpoints]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[ngrok Endpoint]}}"
+                    },
+                    "variables": [
+                        "{{variables.[ngrok Endpoint]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "hiddenColumns": [
+                                    "id",
+                                    "link",
+                                    "links",
+                                    "label"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "172433e1-3a12-402a-b61d-719454fd2396",
+                "x": 0,
+                "y": 4,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Agent Session",
+                    "description": "The ngrok agent serving this endpoint (agent endpoints only)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT a.\"ip\", a.\"agent_version\", a.\"os\", a.\"region\", a.\"transport\", a.\"started_at\", a.\"uptime\" FROM \"agents\" a WHERE a.\"id\" IN (SELECT \"tunnel_session.id\" FROM \"endpoint\")",
+                            "tables": [
+                                {
+                                    "tableName": "endpoint",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[endpoints]}}",
+                                            "name": "endpoints",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "endpoint": {
+                                                    "variable": "{{variables.[ngrok Endpoint]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[ngrok Endpoints]}}"
+                                                }
+                                            }
+                                        },
+                                        "variables": [
+                                            "{{variables.[ngrok Endpoint]}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "tableName": "agents",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[agentSessions]}}",
+                                            "name": "agentSessions",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[ngrok Endpoint]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "ip",
+                                "displayName": "IP address",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "agent_version",
+                                "displayName": "Agent version",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "os",
+                                "displayName": "OS",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "region",
+                                "displayName": "Region",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "transport",
+                                "displayName": "Transport",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "started_at",
+                                "displayName": "Started",
+                                "shape": "date"
+                            },
+                            {
+                                "name": "uptime",
+                                "displayName": "Uptime",
+                                "shape": [
+                                    "seconds",
+                                    {
+                                        "formatDuration": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[ngrok Endpoint]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "ip",
+                                    "agent_version",
+                                    "os",
+                                    "region",
+                                    "transport",
+                                    "started_at",
+                                    "uptime"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
