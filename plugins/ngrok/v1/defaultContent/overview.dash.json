@@ -208,10 +208,87 @@
                 }
             },
             {
-                "i": "03cb7b79-3aaf-47d3-9d7e-2d53adbe6927",
+                "i": "87f791a5-06ca-41a6-9923-99c974ceb48a",
                 "x": 0,
                 "y": 2,
-                "w": 1,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Endpoint Status",
+                    "description": "Whether each indexed endpoint is currently online",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[endpointStatus]}}",
+                        "name": "endpointStatus",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "url",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[ngrok Endpoints]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "url",
+                                    "type": "nominal",
+                                    "title": "URL"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal",
+                                    "title": "Status"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 3,
+                                "statusGridLabelWrap": true,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{status}}{{{{/raw}}}}",
+                                "mappedColors": {
+                                    "Online": "#16a34a",
+                                    "Offline": "#ef4444",
+                                    "Unknown": "#9ca3af"
+                                }
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "status",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "status"
+                            ]
+                        },
+                        "frequency": 15
+                    }
+                }
+            },
+            {
+                "i": "03cb7b79-3aaf-47d3-9d7e-2d53adbe6927",
+                "x": 2,
+                "y": 2,
+                "w": 2,
                 "h": 3,
                 "moved": false,
                 "static": false,
@@ -279,9 +356,9 @@
             },
             {
                 "i": "221b585b-210d-4e6b-a079-be2826b84288",
-                "x": 1,
-                "y": 2,
-                "w": 3,
+                "x": 0,
+                "y": 5,
+                "w": 4,
                 "h": 3,
                 "moved": false,
                 "static": false,
@@ -366,8 +443,8 @@
             {
                 "i": "d763b5b2-6ea0-41ef-b448-43a39c145d45",
                 "x": 0,
-                "y": 5,
-                "w": 2,
+                "y": 8,
+                "w": 4,
                 "h": 3,
                 "moved": false,
                 "static": false,
@@ -375,23 +452,93 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Online Agents",
-                    "description": "ngrok agents currently connected, longest running first",
+                    "description": "ngrok agents currently connected to the account, with the authtoken each one uses",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
                     "timeframe": "none",
                     "dataStream": {
-                        "id": "{{dataStreams.[agentSessions]}}",
-                        "name": "agentSessions",
-                        "pluginConfigId": "{{configId}}",
-                        "sort": {
-                            "by": [
-                                [
-                                    "uptime",
-                                    "desc"
-                                ]
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT a.\"ip\", t.\"description\" AS \"authtoken\", a.\"agent_version\", a.\"os\", a.\"region\", a.\"started_at\", a.\"uptime\" FROM \"agents\" a LEFT JOIN \"authtokens\" t ON a.\"credential.id\" = t.\"id\" ORDER BY a.\"uptime\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "agents",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[agentSessions]}}",
+                                            "name": "agentSessions",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "authtokens",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[authtokens]}}",
+                                            "name": "authtokens",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
                             ]
-                        }
+                        },
+                        "metadata": [
+                            {
+                                "name": "ip",
+                                "displayName": "IP address",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "authtoken",
+                                "displayName": "Authtoken",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "agent_version",
+                                "displayName": "Agent version",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "os",
+                                "displayName": "OS",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "region",
+                                "displayName": "Region",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "started_at",
+                                "displayName": "Started",
+                                "shape": "date"
+                            },
+                            {
+                                "name": "uptime",
+                                "displayName": "Uptime",
+                                "shape": [
+                                    "seconds",
+                                    {
+                                        "formatDuration": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
                     },
                     "vizSpec": {
                         "version": "1.0",
@@ -402,6 +549,13 @@
                                     {
                                         "field": "ip",
                                         "title": "IP address",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "authtoken",
+                                        "title": "Authtoken",
                                         "renderer": {
                                             "type": "text"
                                         }
@@ -444,8 +598,8 @@
             },
             {
                 "i": "599bbcf1-e54e-44c6-a756-149c14bca347",
-                "x": 2,
-                "y": 5,
+                "x": 0,
+                "y": 11,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -482,7 +636,7 @@
                             },
                             "style": {
                                 "statusGridColumnsPerRow": 2,
-                                "statusGridSecondaryTemplate": "{{certificateSource}}",
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{certificateSource}}{{{{/raw}}}}",
                                 "mappedColors": {
                                     "OK": "#16a34a",
                                     "Provisioning": "#f59e0b",
@@ -493,13 +647,97 @@
                                 }
                             }
                         }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "certificateStatus",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "certificateStatus"
+                            ]
+                        },
+                        "frequency": 15
+                    }
+                }
+            },
+            {
+                "i": "0afdaef1-51ed-42fd-a7db-15fbcf33d2c2",
+                "x": 2,
+                "y": 11,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Reserved Addresses",
+                    "description": "Reserved TCP addresses",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[reservedAddresses]}}",
+                        "name": "reservedAddresses",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "addr",
+                                        "title": "Address",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "badge"
+                                        }
+                                    },
+                                    {
+                                        "field": "description",
+                                        "title": "Description",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
                     }
                 }
             },
             {
                 "i": "9019022b-f2fd-45b6-8f0b-dfae43ae98ff",
                 "x": 0,
-                "y": 8,
+                "y": 14,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -600,13 +838,26 @@
                             },
                             "style": {}
                         }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "expiryStatus",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "expiryStatus"
+                            ]
+                        },
+                        "frequency": 15
                     }
                 }
             },
             {
                 "i": "8cfcd0aa-5651-42fb-983e-b1e21a993b14",
                 "x": 2,
-                "y": 8,
+                "y": 14,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -693,13 +944,26 @@
                             },
                             "style": {}
                         }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "expiryStatus",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "expiryStatus"
+                            ]
+                        },
+                        "frequency": 15
                     }
                 }
             },
             {
                 "i": "6145da23-1907-4890-9cdd-c71d9243b346",
                 "x": 0,
-                "y": 11,
+                "y": 17,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -769,9 +1033,9 @@
                 }
             },
             {
-                "i": "0afdaef1-51ed-42fd-a7db-15fbcf33d2c2",
+                "i": "bfcf2b96-ef01-47db-9692-75d61004bcdc",
                 "x": 2,
-                "y": 11,
+                "y": 17,
                 "w": 2,
                 "h": 3,
                 "moved": false,
@@ -779,24 +1043,89 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Reserved Addresses",
-                    "description": "Reserved TCP addresses",
+                    "title": "Active Sessions",
+                    "description": "Traffic sessions of users signed in through endpoint identity policies",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
                     "timeframe": "none",
                     "dataStream": {
-                        "id": "{{dataStreams.[reservedAddresses]}}",
-                        "name": "reservedAddresses",
-                        "pluginConfigId": "{{configId}}",
-                        "sort": {
-                            "by": [
-                                [
-                                    "created_at",
-                                    "desc"
-                                ]
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT i.\"name\", i.\"email\", s.\"publicUrl\", s.\"browser\", s.\"countryCode\", s.\"last_active\", s.\"expires_at\" FROM \"sessions\" s LEFT JOIN \"identities\" i ON s.\"userId\" = i.\"id\" ORDER BY s.\"last_active\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "sessions",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[trafficSessions]}}",
+                                            "name": "trafficSessions",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "identities",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[trafficIdentities]}}",
+                                            "name": "trafficIdentities",
+                                            "pluginConfigId": "{{configId}}"
+                                        }
+                                    }
+                                }
                             ]
-                        }
+                        },
+                        "metadata": [
+                            {
+                                "name": "name",
+                                "displayName": "Name",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "email",
+                                "displayName": "Email",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "publicUrl",
+                                "displayName": "Endpoint URL",
+                                "shape": "url"
+                            },
+                            {
+                                "name": "browser",
+                                "displayName": "Browser",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "countryCode",
+                                "displayName": "Country",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "last_active",
+                                "displayName": "Last active",
+                                "shape": "date"
+                            },
+                            {
+                                "name": "expires_at",
+                                "displayName": "Expires",
+                                "shape": "date"
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
                     },
                     "vizSpec": {
                         "version": "1.0",
@@ -805,29 +1134,51 @@
                             "encoding": {
                                 "columns": [
                                     {
-                                        "field": "addr",
-                                        "title": "Address",
+                                        "field": "name",
+                                        "title": "Name",
                                         "renderer": {
                                             "type": "text"
                                         }
                                     },
                                     {
-                                        "field": "region",
-                                        "title": "Region",
+                                        "field": "email",
+                                        "title": "Email",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "publicUrl",
+                                        "title": "Endpoint URL",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    },
+                                    {
+                                        "field": "browser",
+                                        "title": "Browser",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "countryCode",
+                                        "title": "Country",
                                         "renderer": {
                                             "type": "badge"
                                         }
                                     },
                                     {
-                                        "field": "description",
-                                        "title": "Description",
+                                        "field": "last_active",
+                                        "title": "Last active",
                                         "renderer": {
-                                            "type": "text"
+                                            "type": "date",
+                                            "relative": true
                                         }
                                     },
                                     {
-                                        "field": "created_at",
-                                        "title": "Created",
+                                        "field": "expires_at",
+                                        "title": "Expires",
                                         "renderer": {
                                             "type": "date"
                                         }
@@ -842,8 +1193,8 @@
             {
                 "i": "a21988fc-95a5-4a7d-ad73-1d1769dbaa31",
                 "x": 0,
-                "y": 14,
-                "w": 4,
+                "y": 20,
+                "w": 2,
                 "h": 3,
                 "moved": false,
                 "static": false,
@@ -913,6 +1264,81 @@
                                 ]
                             },
                             "style": {}
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ea07aac1-b9fc-46fa-9b64-e0ce56e279c8",
+                "x": 2,
+                "y": 20,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Event Subscriptions",
+                    "description": "Event subscriptions that forward ngrok events to log export destinations",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[eventSubscriptions]}}",
+                        "name": "eventSubscriptions",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "description",
+                                        "title": "Description",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "eventTypes",
+                                        "title": "Event types",
+                                        "renderer": {
+                                            "type": "tag-list"
+                                        }
+                                    },
+                                    {
+                                        "field": "destinationCount",
+                                        "title": "Destinations",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableWrapText": true
+                            }
                         }
                     }
                 }

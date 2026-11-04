@@ -11,9 +11,283 @@
         "version": 1,
         "contents": [
             {
-                "i": "bd3a3f29-157e-41e2-b654-4907b9e49586",
+                "i": "9a6af9d3-6a72-490c-adc7-4b4707e8df1b",
                 "x": 0,
                 "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Status",
+                    "description": "Whether this endpoint is currently online",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[endpointStatus]}}",
+                        "name": "endpointStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[ngrok Endpoints]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[ngrok Endpoint]}}"
+                    },
+                    "variables": [
+                        "{{variables.[ngrok Endpoint]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "url",
+                                    "type": "nominal",
+                                    "title": "URL"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal",
+                                    "title": "Status"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridLabelWrap": true,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{status}} · {{liveEndpoints}} live{{{{/raw}}}}",
+                                "mappedColors": {
+                                    "Online": "#16a34a",
+                                    "Offline": "#ef4444",
+                                    "Unknown": "#9ca3af"
+                                }
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "status",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "status"
+                            ]
+                        },
+                        "frequency": 15
+                    }
+                }
+            },
+            {
+                "i": "172433e1-3a12-402a-b61d-719454fd2396",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Agent Session",
+                    "description": "The ngrok agent serving this endpoint (agent endpoints only)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT a.\"ip\", t.\"description\" AS \"authtoken\", a.\"agent_version\", a.\"os\", a.\"region\", a.\"transport\", a.\"started_at\", a.\"uptime\" FROM \"agents\" a LEFT JOIN \"authtokens\" t ON a.\"credential.id\" = t.\"id\" WHERE a.\"id\" IN (SELECT \"tunnel_session.id\" FROM \"endpoint\")",
+                            "tables": [
+                                {
+                                    "tableName": "endpoint",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[endpoints]}}",
+                                            "name": "endpoints",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "endpoint": {
+                                                    "variable": "{{variables.[ngrok Endpoint]}}",
+                                                    "workspace": "{{workspaceId}}",
+                                                    "scope": "{{scopes.[ngrok Endpoints]}}"
+                                                }
+                                            }
+                                        },
+                                        "variables": [
+                                            "{{variables.[ngrok Endpoint]}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "tableName": "agents",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[agentSessions]}}",
+                                            "name": "agentSessions",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[ngrok Endpoint]}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "tableName": "authtokens",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none",
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[authtokens]}}",
+                                            "name": "authtokens",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "variables": [
+                                            "{{variables.[ngrok Endpoint]}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "ip",
+                                "displayName": "IP address",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "authtoken",
+                                "displayName": "Authtoken",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "agent_version",
+                                "displayName": "Agent version",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "os",
+                                "displayName": "OS",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "region",
+                                "displayName": "Region",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "transport",
+                                "displayName": "Transport",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "started_at",
+                                "displayName": "Started",
+                                "shape": "date"
+                            },
+                            {
+                                "name": "uptime",
+                                "displayName": "Uptime",
+                                "shape": [
+                                    "seconds",
+                                    {
+                                        "formatDuration": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[ngrok Endpoint]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "ip",
+                                        "title": "IP address",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "authtoken",
+                                        "title": "Authtoken",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "agent_version",
+                                        "title": "Agent version",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "os",
+                                        "title": "OS",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "transport",
+                                        "title": "Transport",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "started_at",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bd3a3f29-157e-41e2-b654-4907b9e49586",
+                "x": 0,
+                "y": 2,
                 "w": 2,
                 "h": 4,
                 "moved": false,
@@ -145,7 +419,7 @@
             {
                 "i": "d0b7f811-d54f-4500-b7b6-ef83b54147f9",
                 "x": 2,
-                "y": 0,
+                "y": 2,
                 "w": 2,
                 "h": 4,
                 "moved": false,
@@ -188,9 +462,9 @@
                 }
             },
             {
-                "i": "172433e1-3a12-402a-b61d-719454fd2396",
+                "i": "0c44fe5e-11f5-4248-938e-6fc988772202",
                 "x": 0,
-                "y": 4,
+                "y": 6,
                 "w": 4,
                 "h": 2,
                 "moved": false,
@@ -198,8 +472,8 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Agent Session",
-                    "description": "The ngrok agent serving this endpoint (agent endpoints only)",
+                    "title": "Domain Certificate",
+                    "description": "Certificate health of the reserved domain this endpoint is served on",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
@@ -208,10 +482,10 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "SELECT a.\"ip\", a.\"agent_version\", a.\"os\", a.\"region\", a.\"transport\", a.\"started_at\", a.\"uptime\" FROM \"agents\" a WHERE a.\"id\" IN (SELECT \"tunnel_session.id\" FROM \"endpoint\")",
+                            "sql": "SELECT d.\"domain\", d.\"certificateStatus\", d.\"certificateSource\", d.\"renewsAt\", d.\"provisioningError\" FROM \"endpoints\" e JOIN \"domains\" d ON e.\"domain.id\" = d.\"id\"",
                             "tables": [
                                 {
-                                    "tableName": "endpoint",
+                                    "tableName": "endpoints",
                                     "config": {
                                         "activePluginConfigIds": [
                                             "{{configId}}"
@@ -235,15 +509,15 @@
                                     }
                                 },
                                 {
-                                    "tableName": "agents",
+                                    "tableName": "domains",
                                     "config": {
                                         "activePluginConfigIds": [
                                             "{{configId}}"
                                         ],
                                         "timeframe": "none",
                                         "dataStream": {
-                                            "id": "{{dataStreams.[agentSessions]}}",
-                                            "name": "agentSessions",
+                                            "id": "{{dataStreams.[reservedDomains]}}",
+                                            "name": "reservedDomains",
                                             "pluginConfigId": "{{configId}}"
                                         },
                                         "variables": [
@@ -255,45 +529,30 @@
                         },
                         "metadata": [
                             {
-                                "name": "ip",
-                                "displayName": "IP address",
+                                "name": "domain",
+                                "displayName": "Domain",
                                 "shape": "string",
                                 "role": "label"
                             },
                             {
-                                "name": "agent_version",
-                                "displayName": "Agent version",
+                                "name": "certificateStatus",
+                                "displayName": "Certificate status",
                                 "shape": "string"
                             },
                             {
-                                "name": "os",
-                                "displayName": "OS",
+                                "name": "certificateSource",
+                                "displayName": "Certificate source",
                                 "shape": "string"
                             },
                             {
-                                "name": "region",
-                                "displayName": "Region",
-                                "shape": "string"
-                            },
-                            {
-                                "name": "transport",
-                                "displayName": "Transport",
-                                "shape": "string"
-                            },
-                            {
-                                "name": "started_at",
-                                "displayName": "Started",
+                                "name": "renewsAt",
+                                "displayName": "Renews",
                                 "shape": "date"
                             },
                             {
-                                "name": "uptime",
-                                "displayName": "Uptime",
-                                "shape": [
-                                    "seconds",
-                                    {
-                                        "formatDuration": true
-                                    }
-                                ]
+                                "name": "provisioningError",
+                                "displayName": "Provisioning error",
+                                "shape": "string"
                             },
                             {
                                 "pattern": ".*"
@@ -310,51 +569,53 @@
                             "encoding": {
                                 "columns": [
                                     {
-                                        "field": "ip",
-                                        "title": "IP address",
+                                        "field": "domain",
+                                        "title": "Domain",
                                         "renderer": {
                                             "type": "text"
                                         }
                                     },
                                     {
-                                        "field": "agent_version",
-                                        "title": "Agent version",
+                                        "field": "certificateStatus",
+                                        "title": "Certificate status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "OK": "#16a34a",
+                                                "Provisioning": "#f59e0b",
+                                                "Renewal overdue": "#f59e0b",
+                                                "DNS error": "#ef4444",
+                                                "Provisioning error": "#ef4444",
+                                                "No certificate": "#ef4444"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "certificateSource",
+                                        "title": "Certificate source",
                                         "renderer": {
                                             "type": "text"
                                         }
                                     },
                                     {
-                                        "field": "os",
-                                        "title": "OS",
+                                        "field": "renewsAt",
+                                        "title": "Renews",
                                         "renderer": {
-                                            "type": "text"
+                                            "type": "date"
                                         }
                                     },
                                     {
-                                        "field": "region",
-                                        "title": "Region",
+                                        "field": "provisioningError",
+                                        "title": "Provisioning error",
                                         "renderer": {
                                             "type": "text"
-                                        }
-                                    },
-                                    {
-                                        "field": "transport",
-                                        "title": "Transport",
-                                        "renderer": {
-                                            "type": "text"
-                                        }
-                                    },
-                                    {
-                                        "field": "started_at",
-                                        "title": "Started",
-                                        "renderer": {
-                                            "type": "date",
-                                            "relative": true
                                         }
                                     }
                                 ]
                             },
-                            "style": {}
+                            "style": {
+                                "richTableWrapText": true
+                            }
                         }
                     }
                 }
