@@ -42,13 +42,22 @@
                     "variables": [
                         "{{variables.[ngrok TLS Certificate]}}"
                     ],
-                    "visualisation": {
-                        "type": "data-stream-scalar",
-                        "config": {
-                            "data-stream-scalar": {
-                                "value": "daysUntilExpiry",
-                                "comparisonColumn": "none",
-                                "label": "Days"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "daysUntilExpiry",
+                                        "type": "quantitative",
+                                        "title": "Days",
+                                        "aggregate": "min"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelText": "Days"
                             }
                         }
                     }
@@ -86,15 +95,31 @@
                     "variables": [
                         "{{variables.[ngrok TLS Certificate]}}"
                     ],
-                    "visualisation": {
-                        "type": "data-stream-blocks",
-                        "config": {
-                            "data-stream-blocks": {
-                                "labelColumn": "subject_common_name",
-                                "stateColumn": "expiryStatus",
-                                "linkColumn": "none",
-                                "columns": 1,
-                                "sublabel": "not_after"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "subject_common_name",
+                                    "type": "nominal",
+                                    "title": "Common name"
+                                },
+                                "status": {
+                                    "field": "expiryStatus",
+                                    "type": "nominal",
+                                    "title": "Expiry status"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "Expires {{date not_after}}",
+                                "mappedColors": {
+                                    "Valid": "#16a34a",
+                                    "Expires within 30 days": "#f59e0b",
+                                    "Expires within 7 days": "#ef4444",
+                                    "Expired": "#ef4444"
+                                }
                             }
                         }
                     }
@@ -132,27 +157,101 @@
                     "variables": [
                         "{{variables.[ngrok TLS Certificate]}}"
                     ],
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": true,
-                                "columnOrder": [
-                                    "expiryStatus",
-                                    "daysUntilExpiry",
-                                    "not_before",
-                                    "not_after",
-                                    "issuer_common_name",
-                                    "managedBy",
-                                    "subject_alternative_names.dns_names",
-                                    "private_key_type",
-                                    "issued_at"
-                                ],
-                                "hiddenColumns": [
-                                    "subject_common_name",
-                                    "description",
-                                    "created_at"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "expiryStatus",
+                                        "title": "Expiry status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Valid": "#16a34a",
+                                                "Expires within 30 days": "#f59e0b",
+                                                "Expires within 7 days": "#ef4444",
+                                                "Expired": "#ef4444"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "daysUntilExpiry",
+                                        "title": "Days until expiry",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "thresholds": [
+                                                {
+                                                    "to": 7,
+                                                    "color": "#ef4444"
+                                                },
+                                                {
+                                                    "to": 30,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#16a34a"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "not_before",
+                                        "title": "Valid from",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "not_after",
+                                        "title": "Expires",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "issuer_common_name",
+                                        "title": "Issuer",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "managedBy",
+                                        "title": "Managed by",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "subject_alternative_names.dns_names",
+                                        "title": "DNS names",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "private_key_type",
+                                        "title": "Key type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "issued_at",
+                                        "title": "Issued",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
                                 ]
+                            },
+                            "style": {
+                                "richTableTranspose": true,
+                                "richTableWrapText": true
                             }
                         }
                     }
