@@ -1,0 +1,101 @@
+{
+    "name": "endpointStatus",
+    "displayName": "Endpoint Status",
+    "description": "Whether each selected endpoint is currently online, with the number of live endpoints serving its URL",
+    "tags": [
+        "Network",
+        "Availability"
+    ],
+    "baseDataSourceName": "httpRequestScoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "endpoints",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "{{ 'obj.url in [' + objects.flatMap((o) => o.rawId).filter((u) => String(u).includes('://')).map((u) => '\"' + u + '\"').join(',') + ']' }}"
+            },
+            {
+                "key": "limit",
+                "value": "100"
+            }
+        ],
+        "postRequestScript": "endpointStatus.js",
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Endpoint"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "url",
+            "displayName": "URL",
+            "role": "label"
+        },
+        {
+            "sourceId": "url",
+            "sourceType": "Endpoint",
+            "name": "url"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Online"
+                        ],
+                        "error": [
+                            "Offline"
+                        ],
+                        "unknown": [
+                            "Unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "liveEndpoints",
+            "displayName": "Live endpoints",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "endpointTypes",
+            "displayName": "Type",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "agentSessionIds",
+            "displayName": "Agent session IDs",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

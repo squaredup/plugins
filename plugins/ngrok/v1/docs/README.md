@@ -21,23 +21,27 @@ When you save, SquaredUp makes a lightweight call to the ngrok API to confirm th
 ## What this plugin monitors
 
 - **Endpoints**: every online endpoint (agent, cloud and edge), with its URL, protocol, bindings, upstream, pooling, and whether it uses a Traffic Policy or the AI Gateway
-- **Agents**: ngrok agents currently connected, with agent version, OS, IP address, region and uptime
+- **Endpoint availability**: whether each indexed endpoint is online or offline
+- **Agents**: ngrok agents currently connected, with agent version, OS, IP address, region, uptime and the authtoken they use
 - **Domains and certificates**: reserved domains and their certificate management status (provisioning errors such as DNS problems, renewal dates), TLS certificates and certificate authorities with days until expiry
 - **Reserved TCP addresses**
-- **Traffic identities**: users who have signed in to endpoints protected by OAuth, OIDC or SAML, and when they were last active
+- **Traffic identities and sessions**: users who have signed in to endpoints protected by OAuth, OIDC or SAML, their active browser sessions, and when they were last active
 - **Log exporting**: event subscriptions and the destinations they export to
 
-Out-of-the-box dashboards: **Overview**, plus **Endpoint**, **Reserved Domain** and **TLS Certificate** perspectives.
+Out-of-the-box dashboards: **Overview**, plus **Endpoint**, **Reserved Domain** and **TLS Certificate** perspectives. Endpoint status, domain certificate status and certificate expiry tiles carry health monitors, so they can raise notifications.
 
 ## Data streams
 
 - **Endpoints**: online endpoints with type, protocol, bindings, upstream URL and Traffic Policy/AI Gateway flags (account-wide, or filtered to selected endpoints)
+- **Endpoint Status**: whether each selected endpoint is online, and how many live endpoints serve its URL (per endpoint)
 - **Agent Sessions**: connected ngrok agents with version, OS, IP, region and uptime (account-wide)
 - **Reserved Domains**: reserved domains with certificate source, renewal date, provisioning error and a certificate status health state (account-wide, or filtered to selected domains)
 - **TLS Certificates**: certificates with issuer, validity dates, days until expiry and an expiry status health state (account-wide, or filtered to selected certificates)
 - **Reserved Addresses**: reserved TCP addresses with region and description (account-wide, or filtered to selected addresses)
+- **Authtokens**: agent authtokens with their description and whether an ACL restricts them. Token values are never returned (account-wide)
 - **Certificate Authorities**: mutual TLS certificate authorities with days until expiry and an expiry status health state (account-wide)
 - **Traffic Identities**: users who have signed in through an endpoint's OAuth, OIDC or SAML policy, with identity provider and last activity (account-wide)
+- **Traffic Sessions**: signed-in browser sessions with endpoint URL, browser, OS, country and expiry (account-wide)
 - **Event Subscriptions**: log export subscriptions with the event types they export and how many destinations they use (account-wide)
 - **Event Destinations**: log export destinations with the target service (Datadog, CloudWatch Logs, Kinesis, Firehose or Azure Monitor Logs) and location. Credentials are never returned (account-wide)
 
