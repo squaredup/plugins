@@ -8,14 +8,14 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){dmarcReportsSourcesAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[sum_totalMatchingMessages_DESC]){sum{totalMatchingMessages dmarc} avg{dmarc} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){dmarcReportsSourcesAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[sum_totalMatchingMessages_DESC]){sum{messageCount: totalMatchingMessages} avg{dmarcPassRate: dmarc} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
             "variables": {
                 "zoneTag": "{{object.rawId}}",
                 "start": "{{timeframe.start}}",
                 "end": "{{timeframe.end}}"
             }
         },
-        "postRequestScript": "dmarcReports.js",
+        "postRequestScript": "graphqlFlatRows.js",
         "errorHandling": {
             "type": "path",
             "realm": "payload",

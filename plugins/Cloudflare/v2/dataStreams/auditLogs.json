@@ -11,14 +11,14 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){auditLogsGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){auditLogsGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){actionCount: count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
             "variables": {
                 "accountTag": "{{object.rawId}}",
                 "start": "{{timeframe.start}}",
                 "end": "{{timeframe.end}}"
             }
         },
-        "postRequestScript": "auditLogs.js",
+        "postRequestScript": "graphqlFlatRows.js",
         "errorHandling": {
             "type": "path",
             "realm": "payload",

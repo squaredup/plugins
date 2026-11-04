@@ -8,14 +8,14 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){aiInferenceAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count sum{totalInputTokens totalOutputTokens totalInferenceTimeMs}dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){aiInferenceAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){requests: count sum{inputTokens: totalInputTokens outputTokens: totalOutputTokens totalInferenceTimeMs}dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
             "variables": {
                 "accountTag": "{{object.rawId}}",
                 "start": "{{timeframe.start}}",
                 "end": "{{timeframe.end}}"
             }
         },
-        "postRequestScript": "workersAiInference.js",
+        "postRequestScript": "graphqlFlatRows.js",
         "errorHandling": {
             "type": "path",
             "realm": "payload",
@@ -69,8 +69,16 @@
             "shape": "number"
         },
         {
+            "name": "totalInferenceTimeMs",
+            "displayName": "Total inference time",
+            "shape": "milliseconds",
+            "visible": false
+        },
+        {
             "name": "avgDurationMs",
             "displayName": "Avg Inference Time",
+            "computed": true,
+            "valueExpression": "{{ $['requests'] > 0 ? Math.round(($['totalInferenceTimeMs'] / $['requests']) * 100) / 100 : 0 }}",
             "shape": ["milliseconds", { "decimalPlaces": 2 }]
         }
     ],
