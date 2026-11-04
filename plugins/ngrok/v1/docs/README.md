@@ -47,18 +47,18 @@ Certificate and expiry health states: **Expired** and **Expires within 7 days** 
 
 | Object type | API source | Represents |
 | ----------- | ---------- | ---------- |
-| Endpoint | `GET /endpoints` | An online ngrok endpoint (agent, cloud or edge) |
+| Endpoint | `GET /endpoints` | An online ngrok endpoint (agent, cloud or edge), identified by its URL. Pooled endpoints that share a URL are one object |
 | Reserved Domain | `GET /reserved_domains` | A domain reserved in the account, including ngrok dev domains |
 | TLS Certificate | `GET /tls_certificates` | An uploaded or automatically issued TLS certificate |
 | Reserved Address | `GET /reserved_addrs` | A reserved TCP address |
 
-**Relationships:** endpoints carry the ID of their reserved domain (`domainId`) and agent session (`agentSessionId`), and reserved domains carry the ID of their uploaded certificate (`certificateId`).
+**Relationships:** endpoints carry the ID of their reserved domain (`domainId`), and reserved domains carry the ID of their uploaded certificate (`certificateId`).
 
 ## Known limitations
 
 - **No traffic, usage or cost metrics.** The ngrok API does not expose request counts, data transfer, latency, Traffic Inspector data, billing, or any AI Gateway usage (providers, models, cost). To chart traffic, set up **Log Exporting** in the ngrok dashboard to send `http_request_complete` events to Datadog, Amazon CloudWatch Logs, Amazon Kinesis or Azure Monitor Logs, and use the matching SquaredUp data source.
 - **Current state only.** No data stream supports a timeframe; each returns the current state.
-- **Agent endpoints are short-lived.** An agent endpoint exists only while its agent is running and gets a new ID each time the agent restarts. Indexed endpoints are refreshed on each import (every 12 hours by default), so the **Endpoints** stream is always more current than the indexed objects. Cloud endpoints are long-lived and index well.
+- **Agent endpoints are short-lived.** An agent endpoint exists only while its agent is running, and ngrok gives it a new ID each time the agent restarts. The plugin identifies endpoints by URL, so an endpoint on a reserved or dev domain keeps the same object across restarts. An agent using a random URL creates a new object for each new URL. Indexed endpoints are refreshed on each import (every 12 hours by default), so the **Endpoints** stream is always more current than the indexed objects.
 - **Agents are not indexed.** Agent sessions change too often to import, so they are only available through the **Agent Sessions** stream.
 - **Edges are not covered separately.** ngrok deprecated Edges, Routes, Backends and labeled tunnels on 31 December 2025. Edge-type endpoints still appear in **Endpoints**.
 - **Rate limit.** The ngrok API allows 120 requests per minute per account. Each tile makes one request per 100 rows.
