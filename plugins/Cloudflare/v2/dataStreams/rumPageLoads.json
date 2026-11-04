@@ -8,12 +8,13 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$requestHost:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumPageloadEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end,requestHost_like:$requestHost},orderBy:[count_DESC]){pageViews: count sum{visits} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}} }}}}}",
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$zoneName:string!,$subdomains:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumPageloadEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end,OR:[{requestHost:$zoneName},{requestHost_like:$subdomains}]},orderBy:[count_DESC]){pageViews: count sum{visits} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}} }}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "start": "{{timeframe.start}}",
                 "end": "{{timeframe.end}}",
-                "requestHost": "{{'%' + object.name}}"
+                "zoneName": "{{object.name}}",
+                "subdomains": "{{'%.' + object.name}}"
             }
         },
         "postRequestScript": "graphqlFlatRows.js",

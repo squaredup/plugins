@@ -11,10 +11,11 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$hostFilter:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumPerformanceEventsAdaptiveGroups(limit:10000,filter:{requestHost_like:$hostFilter,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count sum{visits} quantiles{dnsTimeP75 connectionTimeP75 requestTimeP75 responseTimeP75 firstContentfulPaintP75 pageLoadTimeP75} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} }}}}}",
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$zoneName:string!,$subdomains:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumPerformanceEventsAdaptiveGroups(limit:10000,filter:{OR:[{requestHost:$zoneName},{requestHost_like:$subdomains}],datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count sum{visits} quantiles{dnsTimeP75 connectionTimeP75 requestTimeP75 responseTimeP75 firstContentfulPaintP75 pageLoadTimeP75} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} }}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
-                "hostFilter": "{{'%' + object.name}}",
+                "zoneName": "{{object.name}}",
+                "subdomains": "{{'%.' + object.name}}",
                 "start": "{{timeframe.start}}",
                 "end": "{{timeframe.end}}"
             }
@@ -43,7 +44,7 @@
         },
         {
             "name": "count",
-            "displayName": "Page loads",
+            "displayName": "Page Loads",
             "shape": "number",
             "role": "value"
         },
@@ -82,14 +83,14 @@
         },
         {
             "name": "firstContentfulPaint",
-            "displayName": "First contentful paint P75",
+            "displayName": "First Contentful Paint P75",
             "computed": true,
             "valueExpression": "{{ $['quantiles.firstContentfulPaintP75'] === undefined || $['quantiles.firstContentfulPaintP75'] === null ? null : $['quantiles.firstContentfulPaintP75'] / 1000 }}",
             "shape": "milliseconds"
         },
         {
             "name": "pageLoadTime",
-            "displayName": "Page load P75",
+            "displayName": "Page Load P75",
             "computed": true,
             "valueExpression": "{{ $['quantiles.pageLoadTimeP75'] === undefined || $['quantiles.pageLoadTimeP75'] === null ? null : $['quantiles.pageLoadTimeP75'] / 1000 }}",
             "shape": "milliseconds"

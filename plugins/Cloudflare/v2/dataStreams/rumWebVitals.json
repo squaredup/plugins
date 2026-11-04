@@ -8,12 +8,13 @@
         "httpMethod": "post",
         "endpointPath": "graphql",
         "postBody": {
-            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$hostFilter:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumWebVitalsEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end,requestHost_like:$hostFilter},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}} quantiles{largestContentfulPaintP75 interactionToNextPaintP75 firstInputDelayP75 cumulativeLayoutShiftP75}}}}}",
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$zoneName:string!,$subdomains:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumWebVitalsEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end,OR:[{requestHost:$zoneName},{requestHost_like:$subdomains}]},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}} quantiles{largestContentfulPaintP75 interactionToNextPaintP75 firstInputDelayP75 cumulativeLayoutShiftP75}}}}}",
             "variables": {
                 "accountTag": "{{object.accountId}}",
                 "start": "{{timeframe.start}}",
                 "end": "{{timeframe.end}}",
-                "hostFilter": "{{'%' + object.name}}"
+                "zoneName": "{{object.name}}",
+                "subdomains": "{{'%.' + object.name}}"
             }
         },
         "postRequestScript": "graphqlRows.js",
