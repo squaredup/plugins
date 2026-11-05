@@ -58,6 +58,8 @@ So the rule is **push it down**: if the API can group/filter/sort, let it; other
 
 The `cost` example below does exactly this: its optional `groupBy` `choiceChips` param **is** layer-1 push-down.
 
+**Filter and count in the API when the API caps its results.** Many endpoints return at most a fixed number of rows (e.g. 2,000), whatever paging is set to. A count of the rows that came back, or a filter applied in the tile or a script after the request, then silently undercounts: one shipped plugin showed 303 of 601 SLA breaches this way. If the endpoint caps results, the filter or count has to be an API parameter, or the stream has to page through everything.
+
 ### Anti-pattern: five "Cost by X" streams
 
 A shipped plugin has five cost streams — `costByProject`, `costByService`, `costDailyTimeline`, `projectCosts`, `projectCostTimeline`. All five issue the **identical** request to `/v1/billing/charges` (same `getArgs`), and each `postRequestScript` does the same thing: parse the NDJSON, filter to `ChargeCategory === 'Usage'`, then group-and-sum by a different key (project / service / day) — two of them additionally filtering to a scoped project. They differ **only** by group key and scope, which is the "consolidate" column above.
@@ -388,6 +390,8 @@ Shows an **Apply** button instead of running on every config change. Use for exp
 
 The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 
+Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page until the page cap and imports duplicates. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
+
 **No paging:**
 
 ```json
@@ -527,6 +531,8 @@ none
 ```
 
 `none` is only valid when `supportsNoneTimeframe` is set (see below).
+
+**Apply both ends of the range.** A stream that filters by timeframe must pass both the start and the end to the API (or clamp to both in its script). Filtering only on the start, or looping up to now instead of the end, looks right for "last 7 days" but over-returns for closed windows such as `lastMonth` or `lastQuarter`.
 
 JSON-only timeframe properties (not settable via the Save as data stream modal):
 
@@ -788,7 +794,9 @@ Appending a related object's list property this way lets tiles filter and group 
 
 ## Post-request scripts
 
-Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects. (For a datasource-level script that runs _before_ every request — custom auth flows — see [Pre-request scripts](metadata.md#pre-request-scripts-custom-auth-flows) in metadata.md.)
+Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects.
+
+> ⚠️ **On a paged stream the script runs once per page and sees only that page.** SquaredUp concatenates each page's `result`. Anything that needs the whole result set is wrong once there is a second page: de-duplicating, pairing related records (an alert and the event that clears it), totals, counts or unions. Turning paging on does not fix this, it causes it. Either derive the value from data within each record (one plugin used each alert's own link to its clearing event instead of searching the page for it), push the work to the API, or leave it to the tile's `group`/`aggregate`, which runs on the combined rows. (For a datasource-level script that runs _before_ every request — custom auth flows — see [Pre-request scripts](metadata.md#pre-request-scripts-custom-auth-flows) in metadata.md.)
 
 ### Wiring a script to a stream
 
@@ -922,6 +930,8 @@ context.config; // current stream parameters (values set by the user in the tile
 Return actual JS number primitives for numeric columns — returning `"29.19"` (string) instead of `29.19` (number) causes the column to show as String type.
 
 ### Deduplication pattern
+
+This de-duplicates within one response. On a paged stream it only removes duplicates within each page (see the warning under [Post-request scripts](#post-request-scripts)).
 
 ```javascript
 // dataStreams/scripts/myStream.js

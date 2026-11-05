@@ -66,21 +66,21 @@ When suggesting changes:
 
 ## Platform facts
 
-SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as established; each was confirmed against live deployments.
+SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as established; each was confirmed against live deployments. Where a fact links to the build-plugin references, the reference has the detail.
 
-- **Post-request scripts run once per page.** A `postRequestScript` sees only its own page, and the rows from each page are concatenated. Logic that needs the whole result set (de-duplication, folding related records, totals, unions) is a real bug when the stream pages; flag it. Turning on paging is therefore not a free fix for a script that aggregates.
-- **Paging config is not proof the API pages.** A `paging` block can just chain a second request through `pagingContext`. `mode: none` with a documented limitation is acceptable when the endpoint ignores paging parameters, since declaring paging the endpoint ignores re-fetches the same page until the page cap.
+- **Post-request scripts run once per page.** Logic that needs the whole result set is a bug on a paged stream, and enabling paging is not a fix for it. See [data-streams.md, Post-request scripts](.claude/skills/build-plugin/references/data-streams.md#post-request-scripts).
+- **Paging config is not proof the API pages.** A `paging` block can just chain a second request through `pagingContext`, and `mode: none` with a documented limit is right for an endpoint that ignores paging parameters. See [data-streams.md, Pagination](.claude/skills/build-plugin/references/data-streams.md#pagination).
 - **Shapes parse and format values.**
     - `date` and `timestamp` columns accept ISO 8601 strings, `YYYY-MM-DD HH:MM:SS+00`-style strings, and numbers when the column declares an `inputFormat` such as `unixSeconds`. Only raw epoch numbers with no `inputFormat` need converting.
     - `bytes`, `kilobytes`, `megabytes`, `gigabytes` and the other data-size shapes all auto-scale. Only flag a shape that doesn't match the unit the API returns.
     - `decimalPlaces`, `thousandsSeparator` and `formatExpression` inside a shape are display formatting, not pre-formatting. So is a `Math.round` that matches the column's `decimalPlaces`.
     - SmartViz applies shapes whichever renderer a tile uses.
     - In a `state` shape, `map` lists the raw values for each state (e.g. `{ "success": ["Good"] }`), so the column still emits the raw labels.
-- **SmartViz matching and defaults.** Colour and value maps (`colors`, `mappedColors`, row highlights) match keys case-insensitively. `gaugeBands[].to` is a 0–1 fraction of the gauge range, not an absolute value. `ringGridMax` defaults to 100. The scalar `comparison` displays the value it is given; it does not calculate a delta.
+- **SmartViz matching and defaults.** SmartViz is documented by the platform's `squaredup skill visualize`, not in this repository; these points are kept here for reviewers only. Colour and value maps (`colors`, `mappedColors`, row highlights) match keys case-insensitively. `gaugeBands[].to` is a 0–1 fraction of the gauge range, not an absolute value. `ringGridMax` defaults to 100. The scalar `comparison` displays the value it is given; it does not calculate a delta.
 - **Mustache expressions.** Unset variables resolve to an empty string; they do not throw. Do not suggest `typeof` guards.
 - **Configuration validation warns, it does not block.** A failing `configValidation` step shows a warning; the user can still save the data source.
 - **Dashboard variables and pickers.** A perspective tile that declares a variable does not run with an empty selection; it shows "No objects selected". Object pickers only offer objects that have been imported.
-- **Tile parameters live under `dataSourceConfig`.** Parameters placed under `dataStream.config` on a tile are silently ignored. Flag them.
+- **Tile parameters live under `dataSourceConfig`.** Parameters placed under `dataStream.config` on a tile are silently ignored. Flag them. See [oob-content.md](.claude/skills/build-plugin/references/oob-content.md#auto-scoping-a-stream-via-its-objects-filter).
 - **`autocomplete` fields store objects.** The stored value is an array of `{ value, label }` objects, even when single-select. Interpolating it straight into a header, path or query sends `[object Object]`; it needs `.value`.
 - **`preRequestScript` needs `showScripting: true`.** Without `base.config.showScripting: true` in `metadata.json`, the platform silently skips the pre-request script and every request goes out unauthenticated.
 - **Imports.** Array properties are JSON-stringified when written to the graph, so they cannot be used as correlation join keys. Metadata columns that are not listed are not displayed. The index refreshes on a schedule (hours, not seconds), so fast-changing records such as alerts or incidents belong in live data streams, not imports.
