@@ -63,7 +63,8 @@ const toRenderer = (column) => {
 /**
  * The columns a classic table shows, in order. `columnOrder` is the author's list of shown columns, as the
  * in-product SmartViz migration reads it; `hiddenColumns` always wins. Like classic, names the data no longer
- * has are dropped, and with none left (or no `columnOrder`) every visible column shows.
+ * has are dropped, and with none left (or no `columnOrder`) every visible column shows. When the stream does
+ * not declare its full column list, `isAutomatic` leaves the columns for SmartViz to find in the data.
  */
 const getShownColumnNames = (classicConfig, tileColumns, notes) => {
     const hiddenColumns = new Set(classicConfig.hiddenColumns ?? []);
@@ -82,7 +83,12 @@ const getShownColumnNames = (classicConfig, tileColumns, notes) => {
     }
 
     if (!tileColumns.isComplete) {
-        return { blockedReason: 'shows all columns, and the stream does not declare its full column list' };
+        /** An automatic table shows every column the data has, so it cannot hide or rename any. */
+        const isCustomised = hiddenColumns.size > 0 || Object.keys(classicConfig.columnDisplayNames ?? {}).length > 0;
+
+        return isCustomised
+            ? { blockedReason: 'hides or renames columns of a stream that does not declare its full column list' }
+            : { isAutomatic: true };
     }
 
     return {
@@ -102,10 +108,21 @@ const getRowLinkField = (classicConfig) => {
 /** Converts a classic `data-stream-table` config to a richTable spec. */
 export const toRichTable = (classicConfig, tileColumns) => {
     const notes = [];
-    const { names, blockedReason } = getShownColumnNames(classicConfig, tileColumns, notes);
+    const { names, isAutomatic, blockedReason } = getShownColumnNames(classicConfig, tileColumns, notes);
 
     if (blockedReason) {
         return { blockedReason };
+    }
+
+    const rowLinkField = getRowLinkField(classicConfig);
+    const style = {
+        ...(classicConfig.transpose === true && { richTableTranspose: true }),
+        ...(rowLinkField && isKnownColumn(tileColumns, rowLinkField) && { richTableRowLinkField: rowLinkField })
+    };
+    const withStyle = (encoding) => ({ chartType: 'richTable', encoding, ...(Object.keys(style).length > 0 && { style }) });
+
+    if (isAutomatic) {
+        return { spec: withStyle({}), notes: [...notes, 'shows every column the data has, as classic does'] };
     }
 
     if (names.length === 0) {
@@ -119,30 +136,20 @@ export const toRichTable = (classicConfig, tileColumns) => {
     const { columns } = tileColumns;
     const displayNameOverrides = classicConfig.columnDisplayNames ?? {};
     const undeclaredNames = names.filter((name) => !findColumn(columns, name));
-    const rowLinkField = getRowLinkField(classicConfig);
 
     if (undeclaredNames.length > 0) {
         notes.push(`header and renderer inferred for undeclared column(s): ${undeclaredNames.join(', ')}`);
     }
 
-    const style = {
-        ...(classicConfig.transpose === true && { richTableTranspose: true }),
-        ...(rowLinkField && isKnownColumn(tileColumns, rowLinkField) && { richTableRowLinkField: rowLinkField })
-    };
-
     return {
-        spec: {
-            chartType: 'richTable',
-            encoding: {
-                columns: names.map((name) => ({
-                    field: name,
-                    title: getColumnTitle(columns, name, displayNameOverrides),
-                    renderer: toRenderer(findColumn(columns, name)),
-                    ...toMappedStateColumn(findColumn(columns, name))
-                }))
-            },
-            ...(Object.keys(style).length > 0 && { style })
-        },
+        spec: withStyle({
+            columns: names.map((name) => ({
+                field: name,
+                title: getColumnTitle(columns, name, displayNameOverrides),
+                renderer: toRenderer(findColumn(columns, name)),
+                ...toMappedStateColumn(findColumn(columns, name))
+            }))
+        }),
         notes
     };
 };
@@ -172,7 +179,7 @@ export const toStatusGrid = (classicConfig, tileColumns) => {
     const labelField = resolveColumn(tileColumns, classicConfig.labelColumn, (column) => column.role === 'label', 'label', notes);
 
     if (!labelField) {
-        return { blockedReason: 'no label column the tile still has, and the stream declares no label role' };
+        notes.push('label column left for SmartViz to pick, as classic does');
     }
 
     const statusField = resolveColumn(tileColumns, classicConfig.stateColumn, (column) => column.shapeName === 'state', 'state', notes);
@@ -204,13 +211,16 @@ export const toStatusGrid = (classicConfig, tileColumns) => {
         spec: {
             chartType: 'statusGrid',
             encoding: {
-                label: toNominalChannel(labelField),
+                ...(labelField && { label: toNominalChannel(labelField) }),
                 ...(statusField && { status: toNominalChannel(statusField) }),
                 ...(groupField && { group: toNominalChannel(groupField) }),
                 ...(linkField && { link: toNominalChannel(linkField) })
             },
             ...(Object.keys(style).length > 0 && { style })
         },
-        notes: [...notes, ...(findColumn(tileColumns.columns, labelField) ? [] : [`label column ${labelField} is not declared by the stream`])]
+        notes: [
+            ...notes,
+            ...(!labelField || findColumn(tileColumns.columns, labelField) ? [] : [`label column ${labelField} is not declared by the stream`])
+        ]
     };
 };

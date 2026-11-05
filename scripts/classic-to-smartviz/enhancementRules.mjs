@@ -54,7 +54,8 @@ const hasColorStyle = (style = {}) =>
 
 /** Rewrites the renderer of each richTable column `pick` selects, returning the spec and the fields it changed. */
 const updateTableColumns = (spec, pick, toRenderer) => {
-    if (spec.chartType !== 'richTable') {
+    /** An automatic table names no columns, so it has none to change. */
+    if (spec.chartType !== 'richTable' || !spec.encoding.columns) {
         return { spec, fields: [] };
     }
 
@@ -104,8 +105,9 @@ export const ENHANCEMENT_RULES = {
     },
 
     /**
-     * Percent columns in tables show as a bar filled to the value out of 100. Columns whose name suggests a signed
-     * value (a difference or change) are left as text, because a bar cannot show a negative.
+     * Percent columns in tables show as a bar filled to the value out of 100, in the bar's neutral default colour
+     * rather than the always-healthy fill of `progress`. Columns whose name suggests a signed value (a difference
+     * or change) are left as text, because a bar cannot show a negative.
      */
     percentBars: (spec, context) => {
         const { spec: updated, fields } = updateTableColumns(
@@ -114,10 +116,10 @@ export const ENHANCEMENT_RULES = {
                 column.renderer.type === 'text' &&
                 getShapeName(context, column.field) === 'percent' &&
                 !SIGNED_NAME.test(getLabel(context, column.field)),
-            () => ({ type: 'progress' })
+            () => ({ type: 'bar', max: 100 })
         );
 
-        return { spec: updated, note: fields.length > 0 ? `progress bars for ${fields.join(', ')}` : undefined };
+        return { spec: updated, note: fields.length > 0 ? `bars out of 100 for ${fields.join(', ')}` : undefined };
     },
 
     /** A line chart of a percentage gets a fixed 0–100 axis, unless the tile set its own range. */
@@ -125,7 +127,10 @@ export const ENHANCEMENT_RULES = {
         const { chartType, encoding, style = {} } = spec;
         const hasOwnRange = style.cartesianYAxisMin !== undefined || style.cartesianYAxisMax !== undefined;
 
-        if (chartType !== 'line' || !encoding.y || hasOwnRange || getShapeName(context, encoding.y.field) !== 'percent') {
+        const yChannels = [encoding.y ?? []].flat();
+        const isPercent = yChannels.length > 0 && yChannels.every((channel) => getShapeName(context, channel.field) === 'percent');
+
+        if (chartType !== 'line' || hasOwnRange || !isPercent) {
             return { spec };
         }
 
@@ -138,7 +143,7 @@ export const ENHANCEMENT_RULES = {
         const hasOwnRange =
             style.gaugeMin !== undefined || style.gaugeMax !== undefined || encoding.min !== undefined || encoding.max !== undefined;
 
-        if (chartType !== 'gauge' || hasOwnRange || getShapeName(context, encoding.value.field) !== 'percent') {
+        if (chartType !== 'gauge' || !encoding.value || hasOwnRange || getShapeName(context, encoding.value.field) !== 'percent') {
             return { spec };
         }
 

@@ -59,8 +59,8 @@ const toXChannel = (tileColumns, configured, chartType, notes) => {
 };
 
 /**
- * The y channel. Several y columns only convert when they are every numeric column the chart would plot
- * anyway, because SmartViz plots either one y column or all numeric columns.
+ * The y channel: one column, a list of columns, or none when the columns are every numeric column the chart
+ * would plot anyway.
  */
 const toYEncoding = (tileColumns, configured, xField, notes) => {
     const yColumns = toList(configured);
@@ -87,9 +87,7 @@ const toYEncoding = (tileColumns, configured, xField, notes) => {
     const isEveryNumericColumn =
         isComplete && plottedByDefault.length === fields.length && fields.every((name) => plottedByDefault.includes(name));
 
-    return isEveryNumericColumn
-        ? {}
-        : { blockedReason: `plots ${fields.length} of the stream's numeric columns; SmartViz plots one or all of them` };
+    return isEveryNumericColumn ? {} : { y: fields.map((field) => toChannel(tileColumns, field, 'quantitative')) };
 };
 
 /**
@@ -282,9 +280,14 @@ export const toBarChart = (classicConfig, tileColumns) => {
  * Reads a classic scalar or gauge `value`: a column name, or a reduction `{ type, columns }` over all rows.
  * A value column the tile no longer has falls back to its only numeric column, as classic's default does.
  * A count is flagged `isRowCount`; a gauge has no row count, so it borrows any column the tile is known to have.
+ * A value left on auto is flagged `isAutomatic`, for SmartViz to find in the data as classic does.
  */
 const toValueChannel = (value, tileColumns, notes) => {
-    if (typeof value === 'string' && isSet(value)) {
+    if (!isSet(value)) {
+        return { isAutomatic: true };
+    }
+
+    if (typeof value === 'string') {
         if (isKnownColumn(tileColumns, value)) {
             return { channel: toChannel(tileColumns, value, 'quantitative') };
         }
@@ -315,13 +318,13 @@ const toValueChannel = (value, tileColumns, notes) => {
         return { channel: toChannel(tileColumns, value.columns[0], 'quantitative', { aggregate }) };
     }
 
-    return { blockedReason: 'value column is set to auto' };
+    return { blockedReason: `value reduction ${value?.type} has no SmartViz equivalent` };
 };
 
 /** Converts a classic `data-stream-scalar` config to a scalar spec. */
 export const toScalar = (classicConfig, tileColumns) => {
     const notes = [];
-    const { channel, isRowCount, blockedReason } = toValueChannel(classicConfig.value, tileColumns, notes);
+    const { channel, isRowCount, isAutomatic, blockedReason } = toValueChannel(classicConfig.value, tileColumns, notes);
 
     if (blockedReason) {
         return { blockedReason };
@@ -330,7 +333,9 @@ export const toScalar = (classicConfig, tileColumns) => {
     const comparisonField = findConfiguredColumn(tileColumns, classicConfig.comparisonColumn, 'comparison', notes);
     const labelPosition = classicConfig.labelPosition;
 
-    if (!isRowCount && !findColumn(tileColumns.columns, channel.field)) {
+    if (isAutomatic) {
+        notes.push('value column left for SmartViz to pick, as classic does');
+    } else if (!isRowCount && !findColumn(tileColumns.columns, channel.field)) {
         notes.push(`value column ${channel.field} is not declared by the stream; typed as a number`);
     }
 
@@ -342,9 +347,9 @@ export const toScalar = (classicConfig, tileColumns) => {
         : { scalarLabelPosition: 'none' };
     const style = { ...labelStyle, ...(isRowCount && { scalarRowCount: true }) };
 
-    /** A row count reads no column, so it needs no value channel. */
+    /** A row count reads no column, so it needs no value channel; an automatic value has none to name. */
     const encoding = {
-        values: isRowCount ? [] : [channel],
+        ...(!isAutomatic && { values: isRowCount ? [] : [channel] }),
         ...(comparisonField && { comparison: toChannel(tileColumns, comparisonField, 'quantitative') })
     };
 
@@ -354,13 +359,15 @@ export const toScalar = (classicConfig, tileColumns) => {
 /** Converts a classic `data-stream-gauge` config to a gauge spec. */
 export const toGauge = (classicConfig, tileColumns) => {
     const notes = [];
-    const { channel, blockedReason } = toValueChannel(classicConfig.value, tileColumns, notes);
+    const { channel, isAutomatic, blockedReason } = toValueChannel(classicConfig.value, tileColumns, notes);
 
     if (blockedReason) {
         return { blockedReason };
     }
 
-    if (!channel) {
+    if (isAutomatic) {
+        notes.push('value column left for SmartViz to pick, as classic does');
+    } else if (!channel) {
         return { blockedReason: 'counts rows, and the stream declares no column to count' };
     }
 
@@ -374,7 +381,7 @@ export const toGauge = (classicConfig, tileColumns) => {
     };
 
     const encoding = {
-        value: { ...channel, type: 'quantitative' },
+        ...(channel && { value: { ...channel, type: 'quantitative' } }),
         ...(minimumField && { min: toChannel(tileColumns, minimumField, 'quantitative') }),
         ...(maximumField && { max: toChannel(tileColumns, maximumField, 'quantitative') })
     };
@@ -384,18 +391,25 @@ export const toGauge = (classicConfig, tileColumns) => {
 
 /**
  * The donut's value channel: a count of rows per label for classic's "Count (Built-in)", the configured
- * column, or the tile's only numeric column when the configured one is gone.
+ * column, or the tile's only numeric column when the configured one is gone. `undefined` leaves the value for
+ * SmartViz to find in the data, as classic does when it is on auto or no column fits.
  */
 const toDonutValue = (classicConfig, tileColumns, labelField, notes) => {
     const configured = classicConfig.valueColumn;
 
+    if (!isSet(configured)) {
+        return undefined;
+    }
+
     if (configured === BUILT_IN_COUNT) {
-        return { field: labelField, type: 'quantitative', aggregate: 'count', title: 'Count' };
+        return labelField ? { field: labelField, type: 'quantitative', aggregate: 'count', title: 'Count' } : undefined;
     }
 
     const field = isKnownColumn(tileColumns, configured) ? configured : findSoleColumnOfType(tileColumns, 'quantitative');
 
     if (!field) {
+        notes.push(`value column ${configured} no longer exists, so SmartViz picks one as classic did`);
+
         return undefined;
     }
 
@@ -417,27 +431,24 @@ export const toDonut = (classicConfig, tileColumns) => {
         Object.values(classicConfig.palette).length > 0 &&
         Object.values(classicConfig.palette).every((color) => typeof color === 'string');
 
-    if (!isSet(classicConfig.labelColumn) || !isSet(classicConfig.valueColumn)) {
-        return { blockedReason: 'label or value column is set to auto' };
-    }
-
     /** Like classic, a label column the tile no longer has falls back to its only category column. */
-    const labelField = isKnownColumn(tileColumns, classicConfig.labelColumn)
-        ? classicConfig.labelColumn
-        : findSoleColumnOfType(tileColumns, 'nominal');
+    const configuredLabel = isSet(classicConfig.labelColumn) ? classicConfig.labelColumn : undefined;
+    const labelField =
+        configuredLabel &&
+        (isKnownColumn(tileColumns, configuredLabel) ? configuredLabel : findSoleColumnOfType(tileColumns, 'nominal'));
 
-    if (!labelField) {
-        return { blockedReason: `label column ${classicConfig.labelColumn} no longer exists` };
-    }
-
-    if (labelField !== classicConfig.labelColumn) {
-        notes.push(`label column ${classicConfig.labelColumn} no longer exists; using ${labelField}`);
+    if (configuredLabel && labelField !== configuredLabel) {
+        notes.push(
+            labelField
+                ? `label column ${configuredLabel} no longer exists; using ${labelField}`
+                : `label column ${configuredLabel} no longer exists, so SmartViz picks one as classic did`
+        );
     }
 
     const value = toDonutValue(classicConfig, tileColumns, labelField, notes);
 
-    if (!value) {
-        return { blockedReason: `value column ${classicConfig.valueColumn} no longer exists` };
+    if (!labelField || !value) {
+        notes.push('label or value column left for SmartViz to pick, as classic does');
     }
 
     const style = {
@@ -445,10 +456,14 @@ export const toDonut = (classicConfig, tileColumns) => {
         pieDonutCenterValue: classicConfig.hideCenterValue === true ? 'none' : 'total',
         labelFontSize: 16,
         ...(classicConfig.legendMode === 'table' && { pieLegendStyle: 'table' }),
+        ...(classicConfig.showValuesAsPercentage === true && { pieLabels: 'nameAndPercent' }),
         ...(hasPalette && { mappedColors: classicConfig.palette })
     };
 
-    const encoding = { label: { field: labelField, type: 'nominal', title: getColumnTitle(tileColumns.columns, labelField) }, value };
+    const encoding = {
+        ...(labelField && { label: { field: labelField, type: 'nominal', title: getColumnTitle(tileColumns.columns, labelField) } }),
+        ...(value && { value })
+    };
 
     return toVisualization('pie', encoding, style, notes);
 };

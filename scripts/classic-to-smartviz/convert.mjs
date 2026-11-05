@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { toBarChart, toDonut, toGauge, toLineChart, toScalar } from './chartMappers.mjs';
-import { getTileColumns, isKnownColumn, isPropertiesTile, readStreamColumns } from './columns.mjs';
+import { getTileColumns, isKnownColumn, readStreamColumns } from './columns.mjs';
 import { replaceMembers } from './jsonEdit.mjs';
 import { applyEnhancementRules, RULE_NAMES } from './enhancementRules.mjs';
 import { toRichTable, toStatusGrid } from './tableMappers.mjs';
@@ -90,10 +90,6 @@ const convertTile = (tileConfig, streamColumnsByName, { vizSpecSchema, ruleNames
 
     if (tileConfig.vizSpec) {
         return { title, status: 'skipped', reason: 'already SmartViz' };
-    }
-
-    if (isPropertiesTile(tileConfig)) {
-        return { title, status: 'skipped', reason: 'built-in properties stream stays classic' };
     }
 
     const classicType = tileConfig.visualisation?.type;

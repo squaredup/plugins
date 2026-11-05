@@ -102,10 +102,6 @@ export const getStreamName = (tileConfig) => {
     return STREAM_REFERENCE.exec(dataStream.id ?? '')?.[1] ?? (dataStream.id ? undefined : dataStream.name);
 };
 
-/** True for a tile on the built-in object properties stream, whose columns are the scoped object's properties. */
-export const isPropertiesTile = (tileConfig) =>
-    tileConfig.dataStream?.id === 'datastream-properties' || tileConfig.dataStream?.name === 'properties';
-
 /** A group's `by` is one `[column, grouper]` pair, a list of them, or empty. */
 const toByPairs = (by) => {
     if (!Array.isArray(by) || by.length === 0) {
