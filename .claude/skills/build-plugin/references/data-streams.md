@@ -58,6 +58,11 @@ So the rule is **push it down**: if the API can group/filter/sort, let it; other
 
 The `cost` example below does exactly this: its optional `groupBy` `choiceChips` param **is** layer-1 push-down.
 
+**Filter and count in the API when the API caps its results.** Check which kind of cap an endpoint has:
+
+- **A cap on the total result** (e.g. a search that never returns more than 2,000 rows) can't be paged past. A count of the rows that came back, or a filter applied in the tile or a script after the request, silently undercounts: one shipped plugin showed 303 of 601 SLA breaches this way. The filter or count has to be an API parameter.
+- **A cap per page** is recovered by [paging](#pagination), provided the endpoint honours its paging parameters.
+
 ### Anti-pattern: five "Cost by X" streams
 
 A shipped plugin has five cost streams — `costByProject`, `costByService`, `costDailyTimeline`, `projectCosts`, `projectCostTimeline`. All five issue the **identical** request to `/v1/billing/charges` (same `getArgs`), and each `postRequestScript` does the same thing: parse the NDJSON, filter to `ChargeCategory === 'Usage'`, then group-and-sum by a different key (project / service / day) — two of them additionally filtering to a scoped project. They differ **only** by group key and scope, which is the "consolidate" column above.
@@ -254,7 +259,7 @@ result = scoped.map((r) => ({
 
     > ⚠️ Never mention dashboards, tiles, or import — every stream ends up in a dashboard somewhere, so saying so adds no information. This includes rephrasings like "used for import", "used by the X tile", "powers the X dashboard", "for monitoring X".
 
-- `tags` — required; title case (e.g. `"User"`, `"Security"`, `"Analytics"`). Keep to a small, meaningful set, reuse existing tags from other plugins/data streams. Do not use the plugin name as a tag.
+- `tags` — required on most streams; title case (e.g. `"User"`, `"Security"`, `"Analytics"`). Tags group related streams in the tile editor, so choose them across the whole plugin: not one tag shared by every stream, and not many tags that each cover a single stream. Reuse existing tags from other plugins/data streams where it makes sense. Do not use the plugin name as a tag.
 
 ---
 
@@ -387,6 +392,8 @@ Shows an **Apply** button instead of running on every config change. Use for exp
 ## Pagination
 
 The `paging` block in `config` controls how SquaredUp fetches multiple pages.
+
+Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page until the page cap and imports duplicates. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
 
 **No paging:**
 
@@ -527,6 +534,8 @@ none
 ```
 
 `none` is only valid when `supportsNoneTimeframe` is set (see below).
+
+**Apply both ends of the range.** A stream that filters by timeframe must pass both the start and the end to the API (or clamp to both in its script). Filtering only on the start, or looping up to now instead of the end, looks right for "last 7 days" but over-returns for closed windows such as `lastMonth` or `lastQuarter`.
 
 JSON-only timeframe properties (not settable via the Save as data stream modal):
 
@@ -788,7 +797,9 @@ Appending a related object's list property this way lets tiles filter and group 
 
 ## Post-request scripts
 
-Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects. (For a datasource-level script that runs _before_ every request — custom auth flows — see [Pre-request scripts](metadata.md#pre-request-scripts-custom-auth-flows) in metadata.md.)
+Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects.
+
+> ⚠️ **On a paged stream the script runs once per page and sees only that page.** SquaredUp concatenates each page's `result`. Anything that needs the whole result set is wrong once there is a second page: de-duplicating, pairing related records (an alert and the event that clears it), totals, counts or unions. Turning paging on does not fix this, it causes it. Either derive the value from data within each record (one plugin used each alert's own link to its clearing event instead of searching the page for it), push the work to the API, or leave it to the tile's `group`/`aggregate`, which runs on the combined rows. (For a datasource-level script that runs _before_ every request — custom auth flows — see [Pre-request scripts](metadata.md#pre-request-scripts-custom-auth-flows) in metadata.md.)
 
 ### Wiring a script to a stream
 
@@ -922,6 +933,8 @@ context.config; // current stream parameters (values set by the user in the tile
 Return actual JS number primitives for numeric columns — returning `"29.19"` (string) instead of `29.19` (number) causes the column to show as String type.
 
 ### Deduplication pattern
+
+This de-duplicates within one response. On a paged stream it only removes duplicates within each page (see the warning under [Post-request scripts](#post-request-scripts)).
 
 ```javascript
 // dataStreams/scripts/myStream.js

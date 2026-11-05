@@ -126,7 +126,7 @@ Single `.dash.json` files reference as `"type": "dashboard"`. Folders map to sub
 
 The tile-level `"scope"` block above is for streams that are **natively scoped** through their `matches`. A stream that is unscoped at the definition level (`"matches": "none"`) but exposes an optional `objects` parameter — the consolidation pattern in [data-streams.md](data-streams.md#one-stream-per-shape) — auto-scopes on a perspective a different way: **bind the dashboard variable into the parameter** under `dataStream.dataSourceConfig`.
 
-The key under `dataSourceConfig` is the `name` of the stream's `objects` field. Given a stream with `"ui": [{ "type": "objects", "name": "project", ... }]`, the per-object perspective dashboard binds:
+The key under `dataSourceConfig` is the `name` of the stream's `objects` field. Stream parameters on a tile always go under `dataStream.dataSourceConfig`. The platform silently ignores anything placed under `dataStream.config`, so the tile runs with defaults and looks plausible but wrong. Given a stream with `"ui": [{ "type": "objects", "name": "project", ... }]`, the per-object perspective dashboard binds:
 
 ```json
 "dataStream": {
@@ -254,6 +254,8 @@ Common tiles, with the **exact** column names the chart's `field`s must use:
 - **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI — "MyPlugin / Overview" is correct; "MyPlugin / MyPlugin Overview" is redundant.
 - **Give each dashboard a distinct name.** Perspective tabs sit next to each other — identical names are indistinguishable.
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.
+- **Every variable a tile references must be declared** in the dashboard's `"variables"` array, otherwise the binding resolves to nothing.
+- **Keep request counts low on overview tiles.** A tile over an `httpRequestScopedSingle` stream sends one request per object in scope, so a summary of 50 environments is 50 API calls every time the dashboard loads. (Other scoped streams can send all the objects in one request.) Prefer a single list call, or a property captured at import, for account-wide summaries; keep per-object streams for drilldown dashboards.
 - **A tile's `"timeframe"` is driven by its data stream, not by style.** If the tile's stream is **timeframe-independent** (`"timeframes": false` — a current-state / snapshot stream that ignores any range), set `"timeframe": "none"` on the tile. If the stream **supports timeframes**, **omit** `timeframe` so the tile tracks the dashboard's timeframe — setting `"none"` here pins the tile and stops it following the dashboard. (This is why most summary tiles, built on snapshot streams, carry `"none"`.)
 - All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate with `node ".claude/skills/build-plugin/scripts/gen-uuids.js" [N]`. Never invent patterned UUIDs.
 
@@ -334,3 +336,11 @@ These are standalone tiles with no `dataStream`, `scope`, `activePluginConfigIds
 | `{{scopes.[ScopeName]}}`       | A scope by name from `scopes.json` |
 | `{{dataStreams.[streamName]}}` | The data stream's ID               |
 | `{{variables.[VariableName]}}` | The variable defined on a scope    |
+
+**Escape every other `{{…}}` with `{{{{raw}}}}`.** These tokens are substituted when the default content is installed, and any other `{{…}}` in a `.dash.json` is substituted too, normally to nothing. Text that SmartViz itself fills in at render time therefore has to be wrapped so it reaches the tile intact. Typical cases are `labelFormat`, `cartesianTooltipTemplate` and `statusGridSecondaryTemplate`:
+
+```json
+"labelFormat": "{{{{raw}}}}{{value}}{{{{/raw}}}}"
+```
+
+A tile whose label or tooltip comes out blank after install usually has an unwrapped template.
