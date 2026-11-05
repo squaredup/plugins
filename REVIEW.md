@@ -62,17 +62,16 @@ When suggesting changes:
 - Comments should explain **why**, not restate **what** the code does
 - Use a neutral, professional tone
 - Avoid humour, sarcasm, or emojis in code comments
-- Include all review comments in the first review, do not add additional review comments to code that hasn't changed since the previous commit.
 
 ## Platform facts
 
-SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as established; each was confirmed against live deployments. Where a fact links to the build-plugin references, the reference has the detail.
+SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as established; each was confirmed against live deployments. To avoid drift, a fact that the build-plugin references document is a one-line pointer here and the reference holds the detail. Facts without a link are not documented anywhere else; when one is added to a reference, replace it here with a pointer.
 
 - **Post-request scripts run once per page.** Logic that needs the whole result set is a bug on a paged stream, and enabling paging is not a fix for it. See [data-streams.md, Post-request scripts](.claude/skills/build-plugin/references/data-streams.md#post-request-scripts).
 - **Paging config is not proof the API pages.** A `paging` block can just chain a second request through `pagingContext`, and `mode: none` with a documented limit is right for an endpoint that ignores paging parameters. See [data-streams.md, Pagination](.claude/skills/build-plugin/references/data-streams.md#pagination).
 - **Shapes parse and format values.**
     - `date` and `timestamp` columns accept ISO 8601 strings, `YYYY-MM-DD HH:MM:SS+00`-style strings, and Unix timestamps when the column declares an `inputPattern` for them (e.g. `"inputPattern": "t"` for seconds, as OpenRouter's `created` column does). Only raw epoch numbers with no `inputPattern` need converting.
-    - `bytes`, `kilobytes`, `megabytes`, `gigabytes` and the other data-size shapes all auto-scale. Only flag a shape that doesn't match the unit the API returns.
+    - The data-size shapes (`bytes`, `megabytes` and so on) all auto-scale; only flag one that doesn't match the API's unit. See [data-streams.md, Shapes](.claude/skills/build-plugin/references/data-streams.md#shapes).
     - `decimalPlaces`, `thousandsSeparator` and `formatExpression` inside a shape are display formatting, not pre-formatting. Rounding in a script is different: it throws precision away before tiles sum or average the values. When the shape already sets `decimalPlaces`, suggest removing the script rounding as a Minor finding.
     - SmartViz applies shapes whichever renderer a tile uses.
     - In a `state` shape, `map` lists the raw values for each state (e.g. `{ "success": ["Good"] }`), so the column still emits the raw labels.
@@ -81,8 +80,8 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 - **Configuration validation warns, it does not block.** A failing `configValidation` step shows a warning; the user can still save the data source.
 - **Dashboard variables and pickers.** A perspective tile that declares a variable does not run with an empty selection; it shows "No objects selected". Object pickers only offer objects that have been imported.
 - **Tile parameters live under `dataSourceConfig`.** Parameters placed under `dataStream.config` on a tile are silently ignored. Flag them. See [oob-content.md](.claude/skills/build-plugin/references/oob-content.md#auto-scoping-a-stream-via-its-objects-filter).
-- **`autocomplete` fields store objects.** The stored value is an array of `{ value, label }` objects, even when single-select. Interpolating it straight into a header, path or query sends `[object Object]`; it needs `.value`.
-- **`preRequestScript` needs `showScripting: true`.** Without `base.config.showScripting: true` in `metadata.json`, the platform silently skips the pre-request script and every request goes out unauthenticated.
+- **`autocomplete` fields store objects**, so interpolating one straight into a header, path or query sends `[object Object]`. See [ui.md, Overview](.claude/skills/build-plugin/references/ui.md#overview) (field value shapes).
+- **`preRequestScript` needs `showScripting: true`**, or the script is silently skipped. See [metadata.md, Wiring](.claude/skills/build-plugin/references/metadata.md#wiring).
 - **Imports.** Array properties are JSON-stringified when written to the graph, so they cannot be used as correlation join keys. Metadata columns that are not listed are not displayed. The index refreshes on a schedule (hours, not seconds), so fast-changing records such as alerts or incidents belong in live data streams, not imports.
 
 ## File-specific guidelines
