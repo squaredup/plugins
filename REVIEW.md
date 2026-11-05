@@ -42,7 +42,7 @@ Versions are compared against `main`, because merging is the only point at which
 
 - Follow existing formatting in the repo
 - Use consistent naming
-- Do not introduce formatting tools or config files unless explicitly requested. This includes `cspell.json`, linter configs or similar inside a plugin folder: flag them for removal.
+- Do not introduce formatting tools or config files unless explicitly requested. This includes `cspell.json`, linter configs or similar, anywhere in the repository: flag them for removal.
 - Do not commit **personal** editor or AI tool configuration (e.g. `.claude/settings.json`, anything matching `*.local.json`) — that belongs in the user's home directory. Shared instructions that the whole project relies on are a different thing and are committed deliberately: `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `.coderabbit.yaml`, `.claude/skills/` and `.vscode/settings.json` all belong here.
 - Flag byte-identical scripts copied across several data streams; a shared script file can be referenced instead.
 
@@ -138,7 +138,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 
 - displayName - Use noun-based names describing the returned data, e.g. Tickets. Avoid verbs such as Get, Fetch, Run, Execute. This applies to the data stream's own name, not to its column names.
 - description - Typically one sentence only. No full stop at the end. Add relevant clarifications in brackets. Never use two sentences.
-- tags - Mandatory. Reuse an existing category from other plugins where possible, never use the plugin's name in a tag.
+- tags - Required on most data streams. Tags group related streams in the tile editor, so check the set across the plugin rather than stream by stream: flag a tag applied to every stream (it distinguishes nothing) and flag many tags that each cover only one stream (merge them into a broader shared tag). Reuse existing tags from other plugins where possible, and never use the plugin's name in a tag.
 - objectLimit - Only applies to scoped streams. If a scoped stream only processes a single object (e.g. uses `objects[0]` in its expression), suggest either using the `httpRequestScopedSingle` dataSource (HTTP Request with Objects (request per object)) OR setting `objectLimit: 1`. Also suggest an `objectLimit` where several objects are joined into one GET request, since long query strings fail with HTTP 414. Never raise it on unscoped (`"matches": "none"`) streams.
 - timeframe - Data streams that don't support time-based filtering must explicitly declare that, using either `"timeframes": false` or `"none"` in the timeframe list. Both are accepted; do not ask to switch one for the other. Omitting this causes UI warnings and incorrect default behaviour in OOB dashboards.
 - Timeframe filtering - A stream that filters by timeframe must apply both the start and the end. A script that only applies the lower bound, or loops up to now instead of `timeframe.end`, returns wrong rows for closed past windows such as last month.

@@ -254,7 +254,7 @@ result = scoped.map((r) => ({
 
     > ⚠️ Never mention dashboards, tiles, or import — every stream ends up in a dashboard somewhere, so saying so adds no information. This includes rephrasings like "used for import", "used by the X tile", "powers the X dashboard", "for monitoring X".
 
-- `tags` — required; title case (e.g. `"User"`, `"Security"`, `"Analytics"`). Keep to a small, meaningful set, reuse existing tags from other plugins/data streams. Do not use the plugin name as a tag.
+- `tags` — required on most streams; title case (e.g. `"User"`, `"Security"`, `"Analytics"`). Tags group related streams in the tile editor, so choose them across the whole plugin: not one tag shared by every stream, and not many tags that each cover a single stream. Reuse existing tags from other plugins/data streams. Do not use the plugin name as a tag.
 
 ---
 
