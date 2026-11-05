@@ -58,7 +58,10 @@ So the rule is **push it down**: if the API can group/filter/sort, let it; other
 
 The `cost` example below does exactly this: its optional `groupBy` `choiceChips` param **is** layer-1 push-down.
 
-**Filter and count in the API when the API caps its results.** Many endpoints return at most a fixed number of rows (e.g. 2,000), whatever paging is set to. A count of the rows that came back, or a filter applied in the tile or a script after the request, then silently undercounts: one shipped plugin showed 303 of 601 SLA breaches this way. If the endpoint caps results, the filter or count has to be an API parameter, or the stream has to page through everything.
+**Filter and count in the API when the API caps its results.** Check which kind of cap an endpoint has:
+
+- **A cap on the total result** (e.g. a search that never returns more than 2,000 rows) can't be paged past. A count of the rows that came back, or a filter applied in the tile or a script after the request, silently undercounts: one shipped plugin showed 303 of 601 SLA breaches this way. The filter or count has to be an API parameter.
+- **A cap per page** is recovered by [paging](#pagination), provided the endpoint honours its paging parameters.
 
 ### Anti-pattern: five "Cost by X" streams
 
