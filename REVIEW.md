@@ -127,6 +127,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 - IDs - All `id` fields must be GUIDs (e.g. `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"`), not arbitrary strings.
 - Tiles on a dashboard should NOT use deprecated streams - these are any streams set to { visibility: { type: 'deprecated' }}
 - Variables - Every variable a tile references must be declared on the dashboard.
+- Template text - Any `{{…}}` other than the templating tokens (`configId`, `workspaceId`, `scopes.[…]`, `dataStreams.[…]`, `variables.[…]`) is substituted, normally to nothing, when the default content is installed. Flag it unless it is wrapped as `{{{{raw}}}}…{{{{/raw}}}}`. Common places are `labelFormat`, `cartesianTooltipTemplate` and `statusGridSecondaryTemplate`. See [oob-content.md, Templating tokens](.claude/skills/build-plugin/references/oob-content.md#templating-tokens).
 - Request volume - Flag overview tiles that send one request per object (per environment, per device) where an imported property or a single list call would do.
 - Timeframes - Check the stream's `timeframes` before calling a tile's timeframe redundant or wrong; a stream may only offer one range.
 

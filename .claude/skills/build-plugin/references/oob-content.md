@@ -336,3 +336,11 @@ These are standalone tiles with no `dataStream`, `scope`, `activePluginConfigIds
 | `{{scopes.[ScopeName]}}`       | A scope by name from `scopes.json` |
 | `{{dataStreams.[streamName]}}` | The data stream's ID               |
 | `{{variables.[VariableName]}}` | The variable defined on a scope    |
+
+**Escape every other `{{…}}` with `{{{{raw}}}}`.** These tokens are substituted when the default content is installed, and any other `{{…}}` in a `.dash.json` is substituted too, normally to nothing. Text that SmartViz itself fills in at render time therefore has to be wrapped so it reaches the tile intact. Typical cases are `labelFormat`, `cartesianTooltipTemplate` and `statusGridSecondaryTemplate`:
+
+```json
+"labelFormat": "{{{{raw}}}}{{value}}{{{{/raw}}}}"
+```
+
+A tile whose label or tooltip comes out blank after install usually has an unwrapped template.
