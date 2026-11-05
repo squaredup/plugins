@@ -1,0 +1,55 @@
+{
+    "name": "assetsIndex",
+    "displayName": "Assets (Import)",
+    "description": "Assets in an asset application, one row per asset, up to the maximum records per request (empty unless inventory import is turned on)",
+    "tags": ["Assets", "Inventory"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/assets/search",
+        "postBody": {
+            "MaxResults": "{{dataSource.maxRecords || 2000}}",
+            "ExternalIDs": "{{ dataSource.importInventory === true || dataSource.importInventory === 'true' ? null : ['squaredup-inventory-import-disabled'] }}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "assets.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Asset App"] }
+    },
+    "metadata": [
+        { "name": "name", "displayName": "Asset", "shape": "string", "role": "label" },
+        { "name": "sourceId", "displayName": "Source ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "assetId", "displayName": "Asset ID", "shape": "string", "visible": false },
+        { "name": "link", "displayName": "Link", "shape": ["url", { "label": "Open in TeamDynamix" }], "role": "link" },
+        { "name": "statusName", "displayName": "Status", "shape": "string" },
+        { "name": "tag", "displayName": "Tag", "shape": "string" },
+        { "name": "serialNumber", "displayName": "Serial Number", "shape": "string" },
+        { "name": "manufacturerName", "displayName": "Manufacturer", "shape": "string" },
+        { "name": "productModelName", "displayName": "Model", "shape": "string" },
+        { "name": "supplierName", "displayName": "Supplier", "shape": "string", "visible": false },
+        { "name": "locationName", "displayName": "Location", "shape": "string" },
+        { "name": "locationRoomName", "displayName": "Room", "shape": "string", "visible": false },
+        { "name": "owningCustomerName", "displayName": "Owner", "shape": "string" },
+        { "name": "owningDepartmentName", "displayName": "Owning Department", "shape": "string" },
+        { "name": "requestingCustomerName", "displayName": "Requestor", "shape": "string", "visible": false },
+        { "name": "purchaseCost", "displayName": "Purchase Cost", "shape": ["number", { "decimalPlaces": 2, "thousandsSeparator": true }] },
+        { "name": "acquisitionDate", "displayName": "Acquired", "shape": "date" },
+        { "name": "expectedReplacementDate", "displayName": "Expected Replacement", "shape": "date" },
+        { "name": "createdDate", "displayName": "Created", "shape": "date", "visible": false },
+        { "name": "modifiedDate", "displayName": "Modified", "shape": "date" },
+        { "name": "parentName", "displayName": "Parent Asset", "shape": "string", "visible": false },
+        { "name": "externalId", "displayName": "External ID", "shape": "string", "visible": false },
+        { "name": "configurationItemId", "displayName": "Configuration Item ID", "shape": "string", "visible": false },
+        { "name": "appId", "displayName": "App ID", "shape": "string", "visible": false },
+        { "name": "sourceType", "displayName": "Object Type", "shape": "string", "visible": false }
+    ],
+    "timeframes": ["none"],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none",
+    "visibility": { "type": "hidden" }
+}
