@@ -4,7 +4,7 @@
 
 - [metadata.json template and field notes](#metadatajson)
 - [Auth patterns](#auth-patterns)
-- [Pre-request scripts (custom auth flows)](#pre-request-scripts-custom-auth-flows)
+- [Pre-request scripts (custom auth flows)](#pre-request-scripts-custom-auth-flows) — [Fetching other hosts](#fetching-other-hosts)
 
 ---
 
@@ -222,7 +222,7 @@ In `base.config`:
 
 ### Script scope
 
-The script body runs inside an async function — top-level `await` works. `fetch` and `crypto.subtle` are available (for auth calls and HMAC/SHA signing).
+The script body runs inside an async function — top-level `await` works. `fetch` and `crypto.subtle` are available (for auth calls and HMAC/SHA signing). `fetch` reaches only the base URL's domain unless you list more hosts — see [Fetching other hosts](#fetching-other-hosts).
 
 | Variable  | Mutable | Notes                                                                                                                                                                                  |
 | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -265,3 +265,29 @@ if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= now) {
 }
 headers["Authorization"] = `Bearer ${state.token}`;
 ```
+
+### Fetching other hosts
+
+A script's `fetch` can only reach hosts in the **registrable domain of `baseUrl`**. A base URL of `https://api.example.com/v2` lets a script fetch `id.example.com` or `example.com`, but not `auth.example-identity.com`. The check runs on every redirect hop, not just the first request. A blocked host fails the request with:
+
+> Fetching auth.example-identity.com is not allowed by this data source
+
+This applies to every script the data source runs: the pre-request script, and data streams' [post-request and `errorHandling` scripts](data-streams.md#post-request-scripts).
+
+When the API's token endpoint, or anything else a script calls, sits on a different domain, list it in `allowedScriptHosts` in `base.config`:
+
+```json
+"showScripting": true,
+"preRequestScript": "preRequest.js",
+"allowedScriptHosts": ["global.api.greenlake.hpe.com"]
+```
+
+- **Host names only.** No `https://`, path or query string. Matching ignores case.
+- **`auth.example.com`** allows that host only. Prefer an exact host.
+- **`*.example.com`** allows `example.com` and every host under it. Use a wildcard only when the vendor serves the endpoint from hosts you can't list, such as a per-region subdomain.
+- **No wildcard on a public suffix.** `*.com`, `*.co.uk` and `*.github.io` are rejected when the script runs, with "A wildcard must cover one organization's domain".
+- **A `{{ }}` template works** when the host depends on what the user enters, such as their region. It must give an array; a template that gives a plain string is ignored, and the script gets only the base URL's domain. A multi-value `autocomplete` field already gives an array of `{ value, label }` objects, and those are accepted as they are.
+
+You don't need `allowedScriptHosts` when the other host is in the base URL's domain. Redstor's token endpoint `id.redstor.com` works with its base URL `api.redstor.com`.
+
+> ⚠️ **In SquaredUp's cloud, no request can reach a private network address.** This covers the data source's own requests, its OAuth2 token request and a script's `fetch`. Loopback, link-local and private ranges (`127.0.0.1`, `169.254.x.x`, `10.x.x.x`, `192.168.x.x` and so on) are refused, and so is a public name that resolves or redirects to one. The error reads "DNS lookup 127.0.0.1(…) is not allowed. Because, It is private IP address." `allowedScriptHosts` does not override this. On a relay agent nothing changes, so a plugin for a self-hosted product on a private network has to run through a relay agent. Say so in the README.

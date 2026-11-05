@@ -36,6 +36,7 @@ Versions are compared against `main`, because merging is the only point at which
 - Check for hardcoded secrets, API keys, or credentials, including in debug or log output from scripts.
 - Flag imported object names or properties built from URLs that may carry tokens or signed query strings (e.g. webhook URLs).
 - Flag URL `pattern` validation that would let a user-supplied base URL send credentials to an unintended host.
+- `allowedScriptHosts` names hosts a script may send credentials to. Each entry should be the vendor's own host. Ask for an exact host in place of a wildcard unless the PR explains why the host can't be listed. Flag a template that lets the user add any host they like, unless the plugin is for a self-hosted product.
 - Do **not** require HTTPS-only URL patterns. Self-hosted targets are commonly reached over HTTP through a relay agent, and a `ui.json` pattern cannot depend on the auth mode. At most, suggest a note in the docs.
 
 ## Code formatting
@@ -82,6 +83,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 - **Tile parameters live under `dataSourceConfig`.** Parameters placed under `dataStream.config` on a tile are silently ignored. Flag them. See [oob-content.md](.claude/skills/build-plugin/references/oob-content.md#auto-scoping-a-stream-via-its-objects-filter).
 - **`autocomplete` fields store objects**, so interpolating one straight into a header, path or query sends `[object Object]`. See [ui.md, Overview](.claude/skills/build-plugin/references/ui.md#overview) (field value shapes).
 - **`preRequestScript` needs `showScripting: true`**, or the script is silently skipped. See [metadata.md, Wiring](.claude/skills/build-plugin/references/metadata.md#wiring).
+- **Script `fetch` is limited to the base URL's registrable domain.** A script that fetches another domain needs that host in `base.config`'s `allowedScriptHosts`. In SquaredUp's cloud no request reaches a private network address, whatever is listed. See [metadata.md, Fetching other hosts](.claude/skills/build-plugin/references/metadata.md#fetching-other-hosts).
 - **Imports.** Array properties are JSON-stringified when written to the graph, so they cannot be used as correlation join keys. Metadata columns that are not listed are not displayed. The index refreshes on a schedule (hours, not seconds), so fast-changing records such as alerts or incidents belong in live data streams, not imports.
 
 ## File-specific guidelines
