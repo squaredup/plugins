@@ -16,7 +16,7 @@ These rules govern how findings are raised. They exist because the same mistakes
 
 ## Pull requests
 
-- **One plugin per pull request.** A PR should add or modify a single plugin. If a change spans several plugins, ask the author to split it into one PR per plugin. This keeps review focused, routes CODEOWNERS correctly, and keeps the per-plugin validate/deploy checks meaningful. The exception is a repository-wide change that the PR description declares as such (for example, removing a field from every plugin); do not raise this rule on those.
+- **One plugin per pull request.** A PR should add or modify a single plugin. If a change spans several plugins, ask the author to split it into one PR per plugin. This keeps review focused, routes CODEOWNERS correctly, and keeps the per-plugin validate/deploy checks meaningful. The exception is a repository-wide change that the PR description declares as such (for example, removing a field from every plugin); do not raise this rule on those. CI's scope check does not read the description, so it still fails such a PR and a maintainer merges past it (as with #148 and #178). Do not report that CI failure as a finding.
 - **The correct PR template must be used**: `Add a new plugin`, `Change to an existing plugin`, or `Miscellaneous change` (see `.github/PULL_REQUEST_TEMPLATE/`). Check the PR body actually follows one, with its headings present and the test plan filled in. A body that is free text, or the template picker with no template applied, does not pass. PRs raised without the appropriate template may be closed.
 
 ## Versioning
