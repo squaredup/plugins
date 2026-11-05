@@ -73,7 +73,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 - **Shapes parse and format values.**
     - `date` and `timestamp` columns accept ISO 8601 strings, `YYYY-MM-DD HH:MM:SS+00`-style strings, and Unix timestamps when the column declares an `inputPattern` for them (e.g. `"inputPattern": "t"` for seconds, as OpenRouter's `created` column does). Only raw epoch numbers with no `inputPattern` need converting.
     - `bytes`, `kilobytes`, `megabytes`, `gigabytes` and the other data-size shapes all auto-scale. Only flag a shape that doesn't match the unit the API returns.
-    - `decimalPlaces`, `thousandsSeparator` and `formatExpression` inside a shape are display formatting, not pre-formatting. So is a `Math.round` that matches the column's `decimalPlaces`.
+    - `decimalPlaces`, `thousandsSeparator` and `formatExpression` inside a shape are display formatting, not pre-formatting. Rounding in a script is different: it throws precision away before tiles sum or average the values. When the shape already sets `decimalPlaces`, suggest removing the script rounding as a Minor finding.
     - SmartViz applies shapes whichever renderer a tile uses.
     - In a `state` shape, `map` lists the raw values for each state (e.g. `{ "success": ["Good"] }`), so the column still emits the raw labels.
 - **SmartViz matching and defaults.** SmartViz is documented by the platform's `squaredup skill visualize`, not in this repository; these points are kept here for reviewers only. Colour and value maps (`colors`, `mappedColors`, row highlights) match keys case-insensitively. `gaugeBands[].to` is a 0–1 fraction of the gauge range, not an absolute value. `ringGridMax` defaults to 100. The scalar `comparison` displays the value it is given; it does not calculate a delta.
@@ -149,7 +149,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 - Timestamps - SquaredUp expects timestamps the `date` shape can parse (see [Platform facts](#platform-facts)). If the upstream API returns Unix timestamps and the column has no `inputPattern`, the script must convert them. This is a Minor finding.
 - Expressions - Where a transformation can be expressed using `map`, prefer it over a mustache-style value expression, or complex processing in a script for performance.
 - Deduplication - If multiple data streams share the same API endpoint and differ only by a filter, consider merging them into a single stream with a UI parameter to control the filter.
-- Capped results - Flag counts or totals calculated from a list the API caps (e.g. a 2,000-row maximum), and filtering that happens in a script after a capped request. Both silently undercount; the filter or count belongs in the API request.
+- Capped results - Flag counts or totals calculated from a list whose total result the API caps (e.g. a search that never returns more than 2,000 rows), and filtering that happens in a script after such a request. Both silently undercount; the filter or count belongs in the API request. A per-page cap that the stream pages past is not a finding.
 - Optional request parameters - Omit an optional parameter when it is empty rather than sending an empty string, which many APIs reject.
 - ui
     - displayName - First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
