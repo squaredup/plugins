@@ -233,7 +233,8 @@ const toBarColorStyle = (colorState, notes) => {
     };
 };
 
-const toBarStackStyle = (classicConfig, seriesField) => {
+/** Classic stacks the bars of several series, or of several y columns, unless grouping is on. */
+const toBarStackStyle = (classicConfig, hasSeveralBars) => {
     if (classicConfig.displayMode === 'percentage') {
         return { cartesianStack: 'normalize' };
     }
@@ -242,7 +243,7 @@ const toBarStackStyle = (classicConfig, seriesField) => {
         return { cartesianCumulative: true };
     }
 
-    if (!seriesField) {
+    if (!hasSeveralBars) {
         return {};
     }
 
@@ -264,7 +265,7 @@ export const toBarChart = (classicConfig, tileColumns) => {
 
     const style = {
         ...toLegendAndAxisStyle(classicConfig, { x: true, y: true }),
-        ...toBarStackStyle(classicConfig, seriesField),
+        ...toBarStackStyle(classicConfig, Boolean(seriesField) || toList(classicConfig.yAxisData).length > 1),
         ...(classicConfig.horizontalLayout === 'horizontal' && { cartesianHorizontal: true }),
         ...(classicConfig.showValue === true && { showLabels: true }),
         ...(classicConfig.showTotals === true && { cartesianShowStackedTotals: true }),
