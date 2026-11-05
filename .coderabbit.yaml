@@ -1,0 +1,104 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit configuration. The review rules themselves live in REVIEW.md so
+# that humans, AI coding agents and CodeRabbit all work from one source; keep
+# this file to settings and to pointers into that document.
+language: en-GB
+tone_instructions: >-
+  Be concise and neutral. Lead with the impact on the plugin user. Prefer one
+  comment listing every affected file over one comment per file.
+
+reviews:
+  profile: chill
+  high_level_summary: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false # CODEOWNERS already routes reviews
+  poem: false
+  in_progress_fortune: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    # Plugins often go through many small review rounds; the default of 5
+    # left final commits unreviewed on several PRs.
+    auto_pause_after_reviewed_commits: 15
+
+  # CodeRabbit excludes images by default; plugin icons need checking against
+  # the icon rules in REVIEW.md.
+  path_filters:
+    - "plugins/**/icon.svg"
+
+  path_instructions:
+    - path: "plugins/**"
+      instructions: |
+        Apply REVIEW.md, including the "How to review" and "Platform facts"
+        sections. Before asking for a version bump, check whether
+        plugins/<Name>/v<N>/metadata.json is an added file in this PR. If it
+        is, the plugin is new: it must be <N>.0.0 and needs no bump.
+        .claude/skills/build-plugin/references/ is the authority on platform
+        behaviour (shapes, paging, timeframes, imports, dashboards). Check it
+        before claiming a field, shape or value is unsupported.
+    - path: "plugins/**/dataStreams/**"
+      instructions: |
+        Post-request scripts run once per page, and the page results are
+        concatenated. Flag logic that needs the full result set. Do not
+        recommend turning on paging as a fix for that logic. Flag counts
+        calculated from capped lists, and timeframe filters that apply only
+        one bound.
+    - path: "plugins/**/defaultContent/**"
+      instructions: |
+        Tile parameters belong under dataSourceConfig. Every variable a tile
+        uses must be declared. SmartViz colour maps match keys
+        case-insensitively. gaugeBands[].to is a 0-1 fraction. Flag overview
+        tiles that send one request per object.
+    - path: ".claude/skills/**"
+      instructions: |
+        These are instructions for AI agents, not plugin files. Do not apply
+        plugin rules (versioning, CODEOWNERS, one plugin per PR) here. Flag
+        guidance that is wrong, contradicts REVIEW.md or another reference, or
+        duplicates content found elsewhere.
+
+  pre_merge_checks:
+    docstrings:
+      mode: "off" # plugins are JSON plus small scripts; coverage is meaningless here
+    description:
+      mode: "off" # replaced by the template check below
+    custom_checks:
+      - name: "PR template"
+        mode: "warning"
+        instructions: |
+          The PR description must follow one of the templates in
+          .github/PULL_REQUEST_TEMPLATE/: "Add a new plugin", "Change to an
+          existing plugin" or "Miscellaneous change". Pass only if the body
+          contains that template's section headings and the test plan section
+          has real content. Fail if the body is free text, or is still the
+          template picker from .github/pull_request_template.md.
+
+  tools:
+    # Flags the top-level return the platform expects in preRequest.js.
+    biome:
+      enabled: false
+    # Grammar suggestions duplicated the REVIEW.md wording rules.
+    languagetool:
+      enabled: false
+    # Raised prompt-injection warnings on ordinary skill documentation.
+    skillspector:
+      enabled: false
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "REVIEW.md"
+      - "AGENTS.md"
+      - ".claude/skills/build-plugin/references/*.md"
+  learnings:
+    scope: local
+    # Several learnings saved from single PRs contradicted REVIEW.md. Give
+    # maintainers a week to reject a learning before it applies.
+    approval_delay: 7
