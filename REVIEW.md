@@ -177,6 +177,6 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 
 ## Skills and agent instructions (.claude/skills/, AGENTS.md)
 
-- Flag content that duplicates another reference, the PR templates or REVIEW.md; each fact should live in one place.
+- Flag explanations that are copied between references or into the PR templates; each explanation should live in one place. A short rule restated in REVIEW.md's checklist is deliberate and is not duplication.
 - Treat edits to a skill's `description` frontmatter as significant: it controls when the skill triggers.
 - Do not apply plugin rules (versioning, CODEOWNERS, one plugin per PR) to skill or documentation-only changes.
