@@ -21,6 +21,41 @@ reviews:
   poem: false
   in_progress_fortune: false
 
+  # Approve once the latest commit is reviewed, its threads are resolved,
+  # pre-merge checks pass and merge risk is low. CodeRabbit also requests
+  # changes while blocking findings are open. It is not a code owner, so it
+  # does not stand in for a CODEOWNERS review.
+  auto_approvals:
+    enabled: true
+    max_merge_risk: low
+    # Authors can't use "@coderabbitai approve" on their own PRs.
+    allow_author_approval: false
+    overrides:
+      # Never approve changes to the reviewer's own rules, CI, or the agent
+      # skills that outside users install.
+      - paths:
+          - ".coderabbit.yaml"
+          - "REVIEW.md"
+          - "AGENTS.md"
+          - "CLAUDE.md"
+          - ".claude/**"
+          - ".github/**"
+        enabled: false
+  merge_risk_instructions: |
+    Higher risk:
+    - Changes to a plugin that already exists on main that remove or rename
+      data streams, source types, object IDs or UI fields, since they break
+      customers' dashboards or force a reimport.
+    - Changes to authentication: preRequest.js, OAuth or token handling,
+      base.config headers and URL patterns.
+    - Import changes (indexDefinitions, import streams, pageSize), which can
+      fail or overload a customer's import.
+    - Anything that sends credentials or tenant data somewhere new.
+    Lower risk:
+    - A new plugin, which affects no existing customer.
+    - Dashboard layout, wording, README and help text changes.
+    - A version bump with a small, contained fix.
+
   auto_review:
     enabled: true
     drafts: true
