@@ -1,0 +1,95 @@
+{
+    "name": "creditCapacity",
+    "displayName": "Copilot Credit Capacity",
+    "description": "Prepaid and pay-as-you-go Copilot Credit usage for the tenant this month",
+    "tags": [
+        "Capacity",
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "powerplatform/licensing/entitlements/MCSMessages",
+        "pathToData": "entitlement",
+        "getArgs": [
+            {
+                "key": "api-version",
+                "value": "2024-10-01"
+            }
+        ],
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "timeframes": false,
+    "metadata": [
+        {
+            "name": "capacity.entitled.value",
+            "displayName": "Prepaid credits",
+            "shape": "number"
+        },
+        {
+            "name": "capacity.consumed.value",
+            "displayName": "Prepaid consumed",
+            "shape": "number"
+        },
+        {
+            "name": "capacity.allocated.value",
+            "displayName": "Allocated to environments",
+            "shape": "number"
+        },
+        {
+            "name": "capacity.availableQuantity",
+            "displayName": "Available",
+            "shape": "number"
+        },
+        {
+            "name": "prepaidPercentConsumed",
+            "displayName": "Prepaid consumed %",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ Number($['capacity.entitled.value']) > 0 ? (Number($['capacity.consumed.value']) / Number($['capacity.entitled.value'])) * 100 : null }}"
+        },
+        {
+            "name": "capacityState",
+            "displayName": "Capacity state",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "WithinCapacity"
+                        ],
+                        "warning": [
+                            "CoveredOverage"
+                        ],
+                        "error": [
+                            "Overage"
+                        ]
+                    }
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ $['capacity.status'] }}"
+        },
+        {
+            "name": "capacity.status",
+            "displayName": "Capacity status",
+            "shape": "string"
+        },
+        {
+            "name": "payGo.consumed.value",
+            "displayName": "Pay-as-you-go consumed",
+            "shape": "number"
+        },
+        {
+            "name": "capacity.consumed.lastUpdatedOn",
+            "displayName": "Last updated",
+            "shape": "date"
+        }
+    ]
+}
