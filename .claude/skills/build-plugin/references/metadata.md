@@ -282,6 +282,7 @@ When the API's token endpoint, or anything else a script calls, sits on a differ
 "allowedScriptHosts": ["global.api.greenlake.hpe.com"]
 ```
 
+- **Always a list**, even for one host: `["auth.example.com"]`. A plain string fails `squaredup validate`.
 - **Host names only.** No `https://`, path or query string. Matching ignores case.
 - **`auth.example.com`** allows that host only. Prefer an exact host.
 - **`*.example.com`** allows `example.com` and every host under it. Use a wildcard only when the vendor serves the endpoint from hosts you can't list, such as a per-region subdomain.
