@@ -1,0 +1,233 @@
+{
+    "name": "aiCreditUsage",
+    "displayName": "AI Credit Usage",
+    "description": "AI credit (or legacy premium request) usage by model, one row per period, model and SKU, split into included and billed",
+    "tags": [
+        "Billing",
+        "Cost",
+        "AI",
+        "Models"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'organizations' }}/{{ dataSource.slug.trim() }}/settings/billing/{{ typeof meter !== 'undefined' && meter === 'premium_request' ? 'premium_request' : 'ai_credit' }}/usage",
+        "getArgs": [
+            {
+                "key": "year",
+                "value": "{{ new Date(timeframe.start).getUTCFullYear() }}"
+            },
+            {
+                "key": "month",
+                "value": "{{ new Date(timeframe.start).getUTCMonth() + 1 }}"
+            },
+            {
+                "key": "day",
+                "value": "{{ timeframe.enum === 'last7days' ? new Date(timeframe.start).getUTCDate() : null }}"
+            },
+            {
+                "key": "user",
+                "value": "{{ [].concat([].concat(typeof user !== 'undefined' && user || [])[0]?.name)[0] || null }}"
+            },
+            {
+                "key": "model",
+                "value": "{{ typeof model !== 'undefined' && model ? model.trim() : null }}"
+            },
+            {
+                "key": "organization",
+                "value": "{{ dataSource.accountType === 'enterprise' && typeof organization !== 'undefined' && organization ? organization.trim() : null }}"
+            },
+            {
+                "key": "cost_center_id",
+                "value": "{{ dataSource.accountType === 'enterprise' ? ([].concat([].concat(typeof costCenter !== 'undefined' && costCenter || [])[0]?.rawId)[0] || null) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextUrl"
+            }
+        },
+        "postRequestScript": "aiCreditUsage.js"
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "meter",
+            "label": "Meter",
+            "options": [
+                {
+                    "value": "ai_credit",
+                    "label": "AI credits"
+                },
+                {
+                    "value": "premium_request",
+                    "label": "Premium requests (legacy)"
+                }
+            ],
+            "defaultValue": "ai_credit"
+        },
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "model",
+            "label": "Model (optional)",
+            "placeholder": "gpt-5",
+            "help": "Only include usage for this model"
+        },
+        {
+            "type": "objects",
+            "name": "costCenter",
+            "label": "Cost center (optional)",
+            "help": "Enterprise accounts only",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Cost Center"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "organization",
+            "label": "Organization (optional)",
+            "placeholder": "octo-org",
+            "help": "Enterprise accounts only"
+        }
+    ],
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "period",
+            "displayName": "Period",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "product",
+            "displayName": "Product",
+            "shape": "string"
+        },
+        {
+            "name": "sku",
+            "displayName": "SKU",
+            "shape": "string"
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "unitType",
+            "displayName": "Unit type",
+            "shape": "string"
+        },
+        {
+            "name": "pricePerUnit",
+            "displayName": "Price per unit (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 4
+                }
+            ]
+        },
+        {
+            "name": "grossQuantity",
+            "displayName": "Quantity",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "grossAmount",
+            "displayName": "Gross (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "discountQuantity",
+            "displayName": "Included quantity",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "discountAmount",
+            "displayName": "Included (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "netQuantity",
+            "displayName": "Billed quantity",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "netAmount",
+            "displayName": "Billed (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "costCenter",
+            "displayName": "Cost center",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "thisMonth",
+        "lastMonth",
+        "thisYear",
+        "lastYear"
+    ]
+}

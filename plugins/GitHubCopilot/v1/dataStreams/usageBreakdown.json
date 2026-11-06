@@ -1,0 +1,63 @@
+{
+    "name": "usageBreakdown",
+    "displayName": "Usage Breakdown",
+    "description": "Daily Copilot activity broken down by feature, IDE, language or model",
+    "tags": ["Usage", "AI"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'orgs' }}/{{ dataSource.slug.trim() }}/copilot/metrics/reports/{{ dataSource.accountType === 'enterprise' ? 'enterprise' : 'organization' }}-28-day/latest",
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "download_links.0" }
+        },
+        "postRequestScript": "usageBreakdown.js"
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Break down by",
+            "options": [
+                { "value": "feature", "label": "Feature" },
+                { "value": "ide", "label": "IDE" },
+                { "value": "language", "label": "Language" },
+                { "value": "model", "label": "Model" }
+            ],
+            "defaultValue": "feature"
+        }
+    ],
+    "matches": "none",
+    "metadata": [
+        { "name": "day", "displayName": "Day", "shape": "date", "role": "timestamp" },
+        {
+            "name": "feature",
+            "displayName": "Feature",
+            "shape": "string",
+            "formatExpression": "{{ ({ code_completion: 'Code completion', chat_inline: 'Chat (inline)', chat_panel_ask_mode: 'Chat (ask mode)', chat_panel_edit_mode: 'Chat (edit mode)', chat_panel_agent_mode: 'Chat (agent mode)', chat_panel_plan_mode: 'Chat (plan mode)', chat_panel_custom_mode: 'Chat (custom agent)', chat_panel_unknown_mode: 'Chat (unknown mode)', agent_edit: 'Agent edit', copilot_cli: 'Copilot CLI', copilot_app: 'Copilot app', others: 'Others' })[$['feature']] || $['feature'] }}"
+        },
+        {
+            "name": "ide",
+            "displayName": "IDE",
+            "shape": "string",
+            "formatExpression": "{{ ({ vscode: 'VS Code', visualstudio: 'Visual Studio', intellij: 'IntelliJ', eclipse: 'Eclipse', xcode: 'Xcode', neovim: 'Neovim', vim: 'Vim', emacs: 'Emacs', zed: 'Zed', others: 'Others' })[$['ide']] || $['ide'] }}"
+        },
+        { "name": "language", "displayName": "Language", "shape": "string" },
+        { "name": "model", "displayName": "Model", "shape": "string" },
+        { "name": "interactions", "displayName": "Interactions", "shape": ["number", { "thousandsSeparator": true }], "role": "value" },
+        { "name": "codeGenerations", "displayName": "Code generations", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "codeAcceptances", "displayName": "Code acceptances", "shape": ["number", { "thousandsSeparator": true }] },
+        {
+            "name": "acceptanceRate",
+            "displayName": "Acceptance rate (%)",
+            "computed": true,
+            "valueExpression": "{{ $['codeGenerations'] ? ($['codeAcceptances'] / $['codeGenerations']) * 100 : null }}",
+            "shape": ["percent", { "decimalPlaces": 1 }]
+        },
+        { "name": "locSuggestedToAdd", "displayName": "Lines suggested (added)", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "locSuggestedToDelete", "displayName": "Lines suggested (deleted)", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "locAdded", "displayName": "Lines added", "shape": ["number", { "thousandsSeparator": true }] },
+        { "name": "locDeleted", "displayName": "Lines deleted", "shape": ["number", { "thousandsSeparator": true }] }
+    ],
+    "timeframes": false
+}
