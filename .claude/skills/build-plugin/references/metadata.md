@@ -287,7 +287,7 @@ When the API's token endpoint, or anything else a script calls, sits on a differ
 - **`auth.example.com`** allows that host only. Prefer an exact host.
 - **`*.example.com`** allows `example.com` and every host under it. Use a wildcard only when the vendor serves the endpoint from hosts you can't list, such as a per-region subdomain.
 - **No wildcard on a public suffix.** `*.com`, `*.co.uk` and `*.github.io` are rejected when the script runs, with "A wildcard must cover one organization's domain".
-- **A `{{ }}` template works** when the host depends on what the user enters, such as their region. It must give an array; a template that gives a plain string is ignored, and the script gets only the base URL's domain. A multi-value `autocomplete` field already gives an array of `{ value, label }` objects, and those are accepted as they are.
+- **Use a `{{ }}` template inside the list** when the host depends on what the user enters, such as their region: `["{{authHost}}"]`.
 
 You don't need `allowedScriptHosts` when the other host is in the base URL's domain. Redstor's token endpoint `id.redstor.com` works with its base URL `api.redstor.com`.
 
