@@ -30,5 +30,6 @@ result = groups.map((row) => {
         bytes: Number(sum.edgeResponseBytes || 0) || 0,
         visits: Number(sum.visits || 0) || 0,
         accountName: account.name || account.rawId || "",
+        accountId: account.rawId || "",
     };
 });

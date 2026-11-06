@@ -45,13 +45,19 @@ For more detail see Cloudflare's own guide to [creating API tokens](https://deve
 | ------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------- |
 | **API token** | A Cloudflare API token, sent as `Authorization: Bearer <token>` on every request to the API. | Cloudflare dashboard → [**My Profile → API Tokens**](https://dash.cloudflare.com/profile/api-tokens) → **Create Custom Token**. | Yes      |
 
-On save, the plugin verifies the token against Cloudflare's token-verification endpoint. A failure means the token is invalid, expired or revoked - it does **not** check individual permissions, so a token that saves successfully can still return no data for a product whose permission you left out.
+On save, the plugin runs three checks:
+
+1. **Authenticate** verifies the token against Cloudflare's token-verification endpoint. This check must pass; a failure means the token is invalid, expired or revoked.
+2. **Check account access** lists the accounts the token can see, and warns if there are none - usually a missing **Account Settings Read** permission or account resources that do not include the account.
+3. **Check zone access** does the same for zones, and warns if there are none - usually a missing **Zone Read** permission or zone resources that do not include the zone.
+
+The second and third checks warn without blocking the save. None of the checks tests individual product permissions, so a token that saves successfully can still return no data for a product whose permission you left out.
 
 ## What this plugin monitors
 
-- **Zone traffic and caching** - requests, bandwidth, cached requests and bytes, page views, unique visitors and cache hit ratio for each zone (hourly for the last two days, daily up to a year) or across every zone in an account, plus breakdowns by country, status code, cache status, host, device type, HTTP protocol and content type.
-- **Security** - firewall and WAF events by rule, service, country, host, user agent or path, with the action Cloudflare took, and 30-day event trends on every plan; and SSL certificate inventory with days until expiry.
-- **DNS and availability** - every DNS record in a zone with its type, content, TTL and proxy status; standalone health checks; and load balancer request distribution and per-origin pool health.
+- **Zone traffic and caching** - requests, bandwidth, cached requests and bytes, page views, unique visitors and cache hit ratio for each zone (hourly for the last two days, daily up to a year) or across every zone in an account, plus breakdowns by country, status code, cache status, host, device type, HTTP protocol, SSL protocol, request source and content type.
+- **Security** - firewall and WAF events by rule, service, country, host, user agent or path, with the action Cloudflare took; 30-day event trends and a log of individual events on every plan; and SSL certificate inventory with days until expiry.
+- **DNS and availability** - each zone's status as a health state; every DNS record in a zone with its type, content, TTL and proxy status; standalone health checks; and load balancer request distribution and per-origin pool health.
 - **Web performance** - Core Web Vitals (Largest Contentful Paint, Interaction to Next Paint, Cumulative Layout Shift) and page-load volume and timing (DNS, connection, response, first contentful paint, page load) from Cloudflare Web Analytics, per zone.
 - **Developer platform** - Worker invocations, errors and CPU-time percentiles, outbound subrequests and response time, cron trigger runs, static asset and Cache API requests, Smart Placement and build minutes; R2 bucket operations, bandwidth and stored size; KV operations, latency and stored keys; D1 query counts, rows touched and database size; Queue message operations and backlog, including delayed messages; Durable Object invocations, active and CPU time, errors, memory and storage; Vectorize query volume; Hyperdrive query volume and connection pool; Workers AI inference by model; and Pages deployment history with branch and commit.
 - **Dependency mapping** - which Worker binds which KV namespace, R2 bucket, D1 database, queue, Durable Object namespace, Vectorize index or Hyperdrive config, and which zones each Worker serves.
@@ -60,14 +66,16 @@ On save, the plugin verifies the token against Cloudflare's token-verification e
 - **AI platform** - AI Gateway requests, errors, cache and cost by model or provider; AutoRAG query volume; Vectorize; Workers AI inference; and Browser Rendering sessions.
 - **Email** - Email Routing message flow and DMARC alignment per zone.
 
-The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspectives grouped by Cloudflare product family - Core, Compute, Storage & Databases, AI, Media, Zero Trust and Traffic. Worker Routes and Worker Bindings are indexed and drive the relationship graph but have no perspective of their own.
+The out-of-the-box dashboards open with an **Overview** of every account and zone and an **Inventory** of every imported resource. Perspectives are grouped into folders: **Account** (Account, Account Resources, Account Zero Trust and Account Developer Platform), **Zones** (Zone, Zone Traffic, Zone Web Performance, Zone Security, Zone DNS & Email and Load Balancer Pool), Compute, Storage & Databases, AI, Zero Trust and Media. Worker Routes and Worker Bindings are indexed and drive the relationship graph but have no perspective of their own.
 
 ## Data streams
 
 - **Zone Traffic** - requests, bandwidth, cached traffic, threats, page views and cache hit ratio for a zone, hourly for timeframes up to two days and daily beyond.
-- **Zone Traffic Breakdown** - requests, bytes and visits for a zone grouped by a dimension you choose (country, status code, cache status, host, device type, HTTP protocol or content type).
+- **Zone Traffic Breakdown** - requests, bytes and visits for a zone grouped by a dimension you choose (country, status code, cache status, host, device type, HTTP protocol, SSL protocol, request source or content type). SSL protocol `none` is unencrypted HTTP; request source separates visitor traffic (`eyeball`) from requests made by Workers.
 - **Zone Firewall Events** - firewall and WAF event counts for a zone by action, grouped by rule, service, country, host, user agent or path.
 - **Zone Firewall Event Volume** - firewall and WAF event counts over time for a zone, optionally filtered by action and service, for up to 30 days on every plan.
+- **Zone Firewall Event Log** - individual firewall and WAF events for a zone, newest first, with the action, service, rule, client IP, country, host, path, user agent and Ray ID, optionally filtered by action and service. Returns the latest 1,000 events in the timeframe, for up to 30 days on every plan.
+- **Zone Status** - a zone's status as a health state: active is healthy; pending, initializing, read-only and paused zones are warnings; moved and deactivated zones are errors.
 - **Account Traffic** - requests, bandwidth and visits across every zone in an account in one query, grouped by zone, country, status code, cache status, host or device type.
 - **Load Balancing Requests** - load balancer request counts for a zone by load balancer, pool, origin and edge location.
 - **DNS Records** - every DNS record in a zone with type, content, TTL, proxy status and tags.
@@ -79,7 +87,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Worker Static Asset Requests** - requests served from a Worker's static assets, by status code, cache status or host.
 - **Worker Cache Requests** - Cache API requests a Worker makes, by cache status.
 - **Worker Smart Placement** - requests and duration for a Worker, split by whether Smart Placement ran it near its back end.
-- **Workers Build Minutes** - Workers Builds minutes used by an account.
+- **Worker Build Minutes** - Workers Builds minutes used by an account.
 - **R2 Operations** - requests and response bytes against an R2 bucket by operation type and outcome.
 - **R2 Storage** - stored object count, payload size, metadata size and upload count for an R2 bucket over time.
 - **R2 Bandwidth** - bytes downloaded from and uploaded to an R2 bucket.
@@ -95,7 +103,7 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Load Balancer Pool Health** - per-origin health, response code, response time and failure reason for a pool at each Cloudflare edge location.
 - **Access Logins** - Zero Trust login attempts for an Access application by identity provider, country and outcome.
 - **DNS Analytics** - authoritative DNS query volume and response time for a zone, grouped by query name, query type, response code or edge location.
-- **Email Routing** - forwarded and rejected messages for a zone by action, status and rule.
+- **Email Routing** - forwarded and rejected messages for a zone by action, status, SPF result or DMARC result.
 - **DMARC Reports** - DMARC alignment for a zone by sending source, with pass rate and message volume.
 - **Cache Reserve Operations** - read, write and delete operations against a zone's Cache Reserve.
 - **Cache Reserve Storage** - bytes and object count held in a zone's Cache Reserve over time.
@@ -115,7 +123,6 @@ The out-of-the-box dashboards open with a **Cloudflare Overview**, with perspect
 - **Vectorize Storage** - stored vector count and dimensions for a Vectorize index.
 - **Hyperdrive Queries** - query volume and average latency for a Hyperdrive configuration.
 - **Hyperdrive Connection Pool** - pool size, free slots and waiting clients for a Hyperdrive configuration.
-- **Gateway Network Sessions** - Zero Trust Gateway TCP and UDP sessions for an account by action, destination, protocol or device.
 - **DNS Firewall Analytics** - DNS Firewall cluster query volume, response codes and processing time for an account.
 - **Audit Logs** - account audit activity grouped by action, actor or resource type.
 - **Images Requests** - Cloudflare Images request volume for an account.
@@ -213,12 +220,12 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
     | Widest query / history kept | Data streams | Longest timeframe offered |
     | --------------------------- | ------------ | ------------------------- |
     | **1 day / 3 days** on Pro; none on Free | Zone Firewall Events | Last 24 hours (Last 7 and 30 days on higher plans - see below) |
-    | **30 days / 31 days** on every plan | Zone Firewall Event Volume | Last 30 days |
+    | **30 days / 31 days** on every plan | Zone Firewall Event Volume, Zone Firewall Event Log | Last 30 days |
     | **3 days / 3 days** | Health Check Events, Load Balancing Requests | Last 24 hours |
     | **7 days** | Access Logins, Network Error Logs, Page Shield Reports, Worker Cron Trigger Runs | Last 7 days |
     | **7 days** on Free; **30 days** on Enterprise | Turnstile Challenges | Last 7 days (Last 30 days on Enterprise Turnstile) |
     | **30-31 days / 31 days** | Gateway HTTP Requests and Network Sessions, Stream Playback Quality, DNS Analytics, Zone Traffic Breakdown | Last 30 days |
-    | **31-32 days / 31-32 days** | Gateway DNS Queries, Email Routing, DMARC Reports, Images Requests, AI Gateway Cache and Errors, AutoRAG, Browser Rendering, Container Metrics, Hyperdrive, Queue Consumer Metrics, Realtime Usage, Vectorize, Workers AI, Account Traffic, Worker Static Asset Requests, Worker Smart Placement, Workers Build Minutes, Hyperdrive Connection Pool, R2 Bandwidth | This month |
+    | **31-32 days / 31-32 days** | Gateway DNS Queries, Email Routing, DMARC Reports, Images Requests, AI Gateway Cache and Errors, AutoRAG, Browser Rendering, Container Metrics, Hyperdrive, Queue Consumer Metrics, Realtime Usage, Vectorize, Workers AI, Account Traffic, Worker Static Asset Requests, Worker Smart Placement, Worker Build Minutes, Hyperdrive Connection Pool, R2 Bandwidth | This month |
     | **32-62 days / 62-92 days** | Worker Invocations, Pages Functions, KV, D1, R2, Durable Objects, Queue Backlog and Message Operations, Pipeline Ingestion, Cache Reserve, AI Gateway Requests, DNS Firewall Analytics, Stream Minutes Viewed, Worker Subrequests, Worker Cache Requests, Queue Delayed Backlog, Durable Object Activity | Last month |
     | **61 days, daily only** | Images Unique Transformations | This month |
     | **93 days / 184 days** | Web Analytics Page Loads, Core Web Vitals, Web Analytics Page Load Timing | This quarter |
@@ -229,7 +236,7 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 
     Limits can be wider on Business and Enterprise plans. Two streams offer timeframes that only higher plans can serve, and on a plan whose limit is shorter the tile shows an error naming that limit rather than empty data:
 
-    - **Zone Firewall Events** offers Last 7 days and Last 30 days. Its grouped dataset, `firewallEventsAdaptiveGroups`, allows 1 day on Pro and is not available on Free. Cloudflare publishes 30-31 day limits for Security Events, but [those apply to the raw event dataset](https://developers.cloudflare.com/waf/analytics/security-events/#limits), which returns individual events rather than counts. Use **Zone Firewall Event Volume** for longer ranges: its dataset counts every event for up to 30 days on every plan, including Free, but can only filter by action and service rather than break down by them.
+    - **Zone Firewall Events** offers Last 7 days and Last 30 days. Its grouped dataset, `firewallEventsAdaptiveGroups`, allows 1 day on Pro and is not available on Free. Cloudflare publishes 30-31 day limits for Security Events, but [those apply to the raw event dataset](https://developers.cloudflare.com/waf/analytics/security-events/#limits) behind **Zone Firewall Event Log**, which returns individual events rather than counts. For longer ranges use **Zone Firewall Event Volume**, which counts every event for up to 30 days on every plan, including Free, but can only filter by action and service rather than break down by them - or **Zone Firewall Event Log** for the individual events.
     - **Turnstile Challenges** offers Last 30 days, which [Cloudflare documents](https://developers.cloudflare.com/turnstile/plans/) as the Enterprise lookback; Free is limited to 7 days.
 
     To see the limits for your own account, run this in the **GraphQL Query** stream with the **None** timeframe, a `zoneTag` in **Variables**, and **Path to rows** set to `data.viewer.zones`:
@@ -262,7 +269,8 @@ Worker, R2 Bucket, Vectorize Index and Worker Binding identifiers are prefixed w
 
 - **Hand-written GraphQL queries are unbounded.** The **GraphQL Query** stream runs whatever you give it, so it can hit limits the built-in streams are tuned to avoid: a large `limit` on a multi-dimension dataset can exceed the ~6 MB response cap, and a timeframe wider than that dataset's own cap fails with Cloudflare's error naming the limit. Prefer the pre-aggregated `*Groups` datasets over raw event datasets, and keep `limit` modest. The stream does not page, so your `limit` is the ceiling.
 - **Some analytics are only available on paid plans.** Page Shield and Network Error Logs return an authorization error on plans without them; Cache Reserve, Load Balancing and Health Checks are add-ons. A tile for a feature the zone or account is not entitled to shows Cloudflare's authorization error rather than empty data.
-- **Account Traffic shows zones it cannot name by their zone tag.** The stream resolves each zone tag to an imported zone's name. Traffic for a zone the token cannot list - for example one outside the token's zone resources - appears as *Object not found: Cloudflare Zone/&lt;tag&gt;*.
+- **Account Traffic shows zones it cannot name by their zone tag.** The stream resolves each zone tag to an imported zone's name. Traffic for a zone the token cannot list - for example one outside the token's zone resources - appears as `Object not found: Cloudflare Zone/<tag>`.
+- **There is no threat-type breakdown.** Cloudflare's GraphQL Analytics API, which replaced the deprecated Zone Analytics API, does not classify threats by type. The closest equivalent is **Zone Firewall Events** grouped by **Service**, which shows which security feature acted - managed rules, rate limiting, Bot Fight Mode and so on.
 - **Tunnel bandwidth is not available.** Cloudflare exposes `cloudflared` traffic metrics from each connector's local metrics endpoint rather than through the API, so Tunnels show connector health only.
 - **Costs are unitless.** Cloudflare's AI Gateway analytics reports cost without stating a currency, so the plugin shows a plain number rather than assuming one.
 - **Pages Functions cannot be scoped to a single project.** Cloudflare identifies Pages Functions by an internal script name with no published mapping to the project, so this stream reports all Pages Functions in the account, with the function name as a column.

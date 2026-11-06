@@ -20,4 +20,6 @@ result = ((data && data.result) || [])
         zoneName: zoneName,
         accountId: accountId,
         scriptName: route.script,
+        // A Worker object's sourceId is "<accountId>:<scriptName>" (see workerScripts.js).
+        workerSourceId: accountId ? `${accountId}:${route.script}` : "",
     }));
