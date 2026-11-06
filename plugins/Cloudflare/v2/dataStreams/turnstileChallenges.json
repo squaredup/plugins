@@ -1,0 +1,63 @@
+{
+    "name": "turnstileChallenges",
+    "displayName": "Turnstile Challenges",
+    "description": "Turnstile challenge counts for a widget grouped by a selectable dimension",
+    "tags": ["Security"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$siteKey:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){turnstileAdaptiveGroups(limit:5000,filter:{siteKey:$siteKey,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "siteKey": "{{object.rawId}}",
+                "start": "{{ new Date((timeframe.unixStart + 60) * 1000).toISOString() }}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "turnstileChallenges.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Turnstile Widget"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "eventType",
+            "options": [
+                { "value": "eventType", "label": "Event Type" },
+                { "value": "action", "label": "Action" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "challenges",
+            "displayName": "Challenges",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days"]
+}

@@ -1,0 +1,69 @@
+{
+    "name": "dmarcReports",
+    "displayName": "DMARC Reports",
+    "description": "DMARC aggregate report message counts and pass rates for a zone grouped by a selectable dimension",
+    "tags": ["Zone", "Email", "Security"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:Time!,$end:Time!){viewer{zones(filter:{zoneTag:$zoneTag}){dmarcReportsSourcesAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[sum_totalMatchingMessages_DESC]){sum{messageCount: totalMatchingMessages} avg{dmarcPassRate: dmarc} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlFlatRows.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "disposition",
+            "options": [
+                { "value": "disposition", "label": "Disposition" },
+                { "value": "domain", "label": "Domain" },
+                { "value": "sourceOrgName", "label": "Sending Org" },
+                { "value": "headerFrom", "label": "Header From" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "messageCount",
+            "displayName": "Message Count",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "dmarcPassRate",
+            "displayName": "DMARC Pass Rate",
+            "shape": ["percent", { "asZeroToOne": true }]
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
+}
