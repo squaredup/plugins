@@ -36,7 +36,7 @@ Versions are compared against `main`, because merging is the only point at which
 - Check for hardcoded secrets, API keys, or credentials, including in debug or log output from scripts.
 - Flag imported object names or properties built from URLs that may carry tokens or signed query strings (e.g. webhook URLs).
 - Flag URL `pattern` validation that would let a user-supplied base URL send credentials to an unintended host.
-- `allowedScriptHosts` names hosts a script may send credentials to. Each entry should be the vendor's own host. Ask for an exact host in place of a wildcard unless the PR explains why the host can't be listed. Flag a template that lets the user add any host they like, unless the plugin is for a self-hosted product.
+- `allowedScriptHosts` names hosts a script may send credentials to. Each entry should be a host the vendor's API documents, such as its own host or the identity provider that issues its tokens. Ask for an exact host in place of a wildcard unless the PR explains why the host can't be listed. Flag a template that lets the user add any host they like, unless the plugin is for a self-hosted product.
 - Do **not** require HTTPS-only URL patterns. Self-hosted targets are commonly reached over HTTP through a relay agent, and a `ui.json` pattern cannot depend on the auth mode. At most, suggest a note in the docs.
 
 ## Code formatting
