@@ -1,0 +1,391 @@
+{
+    "name": "Webhook",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [
+        "{{variables.[Resend Webhook]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "8153ecc9-e1dc-42f5-9a38-5000cb852047",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Webhook Details",
+                    "description": "Status and subscribed events of this endpoint",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Webhooks]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Webhook]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Webhook]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "events",
+                                        "title": "Events",
+                                        "renderer": {
+                                            "type": "tag-list"
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableTranspose": true,
+                                "richTableWrapText": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dca34504-e220-4abe-83ee-1c98cb2648fb",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Delivery Status",
+                    "description": "Events sent to this endpoint by delivery status",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[webhookEvents]}}",
+                        "name": "webhookEvents",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Webhooks]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Webhook]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Webhook]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "status[Expanded].rawState",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "type",
+                                    "type": "nominal",
+                                    "aggregate": "count"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "mappedColors": {
+                                    "success": "#22c55e",
+                                    "failed": "#ef4444",
+                                    "attempting": "#f59e0b",
+                                    "pending": "#64748b",
+                                    "error": "#ef4444",
+                                    "warning": "#f59e0b",
+                                    "unknown": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "50a9cf0f-5dc1-4202-bd5b-be76cba76186",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Deliveries Over Time",
+                    "description": "Events sent to this endpoint per day, by delivery status",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[webhookEvents]}}",
+                        "name": "webhookEvents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "byDay"
+                                ],
+                                [
+                                    "status",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Webhooks]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Webhook]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Webhook]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "created_at_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "title": "Events"
+                                },
+                                "series": {
+                                    "field": "status_uniqueValues",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 3,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "success": "#22c55e",
+                                    "failed": "#ef4444",
+                                    "attempting": "#f59e0b",
+                                    "pending": "#64748b",
+                                    "error": "#ef4444",
+                                    "warning": "#f59e0b",
+                                    "unknown": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e733a50b-a453-4ad9-a284-53584191da19",
+                "x": 0,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Failed Deliveries",
+                    "description": "Events this endpoint has not accepted (failed or still retrying), newest first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[webhookEvents]}}",
+                        "name": "webhookEvents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "status",
+                                    "operation": "notequals",
+                                    "value": "success"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Webhooks]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Webhook]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Webhook]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "created_at",
+                                        "title": "When",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "type",
+                                        "title": "Event",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "status[Expanded].rawState",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "success": "#22c55e",
+                                                "failed": "#ef4444",
+                                                "attempting": "#f59e0b",
+                                                "pending": "#64748b",
+                                                "error": "#ef4444",
+                                                "warning": "#f59e0b",
+                                                "unknown": "#64748b"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "deb90499-cca6-4370-8b85-2925d503114f",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Events by Type",
+                    "description": "Events sent to this endpoint by event type",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[webhookEvents]}}",
+                        "name": "webhookEvents",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Resend Webhooks]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Resend Webhook]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Resend Webhook]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "type",
+                                    "type": "nominal",
+                                    "title": "Event"
+                                },
+                                "y": {
+                                    "field": "type",
+                                    "type": "nominal",
+                                    "aggregate": "count",
+                                    "title": "Events"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "showLabels": true,
+                                "colors": [
+                                    "#6366f1"
+                                ],
+                                "cartesianShowHorizontalGridLines": false
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
