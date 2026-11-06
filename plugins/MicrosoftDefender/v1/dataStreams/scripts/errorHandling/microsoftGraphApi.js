@@ -8,9 +8,12 @@ const apiMessage = typeof error.message === "string" ? error.message : "";
 const missingTable = apiMessage.match(/Failed to resolve table or column expression named '([^']+)'/);
 
 if (missingTable && missingTable[1].startsWith("Device")) {
+    // Name the table: a typo in a custom query fails the same way as a missing licence.
     result =
-        "Your Microsoft Defender licence doesn't include advanced hunting on device data, such as " +
-        "Microsoft Defender for Endpoint Plan 2, so this device data isn't available. " +
+        "The advanced hunting table '" +
+        missingTable[1] +
+        "' isn't available. If the name is right, your Microsoft Defender licence doesn't include " +
+        "advanced hunting on device data, such as Microsoft Defender for Endpoint Plan 2. " +
         "The Overview and Incidents dashboards work without it.";
 } else if (missingTable) {
     result =
@@ -24,8 +27,8 @@ if (missingTable && missingTable[1].startsWith("Device")) {
 } else if (response.status === 403) {
     // Graph names the missing role in its message, for example "API required roles: ThreatHunting.Read.All".
     result =
-        "The app doesn't have permission to read this data from Microsoft Graph (HTTP 403). " +
-        "Grant the missing application permission in Microsoft Entra ID with admin consent." +
+        "Microsoft Graph refused access to this data (HTTP 403). Grant the missing application permission " +
+        "in Microsoft Entra ID with admin consent, and check the tenant has a licence that includes this data." +
         (apiMessage ? " " + apiMessage : "");
 } else {
     result = apiMessage || "Microsoft Graph returned HTTP " + response.status;

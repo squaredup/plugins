@@ -1,4 +1,4 @@
-Monitor Microsoft Defender alerts, incidents and Secure Score, and, when your licence includes advanced hunting, your devices, vulnerabilities and threat detections.
+Monitor Microsoft Defender alerts, incidents and Secure Score, and, when your licence includes advanced hunting on device data, your devices, vulnerabilities and threat detections.
 
 ## Before you start
 
