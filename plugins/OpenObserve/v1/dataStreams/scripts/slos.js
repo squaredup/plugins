@@ -6,6 +6,9 @@
 // valueExpression even just to join them (see project memory), so that
 // happens here. "config" is a free-form object shaped by sli_type - kept as
 // a JSON blob rather than modelled field-by-field.
+// computed_at/watermark_end/measuring_since are Unix seconds.
+const secsToIso = (secs) => (secs != null ? new Date(secs * 1000).toISOString() : null);
+
 result = (data.list || []).map((slo) => {
     const status = slo.status;
     return {
@@ -31,9 +34,9 @@ result = (data.list || []).map((slo) => {
         burnRate: status ? status.burn_rate : null,
         errorBudgetRemaining: status ? status.error_budget_remaining : null,
         timeToExhaustSecs: status ? status.time_to_exhaust_secs : null,
-        computedAt: status && status.computed_at != null ? status.computed_at * 1000 : null,
-        watermarkEnd: status && status.watermark_end != null ? status.watermark_end * 1000 : null,
-        measuringSince: status && status.measuring_since != null ? status.measuring_since * 1000 : null,
+        computedAt: status ? secsToIso(status.computed_at) : null,
+        watermarkEnd: status ? secsToIso(status.watermark_end) : null,
+        measuringSince: status ? secsToIso(status.measuring_since) : null,
         staleWatermark: status ? status.stale_watermark : null,
     };
 });

@@ -10,6 +10,6 @@
 // instance tested (no honest stand-in value), so they aren't exposed.
 result = (data.hits || []).map((entry) => ({
     ...entry,
-    timestamp: entry.timestamp / 1000,
+    timestamp: new Date(entry.timestamp / 1000).toISOString(),
     error: entry.error == null ? "" : entry.error,
 }));

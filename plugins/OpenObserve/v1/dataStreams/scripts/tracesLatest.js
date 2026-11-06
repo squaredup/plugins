@@ -20,6 +20,9 @@
 // editor's native Group-by buckets no finer than byHour, so an optional
 // "bucketInterval" param (e.g. "5m") switches this stream to pre-aggregated
 // rows - one per fixed-width time window - computed here instead.
+//
+// start_time/end_time are nanoseconds: / 1e6 gives milliseconds, the same
+// unit as bucketMs, then dates are emitted as ISO 8601.
 const ds = (context.dataSources && context.dataSources[0]) || {};
 const webBase = [ds.url, ds.port].filter(Boolean).join(":");
 const streamName = (context.objects && context.objects[0] && context.objects[0].name) || "";
@@ -44,7 +47,7 @@ if (bucketMs) {
     result = Array.from(buckets.entries())
         .sort((a, b) => a[0] - b[0])
         .map(([bucketStart, durations]) => ({
-            startTime: bucketStart,
+            startTime: new Date(bucketStart).toISOString(),
             traceCount: durations.length,
             avgDurationMs: durations.reduce((a, b) => a + b, 0) / durations.length,
             minDurationMs: Math.min(...durations),
@@ -57,8 +60,8 @@ if (bucketMs) {
         const toUs = Math.floor(row.end_time / 1000);
         return {
             ...rest,
-            startTime: row.start_time / 1000000,
-            endTime: row.end_time / 1000000,
+            startTime: new Date(row.start_time / 1000000).toISOString(),
+            endTime: new Date(row.end_time / 1000000).toISOString(),
             durationMs: row.duration / 1000,
             spanCount: (spans && spans[0]) || 0,
             serviceCount: (service_name || []).length,

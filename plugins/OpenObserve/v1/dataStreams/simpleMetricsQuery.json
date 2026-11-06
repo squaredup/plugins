@@ -12,7 +12,7 @@
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{ (aggregation && aggregation !== 'none' ? aggregation + '(' : '') + metric + (label && values && values.length ? '{' + label + '=~\"' + values.join('|') + '\"}' : '') + (aggregation && aggregation !== 'none' ? ')' : '') }}"
+                "value": "{{ (aggregation && aggregation !== 'none' ? aggregation + '(' : '') + metric + (label && values && values.length ? '{' + label + '=~\"' + values.map((v) => String(v).split('').map((c) => c === String.fromCharCode(92) ? String.fromCharCode(92, 92, 92, 92) : '.*+?^$(){}|[]'.includes(c) ? String.fromCharCode(92, 92) + c : c === '\"' ? String.fromCharCode(92) + c : c).join('')).join('|') + '\"}' : '') + (aggregation && aggregation !== 'none' ? ')' : '') }}"
             },
             {
                 "key": "start",
@@ -134,6 +134,11 @@
             "displayName": "Name",
             "shape": "string",
             "role": "label"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string"
         },
         {
             "name": "timestamp",
