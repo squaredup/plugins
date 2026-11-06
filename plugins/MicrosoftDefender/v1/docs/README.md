@@ -31,7 +31,7 @@ Click **Test and add** to validate the data source configuration. SquaredUp chec
 
 - **A warning on one check** means that permission or licence is missing. The data source still works for everything else. See [Before you start](#before-you-start) for what each check enables.
 - **A warning on every check** usually means the tenant ID, client ID or client secret is wrong, or the client secret has expired.
-- **No devices imported** means advanced hunting on device data is not available. This is expected without a licence that includes it.
+- **No devices imported** usually means advanced hunting on device data is not available, which is expected without a licence that includes it. It can also mean Defender has no onboarded devices with a name yet.
 
 For errors on dashboard tiles see [Troubleshooting tiles](https://docs.squaredup.com/troubleshooting/troubleshooting-tiles).
 
