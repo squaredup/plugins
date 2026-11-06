@@ -1,0 +1,50 @@
+{
+    "name": "logsSearch",
+    "displayName": "Logs Search",
+    "description": "Log records matching a SQL query, across any log stream",
+    "tags": ["Search"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "_search",
+        "getArgs": [{ "key": "type", "value": "logs" }],
+        "postBody": {
+            "query": {
+                "sql": "{{sql}}",
+                "start_time": "{{timeframe.unixStart * 1000000}}",
+                "end_time": "{{timeframe.unixEnd * 1000000}}",
+                "from": 0,
+                "size": "{{size || 100}}"
+            },
+            "search_type": "ui"
+        },
+        "postRequestScript": "search.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "textarea",
+            "name": "sql",
+            "label": "SQL Query",
+            "help": "The stream name isn't auto-substituted — type it yourself in the FROM clause, e.g. SELECT * FROM \"default\" LIMIT 100. This stream searches logs only.",
+            "placeholder": "SELECT * FROM \"default\" LIMIT 100",
+            "validation": { "required": true }
+        },
+        {
+            "type": "number",
+            "name": "size",
+            "label": "Max rows",
+            "defaultValue": 100
+        }
+    ],
+    "metadata": [
+        {
+            "name": "recordTime",
+            "displayName": "Timestamp",
+            "role": "timestamp",
+            "shape": "date"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": true
+}

@@ -1,0 +1,113 @@
+{
+    "name": "tracesLatest",
+    "displayName": "Traces Latest",
+    "description": "Recent traces in a stream, within a time range",
+    "tags": ["Traces"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{object.name}}/traces/latest",
+        "getArgs": [
+            { "key": "start_time", "value": "{{timeframe.unixStart * 1000000}}" },
+            { "key": "end_time", "value": "{{timeframe.unixEnd * 1000000}}" },
+            { "key": "size", "value": "{{size}}" },
+            { "key": "from", "value": "0" },
+            { "key": "filter", "value": "{{filter || null}}" }
+        ],
+        "postRequestScript": "tracesLatest.js"
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Stream"] },
+        "stream_type": { "type": "equals", "value": "traces" }
+    },
+    "ui": [
+        {
+            "type": "number",
+            "name": "size",
+            "label": "Max rows",
+            "defaultValue": 50
+        },
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Filter (optional)"
+        },
+        {
+            "type": "text",
+            "name": "bucketInterval",
+            "label": "Bucket interval (optional)",
+            "placeholder": "e.g. 5m, 15m, 1h",
+            "help": "Leave blank to return one row per trace. Set to a width like `5m` or `1h` to return one row per time bucket instead, with a trace count and duration stats — useful for charting trace volume at a finer granularity than the tile editor's own Group-by buckets support (hourly is the finest native option)."
+        }
+    ],
+    "metadata": [
+        { "name": "start_time", "visible": false },
+        { "name": "end_time", "visible": false },
+        { "name": "duration", "visible": false },
+        { "name": "traceUrl", "visible": false },
+        {
+            "name": "startTime",
+            "displayName": "Start Time",
+            "role": "timestamp",
+            "shape": "date"
+        },
+        {
+            "name": "endTime",
+            "displayName": "End Time",
+            "shape": "date"
+        },
+        {
+            "name": "durationMs",
+            "displayName": "Duration (ms)",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "traceCount",
+            "displayName": "Trace Count",
+            "shape": "number"
+        },
+        {
+            "name": "avgDurationMs",
+            "displayName": "Avg Duration (ms)",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "minDurationMs",
+            "displayName": "Min Duration (ms)",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "maxDurationMs",
+            "displayName": "Max Duration (ms)",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "spanCount",
+            "displayName": "Span Count",
+            "shape": "number"
+        },
+        {
+            "name": "serviceCount",
+            "displayName": "Service Count",
+            "shape": "number"
+        },
+        {
+            "name": "services",
+            "displayName": "Services",
+            "shape": "string"
+        },
+        {
+            "name": "models",
+            "displayName": "Models",
+            "shape": "string"
+        },
+        {
+            "name": "trace_id",
+            "displayName": "Trace ID",
+            "valueExpression": "{{ $['traceUrl'] }}",
+            "shape": ["url", { "label": "View Trace" }]
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": ["last1hour"]
+}

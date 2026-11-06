@@ -1,0 +1,56 @@
+{
+    "name": "pipelineHistory",
+    "displayName": "Pipeline History",
+    "description": "Pipeline execution history within a time range",
+    "tags": ["Pipelines"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "pipelines/history",
+        "getArgs": [
+            { "key": "pipeline_id", "value": "{{pipeline_id || null}}" },
+            { "key": "start_time", "value": "{{timeframe.unixStart * 1000000}}" },
+            { "key": "end_time", "value": "{{timeframe.unixEnd * 1000000}}" },
+            { "key": "from", "value": "{{from || 0}}" },
+            { "key": "size", "value": "{{size || 50}}" }
+        ],
+        "postRequestScript": "pipelineHistory.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "text",
+            "name": "pipeline_id",
+            "label": "Pipeline ID (optional)"
+        },
+        {
+            "type": "number",
+            "name": "from",
+            "label": "From",
+            "defaultValue": 0
+        },
+        {
+            "type": "number",
+            "name": "size",
+            "label": "Size",
+            "defaultValue": 50
+        }
+    ],
+    "metadata": [
+        { "name": "pipeline_name", "displayName": "Pipeline Name", "shape": "string", "role": "label" },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        { "name": "is_realtime", "displayName": "Is Realtime", "shape": "boolean" },
+        { "name": "is_silenced", "displayName": "Is Silenced", "shape": "boolean" },
+        { "name": "retries", "displayName": "Retries", "shape": "number" },
+        { "name": "error", "displayName": "Error", "shape": "string" },
+        { "name": "query_took", "displayName": "Query Took (ms, estimated)", "shape": "milliseconds" },
+        { "name": "source_node", "displayName": "Source Node", "shape": "string" }
+    ],
+    "timeframes": true
+}

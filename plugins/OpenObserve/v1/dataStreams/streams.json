@@ -1,0 +1,53 @@
+{
+    "name": "streams",
+    "displayName": "Streams",
+    "description": "Streams registered in the organization, with stats and settings",
+    "tags": ["Streams"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "streams",
+        "getArgs": [
+            { "key": "type", "value": "{{type}}" },
+            { "key": "fetchSchema", "value": "false" }
+        ],
+        "expandInnerObjects": true,
+        "pathToData": "list"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "type",
+            "label": "Stream type",
+            "defaultValue": "logs",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "isClearable": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "logs", "label": "Logs" },
+                    { "value": "metrics", "label": "Metrics" },
+                    { "value": "traces", "label": "Traces" }
+                ]
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "name", "displayName": "Name", "shape": "string" },
+        { "name": "stream_type", "displayName": "Stream Type", "shape": "string" },
+        { "name": "stats.doc_num", "displayName": "Document Count", "shape": "number" },
+        { "name": "stats.storage_size", "displayName": "Storage Size (MB)", "shape": ["megabytes", {}] },
+        { "name": "stats.compressed_size", "displayName": "Compressed Size (MB)", "shape": ["megabytes", {}] },
+        {
+            "name": "sourceId",
+            "displayName": "Source ID",
+            "computed": true,
+            "valueExpression": "{{ $['name'] + ':' + $['stream_type'] }}",
+            "visible": false
+        }
+    ],
+    "visibility": { "type": "hidden" },
+    "timeframes": false
+}

@@ -1,0 +1,43 @@
+{
+    "name": "metricsQuery",
+    "displayName": "Metrics Query",
+    "description": "Time series data matching a PromQL query",
+    "tags": ["Metrics"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "prometheus/api/v1/query_range",
+        "getArgs": [
+            { "key": "query", "value": "{{promql}}" },
+            { "key": "start", "value": "{{timeframe.unixStart}}" },
+            { "key": "end", "value": "{{timeframe.unixEnd}}" },
+            { "key": "step", "value": "{{step || '60s'}}" }
+        ],
+        "postRequestScript": "metricsQuery.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "code",
+            "name": "promql",
+            "label": "PromQL Query",
+            "language": "promql",
+            "placeholder": "up or rate(http_requests_total[5m])",
+            "validation": { "required": true }
+        },
+        {
+            "type": "text",
+            "name": "step",
+            "label": "Step (e.g. 60s, 5m)",
+            "defaultValue": "60s"
+        }
+    ],
+    "metadata": [
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "series", "displayName": "Series", "shape": "string" },
+        { "name": "timestamp", "displayName": "Timestamp", "shape": "date", "role": "timestamp" },
+        { "name": "value", "displayName": "Value", "shape": "number" },
+        { "pattern": ".*" }
+    ],
+    "timeframes": true
+}
