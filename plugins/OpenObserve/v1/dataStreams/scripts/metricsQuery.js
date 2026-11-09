@@ -12,7 +12,8 @@ const RESERVED = ["name", "series", "timestamp", "value"];
 
 result = ((data.data && data.data.result) || []).flatMap((s) => {
     const { __name__, ...labels } = s.metric || {};
-    const labelColumns = {};
+    // No prototype, so a label named "__proto__" is stored like any other.
+    const labelColumns = Object.create(null);
     const keys = Object.keys(labels).sort();
     // Plain label names are taken first, so a prefixed name never displaces one.
     const taken = new Set([...RESERVED, ...keys.filter((key) => !RESERVED.includes(key))]);
