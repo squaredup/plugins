@@ -31,8 +31,8 @@ The plugin includes three dashboards: **Overview**, **Incidents** and **Maintena
 - **Incidents**: one row per incident. It has one parameter:
     - **One row per affected component**: splits an incident that affects several components into one row per component, so that breakdowns by component count the incident against each component it affects.
 
-    The timeframe returns every incident that was open at any point in the range, including one that started earlier and was still running. Set the timeframe to **None** to return the whole history.
-- **Scheduled Maintenance**: one row per maintenance window. The timeframe returns every window that overlaps the range. Set the timeframe to **None** to return all windows, including upcoming ones.
+    The timeframe returns every incident that was open at any point in the range, including one that started earlier and was still running. Set the timeframe to **None** to return every incident the status page lists, which is its 50 most recent.
+- **Scheduled Maintenance**: one row per maintenance window. The timeframe returns every window that overlaps the range. Set the timeframe to **None** to return every window the status page lists, including upcoming ones, which is its 50 most recent.
 
 The **State** column uses these rules:
 
@@ -51,7 +51,7 @@ Nothing. The status page contains status updates, not inventory, so this data so
 
 - **Status is platform-wide.** The status page covers Splunk Cloud Platform as a whole. It can't tell you whether your own stack is affected.
 - **An incident's impact can understate it.** Splunk sets the **Impact** value by hand, and it is sometimes lower than what happened (an incident titled "Major Outage" can be filed as minor). **Worst component status** shows the worst status any affected component reached during the incident, so use it when you need severity.
-- **History is whatever the status page lists.** At the time of writing that is about three years of incidents. The plugin can't return anything older.
-- **Every tile downloads the whole list.** The status page has no server-side filtering, so each incident request fetches every incident, about 200 KB, and filters it after download.
+- **History is limited to the 50 most recent records.** The status page returns only its 50 most recent incidents and its 50 most recent maintenance windows, and has no paging. Once either list grows past 50, older records drop out of the data source, even with the timeframe set to **None**. At the time of writing there are 35 incidents, going back to June 2023, so nothing is missing yet.
+- **Every tile downloads the whole list.** The status page has no server-side filtering, so each incident request fetches the full list (about 200 KB at the time of writing) and filters it after download.
 - **Some resolve times are wrong at the source.** A few older incidents were recorded as resolved before they started. **Time to resolve** is left empty for those rather than showing a negative duration.
 - **Some incidents have no components.** Splunk doesn't always tag an incident with the components it affected, so those incidents have an empty **Components** value.
