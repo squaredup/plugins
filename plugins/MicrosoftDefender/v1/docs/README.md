@@ -39,8 +39,8 @@ For errors on dashboard tiles see [Troubleshooting tiles](https://docs.squaredup
 
 The following dashboards work with any licence, as long as the matching permissions are granted:
 
-- **Overview**: Current and historical Secure Score, active incidents, and active alerts by severity, service and category, with a list of active high severity alerts.
-- **Incidents**: Active and unassigned incidents, average time to resolve, and incidents broken down by severity, status and priority score.
+- **Overview**: Current and historical Secure Score, active high severity incidents, and active high severity alerts by service and category, with a list of those alerts.
+- **Incidents**: High severity incidents: active and unassigned counts, incidents by status and priority score, and a list.
 
 The **Advanced Hunting** folder holds dashboards that need advanced hunting on device data:
 
