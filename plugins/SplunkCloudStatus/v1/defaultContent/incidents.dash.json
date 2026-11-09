@@ -1,0 +1,532 @@
+{
+    "name": "Incidents",
+    "schemaVersion": "1.5",
+    "timeframe": "thisYear",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "afb62720-9ec6-4aab-a515-9a4d068a6e24",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "count",
+                                        "type": "quantitative",
+                                        "title": "Incidents"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b11816d2-72a6-4381-a60d-b30281aef13b",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Median Time to Resolve",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "timeToResolveMinutes",
+                                    "operation": "greaterthan",
+                                    "value": "-1"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "median",
+                                    "names": [
+                                        "timeToResolveMinutes"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "timeToResolveMinutes_median",
+                                        "type": "quantitative",
+                                        "title": "Median Time to Resolve"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a9e20d3e-254c-43f8-b17e-6176eb91b116",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents by Worst Component Status",
+                    "description": "Worst status any component reached during the incident",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "worstComponentStatus",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "worstComponentStatus",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "worstComponentStatus_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Incidents by Worst Component Status"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table",
+                                "pieLabels": "nameAndValue",
+                                "mappedColors": {
+                                    "Major outage": "#ef4444",
+                                    "Partial outage": "#f97316",
+                                    "Degraded performance": "#f59e0b",
+                                    "Operational": "#22c55e"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "69611d97-9d8d-414a-8b68-cf692e96409a",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents by Impact",
+                    "description": "Impact as set by the status page, which can understate severity",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "impact",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "impact_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Incidents by Impact"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table",
+                                "pieLabels": "nameAndValue",
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Major": "#f97316",
+                                    "Minor": "#f59e0b",
+                                    "None": "#9ca3af"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7b0cbd72-82b4-4478-afc2-815da4e33f46",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents by Component",
+                    "description": "Incidents that affected each component",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "oneRowPerComponent": true
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "components",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "components",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "components_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Component"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b08a418b-e610-4045-91e8-b8e49b16ef8c",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents Over Time",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "startedAt",
+                                    "byMonth"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "startedAt_byMonth",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "startedAt_byMonth",
+                                    "type": "temporal",
+                                    "title": "Month"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0261a3df-86c3-480e-b988-8e1f3315c911",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incident History",
+                    "description": "Every incident on record",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "startedAt",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Incident",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "impact",
+                                        "title": "Impact",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Critical": "#ef4444",
+                                                "Major": "#f97316",
+                                                "Minor": "#f59e0b",
+                                                "None": "#9ca3af"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "worstComponentStatus",
+                                        "title": "Worst Component Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Major outage": "#ef4444",
+                                                "Partial outage": "#f97316",
+                                                "Degraded performance": "#f59e0b",
+                                                "Operational": "#22c55e"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "components",
+                                        "title": "Components",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "separator": ","
+                                        }
+                                    },
+                                    {
+                                        "field": "startedAt",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "timeToResolveMinutes",
+                                        "title": "Time to Resolve",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " min"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "link",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
