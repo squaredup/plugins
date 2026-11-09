@@ -29,7 +29,12 @@ if (missingTable && missingTable[1].startsWith("Device")) {
     result =
         "Microsoft Graph refused access to this data (HTTP 403). Grant the missing application permission " +
         "in Microsoft Entra ID with admin consent, and check the tenant has a licence that includes this data." +
-        (apiMessage ? " " + apiMessage : "");
+        (apiMessage ? " " + apiMessage : "") +
+        // Secure Score's 403 doesn't name the role, so list what each part of the plugin needs.
+        (/required roles/i.test(apiMessage)
+            ? ""
+            : " Alerts need SecurityAlert.Read.All, incidents SecurityIncident.Read.All, Secure Score " +
+              "SecurityEvents.Read.All, and advanced hunting ThreatHunting.Read.All.");
 } else {
     result = apiMessage || "Microsoft Graph returned HTTP " + response.status;
 }
