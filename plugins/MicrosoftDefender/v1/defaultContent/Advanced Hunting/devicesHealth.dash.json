@@ -1,7 +1,9 @@
 {
     "name": "Devices Health",
     "schemaVersion": "1.5",
-    "folderPath": ["Advanced Hunting"],
+    "folderPath": [
+        "Advanced Hunting"
+    ],
     "dashboard": {
         "_type": "layout/grid",
         "contents": [
@@ -497,30 +499,15 @@
                 "z": 0,
                 "config": {
                     "dataStream": {
-                        "pluginConfigId": "{{configId}}",
-                        "name": "devices",
-                        "id": "{{dataStreams.devices}}",
-                        "group": {
-                            "by": [
-                                [
-                                    "ExposureLevel",
-                                    "uniqueValues"
-                                ]
-                            ],
-                            "aggregate": [
-                                {
-                                    "type": "count"
-                                }
-                            ]
-                        }
-                    },
-                    "scope": {
-                        "query": "g.V().order().by('__name').hasNot('__canonicalType').or(__.has(\"sourceType\", \"Device\")).limit(500)",
-                        "bindings": {},
-                        "queryDetail": {}
+                        "name": "advancedHuntingQuery",
+                        "dataSourceConfig": {
+                            "query": "DeviceInfo\n| summarize arg_max(Timestamp, *) by DeviceId\n| summarize Devices = count() by ExposureLevel"
+                        },
+                        "id": "{{dataStreams.advancedHuntingQuery}}",
+                        "pluginConfigId": "{{configId}}"
                     },
                     "_type": "tile/data-stream",
-                    "description": "",
+                    "description": "Devices by their latest exposure level",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
@@ -534,19 +521,19 @@
                                     "customColors": [
                                         {
                                             "color": "#88898C",
-                                            "expression": "label == \"Unknown\""
+                                            "expression": "label == \"None\""
+                                        },
+                                        {
+                                            "color": "#0075FF",
+                                            "expression": "label == \"Low\""
                                         },
                                         {
                                             "color": "#E18700",
-                                            "expression": "label == \"Warning\""
+                                            "expression": "label == \"Medium\""
                                         },
                                         {
                                             "color": "#DE0038",
-                                            "expression": "label == \"Error\""
-                                        },
-                                        {
-                                            "color": "#259A51",
-                                            "expression": "label == \"Success\""
+                                            "expression": "label == \"High\""
                                         }
                                     ]
                                 },
@@ -558,13 +545,13 @@
                                 "showGrid": true,
                                 "grouping": false,
                                 "displayMode": "actual",
-                                "xAxisData": "ExposureLevel_uniqueValues",
+                                "xAxisData": "ExposureLevel",
                                 "showTotals": false,
                                 "yAxisLabel": "",
                                 "horizontalLayout": "vertical",
                                 "showValue": true,
                                 "yAxisData": [
-                                    "count"
+                                    "Devices"
                                 ],
                                 "showYAxisLabel": false,
                                 "xAxisLabel": "",
