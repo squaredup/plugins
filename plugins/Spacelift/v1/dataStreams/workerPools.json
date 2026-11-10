@@ -1,0 +1,125 @@
+{
+    "name": "workerPools",
+    "displayName": "Worker Pools",
+    "description": "Worker capacity and queued runs per worker pool, including the public pool",
+    "tags": ["Capacity"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query WorkerPools { workerPools { id name description space spaceDetails { name } labels pendingRuns busyWorkers workersCount workers { busy drained } } publicWorkerPool { parallelism busyWorkers pendingRuns } }"
+        },
+        "postRequestScript": "workerPools.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/graphql.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "workerPool",
+            "label": "Worker pool (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Worker Pool"]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Worker pool",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": "state"
+        },
+        {
+            "name": "poolType",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "utilization",
+            "displayName": "Utilization",
+            "shape": ["percent", { "decimalPlaces": 0 }],
+            "role": "value"
+        },
+        {
+            "name": "pendingRuns",
+            "displayName": "Pending runs",
+            "shape": "number"
+        },
+        {
+            "name": "busyWorkers",
+            "displayName": "Busy workers",
+            "shape": "number"
+        },
+        {
+            "name": "idleWorkers",
+            "displayName": "Idle workers",
+            "shape": "number"
+        },
+        {
+            "name": "drainedWorkers",
+            "displayName": "Drained workers",
+            "shape": "number"
+        },
+        {
+            "name": "workers",
+            "displayName": "Workers",
+            "shape": "number"
+        },
+        {
+            "name": "parallelism",
+            "displayName": "Parallelism",
+            "shape": "number"
+        },
+        {
+            "name": "space",
+            "displayName": "Space",
+            "shape": "string"
+        },
+        {
+            "name": "labels",
+            "displayName": "Labels",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "workerPoolId",
+            "displayName": "Worker pool ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "spaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "workerPoolId",
+            "sourceType": "Worker Pool",
+            "name": "name"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [["pendingRuns", "desc"]]
+        }
+    },
+    "timeframes": false
+}

@@ -1,0 +1,109 @@
+{
+    "name": "workers",
+    "displayName": "Workers",
+    "description": "Workers registered in a private worker pool",
+    "tags": [
+        "Capacity"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query Workers($id: ID!) { workerPool(id: $id) { id name workers { id status busy drained createdAt availableAt } } }",
+            "variables": {
+                "id": "{{object.rawId}}"
+            }
+        },
+        "postRequestScript": "workers.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/graphql.js"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Worker Pool"
+            ]
+        },
+        "poolType": {
+            "type": "equals",
+            "value": "Private"
+        }
+    },
+    "metadata": [
+        {
+            "name": "workerId",
+            "displayName": "Worker",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "IDLE",
+                            "BUSY"
+                        ],
+                        "warning": [
+                            "DRAINED"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "busy",
+            "displayName": "Busy",
+            "shape": "boolean"
+        },
+        {
+            "name": "drained",
+            "displayName": "Drained",
+            "shape": "boolean"
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Registered",
+            "shape": "date"
+        },
+        {
+            "name": "availableAt",
+            "displayName": "Idle since",
+            "shape": "date"
+        },
+        {
+            "name": "workerPoolName",
+            "displayName": "Worker pool",
+            "shape": "string"
+        },
+        {
+            "name": "workerPoolId",
+            "displayName": "Worker pool ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "workerPoolId",
+            "sourceType": "Worker Pool",
+            "name": "workerPoolName"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "createdAt",
+                    "asc"
+                ]
+            ]
+        }
+    },
+    "timeframes": false
+}

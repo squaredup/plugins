@@ -1,0 +1,213 @@
+{
+    "name": "stacks",
+    "displayName": "Stacks",
+    "description": "Current state, drift and lock status of each stack",
+    "tags": ["Stacks"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query Stacks { stacks { id name description space spaceDetails { name } labels administrative autodeploy branch repository projectRoot provider state stateSetAt isDisabled isDrifted lockedBy lockedAt needsApproval entityCount lastApplyAt deleted workerPool { id name } vendorConfig { __typename } trackedCommit { hash authorName } } }"
+        },
+        "postRequestScript": "stacks.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/graphql.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "stack",
+            "label": "Stack (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Stack"]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "workerPool",
+            "label": "Worker pool (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": ["Worker Pool"]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Stack",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": "state"
+        },
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "isDrifted",
+            "displayName": "Drifted",
+            "shape": "boolean"
+        },
+        {
+            "name": "needsApproval",
+            "displayName": "Needs approval",
+            "shape": "boolean"
+        },
+        {
+            "name": "isLocked",
+            "displayName": "Locked",
+            "shape": "boolean"
+        },
+        {
+            "name": "lockedBy",
+            "displayName": "Locked by",
+            "shape": "string"
+        },
+        {
+            "name": "lockedAt",
+            "displayName": "Locked at",
+            "shape": "date"
+        },
+        {
+            "name": "isDisabled",
+            "displayName": "Disabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "space",
+            "displayName": "Space",
+            "shape": "string"
+        },
+        {
+            "name": "vendor",
+            "displayName": "Vendor",
+            "shape": "string"
+        },
+        {
+            "name": "resourceCount",
+            "displayName": "Resources",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "stateSetAt",
+            "displayName": "State changed",
+            "shape": "date"
+        },
+        {
+            "name": "lastApplyAt",
+            "displayName": "Last applied",
+            "shape": "date"
+        },
+        {
+            "name": "repository",
+            "displayName": "Repository",
+            "shape": "string"
+        },
+        {
+            "name": "branch",
+            "displayName": "Branch",
+            "shape": "string"
+        },
+        {
+            "name": "projectRoot",
+            "displayName": "Project root",
+            "shape": "string"
+        },
+        {
+            "name": "vcsProvider",
+            "displayName": "VCS provider",
+            "shape": "string"
+        },
+        {
+            "name": "commitHash",
+            "displayName": "Tracked commit",
+            "shape": "string",
+            "formatExpression": "{{ String($['commitHash'] || '').slice(0, 7) }}"
+        },
+        {
+            "name": "commitAuthor",
+            "displayName": "Commit author",
+            "shape": "string"
+        },
+        {
+            "name": "workerPoolName",
+            "displayName": "Worker pool",
+            "shape": "string"
+        },
+        {
+            "name": "labels",
+            "displayName": "Labels",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        {
+            "name": "autodeploy",
+            "displayName": "Autodeploy",
+            "shape": "boolean"
+        },
+        {
+            "name": "administrative",
+            "displayName": "Administrative",
+            "shape": "boolean"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "url",
+            "displayName": "Link",
+            "shape": ["url", { "label": "Open in Spacelift" }]
+        },
+        {
+            "name": "stackId",
+            "displayName": "Stack ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "spaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "workerPoolId",
+            "displayName": "Worker pool ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "stackId",
+            "sourceType": "Stack",
+            "name": "name"
+        },
+        {
+            "sourceId": "workerPoolId",
+            "sourceType": "Worker Pool",
+            "name": "workerPoolName"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [["name", "asc"]]
+        }
+    },
+    "timeframes": false
+}

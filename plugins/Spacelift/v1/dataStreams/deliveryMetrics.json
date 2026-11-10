@@ -1,0 +1,109 @@
+{
+    "name": "deliveryMetrics",
+    "displayName": "Delivery Metrics",
+    "description": "Daily deployments, change failure rate, lead time for changes and time to recovery across the account",
+    "tags": [
+        "Runs"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query DeliveryMetrics { metricsRange(input: { startTime: {{Math.floor(timeframe.unixStart)}}, endTime: {{Math.ceil(timeframe.unixEnd)}}, timezone: \"UTC\" }) { numberOfDeploymentsRange { timestamp value } changeFailureRateRange { timestamp value } averageLeadTimeForChangesRange { timestamp value } medianLeadTimeForChangesRange { timestamp value } averageTimeToRecoveryRange { timestamp value } medianTimeToRecoveryRange { timestamp value } } }"
+        },
+        "postRequestScript": "deliveryMetrics.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/graphql.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy",
+                    "timeZone": "Etc/UTC"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "deployments",
+            "displayName": "Deployments",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "changeFailureRate",
+            "displayName": "Change failure rate",
+            "shape": [
+                "percent",
+                {
+                    "asZeroToOne": true,
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "averageLeadTime",
+            "displayName": "Average lead time",
+            "shape": [
+                "seconds",
+                {
+                    "formatDuration": true
+                }
+            ]
+        },
+        {
+            "name": "medianLeadTime",
+            "displayName": "Median lead time",
+            "shape": [
+                "seconds",
+                {
+                    "formatDuration": true
+                }
+            ]
+        },
+        {
+            "name": "averageTimeToRecovery",
+            "displayName": "Average time to recovery",
+            "shape": [
+                "seconds",
+                {
+                    "formatDuration": true
+                }
+            ]
+        },
+        {
+            "name": "medianTimeToRecovery",
+            "displayName": "Median time to recovery",
+            "shape": [
+                "seconds",
+                {
+                    "formatDuration": true
+                }
+            ]
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "date",
+                    "asc"
+                ]
+            ]
+        }
+    },
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}

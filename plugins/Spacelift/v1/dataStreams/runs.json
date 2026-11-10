@@ -1,0 +1,210 @@
+{
+    "name": "runs",
+    "displayName": "Runs",
+    "description": "Runs and tasks started across all stacks (excludes module test runs)",
+    "tags": [
+        "Runs"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query Runs($offset: Int) { searchRuns(offset: $offset, input: { first: 50, predicates: [{ field: \"createdAt\", constraint: { timeInRange: { start: {{Math.floor(timeframe.unixStart)}}, end: {{Math.ceil(timeframe.unixEnd)}} } } }] }) { edges { node { isModule stack { id name } run { id title type state createdAt updatedAt finished triggeredBy branch driftDetection needsApproval commit { hash authorName authorLogin } delta { addCount changeCount deleteCount } } } } } }",
+            "variables": {
+                "offset": 0
+            }
+        },
+        "paging": {
+            "mode": "offset",
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data.searchRuns.edges"
+                }
+            },
+            "out": {
+                "realm": "body",
+                "path": "variables.offset"
+            }
+        },
+        "postRequestScript": "runs.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/graphql.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "title",
+            "displayName": "Run",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "FINISHED"
+                        ],
+                        "error": [
+                            "FAILED"
+                        ],
+                        "warning": [
+                            "UNCONFIRMED",
+                            "PENDING_REVIEW",
+                            "STOPPED"
+                        ],
+                        "unknown": [
+                            "QUEUED",
+                            "READY",
+                            "PREPARING",
+                            "INITIALIZING",
+                            "PLANNING",
+                            "CONFIRMED",
+                            "PREPARING_APPLY",
+                            "APPLYING",
+                            "PERFORMING",
+                            "DESTROYING",
+                            "REPLAN_REQUESTED",
+                            "PREPARING_REPLAN",
+                            "CANCELED",
+                            "DISCARDED",
+                            "SKIPPED",
+                            "PENDING",
+                            "UNKNOWN"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "stackName",
+            "displayName": "Stack",
+            "shape": "string"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Created",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "updatedAt",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "name": "duration",
+            "displayName": "Duration",
+            "shape": [
+                "seconds",
+                {
+                    "formatDuration": true
+                }
+            ]
+        },
+        {
+            "name": "resourcesAdded",
+            "displayName": "Added",
+            "shape": "number"
+        },
+        {
+            "name": "resourcesChanged",
+            "displayName": "Changed",
+            "shape": "number"
+        },
+        {
+            "name": "resourcesDeleted",
+            "displayName": "Deleted",
+            "shape": "number"
+        },
+        {
+            "name": "driftDetection",
+            "displayName": "Drift detection",
+            "shape": "boolean"
+        },
+        {
+            "name": "needsApproval",
+            "displayName": "Needs approval",
+            "shape": "boolean"
+        },
+        {
+            "name": "triggeredBy",
+            "displayName": "Triggered by",
+            "shape": "string"
+        },
+        {
+            "name": "branch",
+            "displayName": "Branch",
+            "shape": "string"
+        },
+        {
+            "name": "commitHash",
+            "displayName": "Commit",
+            "shape": "string",
+            "formatExpression": "{{ String($['commitHash'] || '').slice(0, 7) }}"
+        },
+        {
+            "name": "commitAuthor",
+            "displayName": "Commit author",
+            "shape": "string"
+        },
+        {
+            "name": "url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in Spacelift"
+                }
+            ]
+        },
+        {
+            "name": "runId",
+            "displayName": "Run ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "stackId",
+            "displayName": "Stack ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "stackId",
+            "sourceType": "Stack",
+            "name": "stackName"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "createdAt",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ]
+}
