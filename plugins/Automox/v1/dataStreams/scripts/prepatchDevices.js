@@ -14,13 +14,21 @@ const deviceIds = new Set(selected.map((o) => Number(unwrap(o.deviceId))).filter
 
 const filtered = deviceIds.size ? rows.filter((r) => deviceIds.has(Number(r.id))) : rows;
 
-// Flatten `patches` here, while it's still a real parsed array - a
-// valueExpression referencing this column elsewhere would only see its
-// JSON-formatted (stringified) display value, not the live array.
+// Flatten `patches` while it's still a real parsed array, then leave the raw
+// array behind: one entry per pending patch per device is most of this
+// report's size, and carrying it on every row stops a large estate's table
+// from loading.
 result = filtered.map((r) => {
     const patches = r.patches || [];
     return {
-        ...r,
+        id: r.id,
+        name: r.name,
+        createTime: r.createTime,
+        group: r.group,
+        compliant: r.compliant,
+        connected: r.connected,
+        needsReboot: r.needsReboot,
+        os_family: r.os_family,
         patchCount: patches.length,
         patchNames: patches.map((p) => p.name).filter(Boolean).join(", "),
         patchSeverities: [...new Set(patches.map((p) => p.severity).filter(Boolean))].join(", "),

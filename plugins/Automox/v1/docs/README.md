@@ -107,9 +107,17 @@ the device's policy status list).
   policy's ID. Whether the platform's `equals` correlation operator does
   array-membership matching for a multi-valued property (rather than exact
   scalar equality) has not been confirmed live.
-- **Rate limits** — Automox allows 100 requests/minute by default. On a 429,
-  streams surface a message naming when the limit resets rather than
-  silently failing; there is no automatic retry.
+- **Rate limits** — Automox limits the device list (`/servers`) to fewer
+  than 30 requests per minute and blocks a rate-limited client for a
+  minute. The Devices stream reads 500 devices per request, so an estate of
+  3,000 devices costs 7 requests each time it loads. On a 429, streams
+  surface a message naming when the limit resets rather than silently
+  failing; there is no automatic retry.
+- **Summary counts may cover only the first 500 devices** — Automox's API
+  reference describes the Pre-Patch total as counting the operations "in
+  this response", and the summary streams request one page of 500 devices.
+  Whether the counts cover the whole organization on a larger estate has
+  not been confirmed live.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in
   Automox.
 - **Not yet verified against a live tenant** — this plugin was built from
