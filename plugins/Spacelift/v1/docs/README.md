@@ -29,7 +29,7 @@ When you save, the data source signs in with the key, then checks it can see sta
 - **Delivery performance**: daily deployments, change failure rate, lead time for changes and time to recovery, as calculated by Spacelift.
 - **Capacity**: busy, idle and drained workers and queued runs for each worker pool, including the public pool, plus run minutes and seats used in the current billing period.
 
-The out-of-the-box dashboards include a **Spacelift Overview**, plus a perspective for each **Stack** and **Worker Pool**.
+The out-of-the-box dashboards include an account-wide **Overview**, plus a perspective for each **Stack** and **Worker Pool**.
 
 ## Data streams
 
