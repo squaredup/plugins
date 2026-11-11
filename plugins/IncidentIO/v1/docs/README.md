@@ -58,6 +58,17 @@ The out-of-the-box dashboards include an estate-wide **Overview**, an **Alerting
 
 **Incidents, alerts, escalations and follow-ups are not indexed as objects.** They change far faster than the platform's default ~12-hour reindex interval, so they're served live via data streams (always fresh, no reindex lag) and shown as filterable/groupable tiles, rather than as individual drilldown pages.
 
+## Sending SquaredUp alerts to incident.io
+
+This plugin reads data from incident.io. To send SquaredUp monitor alerts **to** incident.io, use the **incident.io** notification destination. It doesn't need this plugin or its API key.
+
+1. In incident.io, go to **On-call → Alert routing → Sources**, select **Create source**, choose **HTTP**, and keep the **Default** type.
+2. On the **Connect** step, copy the **URL** and **Headers** values from the **Header authentication** tab.
+3. In SquaredUp, go to **Settings → Notifications**, select **Add destination**, choose **incident.io**, and paste them in.
+4. Add the destination to a monitor's notification rule.
+
+A warning or error fires an alert in incident.io, and the alert resolves when the monitor recovers. See [Set up an incident.io notification destination](https://squaredup.com/cloud/channelsetup-incidentio) for the details.
+
 ## Known limitations
 
 - **Duration metrics depend on your incident.io configuration** — metric names (e.g. "Time to resolve") are defined per organization, and a metric only has a value once the timestamps it needs are set. The Incidents stream's **Time to Resolve** column is filled only when a metric with "resolve" in its name exists; use **Incident Duration Metrics** for any other metric.
