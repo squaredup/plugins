@@ -1,0 +1,136 @@
+{
+    "name": "vulnerabilitiesByCve",
+    "displayName": "Vulnerabilities by CVE",
+    "description": "Returns one row per CVE with the number of exposed devices (Defender for Endpoint API, no advanced hunting needed)",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/defenderEndpointApi.js"
+        },
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "$top",
+                "value": "8000"
+            },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "value"
+                },
+                "base": 0
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "$skip"
+            }
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "mde/vulnerabilities",
+        "pathToData": "value",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ severity && severity.length > 0 ? severity.map((s) => `severity eq '${s}'`).join(\" or \") : null }}"
+            }
+        ],
+        "headers": []
+    },
+    "metadata": [
+        {
+            "name": "CveGuide",
+            "displayName": "CVE",
+            "valueExpression": "{{ $['id'] ? `https://msrc.microsoft.com/update-guide/vulnerability/${$['id']}` : '' }}",
+            "formatExpression": "{{ $['id'] }}",
+            "shape": "url",
+            "computed": true
+        },
+        {
+            "name": "id",
+            "displayName": "CVE ID",
+            "shape": "string",
+            "role": "label",
+            "visible": false
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": "string"
+        },
+        {
+            "name": "cvssV3",
+            "displayName": "CVSS v3",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        },
+        {
+            "name": "exposedMachines",
+            "displayName": "Exposed Devices",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "publicExploit",
+            "displayName": "Public Exploit",
+            "shape": "boolean"
+        },
+        {
+            "name": "exploitVerified",
+            "displayName": "Exploit Verified",
+            "shape": "boolean"
+        },
+        {
+            "name": "publishedOn",
+            "displayName": "Published",
+            "shape": "date"
+        },
+        {
+            "name": "updatedOn",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "ui": [
+        {
+            "name": "severity",
+            "label": "Severity",
+            "type": "autocomplete",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "Critical",
+                        "label": "Critical"
+                    },
+                    {
+                        "value": "High",
+                        "label": "High"
+                    },
+                    {
+                        "value": "Medium",
+                        "label": "Medium"
+                    },
+                    {
+                        "value": "Low",
+                        "label": "Low"
+                    }
+                ]
+            },
+            "isClearable": true
+        }
+    ],
+    "matches": "none",
+    "timeframes": false,
+    "manualConfigApply": true,
+    "providesPluginDiagnostics": true,
+    "tags": ["Security"]
+}

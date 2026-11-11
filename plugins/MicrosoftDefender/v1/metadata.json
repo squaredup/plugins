@@ -1,7 +1,7 @@
 {
     "name": "microsoft-defender",
     "displayName": "Microsoft Defender",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": {
         "name": "SquaredUp Labs",
         "type": "labs"
@@ -14,8 +14,30 @@
         "plugin": "WebAPI",
         "majorVersion": "1",
         "config": {
-            "authMode": "none",
+            "oauth2TokenExtraArgs": [
+                {
+                    "value": "client_credentials",
+                    "key": "grant_type"
+                },
+                {
+                    "value": "https://graph.microsoft.com/.default",
+                    "key": "scope"
+                }
+            ],
+            "oauth2ClientSecret": "{{clientSecret}}",
+            "oauth2ClientSecretLocationDuringAuth": "body",
+            "authMode": "oauth2",
+            "oauth2GrantType": "clientCredentials",
             "baseUrl": "https://graph.microsoft.com/v1.0/security/",
+            "oauth2TokenExtraHeaders": [
+                {
+                    "value": "application/x-www-form-urlencoded",
+                    "key": "Content-Type"
+                }
+            ],
+            "oauth2TokenUrl": "https://login.microsoftonline.com/{{tenantId}}/oauth2/v2.0/token",
+            "oauth2ClientId": "{{clientId}}",
+            "oauth2Scope": "https://graph.microsoft.com/.default",
             "showScripting": true,
             "scriptingVariables": [
                 {
@@ -31,7 +53,10 @@
                     "value": "{{clientSecret}}"
                 }
             ],
-            "preRequestScript": "preRequest.js"
+            "preRequestScript": "preRequest.js",
+            "allowedScriptHosts": [
+                "login.microsoftonline.com"
+            ]
         }
     },
     "links": [
