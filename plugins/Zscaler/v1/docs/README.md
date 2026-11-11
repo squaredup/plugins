@@ -38,6 +38,9 @@ than its feed (for example a maintenance page).
   customer actions.
 - **Cloud health**: the current state of each Zscaler cloud, rolled up from active incidents and
   maintenance.
+- **Data centers and core services**: the current state of each data center (or core service such
+  as **Admin UI** or **DNS**) in a cloud, and its hour-by-hour history over the last 7 days, as
+  shown on the portal's **Cloud Status** page.
 
 The plugin includes three dashboards: **Overview**, **Incidents** and **Maintenance & Advisories**.
 
@@ -55,8 +58,25 @@ The plugin includes three dashboards: **Overview**, **Incidents** and **Maintena
 - **Cloud Status**: one row per cloud, with its current state and counts of active incidents,
   active and upcoming maintenance, and open advisories. It always shows current state, so it
   doesn't support timeframes.
+- **Cloud Component Status**: one row per data center or core service in one cloud, with its region,
+  current state and any active event (type, status, start time, summary and a link to the post).
+  It reads the portal's **Cloud Status** page rather than the RSS feed, and always shows current
+  state. It has these parameters:
+  - **Cloud**: the cloud to show, picked from the clouds listed on the selected portal. Required.
+  - **Component type**: **Data centers**, **Core cloud services**, **Premium data centers** or
+    **Business continuity data centers**. The list shows only the types the selected cloud
+    publishes on the portal. Leave it empty for data centers.
 
-The **State** column on both streams uses these rules:
+  Every data center or service in the cloud is returned. To show only some of them, for example
+  `Chicago`, `San Francisco IV` and `Washington DC`, add a filter on **Name** in the tile.
+- **Cloud Component History**: one row per data center or service per hour, with that hour's
+  state and the worst event during it. It has the same parameters as Cloud Component Status and
+  supports the **Last 24 hours** and **Last 7 days** timeframes. Show it as a **Health history**
+  chart, with **Hour** as the time, **State** as the status and **Name** as the label, to get the
+  portal's 7-day bars. The latest hour also includes any event that is still open, so it matches
+  the current-status icon at the end of each bar on the portal.
+
+The **State** column on the Posts and Cloud Status streams uses these rules:
 
 | State | Meaning |
 | ----- | ------- |
@@ -64,6 +84,10 @@ The **State** column on both streams uses these rules:
 | Warning | Any other active incident (degradation, under investigation or monitoring), or maintenance in progress |
 | Unknown | Upcoming maintenance, or an open advisory. Neither affects cloud health. |
 | Success | Resolved, completed or cancelled |
+
+**Cloud Component Status** and **Cloud Component History** use the same idea: **Error** for a
+**Service Disruption**, **Warning** for a **Service Degradation** or an issue **Under
+Investigation**, and **Success** otherwise.
 
 ## What gets indexed
 
@@ -88,4 +112,16 @@ objects into the SquaredUp graph. Clouds appear as row values, not as objects.
   timestamp.
 - **Some text contains replacement characters.** A few posts on the portal include characters that
   are already corrupted at the source (shown as `�`). The plugin passes them through unchanged.
-- **Read-only.** The plugin only reads the public feed and never changes anything in Zscaler.
+- **Cloud Component Status and Cloud Component History show one cloud per tile.** The cloud is
+  chosen in the tile rather than taken from **Cloud(s) to include**. To compare several clouds, add
+  the stream to a tile once per cloud.
+- **Component history covers the portal's current week only.** The portal's window starts at
+  midnight UTC six days ago, so **Last 7 days** shows six full days plus today so far, and nothing
+  older is returned. History is in whole hours (UTC), so a short event fills the hour it falls in.
+- **Not every cloud publishes every component type.** Premium and business continuity data centers
+  are only published for some Commercial clouds, and some clouds publish only core services. The
+  **Component type** list hides the types a cloud doesn't publish. A tile that still asks for one,
+  for example because its cloud was changed afterwards or because it was left empty on a cloud
+  without data centers, shows an error saying so.
+- **Read-only.** The plugin only reads the public Trust portal and never changes anything in
+  Zscaler.
