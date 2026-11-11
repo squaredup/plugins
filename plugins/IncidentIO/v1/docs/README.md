@@ -67,7 +67,7 @@ This plugin reads data from incident.io. To send SquaredUp monitor alerts **to**
 3. In SquaredUp, go to **Settings → Notifications**, select **Add destination**, choose **incident.io**, and paste them in.
 4. Add the destination to a monitor's notification rule.
 
-A warning or error fires an alert in incident.io, and the alert resolves when the monitor recovers. See [Set up an incident.io notification destination](https://squaredup.com/cloud/channelsetup-incidentio) for the details.
+A warning or error fires an alert in incident.io, and the alert resolves when the monitor recovers.
 
 ## Known limitations
 
