@@ -26,12 +26,8 @@ You need the URL of a VictoriaMetrics endpoint that serves the Prometheus queryi
 | **Bearer token** | Sent as an `Authorization: Bearer` header. Shown when **Bearer token** is selected. | Your vmauth config or VictoriaMetrics Cloud **Access tokens** page. | When using a bearer token |
 | **Username** / **Password** | Basic authentication credentials. Shown when **Basic authentication** is selected. | Your vmauth or reverse proxy config. | When using basic auth |
 | **Ignore certificate errors** | Skip TLS certificate validation, for self-signed certificates. | — | No |
-| **Default cluster name** | Cluster to assume for series without a `cluster` or `k8s.cluster.name` label. Set it when some or all series lack a cluster label, so the same pod seen through different label conventions becomes one object and drilldowns from charts resolve. | Under **Object indexing**. Your cluster's name, e.g. the `cluster` label on your other series. | No |
-| **Scrape jobs and targets** | Index `job` and `instance` objects from the `up` metric. | Under **Object indexing**. | No (on by default) |
-| **Kubernetes (standard labels)** | Index Kubernetes objects from `namespace`, `pod`, `node`, `service`, … labels (kube-state-metrics, cAdvisor, kubelet). | Under **Object indexing**. | No (on by default) |
-| **Kubernetes (OpenTelemetry)** | Index Kubernetes objects from OpenTelemetry `k8s.*` resource attributes. | Under **Object indexing**. | No (on by default) |
-| **Services and hosts (OpenTelemetry)** | Index services, hosts and environments from OpenTelemetry resource attributes. | Under **Object indexing**. | No (on by default) |
-| **Cloud resources (OpenTelemetry)** | Index AWS, GCP and Heroku resources from OpenTelemetry cloud attributes. | Under **Object indexing**. | No (on by default) |
+| **Objects to index** | Tick the label conventions to discover objects from: **Kubernetes** (standard `namespace`/`pod`/`node` labels from kube-state-metrics, cAdvisor and scrape configs), **Kubernetes (OpenTelemetry)** (`k8s.*` attributes), **Services and hosts (OpenTelemetry)** (`service.name`, `host.name`, `deployment.environment.name`), **Cloud resources (OpenTelemetry)** (AWS, GCP and Heroku attributes) and **Scrape jobs and targets** (`job`/`instance` on `up`). | Tick the conventions your metrics use. | No (all ticked by default) |
+| **Default cluster name** | Cluster to assume for series without a `cluster` or `k8s.cluster.name` label. Set it when some or all series lack a cluster label, so the same pod seen through different label conventions becomes one object and drilldowns from charts resolve. | Your cluster's name, e.g. the `cluster` label on your other series. | No |
 
 On save, the plugin requests one label name from `/api/v1/labels`. A failure means the URL doesn't point at the querying API, the endpoint isn't reachable (from SquaredUp or the selected agent), or the credentials were rejected.
 
