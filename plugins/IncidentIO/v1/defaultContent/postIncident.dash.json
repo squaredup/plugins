@@ -1,0 +1,810 @@
+{
+    "name": "Post-Incident",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "3641e1bb-e9de-40b3-9996-159211627b6a",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Outstanding Follow-ups",
+                    "description": "Follow-ups not yet completed, across all incidents",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[followUps]}}",
+                        "name": "followUps",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "status", "operation": "equals", "value": "outstanding" }]
+                        },
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "count",
+                                "comparisonColumn": "none",
+                                "label": "Outstanding Follow-ups"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    { "field": "count", "type": "quantitative", "title": "Outstanding Follow-ups" }
+                                ]
+                            },
+                            "style": { "scalarLabelPosition": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a11dad98-5f1d-466c-90bf-4948e4102c0a",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Oldest Outstanding Follow-up",
+                    "description": "Age in days of the oldest outstanding follow-up",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[followUps]}}",
+                        "name": "followUps",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "status", "operation": "equals", "value": "outstanding" }]
+                        },
+                        "group": { "by": [], "aggregate": [{ "type": "max", "names": ["ageDays"] }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "ageDays_max",
+                                "comparisonColumn": "none",
+                                "label": "days"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [{ "field": "ageDays_max", "type": "quantitative", "title": "days" }]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f8ce49cd-ad99-484e-a286-0e4e3642f49b",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents in Post-Incident",
+                    "description": "Incidents currently in the post-incident (learning) stage",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": { "statusCategory": ["learning"] },
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "count",
+                                "comparisonColumn": "none",
+                                "label": "Incidents in Post-Incident"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    { "field": "count", "type": "quantitative", "title": "Incidents in Post-Incident" }
+                                ]
+                            },
+                            "style": { "scalarLabelPosition": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d9a1e29d-b184-45d9-bd06-b0f96f2c3fef",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incident Workload",
+                    "description": "Total responder workload on incidents declared in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [], "aggregate": [{ "type": "sum", "names": ["workload_minutes_total"] }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "workload_minutes_total_sum",
+                                "comparisonColumn": "none",
+                                "label": "minutes"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "workload_minutes_total_sum",
+                                        "type": "quantitative",
+                                        "title": "minutes"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fc4c04bf-281d-42ae-941d-cee6966be8b6",
+                "x": 0,
+                "y": 2,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Follow-ups by Status",
+                    "description": "Follow-ups created in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[followUps]}}",
+                        "name": "followUps",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [["status", "uniqueValues"]], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "count",
+                                "labelColumn": "status_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": { "field": "status_uniqueValues", "type": "nominal" },
+                                "value": { "field": "count", "type": "quantitative" }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "mappedColors": {
+                                    "outstanding": "#f59e0b",
+                                    "completed": "#22c55e",
+                                    "not_doing": "#94a3b8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "56eae283-0bce-43db-bf94-b0136c6655a8",
+                "x": 1,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Outstanding by Assignee",
+                    "description": "Outstanding follow-ups per assignee, by priority",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[followUps]}}",
+                        "name": "followUps",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "status", "operation": "equals", "value": "outstanding" }]
+                        },
+                        "group": {
+                            "by": [["assignee", "uniqueValues"], ["priority", "uniqueValues"]],
+                            "aggregate": [{ "type": "count" }]
+                        },
+                        "sort": { "by": [["count", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "assignee_uniqueValues",
+                                "yAxisData": ["count"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "horizontal",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "assignee_uniqueValues", "type": "nominal" },
+                                "y": { "field": "count", "type": "quantitative", "title": "Follow-ups" },
+                                "series": { "field": "priority_uniqueValues", "type": "nominal" }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "legendPosition": "bottom",
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 2,
+                                "mappedColors": {
+                                    "Urgent": "#ef4444",
+                                    "High": "#f97316",
+                                    "Medium": "#f59e0b",
+                                    "Low": "#3b82f6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b0aff91f-1a03-4332-9de6-b689423385b9",
+                "x": 3,
+                "y": 2,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Outstanding Follow-up Age",
+                    "description": "How long outstanding follow-ups have been open, in days",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[followUps]}}",
+                        "name": "followUps",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "status", "operation": "equals", "value": "outstanding" }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": { "data-stream-table": { "transpose": false, "columnOrder": ["title", "ageDays"] } }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "histogram",
+                            "encoding": { "x": { "field": "ageDays", "type": "quantitative", "title": "Age (days)" } }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7a07fb42-e0b4-46c3-bef4-5bedbc74eef4",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Follow-ups To Do",
+                    "description": "Follow-ups still to do, oldest first",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[followUps]}}",
+                        "name": "followUps",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "status", "operation": "equals", "value": "outstanding" }]
+                        },
+                        "sort": { "by": [["ageDays", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "statusState",
+                                    "title",
+                                    "status",
+                                    "priority",
+                                    "assignee",
+                                    "assigneeTeam",
+                                    "created_at",
+                                    "ageDays"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "statusState",
+                                        "title": "State",
+                                        "renderer": { "type": "status", "showLabel": false },
+                                        "width": 60
+                                    },
+                                    { "field": "title", "title": "Follow-up", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "outstanding": "#f59e0b",
+                                                "completed": "#22c55e",
+                                                "not_doing": "#94a3b8"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "priority",
+                                        "title": "Priority",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Urgent": "#ef4444",
+                                                "High": "#f97316",
+                                                "Medium": "#f59e0b",
+                                                "Low": "#3b82f6"
+                                            }
+                                        }
+                                    },
+                                    { "field": "assignee", "title": "Assignee", "renderer": { "type": "text" } },
+                                    { "field": "assigneeTeam", "title": "Team", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": { "type": "date", "relative": true }
+                                    },
+                                    {
+                                        "field": "ageDays",
+                                        "title": "Age",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": " days",
+                                            "thresholds": [
+                                                { "to": 7, "color": "#22c55e" },
+                                                { "to": 30, "color": "#f59e0b" },
+                                                { "to": 100000, "color": "#ef4444" }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": { "richTableCellPadding": 6 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "52ffb42f-510c-4c47-9a25-b5117466e578",
+                "x": 0,
+                "y": 10,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Duration Metrics by Severity",
+                    "description": "Average of each incident duration metric, in hours",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidentDurationMetrics]}}",
+                        "name": "incidentDurationMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["severity", "uniqueValues"], ["metricName", "uniqueValues"]],
+                            "aggregate": [{ "type": "mean", "names": ["valueHours"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "severity_uniqueValues",
+                                "yAxisData": ["valueHours_mean"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "severity_uniqueValues", "type": "nominal", "title": "Severity" },
+                                "y": { "field": "valueHours_mean", "type": "quantitative", "title": "Avg hours" },
+                                "series": { "field": "metricName_uniqueValues", "type": "nominal" }
+                            },
+                            "style": { "legendPosition": "bottom", "cartesianBarBorderRadius": 2 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f86ac950-b47d-4980-bab8-d546b3369f1a",
+                "x": 2,
+                "y": 10,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Average Duration Metrics (Hours)",
+                    "description": "Average of each incident duration metric across incidents declared in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidentDurationMetrics]}}",
+                        "name": "incidentDurationMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["metricName", "uniqueValues"]],
+                            "aggregate": [{ "type": "mean", "names": ["valueHours"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": ["metricName_uniqueValues", "valueHours_mean"]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [{ "field": "valueHours_mean", "type": "quantitative" }],
+                                "label": { "field": "metricName_uniqueValues", "type": "nominal" }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c5f01099-5b90-4043-b597-2892a0e9a8a3",
+                "x": 0,
+                "y": 14,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incident Workload by Severity",
+                    "description": "Total responder workload in minutes, by severity",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["severity.name", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["workload_minutes_total"] }]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "severity.name_uniqueValues",
+                                "yAxisData": ["workload_minutes_total_sum"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "severity.name_uniqueValues", "type": "nominal", "title": "Severity" },
+                                "y": {
+                                    "field": "workload_minutes_total_sum",
+                                    "type": "quantitative",
+                                    "title": "Minutes"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 2,
+                                "mappedColors": { "Critical": "#ef4444", "Major": "#f59e0b", "Minor": "#3b82f6" }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "88ee9f15-83ae-4d5a-99fd-17cf1796e904",
+                "x": 2,
+                "y": 14,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incident Workload by Lead",
+                    "description": "Total responder workload in minutes on incidents each person led",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "lead", "operation": "notempty" }]
+                        },
+                        "group": {
+                            "by": [["lead", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["workload_minutes_total"] }]
+                        },
+                        "sort": { "by": [["workload_minutes_total_sum", "desc"]], "top": 10 }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "lead_uniqueValues",
+                                "yAxisData": ["workload_minutes_total_sum"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "horizontal",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "lead_uniqueValues", "type": "nominal" },
+                                "y": {
+                                    "field": "workload_minutes_total_sum",
+                                    "type": "quantitative",
+                                    "title": "Minutes"
+                                }
+                            },
+                            "style": { "cartesianHorizontal": true, "cartesianBarBorderRadius": 2 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0b06393d-e36e-4a21-9f75-a31762446b05",
+                "x": 0,
+                "y": 18,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recently Closed Incidents",
+                    "description": "Incidents declared in the timeframe that are now in post-incident or closed",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": { "statusCategory": ["learning", "closed"] },
+                        "sort": { "by": [["created_at", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "reference",
+                                    "name",
+                                    "severity.name",
+                                    "incident_status.name",
+                                    "lead",
+                                    "created_at",
+                                    "durationMinutes",
+                                    "workload_minutes_total",
+                                    "postmortem_document_url"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "reference",
+                                        "title": "Ref",
+                                        "renderer": { "type": "text" },
+                                        "width": 80
+                                    },
+                                    { "field": "name", "title": "Incident", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "severity.name",
+                                        "title": "Severity",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": { "Critical": "#ef4444", "Major": "#f59e0b", "Minor": "#3b82f6" }
+                                        }
+                                    },
+                                    {
+                                        "field": "incident_status.name",
+                                        "title": "Status",
+                                        "renderer": { "type": "text" }
+                                    },
+                                    { "field": "lead", "title": "Lead", "renderer": { "type": "text" } },
+                                    { "field": "created_at", "title": "Declared", "renderer": { "type": "date" } },
+                                    {
+                                        "field": "durationMinutes",
+                                        "title": "Duration",
+                                        "renderer": { "type": "number", "decimals": 0, "suffix": " min" },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "workload_minutes_total",
+                                        "title": "Workload",
+                                        "renderer": { "type": "number", "decimals": 0, "suffix": " min" },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "postmortem_document_url",
+                                        "title": "Post-mortem",
+                                        "renderer": { "type": "link" }
+                                    }
+                                ]
+                            },
+                            "style": { "richTableRowLinkField": "permalink", "richTableCellPadding": 6 }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

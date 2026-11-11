@@ -1,0 +1,38 @@
+{
+    "name": "escalationPaths",
+    "displayName": "Escalation Paths",
+    "description": "Escalation paths in the organization, one row per path, with the number of levels and who is currently on call",
+    "tags": ["On-Call", "Escalations"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/escalation_paths",
+        "postRequestScript": "escalationPaths.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "25" },
+            "in": { "realm": "payload", "path": "pagination_meta.after" },
+            "out": { "realm": "queryArg", "path": "after" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Team"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "kind", "displayName": "Kind", "shape": "string" },
+        { "name": "levelCount", "displayName": "Levels", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "currentResponders", "displayName": "Current Responders", "shape": "string" },
+        { "name": "responderCount", "displayName": "Responder Count", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "teamIds", "displayName": "Team IDs", "shape": "string", "visible": false },
+        { "name": "workingHours", "displayName": "Working Hours", "shape": "string" }
+    ],
+    "timeframes": false
+}

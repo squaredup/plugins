@@ -1,0 +1,55 @@
+{
+    "name": "workflowRuns",
+    "displayName": "Workflow Runs",
+    "description": "Workflow runs created within the selected timeframe, one row per run, with the run outcome and how many steps failed",
+    "tags": ["Workflows"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/workflow_runs",
+        "getArgs": [
+            {
+                "key": "created_at[date_range]",
+                "value": "{{timeframe.enum === 'none' ? null : (timeframe.start + '~' + timeframe.end)}}"
+            }
+        ],
+        "pathToData": "workflow_runs",
+        "postRequestScript": "workflowRuns.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "50" },
+            "in": { "realm": "payload", "path": "pagination_meta.after" },
+            "out": { "realm": "queryArg", "path": "after" }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "workflowName", "displayName": "Workflow", "shape": "string", "role": "label" },
+        { "name": "workflowId", "displayName": "Workflow ID", "shape": "string", "visible": false },
+        { "name": "workflowVersion", "displayName": "Workflow Version", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "incidentReference", "displayName": "Incident", "shape": "string" },
+        { "name": "incidentId", "displayName": "Incident ID", "shape": "string", "visible": false },
+        { "name": "createdAt", "displayName": "Created At", "shape": "date", "role": "timestamp" },
+        { "name": "runState", "displayName": "Run State", "shape": "state" },
+        { "name": "error", "displayName": "Error", "shape": "string" },
+        { "name": "stepCount", "displayName": "Steps", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "failedStepCount", "displayName": "Failed Steps", "shape": ["number", { "decimalPlaces": 0 }] }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}
