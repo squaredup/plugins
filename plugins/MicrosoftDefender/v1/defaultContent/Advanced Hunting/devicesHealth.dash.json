@@ -1,6 +1,9 @@
 {
     "name": "Devices Health",
     "schemaVersion": "1.5",
+    "folderPath": [
+        "Advanced Hunting"
+    ],
     "dashboard": {
         "_type": "layout/grid",
         "contents": [
@@ -480,6 +483,84 @@
                                     "DeviceId",
                                     "FailingChecks@odata.type"
                                 ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "static": false,
+                "w": 4,
+                "moved": false,
+                "h": 2,
+                "x": 0,
+                "y": 5,
+                "i": "635e0de1-af29-4660-aa68-ddc5dd58e0c4",
+                "z": 0,
+                "config": {
+                    "dataStream": {
+                        "name": "advancedHuntingQuery",
+                        "dataSourceConfig": {
+                            "query": "DeviceInfo\n| summarize arg_max(Timestamp, *) by DeviceId\n| extend ExposureLevel = iff(isempty(ExposureLevel), \"No data\", ExposureLevel)\n| summarize Devices = count() by ExposureLevel"
+                        },
+                        "id": "{{dataStreams.advancedHuntingQuery}}",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "_type": "tile/data-stream",
+                    "description": "Devices by their latest exposure level",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Device Exposure State",
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "color": {
+                                    "type": "custom",
+                                    "customColors": [
+                                        {
+                                            "color": "#88898C",
+                                            "expression": "label == \"No data\""
+                                        },
+                                        {
+                                            "color": "#259A51",
+                                            "expression": "label == \"None\""
+                                        },
+                                        {
+                                            "color": "#0075FF",
+                                            "expression": "label == \"Low\""
+                                        },
+                                        {
+                                            "color": "#E18700",
+                                            "expression": "label == \"Medium\""
+                                        },
+                                        {
+                                            "color": "#DE0038",
+                                            "expression": "label == \"High\""
+                                        }
+                                    ]
+                                },
+                                "xAxisGroup": "none",
+                                "showLegend": false,
+                                "range": {
+                                    "type": "auto"
+                                },
+                                "showGrid": true,
+                                "grouping": false,
+                                "displayMode": "actual",
+                                "xAxisData": "ExposureLevel",
+                                "showTotals": false,
+                                "yAxisLabel": "",
+                                "horizontalLayout": "vertical",
+                                "showValue": true,
+                                "yAxisData": [
+                                    "Devices"
+                                ],
+                                "showYAxisLabel": false,
+                                "xAxisLabel": "",
+                                "legendPosition": "bottom",
+                                "showXAxisLabel": false
                             }
                         }
                     }
