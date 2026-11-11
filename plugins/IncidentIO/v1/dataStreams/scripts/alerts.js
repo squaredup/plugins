@@ -11,7 +11,7 @@ result = (data.alerts || []).map((alert) => {
     const isFiring = alert.status === 'firing';
     const start = Date.parse(alert.created_at);
     const end = alert.resolved_at ? Date.parse(alert.resolved_at) : now;
-    const minutes = Number.isNaN(start) || Number.isNaN(end) ? null : Math.max(0, Math.round((end - start) / 60000));
+    const minutes = Number.isNaN(start) || Number.isNaN(end) ? null : Math.max(0, (end - start) / 60000);
     return {
         ...alert,
         isFiring,

@@ -13,6 +13,7 @@ const addComponent = (component, groupName, subPageName) => {
     rows.push({
         id: component.component_id,
         name: component.name,
+        qualifiedName: unwrap(page.name) + " / " + component.name,
         statusPageId: unwrap(page.rawId),
         statusPageName: unwrap(page.name),
         groupName: groupName || null,

@@ -32,7 +32,7 @@ result = (data.status_page_incidents || []).map((incident) => {
         publishedAt: incident.published_at,
         resolvedAt,
         durationMinutes: duration,
-        affectedComponents: componentIds.join(', '),
+        affectedComponents: componentIds,
         worstImpact: worst,
         latestUpdate: latest ? latest.message : null,
     };

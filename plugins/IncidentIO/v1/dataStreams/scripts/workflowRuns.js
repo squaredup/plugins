@@ -1,12 +1,13 @@
 // dataStreams/scripts/workflowRuns.js
-// One row per workflow run. runState: error present -> error, cancelled -> unknown, else success.
+// One row per workflow run. runState: error present -> error, cancelled -> unknown,
+// a step still pending or suspended -> unknown, else success.
 result = (data.workflow_runs || []).map((run) => {
     const progress = run.progress || [];
     const failedSteps = progress.filter((step) => step.error).length;
     let runState = 'success';
     if (run.error) {
         runState = 'error';
-    } else if (run.cancelled_at) {
+    } else if (run.cancelled_at || progress.some((step) => step.status === 'pending' || step.status === 'suspended')) {
         runState = 'unknown';
     }
     return {

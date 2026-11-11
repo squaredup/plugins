@@ -1,12 +1,11 @@
 // dataStreams/scripts/escalations.js
-// Derives acknowledgement time/user from the events[] history and joins the
-// related incident/alert arrays into strings (array columns shape badly).
+// Derives acknowledgement time/user from the events[] history and lists the
+// related incidents' names and alerts' titles.
 // Stateless per-row transform, so per-page execution is safe.
 const names = (list, field) =>
     (list || [])
         .map((item) => item && item[field])
-        .filter(Boolean)
-        .join(", ");
+        .filter(Boolean);
 
 const creatorName = (creator) => {
     if (!creator) return null;
@@ -37,7 +36,7 @@ result = (data.escalations || []).map((escalation) => {
         created_at: escalation.created_at,
         updated_at: escalation.updated_at,
         acknowledgedAt: ackedAt,
-        acknowledgedBy: ack ? names(ack.users, "name") || null : null,
+        acknowledgedBy: ack ? names(ack.users, "name") : [],
         timeToAckMinutes: minutes,
         relatedIncidents: names(escalation.related_incidents, "name"),
         relatedAlerts: names(escalation.related_alerts, "title"),

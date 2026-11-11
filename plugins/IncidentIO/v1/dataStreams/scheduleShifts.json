@@ -11,11 +11,11 @@
             { "key": "schedule_id", "value": "{{object.rawId}}" },
             {
                 "key": "entry_window_start",
-                "value": "{{(window && window !== 'timeframe') ? new Date().toISOString() : timeframe.start}}"
+                "value": "{{(v => (Array.isArray(v) ? (v[0] && (v[0].value || v[0])) : (v && (v.value || v))) || 'timeframe')(typeof window !== 'undefined' ? window : null) !== 'timeframe' ? new Date().toISOString() : timeframe.start}}"
             },
             {
                 "key": "entry_window_end",
-                "value": "{{(window && window !== 'timeframe') ? new Date(Date.now() + ({next24hours:1,next7days:7,next14days:14,next30days:30}[window] || 7) * 86400000).toISOString() : timeframe.end}}"
+                "value": "{{(w => w !== 'timeframe' ? new Date(Date.now() + ({next24hours:1,next7days:7,next14days:14,next30days:30}[w] || 7) * 86400000).toISOString() : timeframe.end)((v => (Array.isArray(v) ? (v[0] && (v[0].value || v[0])) : (v && (v.value || v))) || 'timeframe')(typeof window !== 'undefined' ? window : null))}}"
             }
         ],
         "paging": { "mode": "none" },
@@ -32,7 +32,8 @@
         { "name": "durationHours", "displayName": "Duration (Hours)", "shape": ["number", { "decimalPlaces": 1 }] },
         { "name": "isCurrent", "displayName": "Is Current", "shape": "boolean" },
         { "name": "entry_id", "displayName": "Entry ID", "shape": "string", "visible": false },
-        { "name": "fingerprint", "displayName": "Fingerprint", "shape": "string", "visible": false }
+        { "name": "fingerprint", "displayName": "Fingerprint", "shape": "string", "visible": false },
+        { "pattern": ".*" }
     ],
     "timeframes": true,
     "ui": [

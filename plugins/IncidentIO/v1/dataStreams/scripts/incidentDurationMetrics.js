@@ -23,7 +23,8 @@ const rows = [];
             if (!complete && !includeIncomplete) {
                 return;
             }
-            const seconds = typeof metric.value_seconds === "number" ? metric.value_seconds : null;
+            // A non-success metric can keep a stale value_seconds that no longer matches the incident.
+            const seconds = complete && typeof metric.value_seconds === "number" ? metric.value_seconds : null;
             rows.push({
                 incidentId: incident.id,
                 reference: incident.reference,

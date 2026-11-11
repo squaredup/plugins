@@ -13,7 +13,7 @@ if (pct !== null && !Number.isNaN(pct)) {
 
 result = [
     {
-        componentName: unwrap(component.name),
+        componentName: unwrap(component.componentName) || unwrap(component.name),
         groupName: unwrap(component.groupName) || null,
         availabilityPercent: pct,
         availabilityState,

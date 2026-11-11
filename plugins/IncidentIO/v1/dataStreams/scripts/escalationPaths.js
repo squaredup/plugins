@@ -1,6 +1,6 @@
 // dataStreams/scripts/escalationPaths.js
-// Counts levels from the nested path[] nodes, joins current_responders into a
-// readable string, and applies the optional Team filter (team_ids is not
+// Counts levels from the nested path[] nodes, lists the current responders'
+// names, and applies the optional Team filter (team_ids is not
 // filterable in the API). Stateless per-row filter, safe per page.
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const selected = (context.config && context.config.team) || [];
@@ -35,12 +35,11 @@ result = (data.escalation_paths || [])
             name: path.name,
             kind: path.kind,
             levelCount: countLevels(path.path),
-            currentResponders: responders.map((u) => u.name).join(", "),
+            currentResponders: responders.map((u) => u.name),
             responderCount: responders.length,
-            teamIds: (path.team_ids || []).join(", "),
+            teamIds: path.team_ids || [],
             workingHours: (path.working_hours || [])
                 .map((w) => (w.name || w.id) + (w.timezone ? " (" + w.timezone + ")" : ""))
-                .filter(Boolean)
-                .join(", "),
+                .filter(Boolean),
         };
     });

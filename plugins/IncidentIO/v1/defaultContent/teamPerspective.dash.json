@@ -178,8 +178,8 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Avg Incident Duration",
-                    "description": "Average of the duration metrics for this team’s incidents in the timeframe, in hours",
+                    "title": "Avg Duration Metrics (Hours)",
+                    "description": "Average of each incident duration metric for this team’s incidents in the timeframe",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
                         "id": "{{dataStreams.[incidentDurationMetrics]}}",
@@ -192,16 +192,18 @@
                                 "scope": "{{scopes.[Teams]}}"
                             }
                         },
-                        "group": { "by": [], "aggregate": [{ "type": "mean", "names": ["valueHours"] }] }
+                        "group": {
+                            "by": [["metricName", "uniqueValues"]],
+                            "aggregate": [{ "type": "mean", "names": ["valueHours"] }]
+                        }
                     },
                     "variables": ["{{variables.[Team]}}"],
                     "visualisation": {
-                        "type": "data-stream-scalar",
+                        "type": "data-stream-table",
                         "config": {
-                            "data-stream-scalar": {
-                                "value": "valueHours_mean",
-                                "comparisonColumn": "none",
-                                "label": "hours"
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": ["metricName_uniqueValues", "valueHours_mean"]
                             }
                         }
                     },
@@ -210,7 +212,8 @@
                         "visualization": {
                             "chartType": "scalar",
                             "encoding": {
-                                "values": [{ "field": "valueHours_mean", "type": "quantitative", "title": "hours" }]
+                                "values": [{ "field": "valueHours_mean", "type": "quantitative" }],
+                                "label": { "field": "metricName_uniqueValues", "type": "nominal" }
                             }
                         }
                     }
