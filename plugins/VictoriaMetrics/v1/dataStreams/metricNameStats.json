@@ -1,0 +1,77 @@
+{
+    "name": "metricNameStats",
+    "displayName": "Metric Name Usage",
+    "description": "How often each metric name has been queried, to find unused metrics",
+    "tags": [
+        "Metadata",
+        "Cardinality"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/status/metric_names_stats",
+        "getArgs": [
+            {
+                "key": "limit",
+                "value": "{{limit || 1000}}"
+            },
+            {
+                "key": "le",
+                "value": "{{le === undefined || le === null || le === '' ? null : le}}"
+            },
+            {
+                "key": "match_pattern",
+                "value": "{{matchPattern || null}}"
+            }
+        ],
+        "postRequestScript": "metricNameStats.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "queryRequestsCount",
+            "displayName": "Query requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "lastQueried",
+            "displayName": "Last queried",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Limit",
+            "defaultValue": 1000
+        },
+        {
+            "type": "number",
+            "name": "le",
+            "label": "Max query count (optional)",
+            "help": "Only metrics queried at most this many times, e.g. `0` for never-queried metrics."
+        },
+        {
+            "type": "text",
+            "name": "matchPattern",
+            "label": "Metric name pattern (optional)",
+            "help": "Regular expression the metric name must match."
+        }
+    ],
+    "manualConfigApply": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

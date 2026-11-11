@@ -1,0 +1,107 @@
+{
+    "name": "labelSets",
+    "displayName": "Label Sets",
+    "description": "Distinct combinations of a set of labels across current series, one row per combination, used to index objects",
+    "tags": [
+        "Metadata",
+        "Indexing"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/query",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{dataSource[pack] === false ? 'vector(0)' : 'count by (' + labels + (extraLabels ? ',' + extraLabels : '') + ') (' + (match || '{' + required.split(',').map(l => l.trim() + '!=\"\"').join(',') + '}') + ')'}}"
+            }
+        ],
+        "postRequestScript": "labelSets.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "pack",
+            "label": "Index pack",
+            "help": "Name of the plugin configuration toggle that enables this label set, e.g. `indexK8s`."
+        },
+        {
+            "type": "text",
+            "name": "labels",
+            "label": "Labels",
+            "help": "Comma-separated label names to group by, e.g. `cluster,namespace,pod`."
+        },
+        {
+            "type": "text",
+            "name": "keys",
+            "label": "Property names",
+            "help": "Comma-separated property names for each label, in the same order as **Labels**."
+        },
+        {
+            "type": "text",
+            "name": "required",
+            "label": "Required labels",
+            "help": "Comma-separated labels that must be non-empty for a series to count."
+        },
+        {
+            "type": "text",
+            "name": "nameKey",
+            "label": "Name property",
+            "help": "The property whose value is used as the object name."
+        },
+        {
+            "type": "text",
+            "name": "aliases",
+            "label": "Alias label sets",
+            "help": "`|`-separated alternative label names for the same properties (`-` for not present). Used to build a scoping selector that also matches other naming conventions."
+        },
+        {
+            "type": "text",
+            "name": "match",
+            "label": "Series selector override",
+            "help": "Optional selector to count instead of the default `{required!=\"\"}`, e.g. `up`."
+        },
+        {
+            "type": "text",
+            "name": "extraLabels",
+            "label": "Extra labels",
+            "help": "Comma-separated labels stored as properties but not part of the object identity, e.g. `service.namespace`."
+        },
+        {
+            "type": "text",
+            "name": "extraKeys",
+            "label": "Extra property names",
+            "help": "Property names for **Extra labels**, in the same order."
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "selector",
+            "displayName": "Selector",
+            "shape": "string"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false,
+    "visibility": {
+        "type": "hidden"
+    }
+}

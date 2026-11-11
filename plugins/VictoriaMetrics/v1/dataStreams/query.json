@@ -1,0 +1,327 @@
+{
+    "name": "query",
+    "displayName": "MetricsQL Query",
+    "description": "Results of a MetricsQL or PromQL query as a time series or instant values, optionally scoped to selected objects",
+    "tags": [
+        "Metrics",
+        "MetricsQL",
+        "PromQL"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{queryType === 'instant' ? 'api/v1/query' : 'api/v1/query_range'}}",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query}}"
+            },
+            {
+                "key": "start",
+                "value": "{{queryType === 'instant' ? null : timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{queryType === 'instant' ? null : Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "time",
+                "value": "{{queryType === 'instant' ? Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000)) : null}}"
+            },
+            {
+                "key": "step",
+                "value": "{{queryType === 'instant' ? null : (step || Math.max(15, Math.ceil((timeframe.unixEnd - timeframe.unixStart) / 300)) + 's')}}"
+            },
+            {
+                "key": "extra_filters[]",
+                "value": "{{Array.isArray(scope) && scope.length ? '{' + scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') + '}' : null}}"
+            }
+        ],
+        "postRequestScript": "query.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "code",
+            "name": "query",
+            "label": "Query",
+            "language": "promql",
+            "help": "A [MetricsQL](https://docs.victoriametrics.com/victoriametrics/metricsql/) or PromQL expression, e.g. `sum by (job) (rate(http_requests_total[5m]))`.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "switch",
+            "name": "queryType",
+            "label": "Query type",
+            "defaultValue": "range",
+            "options": [
+                {
+                    "value": "range",
+                    "label": "Range (time series)"
+                },
+                {
+                    "value": "instant",
+                    "label": "Instant (latest value)"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Restrict every series selector in the query to the selected objects. Leave empty to query everything.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Scrape Job",
+                        "Scrape Target",
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Container",
+                        "Kubernetes Service",
+                        "Kubernetes Ingress",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Service",
+                        "Host",
+                        "Deployment Environment",
+                        "Cloud Resource",
+                        "FaaS Function",
+                        "Device",
+                        "AWS ECS Cluster",
+                        "AWS ECS Container",
+                        "AWS EKS Cluster",
+                        "GCP GCE Instance",
+                        "GCP Cloud Run Job Execution",
+                        "Heroku App"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "step",
+            "label": "Step (optional)",
+            "placeholder": "e.g. 1m",
+            "help": "Resolution of range queries. Defaults to about 300 points across the timeframe."
+        },
+        {
+            "type": "text",
+            "name": "pivot",
+            "label": "Pivot label (optional)",
+            "placeholder": "e.g. kpi",
+            "help": "Turn the values of this label into columns: series that differ only by this label become one row, with a column per label value. Useful for tables, e.g. `label_set(<cpu query>, \"kpi\", \"cpu\") or label_set(<memory query>, \"kpi\", \"memory\")` with pivot `kpi` gives one row per object with `cpu` and `memory` columns."
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "__name__",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "ContainerLink",
+            "displayName": "Container",
+            "shape": "string",
+            "sourceId": "ContainerLinkId",
+            "sourceType": "Kubernetes Container"
+        },
+        {
+            "name": "ContainerLinkId",
+            "displayName": "Container ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "PodLink",
+            "displayName": "Pod",
+            "shape": "string",
+            "sourceId": "PodLinkId",
+            "sourceType": "Kubernetes Pod"
+        },
+        {
+            "name": "PodLinkId",
+            "displayName": "Pod ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DeploymentLink",
+            "displayName": "Deployment",
+            "shape": "string",
+            "sourceId": "DeploymentLinkId",
+            "sourceType": "Kubernetes Deployment"
+        },
+        {
+            "name": "DeploymentLinkId",
+            "displayName": "Deployment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "StatefulSetLink",
+            "displayName": "StatefulSet",
+            "shape": "string",
+            "sourceId": "StatefulSetLinkId",
+            "sourceType": "Kubernetes StatefulSet"
+        },
+        {
+            "name": "StatefulSetLinkId",
+            "displayName": "StatefulSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DaemonSetLink",
+            "displayName": "DaemonSet",
+            "shape": "string",
+            "sourceId": "DaemonSetLinkId",
+            "sourceType": "Kubernetes DaemonSet"
+        },
+        {
+            "name": "DaemonSetLinkId",
+            "displayName": "DaemonSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ReplicaSetLink",
+            "displayName": "ReplicaSet",
+            "shape": "string",
+            "sourceId": "ReplicaSetLinkId",
+            "sourceType": "Kubernetes ReplicaSet"
+        },
+        {
+            "name": "ReplicaSetLinkId",
+            "displayName": "ReplicaSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeJobLink",
+            "displayName": "Job",
+            "shape": "string",
+            "sourceId": "KubeJobLinkId",
+            "sourceType": "Kubernetes Job"
+        },
+        {
+            "name": "KubeJobLinkId",
+            "displayName": "Job ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeCronJobLink",
+            "displayName": "CronJob",
+            "shape": "string",
+            "sourceId": "KubeCronJobLinkId",
+            "sourceType": "Kubernetes CronJob"
+        },
+        {
+            "name": "KubeCronJobLinkId",
+            "displayName": "CronJob ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NamespaceLink",
+            "displayName": "Namespace",
+            "shape": "string",
+            "sourceId": "NamespaceLinkId",
+            "sourceType": "Kubernetes Namespace"
+        },
+        {
+            "name": "NamespaceLinkId",
+            "displayName": "Namespace ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NodeLink",
+            "displayName": "Node",
+            "shape": "string",
+            "sourceId": "NodeLinkId",
+            "sourceType": "Kubernetes Node"
+        },
+        {
+            "name": "NodeLinkId",
+            "displayName": "Node ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ClusterLink",
+            "displayName": "Cluster",
+            "shape": "string",
+            "sourceId": "ClusterLinkId",
+            "sourceType": "Kubernetes Cluster"
+        },
+        {
+            "name": "ClusterLinkId",
+            "displayName": "Cluster ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ServiceLink",
+            "displayName": "Service",
+            "shape": "string",
+            "sourceId": "ServiceLinkId",
+            "sourceType": "Service"
+        },
+        {
+            "name": "ServiceLinkId",
+            "displayName": "Service ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "HostLink",
+            "displayName": "Host",
+            "shape": "string",
+            "sourceId": "HostLinkId",
+            "sourceType": "Host"
+        },
+        {
+            "name": "HostLinkId",
+            "displayName": "Host ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true
+}

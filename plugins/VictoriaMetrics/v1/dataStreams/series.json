@@ -1,0 +1,74 @@
+{
+    "name": "series",
+    "displayName": "Series",
+    "description": "Label sets of series matching a selector in the timeframe, one row per series",
+    "tags": [
+        "Metadata"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/series",
+        "getArgs": [
+            {
+                "key": "match[]",
+                "value": "{{match}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "limit",
+                "value": "{{limit || 1000}}"
+            }
+        ],
+        "postRequestScript": "series.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "__name__",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true,
+    "ui": [
+        {
+            "type": "text",
+            "name": "match",
+            "label": "Series selector",
+            "help": "A series selector, e.g. `{job=\"node-exporter\"}` or `up`.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Limit",
+            "defaultValue": 1000
+        }
+    ],
+    "manualConfigApply": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

@@ -1,0 +1,77 @@
+{
+    "name": "exemplars",
+    "displayName": "Exemplars",
+    "description": "Exemplars (e.g. trace IDs) attached to series matching a query in the timeframe",
+    "tags": [
+        "Metrics",
+        "Tracing"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/query_exemplars",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            }
+        ],
+        "postRequestScript": "exemplars.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "trace_id",
+            "displayName": "Trace ID",
+            "shape": "string"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true,
+    "ui": [
+        {
+            "type": "text",
+            "name": "query",
+            "label": "Query",
+            "help": "Series selector or query to fetch exemplars for.",
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "name": "cardinality",
+    "displayName": "Cardinality",
+    "description": "Top series counts by metric name, label name and label value pair from the TSDB status API",
+    "tags": [
+        "Metadata",
+        "Cardinality"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/status/tsdb",
+        "getArgs": [
+            {
+                "key": "topN",
+                "value": "{{topN || 10}}"
+            },
+            {
+                "key": "date",
+                "value": "{{date || null}}"
+            },
+            {
+                "key": "focusLabel",
+                "value": "{{focusLabel || null}}"
+            },
+            {
+                "key": "match[]",
+                "value": "{{match || null}}"
+            }
+        ],
+        "postRequestScript": "cardinality.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Series",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "requestsCount",
+            "displayName": "Query requests",
+            "shape": "number"
+        },
+        {
+            "name": "lastRequest",
+            "displayName": "Last queried",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "number",
+            "name": "topN",
+            "label": "Top N",
+            "defaultValue": 10
+        },
+        {
+            "type": "text",
+            "name": "date",
+            "label": "Date (optional)",
+            "help": "Day to report on, `YYYY-MM-DD`. Defaults to today.",
+            "placeholder": "YYYY-MM-DD"
+        },
+        {
+            "type": "text",
+            "name": "focusLabel",
+            "label": "Focus label (optional)",
+            "help": "Also return the label values with the most series for this label."
+        },
+        {
+            "type": "text",
+            "name": "match",
+            "label": "Series selector (optional)",
+            "help": "A series selector, e.g. `{job=\"node-exporter\"}` or `up`."
+        }
+    ],
+    "manualConfigApply": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

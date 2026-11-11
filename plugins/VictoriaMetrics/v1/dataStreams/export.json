@@ -1,0 +1,77 @@
+{
+    "name": "export",
+    "displayName": "Raw Samples",
+    "description": "Raw samples of series matching a selector in the timeframe, one row per sample",
+    "tags": [
+        "Metrics",
+        "Export"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/export",
+        "getArgs": [
+            {
+                "key": "match[]",
+                "value": "{{match}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            }
+        ],
+        "postRequestScript": "export.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "__name__",
+            "displayName": "Metric",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours"
+    ],
+    "ui": [
+        {
+            "type": "text",
+            "name": "match",
+            "label": "Series selector",
+            "help": "A series selector, e.g. `{job=\"node-exporter\"}` or `up`. Keep the selection small - every raw sample is returned.",
+            "validation": {
+                "required": true
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

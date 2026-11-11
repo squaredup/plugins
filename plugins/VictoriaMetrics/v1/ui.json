@@ -1,0 +1,141 @@
+[
+    {
+        "type": "text",
+        "name": "url",
+        "label": "VictoriaMetrics URL",
+        "placeholder": "https://victoriametrics.example.com:8428",
+        "help": "The base URL that serves the Prometheus querying API, **without** the trailing `/api/v1`.\n\n- Single-node: `http://<host>:8428`\n- Cluster (vmselect): `http://<vmselect>:8481/select/<accountID>/prometheus`\n- Behind vmauth or VictoriaMetrics Cloud: the URL your proxy exposes for queries",
+        "validation": {
+            "required": true,
+            "pattern": {
+                "value": "^https?://[^\\s]+$",
+                "message": "Enter a URL starting with http:// or https://"
+            }
+        }
+    },
+    {
+        "type": "radio",
+        "name": "authType",
+        "label": "Authentication",
+        "defaultValue": "none",
+        "validation": {
+            "required": true
+        },
+        "options": [
+            {
+                "value": "none",
+                "label": "None"
+            },
+            {
+                "value": "token",
+                "label": "Bearer token"
+            },
+            {
+                "value": "basic",
+                "label": "Basic authentication"
+            }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": {
+            "authType": "token"
+        },
+        "fields": [
+            {
+                "type": "password",
+                "name": "apiToken",
+                "label": "Bearer token",
+                "help": "Sent as `Authorization: Bearer <token>` \u2014 for example a vmauth bearer token or a VictoriaMetrics Cloud access token with read access.",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": {
+            "authType": "basic"
+        },
+        "fields": [
+            {
+                "type": "text",
+                "name": "username",
+                "label": "Username",
+                "validation": {
+                    "required": true
+                }
+            },
+            {
+                "type": "password",
+                "name": "password",
+                "label": "Password",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
+    },
+    {
+        "type": "checkbox",
+        "name": "ignoreCertificateErrors",
+        "label": "Ignore certificate errors",
+        "help": "Enable when connecting to an instance with a self-signed certificate."
+    },
+    {
+        "type": "fieldGroup",
+        "name": "indexing",
+        "label": "Object indexing",
+        "displayAs": "fieldGroupToggle",
+        "fields": [
+            {
+                "type": "markdown",
+                "name": "indexingInfo",
+                "content": "Choose which label conventions are indexed as objects. Each pack runs a small `count by` query per object type."
+            },
+            {
+                "type": "text",
+                "name": "defaultCluster",
+                "label": "Default cluster name",
+                "placeholder": "e.g. prod-eu-1",
+                "help": "Cluster name to assume for series without a `cluster` or `k8s.cluster.name` label. Set this when some or all of your series don't carry a cluster label, so Kubernetes objects found under different label conventions merge, and drilldowns from query results resolve. Leave empty if every series carries a cluster label."
+            },
+            {
+                "type": "toggle",
+                "name": "indexCore",
+                "label": "Scrape jobs and targets",
+                "help": "Index `job` and `instance` from the `up` metric.",
+                "defaultValue": true
+            },
+            {
+                "type": "toggle",
+                "name": "indexK8s",
+                "label": "Kubernetes (standard labels)",
+                "help": "Index objects from the labels used by the common Kubernetes scrape configs, kube-state-metrics and cAdvisor, e.g. `namespace`, `pod`, `node`.",
+                "defaultValue": true
+            },
+            {
+                "type": "toggle",
+                "name": "indexOtelK8s",
+                "label": "Kubernetes (OpenTelemetry)",
+                "help": "Index objects from OpenTelemetry `k8s.*` resource attributes, e.g. `k8s.pod.name` or `k8s_pod_name`.",
+                "defaultValue": true
+            },
+            {
+                "type": "toggle",
+                "name": "indexOtelResource",
+                "label": "Services and hosts (OpenTelemetry)",
+                "help": "Index objects from OpenTelemetry resource attributes such as `service.name`, `host.name` and `deployment.environment.name`.",
+                "defaultValue": true
+            },
+            {
+                "type": "toggle",
+                "name": "indexOtelCloud",
+                "label": "Cloud resources (OpenTelemetry)",
+                "help": "Index objects from OpenTelemetry cloud resource attributes, e.g. `aws.eks.cluster.arn` or `gcp.gce.instance.hostname`.",
+                "defaultValue": true
+            }
+        ]
+    }
+]

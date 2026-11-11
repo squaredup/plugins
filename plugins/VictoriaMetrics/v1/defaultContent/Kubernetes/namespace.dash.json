@@ -1,0 +1,787 @@
+{
+    "name": "Namespace",
+    "schemaVersion": "1.5",
+    "timeframe": "last1hour",
+    "variables": [
+        "{{variables.[Kubernetes Namespace]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "c208d1ac-40fa-49d2-880f-75d3426129df",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Running Pods",
+                    "description": "The data lists each running pod",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "(max by (cluster, namespace, pod) (kube_pod_status_phase{phase=\"Running\"}) == 1)\nor ((max by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name) (k8s_pod_phase) == 2) unless on() ((max by (cluster, namespace, pod) (kube_pod_status_phase{phase=\"Running\"}) == 1)))\nor ((group by (cluster, namespace, pod) (container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"})) unless on() ((max by (cluster, namespace, pod) (kube_pod_status_phase{phase=\"Running\"}) == 1) or (max by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name) (k8s_pod_phase) == 2)))",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "251008ef-5b6d-4cdb-bb9c-b9ca1c63bb94",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CPU Used (cores)",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"}[5m])) or sum(k8s_pod_cpu_usage)",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3c4ac6d3-4b74-4b2e-95ef-a0e36230eb8b",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Memory Used",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or sum({__name__=~\"k8s_pod_memory_working_set(_bytes)?\"}) or sum(container_memory_usage_bytes{container!=\"\", container!=\"POD\"})",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": "bytes",
+                                "displayName": "Memory"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2c504857-be3e-4e56-a162-840428cb3348",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Container Restarts (1h)",
+                    "description": "Container restarts in the last hour; the data shows each container",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "(sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h])))\nor ((sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name, k8s.container.name) (increase(k8s_container_restarts[1h]))) unless on() ((sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h])))))",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none",
+                                "scalarValueColor": "#ffaa00"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fe34f971-ef3a-467f-952d-180482c3f760",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CPU vs Requests and Limits (cores)",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "label_set((sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"}[5m])) or sum(k8s_pod_cpu_usage)), \"measure\", \"Used\")\nor label_set((sum(kube_pod_container_resource_requests{resource=\"cpu\"}) or sum(k8s_container_cpu_request)), \"measure\", \"Requested\")\nor label_set((sum(kube_pod_container_resource_limits{resource=\"cpu\"}) or sum(k8s_container_cpu_limit)), \"measure\", \"Limits\")",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "measure",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Cores",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Cores"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Cores",
+                                "mappedColors": {
+                                    "Used": "#3EB5FF",
+                                    "Requested": "#7a5af8",
+                                    "Limits": "#f2164d",
+                                    "Allocatable": "#2bb660"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ec010f09-f7cd-449b-8289-fc6180a7bbae",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Memory vs Requests and Limits",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "label_set((sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or sum({__name__=~\"k8s_pod_memory_working_set(_bytes)?\"}) or sum(container_memory_usage_bytes{container!=\"\", container!=\"POD\"})), \"measure\", \"Used\")\nor label_set((sum(kube_pod_container_resource_requests{resource=\"memory\"}) or sum({__name__=~\"k8s_container_memory_request(_bytes)?\"})), \"measure\", \"Requested\")\nor label_set((sum(kube_pod_container_resource_limits{resource=\"memory\"}) or sum({__name__=~\"k8s_container_memory_limit(_bytes)?\"})), \"measure\", \"Limits\")",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": "bytes",
+                                "displayName": "Memory"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "measure",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Memory",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Memory"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Memory",
+                                "mappedColors": {
+                                    "Used": "#3EB5FF",
+                                    "Requested": "#7a5af8",
+                                    "Limits": "#f2164d",
+                                    "Allocatable": "#2bb660"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fec692ed-5de4-41fc-8eea-900e47e58c19",
+                "x": 0,
+                "y": 5,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Pods",
+                    "description": "Usage against limits and restarts for each pod",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    cpuUsed = (sum by (cluster, namespace, pod) (rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"}[5m])) or label_move(label_move(label_move(sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name) (k8s_pod_cpu_usage), \"k8s.pod.name\", \"pod\"), \"k8s.namespace.name\", \"namespace\"), \"k8s.cluster.name\", \"cluster\")),\n    cpuLim = sum by (cluster, namespace, pod) (kube_pod_container_resource_limits{resource=\"cpu\"}),\n    memUsed = ((sum by (cluster, namespace, pod) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or label_move(label_move(label_move(sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name) ({__name__=~\"k8s_pod_memory_working_set(_bytes)?\"}), \"k8s.pod.name\", \"pod\"), \"k8s.namespace.name\", \"namespace\"), \"k8s.cluster.name\", \"cluster\") or sum by (cluster, namespace, pod) (container_memory_usage_bytes{container!=\"\", container!=\"POD\"}))),\n    memLim = sum by (cluster, namespace, pod) (kube_pod_container_resource_limits{resource=\"memory\"})\n)\nlabel_set(cpuUsed, \"kpi\", \"cpu\")\nor label_set(sum by (cluster, namespace, pod) (kube_pod_container_resource_requests{resource=\"cpu\"}), \"kpi\", \"cpuRequest\")\nor label_set(cpuLim, \"kpi\", \"cpuLimit\")\nor label_set(100 * cpuUsed / cpuLim, \"kpi\", \"cpuLimitPct\")\nor label_set(memUsed, \"kpi\", \"memory\")\nor label_set(sum by (cluster, namespace, pod) (kube_pod_container_resource_requests{resource=\"memory\"}), \"kpi\", \"memoryRequest\")\nor label_set(memLim, \"kpi\", \"memoryLimit\")\nor label_set(100 * memUsed / memLim, \"kpi\", \"memoryLimitPct\")\nor label_set(sum by (cluster, namespace, pod) (increase(kube_pod_container_status_restarts_total[1h])), \"kpi\", \"restarts\")",
+                            "queryType": "instant",
+                            "pivot": "kpi",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "memory",
+                                "shape": "bytes"
+                            },
+                            {
+                                "name": "memoryRequest",
+                                "shape": "bytes"
+                            },
+                            {
+                                "name": "memoryLimit",
+                                "shape": "bytes"
+                            },
+                            {
+                                "name": "cpuLimitPct",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "memoryLimitPct",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "PodLink",
+                                    "cpu",
+                                    "cpuLimitPct",
+                                    "memory",
+                                    "memoryLimitPct",
+                                    "restarts"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "PodLink",
+                                        "title": "Pod",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "cpu",
+                                        "title": "CPU (cores)",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#3EB5FF"
+                                        }
+                                    },
+                                    {
+                                        "field": "cpuLimitPct",
+                                        "title": "CPU % of limit",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "thresholds": [
+                                                {
+                                                    "to": 70,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 90,
+                                                    "color": "#ffaa00"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#f2164d"
+                                                }
+                                            ],
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "memory",
+                                        "title": "Memory",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#7a5af8"
+                                        }
+                                    },
+                                    {
+                                        "field": "memoryLimitPct",
+                                        "title": "Memory % of limit",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "thresholds": [
+                                                {
+                                                    "to": 70,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 90,
+                                                    "color": "#ffaa00"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#f2164d"
+                                                }
+                                            ],
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "restarts",
+                                        "title": "Restarts (1h)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 1000000,
+                                                    "color": "#f2164d"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "cpu",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7707bc76-a2f2-4224-8356-b0d8a6a746d7",
+                "x": 0,
+                "y": 9,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CPU by Pod (cores)",
+                    "description": "Top 10 pods by CPU usage",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "topk_avg(10, sum by (pod) (rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"}[5m])) or label_move(sum by (k8s.pod.name) (k8s_pod_cpu_usage), \"k8s.pod.name\", \"pod\"))",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "PodLink",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Cores",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Cores"
+                                },
+                                "series": {
+                                    "field": "PodLink",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Cores"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ed38ab66-047b-4db7-af4b-2c142552a113",
+                "x": 2,
+                "y": 9,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Memory by Pod",
+                    "description": "Top 10 pods by memory working set",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "topk_avg(10, sum by (pod) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or label_move(sum by (k8s.pod.name) ({__name__=~\"k8s_pod_memory_working_set(_bytes)?\"}), \"k8s.pod.name\", \"pod\") or sum by (pod) (container_memory_usage_bytes{container!=\"\", container!=\"POD\"}))",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Namespace]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Namespaces]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": "bytes",
+                                "displayName": "Memory"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Namespace]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "PodLink",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Memory",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Memory"
+                                },
+                                "series": {
+                                    "field": "PodLink",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Memory"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

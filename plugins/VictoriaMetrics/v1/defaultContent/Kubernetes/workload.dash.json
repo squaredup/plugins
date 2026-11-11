@@ -1,0 +1,571 @@
+{
+    "name": "Workload",
+    "schemaVersion": "1.5",
+    "timeframe": "last1hour",
+    "variables": [
+        "{{variables.[Kubernetes Workload]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "7eb64488-1b74-4151-bfcb-8aeca470c406",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Replicas",
+                    "description": "Available replicas against the desired count",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "label_set((sum(kube_deployment_status_replicas_available) or sum(kube_statefulset_status_replicas_ready) or sum(kube_daemonset_status_number_available) or sum(k8s_deployment_available) or sum(k8s_statefulset_ready_pods) or sum(k8s_daemonset_ready_nodes)), \"measure\", \"Available\")\nor label_set((sum(kube_deployment_spec_replicas) or sum(kube_statefulset_replicas) or sum(kube_daemonset_status_desired_number_scheduled) or sum(k8s_deployment_desired) or sum(k8s_statefulset_desired_pods) or sum(k8s_daemonset_desired_scheduled_nodes)), \"measure\", \"Desired\")",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Workload]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Workloads]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Workload]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative"
+                                    }
+                                ],
+                                "label": {
+                                    "field": "measure",
+                                    "type": "nominal"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2bc44515-0450-4d2a-b0e3-26a9315b79d8",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Container Restarts (1h)",
+                    "description": "Container restarts in the last hour; the data shows each container",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "(sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h])))\nor ((sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name, k8s.container.name) (increase(k8s_container_restarts[1h]))) unless on() ((sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h])))))",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Workload]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Workloads]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Workload]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none",
+                                "scalarValueColor": "#ffaa00"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f08155e9-9569-4fcc-bca0-397de8c46c2d",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CPU Throttling",
+                    "description": "Share of CPU scheduling periods in which containers were throttled by their CPU limit",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{container!=\"\", container!=\"POD\"}[5m])) / sum(rate(container_cpu_cfs_periods_total{container!=\"\", container!=\"POD\"}[5m]))",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Workload]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Workloads]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "displayName": "Throttled"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Workload]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-gauge",
+                        "config": {
+                            "data-stream-gauge": {
+                                "value": {
+                                    "type": "arr",
+                                    "columns": [
+                                        "value"
+                                    ]
+                                },
+                                "minimum": 0,
+                                "maximum": 100
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeLabelText": "of CFS periods throttled",
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.1,
+                                        "color": "#2bb660"
+                                    },
+                                    {
+                                        "to": 0.25,
+                                        "color": "#ffaa00"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#f2164d"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d0be4349-7e13-4b7e-ae1d-734a4b2ec9f1",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CPU vs Requests and Limits (cores)",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "label_set((sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"}[5m])) or sum(k8s_pod_cpu_usage) or sum(rate(process_cpu_time_seconds_total[5m]))), \"measure\", \"Used\")\nor label_set((sum(kube_pod_container_resource_requests{resource=\"cpu\"}) or sum(k8s_container_cpu_request)), \"measure\", \"Requested\")\nor label_set((sum(kube_pod_container_resource_limits{resource=\"cpu\"}) or sum(k8s_container_cpu_limit)), \"measure\", \"Limits\")",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Workload]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Workloads]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Workload]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "measure",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Cores",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Cores"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Cores",
+                                "mappedColors": {
+                                    "Used": "#3EB5FF",
+                                    "Requested": "#7a5af8",
+                                    "Limits": "#f2164d",
+                                    "Allocatable": "#2bb660"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ae6e7c83-0071-43f7-8ded-1a34bc1a30b8",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Memory vs Requests and Limits",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "label_set((sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or sum({__name__=~\"k8s_pod_memory_working_set(_bytes)?\"}) or sum(process_memory_usage_bytes)), \"measure\", \"Used\")\nor label_set((sum(kube_pod_container_resource_requests{resource=\"memory\"}) or sum({__name__=~\"k8s_container_memory_request(_bytes)?\"})), \"measure\", \"Requested\")\nor label_set((sum(kube_pod_container_resource_limits{resource=\"memory\"}) or sum({__name__=~\"k8s_container_memory_limit(_bytes)?\"})), \"measure\", \"Limits\")",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Workload]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Workloads]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": "bytes",
+                                "displayName": "Memory"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Workload]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "measure",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Memory",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Memory"
+                                },
+                                "series": {
+                                    "field": "measure",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Memory",
+                                "mappedColors": {
+                                    "Used": "#3EB5FF",
+                                    "Requested": "#7a5af8",
+                                    "Limits": "#f2164d",
+                                    "Allocatable": "#2bb660"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ff17e339-8283-4c0c-b7e3-8a45c2e1f430",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CPU by Pod (cores)",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "topk_avg(20, sum by (pod) (rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"}[5m])) or label_move(sum by (k8s.pod.name) (k8s_pod_cpu_usage), \"k8s.pod.name\", \"pod\") or label_move(sum by (k8s.pod.name) (rate(process_cpu_time_seconds_total[5m])), \"k8s.pod.name\", \"pod\"))",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Workload]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Workloads]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Workload]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "PodLink",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Cores",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Cores"
+                                },
+                                "series": {
+                                    "field": "PodLink",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Cores"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2583920a-11a8-419b-8126-ba581a7a8e9d",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Memory by Pod",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "topk_avg(20, sum by (pod) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or label_move(sum by (k8s.pod.name) ({__name__=~\"k8s_pod_memory_working_set(_bytes)?\"}), \"k8s.pod.name\", \"pod\") or label_move(sum by (k8s.pod.name) (process_memory_usage_bytes), \"k8s.pod.name\", \"pod\"))",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Kubernetes Workload]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Kubernetes Workloads]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": "bytes",
+                                "displayName": "Memory"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Kubernetes Workload]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "PodLink",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Memory",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Memory"
+                                },
+                                "series": {
+                                    "field": "PodLink",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Memory"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

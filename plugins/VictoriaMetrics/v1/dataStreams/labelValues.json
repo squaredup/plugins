@@ -1,0 +1,78 @@
+{
+    "name": "labelValues",
+    "displayName": "Label Values",
+    "description": "Values of a label across series in the timeframe, optionally filtered by a series selector",
+    "tags": [
+        "Metadata"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/v1/label/{{encodeURIComponent(label)}}/values",
+        "getArgs": [
+            {
+                "key": "match[]",
+                "value": "{{match || null}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "limit",
+                "value": "{{limit || null}}"
+            }
+        ],
+        "postRequestScript": "labelValues.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "label",
+            "displayName": "Value",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Value (raw)",
+            "shape": "string",
+            "role": "value",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "ui": [
+        {
+            "type": "text",
+            "name": "label",
+            "label": "Label",
+            "help": "Label name, e.g. `job` or `k8s.namespace.name`.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "text",
+            "name": "match",
+            "label": "Series selector (optional)",
+            "help": "A series selector, e.g. `{job=\"node-exporter\"}` or `up`."
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Limit (optional)"
+        }
+    ],
+    "manualConfigApply": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

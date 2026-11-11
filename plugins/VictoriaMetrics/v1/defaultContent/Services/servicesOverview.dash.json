@@ -1,0 +1,642 @@
+{
+    "name": "Services Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last1hour",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "c4b95bcc-0439-462b-af91-310c10deda19",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Services",
+                    "description": "Services reporting server request metrics; the data lists each service with its request rate",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\ntotal",
+                            "queryType": "instant"
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f8390209-d008-47ae-b56f-080ad380107d",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests / sec",
+                    "description": "Server requests per second across all services; the data shows each service",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\ntotal",
+                            "queryType": "instant"
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cdfb55cb-3293-44d4-8587-7d1d1df3f42f",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Error Rate",
+                    "description": "Share of server requests failing (HTTP 5xx, gRPC server errors)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\npct",
+                            "queryType": "instant"
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "displayName": "Error rate"
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e070e9b2-2257-4593-ab55-8a8cb49c2a28",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Slowest p95 Latency",
+                    "description": "The highest 95th percentile server latency of any service; the data shows each service",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\npms(0.95)",
+                            "queryType": "instant"
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "milliseconds",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "displayName": "p95 latency"
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "value",
+                                "comparisonColumn": "none"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative",
+                                        "aggregate": "max"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7b937370-d1c6-4aaa-ae98-f8e67a89dccf",
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Service Health",
+                    "description": "Error rate per service: red above 5%, amber above 1%",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\nlabel_set(round(pct, 0.01) > 5, \"state\", \"error\") or label_set(round(pct, 0.01) > 1 <= 5, \"state\", \"warning\") or label_set(round(pct, 0.01) <= 1, \"state\", \"success\")",
+                            "queryType": "instant"
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "displayName": "Error rate"
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "type": "data-stream-blocks",
+                        "config": {
+                            "data-stream-blocks": {
+                                "labelColumn": "ServiceLink",
+                                "stateColumn": "state",
+                                "linkColumn": "none",
+                                "columns": 4
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "ServiceLink",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "value",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 6,
+                                "statusGridSecondaryTemplate": "{{value}} errors"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "aed6bb96-4ee4-426e-b26d-b7dbaa8f7011",
+                "x": 0,
+                "y": 5,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Services",
+                    "description": "Rate, errors and duration (RED) for each service",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\nlabel_set(total, \"kpi\", \"rate\")\nor label_set(pct, \"kpi\", \"errorPct\")\nor label_set(pms(0.5), \"kpi\", \"p50\")\nor label_set(pms(0.95), \"kpi\", \"p95\")\nor label_set(pms(0.99), \"kpi\", \"p99\")",
+                            "queryType": "instant",
+                            "pivot": "kpi"
+                        },
+                        "metadata": [
+                            {
+                                "name": "errorPct",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "p50",
+                                "shape": [
+                                    "milliseconds",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "p95",
+                                "shape": [
+                                    "milliseconds",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "p99",
+                                "shape": [
+                                    "milliseconds",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "ServiceLink",
+                                    "rate",
+                                    "errorPct",
+                                    "p50",
+                                    "p95",
+                                    "p99"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "ServiceLink",
+                                        "title": "Service",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "rate",
+                                        "title": "Requests / sec",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#3EB5FF"
+                                        }
+                                    },
+                                    {
+                                        "field": "errorPct",
+                                        "title": "Error %",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "thresholds": [
+                                                {
+                                                    "to": 1,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 5,
+                                                    "color": "#ffaa00"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#f2164d"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "p50",
+                                        "title": "p50",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "p95",
+                                        "title": "p95",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "thresholds": [
+                                                {
+                                                    "to": 250,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 1000,
+                                                    "color": "#ffaa00"
+                                                },
+                                                {
+                                                    "to": 1000000000000.0,
+                                                    "color": "#f2164d"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "p99",
+                                        "title": "p99",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "rate",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "373ea65a-b80e-4e2c-8d8b-c4277fce2aef",
+                "x": 0,
+                "y": 9,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Requests / sec by Service",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\ntotal",
+                            "queryType": "range"
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "ServiceLink",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "Requests/s",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Requests/s"
+                                },
+                                "series": {
+                                    "field": "ServiceLink",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Requests/s"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3090c0bf-9388-49ef-8bca-b8e60c3b6884",
+                "x": 2,
+                "y": 9,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "p95 Latency by Service",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[query]}}",
+                        "name": "query",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "WITH (\n    total = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\")),\n    failed = sum by (service.name) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.response.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_response_status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http.status_code=~\"5..\" or __name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count\", http_status_code=~\"5..\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc.grpc.status_code=~\"2|4|12|13|14|15\" or __name__=\"rpc_server_duration_milliseconds_count\", rpc_grpc_status_code=~\"2|4|12|13|14|15\"}[5m]), \"service_name\", \"service.name\")),\n    pct = 100 * (failed or 0 * total) / total,\n    sec = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_bucket|http_server_duration_seconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    ms = sum by (service.name, le) (label_copy(rate({__name__=~\"http_server_duration_milliseconds_bucket|rpc_server_duration_milliseconds_bucket\"}[5m]), \"service_name\", \"service.name\")),\n    pms(q) = 1000 * histogram_quantile(q, sec) or histogram_quantile(q, ms)\n)\npms(0.95)",
+                            "queryType": "range"
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "milliseconds",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "displayName": "p95 latency"
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "value"
+                                ],
+                                "seriesColumn": "ServiceLink",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false,
+                                "yAxisLabel": "p95 latency",
+                                "showYAxisLabel": true
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "p95 latency"
+                                },
+                                "series": {
+                                    "field": "ServiceLink",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "p95 latency"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
