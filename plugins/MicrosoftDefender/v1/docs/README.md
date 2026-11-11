@@ -9,7 +9,7 @@ Each part of this plugin needs its own application permission, and vulnerability
 | Alerts | _SecurityAlert.Read.All_ | Any Microsoft Defender product, including Plan 1 tiers | **Alerts** data stream, alert tiles on the **Overview** dashboard |
 | Incidents | _SecurityIncident.Read.All_ | Any Microsoft Defender product, including Plan 1 tiers | **Incidents** data stream and dashboard, incident tiles on the **Overview** dashboard |
 | Secure Score | _SecurityEvents.Read.All_ | Any Microsoft 365 tenant | **Secure Score History** data stream, Secure Score tiles on the **Overview** dashboard |
-| Vulnerability management | _Vulnerability.Read.All_ (WindowsDefenderATP API, not Microsoft Graph) | A licence with vulnerability management, such as Microsoft Defender for Business, Microsoft 365 Business Premium or Microsoft Defender for Endpoint Plan 2. Advanced hunting is not needed | **Vulnerabilities by CVE** and **Vulnerability Exposures** data streams, and the **Vulnerability Exposure** dashboard |
+| Vulnerability management | _Vulnerability.Read.All_ (WindowsDefenderATP API, not Microsoft Graph) | A licence with vulnerability management, such as Microsoft Defender for Business, Microsoft 365 Business Premium or Microsoft Defender for Endpoint Plan 2. Advanced hunting is not needed | **Vulnerability Exposures** data stream and **Vulnerability Exposure** dashboard |
 | Advanced hunting | _ThreatHunting.Read.All_ | A licence with advanced hunting, such as Microsoft Defender for Endpoint Plan 2 or Microsoft Defender for Office 365 Plan 2 | **Advanced Hunting Query** data stream, for the tables your licence covers |
 | Advanced hunting on devices | _ThreatHunting.Read.All_ | A licence with advanced hunting on device data, such as Microsoft Defender for Endpoint Plan 2 | Device import, the **Advanced Hunting** dashboards, and the **Devices**, **Vulnerabilities** and **Recommendations** data streams |
 
@@ -69,9 +69,8 @@ These data streams work with any licence:
 - **Incidents**: Incidents that Microsoft Defender created to track attacks in an organization. *Parameters:* Severity, Status.
 - **Secure Score History**: The tenant's Secure Score over the past 90 days.
 
-These data streams need vulnerability management, but not advanced hunting:
+This data stream needs vulnerability management, but not advanced hunting:
 
-- **Vulnerabilities by CVE**: One row per CVE, with its severity, CVSS score, exploit status and the number of exposed devices. Smaller and faster than **Vulnerability Exposures**, so use it for an organization-wide summary. *Parameters:* Severity.
 - **Vulnerability Exposures**: Vulnerabilities found across all devices, one row per device, software and CVE, with the fixing KB when there is one. Devices are identified by their Defender device ID. *Parameters:* Severity.
 
 This data stream needs advanced hunting, and returns data for the tables your licence covers:
