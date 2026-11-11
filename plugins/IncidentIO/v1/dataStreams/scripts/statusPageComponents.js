@@ -11,7 +11,9 @@ const addComponent = (component, groupName, subPageName) => {
         return;
     }
     rows.push({
-        id: component.component_id,
+        // A component can appear on several status pages, so the object id pairs it with its page.
+        id: unwrap(page.rawId) + ":" + component.component_id,
+        componentId: component.component_id,
         name: component.name,
         qualifiedName: unwrap(page.name) + " / " + component.name,
         statusPageId: unwrap(page.rawId),

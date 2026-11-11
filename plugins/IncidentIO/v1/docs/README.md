@@ -76,6 +76,7 @@ A warning or error fires an alert in incident.io, and the alert resolves when th
 - **Team filtering on incidents happens after the request** — incident.io has no team filter for incidents, so all incidents in the timeframe are fetched and then filtered. Prefer a bounded timeframe in very large organizations.
 - **Escalations don't name their escalation path** — the API returns only the path ID; use the **Escalation Paths** stream for path names and current responders.
 - **Status page incidents list affected components by ID** — the API doesn't return component names on status page incidents.
+- **Schedule Shifts returns a single page of entries** — incident.io can page schedule entries, but its cursor reuses the window-start parameter the stream already sets. Very busy schedules over long windows (e.g. many short shifts across 30 days) may show only the first page.
 - **Component availability is limited to 366 days** per query, and the timeframe *None* isn't offered.
 - **Alerts cap page size at 50 records** (escalations and workflow runs too); large volumes are paged automatically but may take longer to query.
 - **Empty streams are normal for unused features** — if you have no alert sources, status pages, escalations or workflows, the related streams and tiles are empty rather than erroring.
