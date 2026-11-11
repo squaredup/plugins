@@ -516,7 +516,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('day', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', ''), 'Unknown') AS fam, \"input_tokens\" + \"output_tokens\" AS v FROM \"usage\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"day\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"tokens\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
+                            "sql": "WITH f AS (SELECT STRFTIME(DATE_TRUNC('day', \"date\"), '%Y-%m-%dT%H:%M:%SZ') AS b, COALESCE(REGEXP_REPLACE(\"model\", '-\\d{4}-\\d{2}-\\d{2}$', ''), 'Unknown') AS fam, \"input_tokens\" + \"output_tokens\" AS v FROM \"usage\"),\nr AS (SELECT fam, ROW_NUMBER() OVER (ORDER BY SUM(v) DESC) AS rn FROM f GROUP BY fam)\nSELECT f.b AS \"day\", CASE WHEN r.rn <= 6 THEN f.fam ELSE 'Other' END AS \"model\", SUM(f.v) AS \"tokens\"\nFROM f JOIN r USING (fam)\nGROUP BY 1, 2\nORDER BY 1",
                             "tables": [
                                 {
                                     "tableName": "usage",
