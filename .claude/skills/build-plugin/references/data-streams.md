@@ -873,7 +873,7 @@ Renaming, flattening single-level nesting, value coercion, adding constant colum
 
 ### Available globals
 
-Scripts have access to `data`, `response` (the raw HTTP response — `.status`, `.headers`, `.body`), `context`, and **lodash** (`_`):
+Scripts have access to `data`, `response` (the raw HTTP response — `.status`, `.headers`, `.body`), `context`, `fetch`, and **lodash** (`_`). `fetch` reaches only the base URL's domain unless the plugin lists more hosts in `allowedScriptHosts` — see [Fetching other hosts](metadata.md#fetching-other-hosts).
 
 ```javascript
 // dataStreams/scripts/myStream.js
