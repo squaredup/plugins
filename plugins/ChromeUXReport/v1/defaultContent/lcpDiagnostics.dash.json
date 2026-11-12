@@ -1,0 +1,570 @@
+{
+    "name": "LCP Diagnostics",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "84948bcd-b4cf-4222-9c30-0f93051b007e",
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP Breakdown (Phone)",
+                    "description": "How long each stage of loading the main image takes for the site on phone, in load order (each is its own 3 in 4 visits value, so they do not add up to LCP). Large TTFB: check the server, CDN and caching; large load delay: preload the image and do not lazy-load it; large load time: compress, resize or use modern formats; large render delay: cut render-blocking scripts and styles.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[pageDiagnostics]}}",
+                        "name": "pageDiagnostics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "origin",
+                            "formFactor": "PHONE"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "group",
+                                    "operation": "equals",
+                                    "value": "LCP breakdown"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "order",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Websites]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Part"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Time (ms)"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianYAxisDecimalPlaces": 0
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "88c36774-692c-4662-bdc1-2dc6cd5f57ce",
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP Breakdown (Desktop)",
+                    "description": "How long each stage of loading the main image takes for the site on desktop, in load order (each is its own 3 in 4 visits value, so they do not add up to LCP). Large TTFB: check the server, CDN and caching; large load delay: preload the image and do not lazy-load it; large load time: compress, resize or use modern formats; large render delay: cut render-blocking scripts and styles.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[pageDiagnostics]}}",
+                        "name": "pageDiagnostics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "level": "origin",
+                            "formFactor": "DESKTOP"
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "group",
+                                    "operation": "equals",
+                                    "value": "LCP breakdown"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "order",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[CrUX Websites]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Part"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Time (ms)"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianYAxisDecimalPlaces": 0
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4e017e5f-4eb6-4ef6-88d1-61b2e6cf2e10",
+                "x": 0,
+                "y": 3,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP Element",
+                    "description": "Whether the main content (the largest element on screen) was an image or text on phone and desktop. When it is mostly an image, image size and delivery matter most for loading speed.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT device, item, value\nFROM (\n  SELECT 'Phone' AS device, 1 AS deviceOrder, item, CAST(value AS DOUBLE) AS value FROM phone WHERE \"group\" = 'LCP element'\n  UNION ALL\n  SELECT 'Desktop' AS device, 2 AS deviceOrder, item, CAST(value AS DOUBLE) AS value FROM desktop WHERE \"group\" = 'LCP element'\n)\nORDER BY deviceOrder, item",
+                            "tables": [
+                                {
+                                    "tableName": "phone",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktop",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "device",
+                                "displayName": "Device",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "item",
+                                "displayName": "Element",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "value",
+                                "displayName": "Share of visits",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "device",
+                                    "type": "nominal",
+                                    "title": "Device"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Element"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "normalize",
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0ed04f77-52a4-43be-be96-2743b3ba8655",
+                "x": 3,
+                "y": 3,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Navigation Types",
+                    "description": "How visits arrived over the last 28 days; bfcache (back/forward cache) and prerender loads are near instant. A low bfcache share is usually caused by unload handlers or Cache-Control: no-store, and fixing those makes back and forward visits instant.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT item, CASE WHEN item IN ('bfcache', 'Prerender') THEN 'Instant' ELSE 'Standard' END AS kind, CAST(value AS DOUBLE) AS value\nFROM diag WHERE \"group\" = 'Navigation type'\nORDER BY \"order\"",
+                            "tables": [
+                                {
+                                    "tableName": "diag",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "ALL"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "item",
+                                "displayName": "Navigation type",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "kind",
+                                "displayName": "Speed",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "value",
+                                "displayName": "Share of visits",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "item",
+                                    "type": "nominal",
+                                    "title": "Navigation type"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Share of visits"
+                                },
+                                "series": {
+                                    "field": "kind",
+                                    "type": "nominal",
+                                    "title": "Speed"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": false,
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Instant": "#0CCE6B",
+                                    "Standard": "#9CA3AF"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ec493459-ce95-4e48-880b-c23d63421f4f",
+                "x": 7,
+                "y": 3,
+                "w": 5,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Server and Network",
+                    "description": "Time to First Byte (TTFB, how long the server takes to start responding) and network round trip time, as met or beaten by 3 in 4 visits. A slow TTFB with a fast round trip points at your server rather than the networks your visitors are on.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT device, ttfb, ttfbRating, rtt\nFROM (\n  SELECT 'Phone' AS device, 1 AS deviceOrder,\n    CASE WHEN pv.metric = 'CLS' THEN printf('%.2f', pv.p75) WHEN pv.p75 >= 1000 THEN printf('%.2f s', pv.p75 / 1000) ELSE printf('%d ms', CAST(round(pv.p75) AS BIGINT)) END AS ttfb, CASE pv.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS ttfbRating,\n    (SELECT printf('%d ms', CAST(round(value) AS BIGINT)) FROM phoneDiag WHERE \"group\" = 'Network') AS rtt\n  FROM phoneVitals pv WHERE pv.metric = 'TTFB'\n  UNION ALL\n  SELECT 'Desktop' AS device, 2 AS deviceOrder,\n    CASE WHEN dv.metric = 'CLS' THEN printf('%.2f', dv.p75) WHEN dv.p75 >= 1000 THEN printf('%.2f s', dv.p75 / 1000) ELSE printf('%d ms', CAST(round(dv.p75) AS BIGINT)) END AS ttfb, CASE dv.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END AS ttfbRating,\n    (SELECT printf('%d ms', CAST(round(value) AS BIGINT)) FROM desktopDiag WHERE \"group\" = 'Network') AS rtt\n  FROM desktopVitals dv WHERE dv.metric = 'TTFB'\n)\nORDER BY deviceOrder",
+                            "tables": [
+                                {
+                                    "tableName": "phoneVitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktopVitals",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "phoneDiag",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "desktopDiag",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[pageDiagnostics]}}",
+                                            "name": "pageDiagnostics",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "DESKTOP"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "device",
+                                "displayName": "Device",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "ttfb",
+                                "displayName": "TTFB",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "ttfbRating",
+                                "displayName": "TTFB rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "rtt",
+                                "displayName": "Round trip time",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "device",
+                                        "title": "Device",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ttfb",
+                                        "title": "TTFB",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "ttfbRating",
+                                        "title": "TTFB rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "rtt",
+                                        "title": "Round trip time",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
