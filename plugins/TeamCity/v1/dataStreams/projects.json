@@ -1,7 +1,7 @@
 {
     "name": "projects",
     "displayName": "Projects",
-    "description": "TeamCity projects and subprojects, with their parent project and archived status",
+    "description": "TeamCity projects and subprojects, with their full project path and archived status",
     "tags": [
         "Inventory"
     ],
@@ -16,7 +16,7 @@
             },
             {
                 "key": "fields",
-                "value": "nextHref,project(id,name,parentProjectId,archived,webUrl,parentProject(name))"
+                "value": "nextHref,project(id,name,parentProjectId,archived,webUrl,ancestorProjects(project(id,name)))"
             }
         ],
         "paging": {
@@ -47,9 +47,16 @@
             "visible": false
         },
         {
-            "name": "parentProject.name",
+            "name": "ancestorProjects.project",
+            "displayName": "Ancestor Projects",
+            "visible": false
+        },
+        {
+            "name": "parentProjectName",
             "displayName": "Parent Project",
-            "shape": "string"
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (Array.isArray($['ancestorProjects.project']) ? $['ancestorProjects.project'] : (typeof $['ancestorProjects.project'] === 'string' ? JSON.parse($['ancestorProjects.project']) : [])).filter(p => p.id !== '_Root').map(p => p.name).pop() || '' }}"
         },
         {
             "name": "fullName",
@@ -57,7 +64,7 @@
             "shape": "string",
             "role": "label",
             "computed": true,
-            "valueExpression": "{{ $['parentProjectId'] && $['parentProjectId'] !== '_Root' && $['parentProject.name'] ? `${$['parentProject.name']} / ${$['name']}` : $['name'] }}"
+            "valueExpression": "{{ [...(Array.isArray($['ancestorProjects.project']) ? $['ancestorProjects.project'] : (typeof $['ancestorProjects.project'] === 'string' ? JSON.parse($['ancestorProjects.project']) : [])).filter(p => p.id !== '_Root').map(p => p.name), $['name']].join(' / ') }}"
         },
         {
             "name": "parentProjectId",
@@ -72,7 +79,12 @@
         {
             "name": "webUrl",
             "displayName": "URL",
-            "shape": ["url", { "label": "Open in TeamCity" }]
+            "shape": [
+                "url",
+                {
+                    "label": "Open in TeamCity"
+                }
+            ]
         }
     ],
     "timeframes": false

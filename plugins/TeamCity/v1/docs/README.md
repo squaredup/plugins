@@ -34,7 +34,7 @@ The out-of-the-box dashboards include an **Overview** of the whole server, plus 
 ## Data streams
 
 - **Build Configuration Status**: one row per build configuration, with the status of its latest finished build. Server-wide, or filtered to selected projects or build configurations.
-- **Builds**: one row per finished build in the timeframe. Server-wide, or filtered to selected projects, build configurations or agents.
+- **Builds**: one row per finished build in the timeframe, excluding cancelled builds. Server-wide, or filtered to selected projects, build configurations or agents.
 - **Running Builds**: builds running now, with percentage complete and elapsed time. Server-wide, or filtered to selected projects, build configurations or agents.
 - **Build Queue**: queued builds, how long they have waited and why. Server-wide, or filtered to selected projects or build configurations.
 - **Agents**: the current status of authorized build agents, optionally including unauthorized agents. Server-wide, or filtered to selected agents.
@@ -45,7 +45,7 @@ The out-of-the-box dashboards include an **Overview** of the whole server, plus 
 
 | Object type | API source | Represents |
 | --- | --- | --- |
-| **Project** | `/app/rest/projects` | A TeamCity project or subproject. Named with its parent, e.g. `Backend / Services`. |
+| **Project** | `/app/rest/projects` | A TeamCity project or subproject. Named with its full project path, e.g. `Backend / Services / API`. |
 | **Build Configuration** | `/app/rest/buildTypes` | A build configuration. Named with its full project path, e.g. `Backend / Services / Build`. |
 | **Agent** | `/app/rest/agents` | An authorized build agent, connected or not. |
 
