@@ -18,7 +18,9 @@ const keys = split(context.config.keys);
 const required = split(context.config.required);
 const extraLabels = split(context.config.extraLabels);
 const extraKeys = split(context.config.extraKeys);
-const nameKey = context.config.nameKey || keys[keys.length - 1];
+// `nameKey` may list several properties (e.g. `cluster,namespace`), joined with ' / ' so
+// objects with common names (`default`, `istio-proxy`) can be told apart.
+const nameKeys = split(context.config.nameKey || keys[keys.length - 1]);
 const optional = keys.map((key, i) => !required.includes(labels[i]));
 const forms = [labels].concat(
     (context.config.aliases || '')
@@ -40,7 +42,11 @@ const matcher = (label, i, value) => {
 };
 
 // Response body: { status, data: { resultType, result: [{ metric, value }] } }
-const results = Array.isArray(data?.data?.result) ? data.data.result : [];
+// Most logs first, so when several rows share an id (e.g. a service seen with two
+// `service.namespace` values) the kept row, and its extra properties, are stable.
+const results = (Array.isArray(data?.data?.result) ? data.data.result : [])
+    .slice()
+    .sort((a, b) => Number(b.value?.[1] || 0) - Number(a.value?.[1] || 0));
 
 const rows = [];
 const seen = new Set();
@@ -79,7 +85,8 @@ for (const series of results) {
         .map((s) => `(${s})`)
         .join(' or ');
 
-    rows.push(Object.assign({ id, name: props[nameKey] || id, selector: `(${selector})` }, props));
+    const name = nameKeys.map((k) => props[k]).filter((v) => v).join(' / ');
+    rows.push(Object.assign({ id, name: name || id, selector: `(${selector})` }, props));
 }
 
 result = rows;

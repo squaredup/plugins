@@ -12,7 +12,11 @@
 const dataSource = (Array.isArray(context.dataSources) && context.dataSources[0]) || {};
 const defaultCluster = typeof dataSource.defaultCluster === 'string' ? dataSource.defaultCluster.trim() : '';
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const scope = Array.isArray(context.config?.scope) ? context.config.scope : [];
+// Only this plugin's objects: a selected object can resolve to equivalent objects from
+// other plugins (e.g. the same service seen by VictoriaMetrics), whose properties differ.
+const scope = (Array.isArray(context.config?.scope) ? context.config.scope : []).filter((o) =>
+    [].concat(o?.sourceName || []).includes('VictoriaLogs')
+);
 const fromScope = (key) => {
     const values = new Set(scope.map((o) => unwrap(o?.[key])).filter((v) => v));
     return values.size === 1 ? [...values][0] : '';
@@ -48,6 +52,7 @@ const k8sChain = [
     { column: 'Namespace', key: 'namespace', parts: [] }
 ];
 
+const single = false;
 const linksFor = (m) => {
     const links = {};
     const cluster = first(field(m, 'cluster'), fromScope('cluster'), defaultCluster);
@@ -64,21 +69,20 @@ const linksFor = (m) => {
         links[`${kind.column}Link`] = name;
         links[`${kind.column}LinkId`] = [cluster].concat(kind.parts.map((p) => parts[p]), [name]).join('/');
     }
-    const node = field(m, 'node');
-    if (node) {
-        links.NodeLink = node;
-        links.NodeLinkId = `${cluster}/${node}`;
-    }
+    // Charts drill down only when a row has a single link, so in chart streams (`single`)
+    // node, service and host links are added only when the row has no other link.
+    const add = (column, value, id) => {
+        if (value && !(single && Object.keys(links).length > 0)) {
+            links[`${column}Link`] = value;
+            links[`${column}LinkId`] = id;
+        }
+    };
     const service = first(m['service.name']);
-    if (service) {
-        links.ServiceLink = service;
-        links.ServiceLinkId = service;
-    }
+    add('Service', service, service);
+    const node = field(m, 'node');
+    add('Node', node, `${cluster}/${node}`);
     const host = first(m['host.name']);
-    if (host) {
-        links.HostLink = host;
-        links.HostLinkId = host;
-    }
+    add('Host', host, host);
     const clusterField = field(m, 'cluster');
     if (clusterField && Object.keys(links).length === 0) {
         links.ClusterLink = clusterField;
@@ -88,7 +92,7 @@ const linksFor = (m) => {
 };
 
 // ---- Severity -------------------------------------------------------------------
-// Same rules as the dashboards' LogsQL severity pipe, so a log shows the same severity
+// Same rules as the `| normalize_severity` LogsQL pipe the query streams provide, so a log shows the same severity
 // in a table as in the charts: severity fields first, then the OpenTelemetry severity
 // number, then a level token in the message, then error words as a last resort.
 const SEVERITY_FIELDS = ['severity_text', 'level', 'severity', 'log.level', 'detected_level', 'loglevel'];
@@ -98,7 +102,7 @@ const SEVERITY_MAP = [
     [/^warn/i, 'warning'],
     [/^(info|information|informational|notice)$/i, 'info'],
     [/^(debug|trace|verbose)/i, 'debug'],
-    [/^(unspecified|unset|none|-)$/i, 'unknown']
+    [/^(unspecified|unset|none|unknown|-)$/i, 'unknown']
 ];
 const MESSAGE_RULES = [
     ['critical', /\b(FATAL|PANIC|CRITICAL|CRIT)\b|\b(level|lvl)=(fatal|panic|crit|critical)\b|^\S+\s+(fatal|panic|crit|critical)\s|^\s*crit:/i, /\b(FATAL|PANIC|CRITICAL|CRIT)\b/],
@@ -120,6 +124,8 @@ const severityOf = (entry) => {
     if (number >= 21 && number <= 24) return 'critical';
     if (number >= 17 && number <= 20) return 'error';
     if (number >= 13 && number <= 16) return 'warning';
+    if (number >= 9 && number <= 12) return 'info';
+    if (number >= 1 && number <= 8) return 'debug';
     const message = typeof entry._msg === 'string' ? entry._msg : '';
     // Upper-case tokens are matched case-sensitively, the rest case-insensitively.
     const rule = MESSAGE_RULES.find(([, insensitive, upper]) => upper.test(message) || insensitive.test(message));
@@ -177,4 +183,5 @@ result = entries
             fields: rest
         });
     })
-    .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+    // Sort on the parsed time: timestamps have trimmed trailing zeros, so text order is wrong.
+    .sort((a, b) => (Date.parse(b.timestamp) || 0) - (Date.parse(a.timestamp) || 0));

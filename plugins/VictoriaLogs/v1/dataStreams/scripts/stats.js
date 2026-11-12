@@ -23,7 +23,11 @@ const toIso = (t) => new Date(Number(t) * 1000).toISOString();
 const dataSource = (Array.isArray(context.dataSources) && context.dataSources[0]) || {};
 const defaultCluster = typeof dataSource.defaultCluster === 'string' ? dataSource.defaultCluster.trim() : '';
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const scope = Array.isArray(context.config?.scope) ? context.config.scope : [];
+// Only this plugin's objects: a selected object can resolve to equivalent objects from
+// other plugins (e.g. the same service seen by VictoriaMetrics), whose properties differ.
+const scope = (Array.isArray(context.config?.scope) ? context.config.scope : []).filter((o) =>
+    [].concat(o?.sourceName || []).includes('VictoriaLogs')
+);
 const fromScope = (key) => {
     const values = new Set(scope.map((o) => unwrap(o?.[key])).filter((v) => v));
     return values.size === 1 ? [...values][0] : '';
@@ -59,6 +63,7 @@ const k8sChain = [
     { column: 'Namespace', key: 'namespace', parts: [] }
 ];
 
+const single = true;
 const linksFor = (m) => {
     const links = {};
     const cluster = first(field(m, 'cluster'), fromScope('cluster'), defaultCluster);
@@ -75,21 +80,20 @@ const linksFor = (m) => {
         links[`${kind.column}Link`] = name;
         links[`${kind.column}LinkId`] = [cluster].concat(kind.parts.map((p) => parts[p]), [name]).join('/');
     }
-    const node = field(m, 'node');
-    if (node) {
-        links.NodeLink = node;
-        links.NodeLinkId = `${cluster}/${node}`;
-    }
+    // Charts drill down only when a row has a single link, so in chart streams (`single`)
+    // node, service and host links are added only when the row has no other link.
+    const add = (column, value, id) => {
+        if (value && !(single && Object.keys(links).length > 0)) {
+            links[`${column}Link`] = value;
+            links[`${column}LinkId`] = id;
+        }
+    };
     const service = first(m['service.name']);
-    if (service) {
-        links.ServiceLink = service;
-        links.ServiceLinkId = service;
-    }
+    add('Service', service, service);
+    const node = field(m, 'node');
+    add('Node', node, `${cluster}/${node}`);
     const host = first(m['host.name']);
-    if (host) {
-        links.HostLink = host;
-        links.HostLinkId = host;
-    }
+    add('Host', host, host);
     const clusterField = field(m, 'cluster');
     if (clusterField && Object.keys(links).length === 0) {
         links.ClusterLink = clusterField;
@@ -113,8 +117,11 @@ if (resultType === 'scalar' || resultType === 'string') {
         if (!pivot) {
             return s;
         }
-        const { [pivot]: column, __name__, ...identity } = s.metric || {};
-        return Object.assign({}, s, { metric: identity, column: column || __name__ || 'value' });
+        // Only the pivot field is removed from the identity: other stats results keep their
+        // own `__name__`, so e.g. `count() logs, sum(bytes) bytes` pivoted on `level` gives one
+        // row per result instead of overwriting each other.
+        const { [pivot]: column, ...identity } = s.metric || {};
+        return Object.assign({}, s, { metric: identity, column: column || 'value' });
     });
 
     // Labels whose value differs between series identify each series.

@@ -10,7 +10,11 @@
 const dataSource = (Array.isArray(context.dataSources) && context.dataSources[0]) || {};
 const defaultCluster = typeof dataSource.defaultCluster === 'string' ? dataSource.defaultCluster.trim() : '';
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const scope = Array.isArray(context.config?.scope) ? context.config.scope : [];
+// Only this plugin's objects: a selected object can resolve to equivalent objects from
+// other plugins (e.g. the same service seen by VictoriaMetrics), whose properties differ.
+const scope = (Array.isArray(context.config?.scope) ? context.config.scope : []).filter((o) =>
+    [].concat(o?.sourceName || []).includes('VictoriaLogs')
+);
 const fromScope = (key) => {
     const values = new Set(scope.map((o) => unwrap(o?.[key])).filter((v) => v));
     return values.size === 1 ? [...values][0] : '';
@@ -46,6 +50,7 @@ const k8sChain = [
     { column: 'Namespace', key: 'namespace', parts: [] }
 ];
 
+const single = true;
 const linksFor = (m) => {
     const links = {};
     const cluster = first(field(m, 'cluster'), fromScope('cluster'), defaultCluster);
@@ -62,21 +67,20 @@ const linksFor = (m) => {
         links[`${kind.column}Link`] = name;
         links[`${kind.column}LinkId`] = [cluster].concat(kind.parts.map((p) => parts[p]), [name]).join('/');
     }
-    const node = field(m, 'node');
-    if (node) {
-        links.NodeLink = node;
-        links.NodeLinkId = `${cluster}/${node}`;
-    }
+    // Charts drill down only when a row has a single link, so in chart streams (`single`)
+    // node, service and host links are added only when the row has no other link.
+    const add = (column, value, id) => {
+        if (value && !(single && Object.keys(links).length > 0)) {
+            links[`${column}Link`] = value;
+            links[`${column}LinkId`] = id;
+        }
+    };
     const service = first(m['service.name']);
-    if (service) {
-        links.ServiceLink = service;
-        links.ServiceLinkId = service;
-    }
+    add('Service', service, service);
+    const node = field(m, 'node');
+    add('Node', node, `${cluster}/${node}`);
     const host = first(m['host.name']);
-    if (host) {
-        links.HostLink = host;
-        links.HostLinkId = host;
-    }
+    add('Host', host, host);
     const clusterField = field(m, 'cluster');
     if (clusterField && Object.keys(links).length === 0) {
         links.ClusterLink = clusterField;
@@ -91,7 +95,9 @@ const rows = [];
 groups.forEach((g) => {
     const fields = g.fields || {};
     const keys = Object.keys(fields);
-    const series = keys.length === 0 ? 'logs' : keys.map((k) => fields[k] || '(none)').join(', ');
+    // With a split field, the group without fields is the remainder beyond the top values.
+    const split = typeof context.config?.field === 'string' && context.config.field.trim().length > 0;
+    const series = keys.length === 0 ? (split ? 'other' : 'logs') : keys.map((k) => fields[k] || '(none)').join(', ');
     const base = Object.assign({}, fields, linksFor(fields), { series });
     (g.timestamps || []).forEach((t, i) => {
         rows.push(Object.assign({}, base, { timestamp: t, logs: Number(g.values[i]) }));

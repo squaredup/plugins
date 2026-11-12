@@ -1,0 +1,52 @@
+{
+    "name": "defaultCluster",
+    "displayName": "Default Cluster",
+    "description": "The cluster named in the data source's Default cluster name, when logs with Kubernetes fields were received in the indexing lookback, used to index it",
+    "tags": [
+        "Metadata",
+        "Indexing"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/stats_query",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{'_time:' + (dataSource.indexLookback || '1h') + ' (\"k8s.namespace.name\":* or \"kubernetes.pod_namespace\":* or \"kubernetes.namespace_name\":* or \"namespace\":*) | stats count() hits'}}"
+            }
+        ],
+        "postRequestScript": "defaultCluster.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "cluster",
+            "displayName": "Cluster",
+            "shape": "string"
+        },
+        {
+            "name": "selector",
+            "displayName": "Selector",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false,
+    "visibility": {
+        "type": "hidden"
+    }
+}

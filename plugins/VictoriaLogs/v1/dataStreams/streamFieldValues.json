@@ -8,11 +8,11 @@
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
-        "endpointPath": "select/logsql/stream_field_values",
+        "endpointPath": "select/logsql/query",
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{query || '*'}}"
+                "value": "{{'(' + (query || '*') + ') | top ' + Math.min(Math.max(Number(limit) || 100, 1), 1000) + ' by (' + JSON.stringify(String(field).trim()) + ')'}}"
             },
             {
                 "key": "start",
@@ -23,15 +23,11 @@
                 "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
             },
             {
-                "key": "field",
-                "value": "{{field}}"
-            },
-            {
                 "key": "extra_filters",
-                "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+                "value": "{{Array.isArray(scope) && scope.length ? (scope.filter(o => [].concat(o.sourceName || []).includes('VictoriaLogs')).map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || '_stream_id:=\"__no_matching_object__\"') : null}}"
             }
         ],
-        "postRequestScript": "values.js",
+        "postRequestScript": "topValues.js",
         "paging": {
             "mode": "none"
         }
@@ -57,7 +53,15 @@
             "type": "number",
             "name": "limit",
             "label": "Limit (optional)",
-            "help": "Return only the values with the most logs."
+            "help": "Return the values with the most logs, up to 1,000.",
+            "defaultValue": 100,
+            "validation": {
+                "min": 1,
+                "max": {
+                    "value": 1000,
+                    "message": "At most 1,000 values can be returned"
+                }
+            }
         },
         {
             "type": "objects",
