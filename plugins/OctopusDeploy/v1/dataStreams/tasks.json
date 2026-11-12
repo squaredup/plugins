@@ -1,0 +1,283 @@
+{
+    "name": "tasks",
+    "displayName": "Tasks",
+    "description": "Octopus server tasks such as deployments, runbook runs and health checks with their state and timings (a timeframe of None returns queued and running tasks only)",
+    "tags": [
+        "Tasks"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/tasks",
+        "getArgs": [
+            {
+                "key": "name",
+                "value": "{{ (typeof taskType !== 'undefined' && taskType && taskType.length) ? [].concat(taskType).join(',') : null }}"
+            },
+            {
+                "key": "states",
+                "value": "{{ (typeof state !== 'undefined' && state && state.length) ? [].concat(state).join(',') : null }}"
+            },
+            {
+                "key": "fromQueueDate",
+                "value": "{{ timeframe.enum === 'none' ? null : timeframe.start }}"
+            },
+            {
+                "key": "toQueueDate",
+                "value": "{{ timeframe.enum === 'none' ? null : timeframe.end }}"
+            },
+            {
+                "key": "active",
+                "value": "{{ timeframe.enum === 'none' ? 'true' : null }}"
+            },
+            {
+                "key": "project",
+                "value": "{{ object.rawId.startsWith('Projects-') ? object.rawId : null }}"
+            },
+            {
+                "key": "environment",
+                "value": "{{ object.rawId.startsWith('Environments-') ? object.rawId : null }}"
+            },
+            {
+                "key": "tenant",
+                "value": "{{ object.rawId.startsWith('Tenants-') ? object.rawId : null }}"
+            },
+            {
+                "key": "runbook",
+                "value": "{{ object.rawId.startsWith('Runbooks-') ? object.rawId : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "take",
+                "value": "200"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "Items"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "skip"
+            }
+        },
+        "pathToData": "Items"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Project",
+                "Environment",
+                "Tenant",
+                "Runbook"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "taskType",
+            "label": "Task type(s)",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "Deploy",
+                    "label": "Deployment"
+                },
+                {
+                    "value": "RunbookRun",
+                    "label": "Runbook run"
+                },
+                {
+                    "value": "Health",
+                    "label": "Health check"
+                },
+                {
+                    "value": "Retention",
+                    "label": "Retention"
+                },
+                {
+                    "value": "AdHocScript",
+                    "label": "Ad hoc script"
+                },
+                {
+                    "value": "Upgrade",
+                    "label": "Upgrade"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "state",
+            "label": "State(s)",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "Queued",
+                    "label": "Queued"
+                },
+                {
+                    "value": "Executing",
+                    "label": "Executing"
+                },
+                {
+                    "value": "Success",
+                    "label": "Success"
+                },
+                {
+                    "value": "Failed",
+                    "label": "Failed"
+                },
+                {
+                    "value": "TimedOut",
+                    "label": "Timed out"
+                },
+                {
+                    "value": "Cancelling",
+                    "label": "Cancelling"
+                },
+                {
+                    "value": "Canceled",
+                    "label": "Canceled"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "Description",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "Name",
+            "displayName": "Task Type",
+            "shape": "string"
+        },
+        {
+            "name": "State",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['HasPendingInterruptions'] ? 'warning' : ($['State'] === 'Success' ? 'success' : (['Failed','TimedOut'].includes($['State']) ? 'error' : (['Canceled','Cancelling'].includes($['State']) ? 'warning' : 'unknown'))) }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "warning": [
+                            "warning"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "QueueTime",
+            "displayName": "Queued",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "StartTime",
+            "displayName": "Started",
+            "shape": "date"
+        },
+        {
+            "name": "CompletedTime",
+            "displayName": "Completed",
+            "shape": "date"
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "computed": true,
+            "valueExpression": "{{ $['StartTime'] ? Math.round(((($['CompletedTime'] ? new Date($['CompletedTime']) : new Date()) - new Date($['StartTime']))) / 1000) : null }}",
+            "shape": "seconds"
+        },
+        {
+            "name": "queuedSeconds",
+            "displayName": "Wait time",
+            "computed": true,
+            "valueExpression": "{{ $['QueueTime'] ? Math.round(((($['StartTime'] ? new Date($['StartTime']) : new Date()) - new Date($['QueueTime']))) / 1000) : null }}",
+            "shape": "seconds"
+        },
+        {
+            "name": "HasPendingInterruptions",
+            "displayName": "Awaiting Intervention",
+            "shape": "boolean"
+        },
+        {
+            "name": "HasWarningsOrErrors",
+            "displayName": "Has Warnings Or Errors",
+            "shape": "boolean"
+        },
+        {
+            "name": "ErrorMessage",
+            "displayName": "Error Message",
+            "shape": "string"
+        },
+        {
+            "name": "ProjectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "sourceId": "ProjectId",
+            "sourceType": "Project",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ object && object.name ? object.name : '' }}"
+        },
+        {
+            "name": "SpaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "ProjectId",
+            "sourceType": "Project",
+            "name": "projectName"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

@@ -1,0 +1,299 @@
+{
+    "name": "Harvi",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [
+        "{{variables.[Harvi]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "4f11d4e2-c34d-5b9d-bdef-44186802709b",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Harvi Properties",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Harvis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Harvi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Harvi]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": [
+                                    "name",
+                                    "serial",
+                                    "firmware",
+                                    "phases",
+                                    "ctTypes"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "links",
+                                    "type",
+                                    "label",
+                                    "sourceId",
+                                    "sourceType",
+                                    "sourceName"
+                                ],
+                                "columnDisplayNames": {
+                                    "ctTypes": "CT types"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ad164433-b069-5b84-9565-e0c72a77edfd",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sensor",
+                    "description": "Whether this Harvi has reported in the last 15 minutes; a Harvi reports no other status",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[deviceStatus]}}",
+                        "name": "deviceStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Harvis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Harvi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Harvi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "deviceName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{status}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2d398838-eb93-5888-ae00-f3ff8bce470b",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CT Clamps",
+                    "description": "Live power through each CT clamp on this Harvi; a grid clamp turns green when exporting",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[ctReadings]}}",
+                        "name": "ctReadings",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT 'CT' || CAST(\"ct\" AS INTEGER) || ' · ' || \"ctType\" AS \"clamp\", \"power\" FROM \"dataset\" ORDER BY \"ct\" DESC"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Harvis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Harvi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Harvi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "clamp",
+                                    "type": "nominal",
+                                    "title": "CT"
+                                },
+                                "y": {
+                                    "field": "power",
+                                    "type": "quantitative",
+                                    "title": "Power (W)"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "labelFormat": "{{{{raw}}}}{{value}} W{{{{/raw}}}}",
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianColorRules": [
+                                    {
+                                        "labelContains": "Grid",
+                                        "lt": 0,
+                                        "color": "#2BB673"
+                                    },
+                                    {
+                                        "labelContains": "Grid",
+                                        "color": "#8E6CEF"
+                                    },
+                                    {
+                                        "labelContains": "Generation",
+                                        "color": "#F5A623"
+                                    },
+                                    {
+                                        "labelContains": "Storage",
+                                        "color": "#14B8A6"
+                                    },
+                                    {
+                                        "labelContains": "Load",
+                                        "color": "#38BDF8"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "95de93a9-bee0-5fb7-afe2-2ccd198b1d37",
+                "x": 0,
+                "y": 4,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "CT Readings",
+                    "description": "Live power, phase and reading time for each CT clamp on this Harvi",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[ctReadings]}}",
+                        "name": "ctReadings",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Harvis]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Harvi]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Harvi]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "ct",
+                                        "title": "CT",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "width": 50
+                                    },
+                                    {
+                                        "field": "ctType",
+                                        "title": "Measures",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Grid": "#8E6CEF",
+                                                "Generation": "#F5A623",
+                                                "*Load*": "#4F7CFF",
+                                                "*Storage*": "#14B8A6"
+                                            },
+                                            "defaultColor": "#64748B"
+                                        }
+                                    },
+                                    {
+                                        "field": "power",
+                                        "title": "Power",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#38BDF8"
+                                        }
+                                    },
+                                    {
+                                        "field": "phase",
+                                        "title": "Phase",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    {
+                                        "field": "lastUpdated",
+                                        "title": "Last reading",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "ct",
+                                    "direction": "asc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

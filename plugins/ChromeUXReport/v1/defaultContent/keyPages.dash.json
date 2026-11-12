@@ -1,0 +1,359 @@
+{
+    "name": "Key Pages",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "2a28453a-61ac-49aa-b65d-1665cf93c2c2",
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Coverage",
+                    "description": "Every key page with its loading speed (LCP) on phone, colored by rating. Gray pages do not have enough phone traffic for Google to report on yet.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT page,\n  coalesce(rating, 'unknown') AS state,\n  CASE WHEN p75 IS NULL THEN 'Not enough traffic' ELSE CASE WHEN c.metric = 'CLS' THEN printf('%.2f', c.p75) WHEN c.p75 >= 1000 THEN printf('%.2f s', c.p75 / 1000) ELSE printf('%d ms', CAST(round(c.p75) AS BIGINT)) END END AS lcp\nFROM (SELECT CASE WHEN regexp_replace(k.name, '^https?://[^/]+', '') = '' THEN '/' ELSE regexp_replace(k.name, '^https?://[^/]+', '') END AS page, p.rating, p.p75, p.metric\nFROM keys k\nLEFT JOIN pages p ON rtrim(p.target, '/') = rtrim(k.name, '/') AND p.metric = 'LCP') c\nORDER BY p75 IS NULL, p75 DESC",
+                            "tables": [
+                                {
+                                    "tableName": "keys",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "datastream-properties",
+                                            "name": "properties"
+                                        },
+                                        "timeframe": "none",
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Key Pages]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "pages",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Key Pages]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "page",
+                                "displayName": "Page",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "state",
+                                "displayName": "Rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcp",
+                                "displayName": "LCP",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "page",
+                                    "type": "nominal",
+                                    "title": "Page"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "Rating"
+                                },
+                                "value": {
+                                    "field": "lcp",
+                                    "type": "nominal",
+                                    "title": "LCP"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4d4c139c-1a2c-4d73-a6bd-14db587acfcb",
+                "x": 0,
+                "y": 2,
+                "w": 12,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Key Pages",
+                    "description": "Loading speed (LCP), responsiveness (INP) and visual stability (CLS) for each key page on phone, slowest loading first, as met or beaten by 3 in 4 visits. Vs last month compares each page with four weeks earlier; pages without enough phone traffic are listed under Coverage.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH dated AS (\n  SELECT target, metric, p75, CAST(periodEnd AS DATE) AS periodEnd, max(CAST(periodEnd AS DATE)) OVER (PARTITION BY target, metric) AS latest FROM history\n), monthly AS (\n  SELECT target, metric,\n    max(CASE WHEN periodEnd = latest THEN p75 END) AS now,\n    max(CASE WHEN periodEnd = latest - INTERVAL 28 DAY THEN p75 END) AS before\n  FROM dated GROUP BY ALL\n)\nSELECT CASE WHEN regexp_replace(p.target, '^https?://[^/]+', '') = '' THEN '/' ELSE regexp_replace(p.target, '^https?://[^/]+', '') END AS page,\n  max(CASE WHEN p.metric = 'LCP' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS lcp, max(CASE WHEN p.metric = 'LCP' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS lcpRating, max(CASE WHEN p.metric = 'LCP' THEN CASE\n      WHEN h.now IS NULL OR h.before IS NULL THEN NULL\n      WHEN abs(h.now - h.before) < 0.02 * nullif(h.before, 0) OR h.now = h.before THEN 'Same'\n      WHEN h.now < h.before THEN 'Better' ELSE 'Worse' END END) AS lcpVsLastMonth,\n  max(CASE WHEN p.metric = 'INP' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS inp, max(CASE WHEN p.metric = 'INP' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS inpRating, max(CASE WHEN p.metric = 'INP' THEN CASE\n      WHEN h.now IS NULL OR h.before IS NULL THEN NULL\n      WHEN abs(h.now - h.before) < 0.02 * nullif(h.before, 0) OR h.now = h.before THEN 'Same'\n      WHEN h.now < h.before THEN 'Better' ELSE 'Worse' END END) AS inpVsLastMonth,\n  max(CASE WHEN p.metric = 'CLS' THEN CASE WHEN p.metric = 'CLS' THEN printf('%.2f', p.p75) WHEN p.p75 >= 1000 THEN printf('%.2f s', p.p75 / 1000) ELSE printf('%d ms', CAST(round(p.p75) AS BIGINT)) END END) AS cls, max(CASE WHEN p.metric = 'CLS' THEN CASE p.rating WHEN 'success' THEN 'Good' WHEN 'warning' THEN 'Needs improvement' ELSE 'Poor' END END) AS clsRating, max(CASE WHEN p.metric = 'CLS' THEN CASE\n      WHEN h.now IS NULL OR h.before IS NULL THEN NULL\n      WHEN abs(h.now - h.before) < 0.02 * nullif(h.before, 0) OR h.now = h.before THEN 'Same'\n      WHEN h.now < h.before THEN 'Better' ELSE 'Worse' END END) AS clsVsLastMonth\nFROM pages p\nLEFT JOIN monthly h ON rtrim(h.target, '/') = rtrim(p.target, '/') AND h.metric = p.metric\nWHERE p.isCoreWebVital\nGROUP BY p.target\nORDER BY max(CASE WHEN p.metric = 'LCP' THEN p.p75 END) DESC",
+                            "tables": [
+                                {
+                                    "tableName": "pages",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Key Pages]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "history",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "page",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Key Pages]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "page",
+                                "displayName": "Page",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "lcp",
+                                "displayName": "LCP",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcpRating",
+                                "displayName": "LCP rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcpVsLastMonth",
+                                "displayName": "LCP vs last month",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "inp",
+                                "displayName": "INP",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "inpRating",
+                                "displayName": "INP rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "inpVsLastMonth",
+                                "displayName": "INP vs last month",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "cls",
+                                "displayName": "CLS",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "clsRating",
+                                "displayName": "CLS rating",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "clsVsLastMonth",
+                                "displayName": "CLS vs last month",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "page",
+                                        "title": "Page",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lcp",
+                                        "title": "LCP",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "lcpRating",
+                                        "title": "LCP rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "lcpVsLastMonth",
+                                        "title": "LCP vs last month",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Better": "#0CCE6B",
+                                                "Same": "#9CA3AF",
+                                                "Worse": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "inp",
+                                        "title": "INP",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "inpRating",
+                                        "title": "INP rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "inpVsLastMonth",
+                                        "title": "INP vs last month",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Better": "#0CCE6B",
+                                                "Same": "#9CA3AF",
+                                                "Worse": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "cls",
+                                        "title": "CLS",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "clsRating",
+                                        "title": "CLS rating",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Good": "#0CCE6B",
+                                                "Needs improvement": "#FFA400",
+                                                "Poor": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "clsVsLastMonth",
+                                        "title": "CLS vs last month",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Better": "#0CCE6B",
+                                                "Same": "#9CA3AF",
+                                                "Worse": "#FF4E42"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

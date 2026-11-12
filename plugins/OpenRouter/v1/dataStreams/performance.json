@@ -1,0 +1,161 @@
+{
+    "name": "performance",
+    "displayName": "Performance",
+    "description": "Latency, time to first token, and throughput percentiles over time, optionally grouped by model, provider, workspace, API key, or app (last 30 days at most; requires a management key)",
+    "tags": [
+        "Usage",
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "analytics/query",
+        "paging": {
+            "mode": "none"
+        },
+        "getArgs": [],
+        "headers": [],
+        "postBody": "{{ (() => { const iso = (d) => new Date(d).toISOString().slice(0, 19) + 'Z'; const days = (new Date(timeframe.end) - new Date(timeframe.start)) / 864e5; const granularity = days <= 2 ? 'hour' : days <= 31 ? 'day' : days <= 92 ? 'week' : 'month'; const selected = typeof filterObjects !== 'undefined' && Array.isArray(filterObjects) ? filterObjects : []; const one = (v) => (Array.isArray(v) ? v[0] : v); const idsOf = (type, ...props) => [...new Set(selected.filter((o) => one(o.sourceType) === type).flatMap((o) => props.map((p) => one(o[p]))).filter(Boolean))]; const rules = [ ['model', idsOf('Model', 'rawId', 'canonical_slug')], ['provider', idsOf('Provider', 'name')], ['workspace', idsOf('Workspace', 'rawId')], ['api_key_id', idsOf('API Key', 'rawId')] ]; const filters = rules.filter(([, values]) => values.length).map(([field, value]) => ({ field, operator: 'in', value })); return JSON.stringify({ metrics: ['p50_latency', 'p90_latency', 'p50_total_time_to_first_token', 'p90_total_time_to_first_token', 'p50_throughput'], dimensions: typeof groupBy !== 'undefined' && groupBy ? [groupBy] : [], filters, granularity, time_range: { start: iso(timeframe.start), end: iso(timeframe.end) } }); })() }}",
+        "postRequestScript": "usage.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "groupBy",
+            "label": "Group by",
+            "help": "Select a dimension, or enter any dimension from [OpenRouter's analytics dimensions](https://openrouter.ai/docs/api/api-reference/analytics/get-available-analytics-metrics-and-dimensions).",
+            "allowCustomValues": true,
+            "isMulti": false,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "model",
+                        "label": "Model"
+                    },
+                    {
+                        "value": "workspace",
+                        "label": "Workspace"
+                    },
+                    {
+                        "value": "api_key_id",
+                        "label": "API key"
+                    },
+                    {
+                        "value": "app",
+                        "label": "App"
+                    },
+                    {
+                        "value": "user",
+                        "label": "User"
+                    },
+                    {
+                        "value": "provider",
+                        "label": "Provider"
+                    },
+                    {
+                        "value": "origin",
+                        "label": "Origin"
+                    },
+                    {
+                        "value": "country",
+                        "label": "Country"
+                    },
+                    {
+                        "value": "finish_reason",
+                        "label": "Finish reason"
+                    },
+                    {
+                        "value": "streamed",
+                        "label": "Streamed"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "objects",
+            "name": "filterObjects",
+            "label": "Filter to objects (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Model",
+                        "Provider",
+                        "Workspace",
+                        "API Key"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "timeZone": "Etc/UTC"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "group",
+            "displayName": "Group",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "p50_latency",
+            "displayName": "Latency p50",
+            "shape": "milliseconds",
+            "role": "value"
+        },
+        {
+            "name": "p90_latency",
+            "displayName": "Latency p90",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "p50_total_time_to_first_token",
+            "displayName": "Time To First Token p50",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "p90_total_time_to_first_token",
+            "displayName": "Time To First Token p90",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "p50_throughput",
+            "displayName": "Throughput p50 (Tokens/s)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth"
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "date",
+                    "asc"
+                ]
+            ]
+        }
+    }
+}

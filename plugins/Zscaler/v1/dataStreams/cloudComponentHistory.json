@@ -1,0 +1,128 @@
+{
+    "name": "cloudComponentHistory",
+    "displayName": "Cloud Component History",
+    "description": "Hour-by-hour state of each data center or core service in one Zscaler cloud over the last 7 days, as shown on the Trust portal's Cloud Status page",
+    "tags": [
+        "Status",
+        "Incidents"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/cloud-status",
+        "getArgs": [
+            {
+                "key": "cloud",
+                "value": "{{ (function (v) { v = Array.isArray(v) ? v[0] : v; v = v && typeof v === 'object' ? v.value : v; return v ? String(v).split('|')[0] : null; })(typeof cloud !== 'undefined' ? cloud : undefined) }}"
+            },
+            {
+                "key": "requestType",
+                "value": "{{ (function (v) { v = Array.isArray(v) ? v[0] : v; v = v && typeof v === 'object' ? v.value : v; return v || 'datacenter'; })(typeof componentType !== 'undefined' ? componentType : undefined) }}"
+            },
+            {
+                "key": "dateOffset",
+                "value": "0"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/cloudStatusApi.js"
+        },
+        "postRequestScript": "cloudComponentHistory.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "cloud",
+            "label": "Cloud",
+            "isMulti": false,
+            "allowCustomValues": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "clouds",
+                "dataSourceConfig": {}
+            },
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "componentType",
+            "label": "Component type",
+            "isMulti": false,
+            "isClearable": true,
+            "allowCustomValues": false,
+            "help": "Lists only the types the selected cloud publishes on the Trust portal. Leave it empty for data centers.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "componentTypes",
+                "dataSourceConfig": {
+                    "cloud": {
+                        "fieldName": "cloud",
+                        "required": true
+                    }
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "time",
+            "displayName": "Hour",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "state"
+        },
+        {
+            "name": "event",
+            "displayName": "Event",
+            "shape": "string"
+        },
+        {
+            "name": "eventType",
+            "displayName": "Event Type",
+            "shape": "string"
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "View on Trust portal"
+                }
+            ],
+            "role": "link"
+        },
+        {
+            "name": "cloud",
+            "displayName": "Cloud Code",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last24hours",
+        "last7days"
+    ]
+}

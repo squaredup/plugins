@@ -1,0 +1,133 @@
+{
+    "name": "prefixUtilization",
+    "displayName": "Prefix Utilization",
+    "description": "IP space utilization per prefix, calculated the same way as NetBox",
+    "tags": [
+        "IPAM",
+        "Capacity"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ object.status === 'container' ? 'api/ipam/prefixes/' : 'api/ipam/ip-addresses/' }}",
+        "getArgs": [
+            {
+                "key": "within",
+                "value": "{{ object.status === 'container' ? object.name : null }}"
+            },
+            {
+                "key": "parent",
+                "value": "{{ object.status === 'container' ? null : object.name }}"
+            },
+            {
+                "key": "vrf_id",
+                "value": "{{ object.status === 'container' ? (typeof object.vrfId === 'undefined' ? null : object.vrfId) : (typeof object.vrfId === 'undefined' ? 'null' : object.vrfId) }}"
+            },
+            {
+                "key": "fields",
+                "value": "{{ object.status === 'container' ? 'prefix' : null }}"
+            },
+            {
+                "key": "brief",
+                "value": "{{ object.status === 'container' ? null : 'true' }}"
+            },
+            {
+                "key": "limit",
+                "value": "{{ object.status === 'container' ? '1000' : '1' }}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "prefixUtilization.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Prefix"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "prefix",
+            "displayName": "Prefix",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "vrf",
+            "displayName": "VRF",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "size",
+            "displayName": "Size",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "used",
+            "displayName": "Used",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "utilization",
+            "displayName": "Utilization",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "prefixId",
+            "visible": false
+        },
+        {
+            "name": "netboxUrl",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        },
+        {
+            "sourceId": "prefixId",
+            "sourceType": "Prefix",
+            "name": "prefix"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "utilization",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": false
+}

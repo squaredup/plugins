@@ -1,0 +1,103 @@
+{
+    "name": "statusHistory",
+    "displayName": "Status History",
+    "description": "Up and down periods of a check, derived from its status changes",
+    "tags": ["Monitoring", "Status"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "checks/{{object.rawId}}/flips/",
+        "getArgs": [
+            {
+                "key": "end",
+                "value": "{{ Math.floor(timeframe.unixEnd) }}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "statusHistory.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Check"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "checkId",
+            "displayName": "Check ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "checkName",
+            "displayName": "Check",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "checkTags",
+            "displayName": "Tags",
+            "sourceId": "checkId",
+            "sourceType": "Check",
+            "objectPropertyPath": "checkTags",
+            "shape": ["array", { "itemShape": "string" }]
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["up"],
+                        "error": ["down"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "start",
+            "displayName": "Start",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "end",
+            "displayName": "End",
+            "shape": "date"
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": "seconds"
+        },
+        {
+            "name": "ongoing",
+            "displayName": "Current",
+            "shape": "boolean"
+        },
+        {
+            "sourceId": "checkId",
+            "sourceType": "Check",
+            "name": "checkName"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter"
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [["start", "desc"]]
+        }
+    }
+}

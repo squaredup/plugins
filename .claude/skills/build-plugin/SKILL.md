@@ -3,7 +3,7 @@ name: build-plugin
 description: Guides building a SquaredUp low-code plugin for HTTP/REST APIs, from API exploration through deployment. Use when the user wants to integrate a service with SquaredUp, add a new data source, connect to a third-party tool, "pull data from", or "monitor" any service in SquaredUp.
 metadata:
     author: SquaredUp
-    version: "1.0.0"
+    version: "1.1.0"
 ---
 
 # Building a SquaredUp Low-Code Plugin
@@ -53,6 +53,7 @@ Create a TaskCreate task for each phase. The flow deploys early and tests as it 
 - [ ] **Phase 7** — Build OOB default content in a sub-agent (it reads [oob-content.md](references/oob-content.md))
 - [ ] **Phase 8** — Write `custom_types.json` → [common-patterns.md](references/common-patterns.md)
 - [ ] **Phase 9** — Finalize `docs/README.md`, then final validate and deploy → [readme.md](references/readme.md); invoke the `deploy-plugin` skill; re-index if import definitions changed since the last import
+- [ ] **Phase 10 (optional)** — Ask whether to contribute the plugin back; only on a yes, review it for secrets and organisation-specific data, then raise a pull request using the matching template → [contribute.md](references/contribute.md)
 
 ---
 
@@ -62,13 +63,13 @@ Before writing a single file, understand and explore the API. **Use `AskUserQues
 
 1. **Find the docs** — Gather URLs or spec files from the user, then fetch and read them.
 2. **Identify the object model** — What are the core entities? (e.g. installations, devices, sites). These become the **indexed objects** in SquaredUp — available for drilldown, search, scoping dashboards, and use as variables.
-3. **Find the list endpoints** — Used to import objects. Prefer fetching **50–250 records per page** across multiple requests — SquaredUp has a per-page timeout but supports as many paged requests as needed.
+3. **Find the list endpoints** — Used to import objects. Note the page-size parameter's maximum, and estimate how many objects the largest environment holds (ask the user if unsure). An import run is capped at ~220 pages and ~6MB per page, with a per-page timeout. Start from **50–250 records per page** when that keeps the largest environment comfortably under ~200 pages; tens of thousands of objects need a larger `pageSize` with lean rows — see [index-defs.md](references/index-defs.md#large-imports--choosing-pagesize).
 4. **Find the data endpoints** — These power data streams. For each, record three things; Phase 2 turns the last two into the stream's `timeframes`:
     - **Scoping** — scoped to a single object, multiple objects, or global (no object context).
     - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter), or only return a fixed snapshot / current values?
     - **Data granularity** — when the endpoint _does_ accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read it off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range).
 5. **Understand pagination** — Cursor/next-token, or offset/limit? Separate concern from response transformation.
-6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth, JWT Bearer (signed-JWT auth)? Determine from the docs. If the flow is custom — a token-exchange step or per-request signing no standard mode covers — plan a **pre-request script** ([metadata.md](references/metadata.md#pre-request-scripts-custom-auth-flows)).
+6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth, JWT Bearer (signed-JWT auth)? Determine from the docs. If the flow is custom — a token-exchange step or per-request signing no standard mode covers — plan a **pre-request script** ([metadata.md](references/metadata.md#pre-request-scripts-custom-auth-flows)). Note the token endpoint's host: if it is on a different domain from the base URL, the script can only reach it once it is listed in `allowedScriptHosts` ([Fetching other hosts](references/metadata.md#fetching-other-hosts)).
 
 ---
 
@@ -305,7 +306,7 @@ Pass in the prompt:
 - The versioned plugin dir, plus the `--plugin-id <id> --datasource-id <id>` captured at Checkpoint A.
 - The planned dashboards from Phase 2 (top-level summary + one perspective per object type) and the object types.
 - The data stream names to build tiles from — the sub-agent reads the stream files itself for columns and parameters.
-- Instructions: read `references/oob-content.md`, write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
+- Instructions: read `references/oob-content.md` — including its SmartViz section, which has the sub-agent fetch current chart guidance with `squaredup skill visualize` — write `defaultContent/` (manifest, scopes, dashboards) and `scopes.json` (only scopes the dashboards actually use), run `squaredup validate --json` from the plugin dir, and return a compact report — dashboards written, scopes added, validation result, any assumptions or follow-ups.
 
 Resolve anything the report flags before Phase 8.
 
@@ -322,3 +323,13 @@ Write `custom_types.json` — for this and other reusable patterns (built-in pro
 Then invoke the `deploy-plugin` skill for the final validate, version bump, and deploy.
 
 **Conditional final re-index.** If `indexDefinitions/*.json` or any import stream changed since the last successful import (the Checkpoint B run, or any re-index triggered by the [re-indexing rule](#re-indexing-rule--a-definition-change-leaves-imported-objects-stale)), the deployed tenant's objects are **stale** — they still match the **old** definition and won't pick up the new shape until the next scheduled import, up to `frequencyMinutes` away (default `720` = 12 hours). So after the final deploy lands, trigger + poll one more import (the [Checkpoint B](#checkpoint-b-redeploy--run-the-first-import) trigger/wait steps) so the deployed objects match the shipped definition. Skip only if no import definition or import stream has changed since the last import.
+
+---
+
+## Phase 10 (optional): Contribute the plugin back
+
+Once the final deploy has landed, **ask the user** with `AskUserQuestion` whether they'd like to contribute the plugin to the community by raising a pull request against `squaredup/plugins`. Always ask — even in autonomous mode, and even if the user waived the Phase 2 approval gate — and never raise a PR without an explicit yes. If they decline, the build is complete.
+
+Ask **once per conversation**. If the user is making a series of small changes (adding a stream, tweaking a tile), deploying each one, don't ask again after every deploy — once they've answered, they can ask for this step themselves when they're ready.
+
+On a yes, follow [contribute.md](references/contribute.md).

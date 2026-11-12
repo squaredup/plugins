@@ -1,0 +1,108 @@
+{
+    "name": "cost",
+    "displayName": "Cost",
+    "description": "Daily usage cost by resource, SKU and region for the account over the selected timeframe",
+    "tags": [
+        "Cost",
+        "Billing"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/billing/do:team:{{object.rawId}}/insights/{{timeframe.start.slice(0, 10)}}/{{timeframe.end.slice(0, 10)}}",
+        "postRequestScript": "cost.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "200"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data_points"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Account"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "start_date",
+            "displayName": "Date",
+            "shape": [
+                "date",
+                {
+                    "format": "dd/MM/yyyy"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "group_description",
+            "displayName": "Group",
+            "shape": "string"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "sku",
+            "displayName": "SKU",
+            "shape": "string"
+        },
+        {
+            "name": "total_amount",
+            "displayName": "total_amount",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "cost",
+            "displayName": "Cost",
+            "computed": true,
+            "valueExpression": "{{ Number($['total_amount']) }}",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd"
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "usage_team_urn",
+            "displayName": "Team URN",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}

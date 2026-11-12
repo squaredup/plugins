@@ -1,0 +1,185 @@
+{
+    "name": "vulnerabilities",
+    "displayName": "Vulnerabilities",
+    "description": "Open Spotlight vulnerabilities with CVE, severity and remediation detail, one row per vulnerability finding",
+    "tags": [
+        "Security",
+        "Vulnerabilities"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/spotlight/combined/vulnerabilities/v1",
+        "getArgs": [
+            {
+                "key": "facet",
+                "value": "host_info"
+            },
+            {
+                "key": "filter",
+                "value": "{{ ((S => S.length > 1 ? [ \"(\" + S.join(\",\") + \")\" ] : S)((typeof scope === 'undefined' || !scope ? [] : [ [\"aid\", scope.filter(o => (typeof o.type === 'string' ? o.type : JSON.stringify(o)).indexOf('Host Group') < 0)], [\"host_info.groups\", scope.filter(o => (typeof o.type === 'string' ? o.type : JSON.stringify(o)).indexOf('Host Group') >= 0)] ].filter(p => p[1].length).map(p => p[0] + \":[\" + p[1].map(o => \"'\" + String([].concat(o.rawId !== undefined ? o.rawId : (o.sourceId || o.id))[0]).split('~').pop() + \"'\").join(\",\") + \"]\")))).concat((typeof status === 'undefined' || !status || !status.length ? [ \"status:['open','reopen']\" ] : [ \"status:[\" + status.map(s => \"'\" + (s.value || s) + \"'\").join(\",\") + \"]\" ])).join(\"+\") }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "200"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "meta.pagination.after"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        },
+        "pathToData": "resources",
+        "expandInnerObjects": true,
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/falconApiError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Host or Host Group (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "CrowdStrike Host",
+                        "CrowdStrike Host Group"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "open",
+                    "label": "Open"
+                },
+                {
+                    "value": "closed",
+                    "label": "Closed"
+                },
+                {
+                    "value": "reopen",
+                    "label": "Reopened"
+                },
+                {
+                    "value": "expired",
+                    "label": "Expired"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "aid",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "cve.id",
+            "displayName": "CVE",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "cve.severity",
+            "displayName": "CVE Severity",
+            "shape": "string"
+        },
+        {
+            "name": "cve.base_score",
+            "displayName": "CVSS Score",
+            "shape": "number"
+        },
+        {
+            "name": "cve.exploit_status",
+            "displayName": "Exploit Status",
+            "shape": "string"
+        },
+        {
+            "name": "cve.published_date",
+            "displayName": "CVE Published",
+            "shape": "date"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "host_info.hostname",
+            "displayName": "Hostname",
+            "shape": "string"
+        },
+        {
+            "name": "host_info.platform",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "host_info.local_ip",
+            "displayName": "Local IP",
+            "shape": "string"
+        },
+        {
+            "name": "app.product_name_version",
+            "displayName": "Affected Product",
+            "shape": "string"
+        },
+        {
+            "name": "created_timestamp",
+            "displayName": "First Found",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "updated_timestamp",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "closed_timestamp",
+            "displayName": "Closed",
+            "shape": "date"
+        },
+        {
+            "name": "daysOpen",
+            "displayName": "Days Open",
+            "computed": true,
+            "valueExpression": "{{ $['created_timestamp'] ? Math.max(0, Math.floor((($['status'] === 'closed' && $['closed_timestamp'] ? new Date($['closed_timestamp']) : Date.now()) - new Date($['created_timestamp'])) / 86400000)) : null }}",
+            "shape": "number"
+        },
+        {
+            "sourceId": "aid",
+            "sourceType": "CrowdStrike Host",
+            "name": "host_info.hostname"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,37 @@
+{
+    "name": "licenses",
+    "displayName": "Licenses",
+    "description": "Seats purchased, seats assigned and the seat assignment mode",
+    "tags": ["License"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/users",
+        "getArgs": [{ "key": "limit", "value": "1" }],
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "seats_purchased", "displayName": "Seats purchased", "shape": "number" },
+        { "name": "seats_assigned", "displayName": "Seats assigned", "shape": "number", "role": "value" },
+        {
+            "name": "seatsAvailable",
+            "displayName": "Seats available",
+            "computed": true,
+            "valueExpression": "{{ Math.max($['seats_purchased'] - $['seats_assigned'], 0) }}",
+            "shape": "number"
+        },
+        {
+            "name": "seatUtilization",
+            "displayName": "Seat utilization",
+            "computed": true,
+            "valueExpression": "{{ $['seats_purchased'] > 0 ? $['seats_assigned'] / $['seats_purchased'] * 100 : null }}",
+            "shape": ["percent", { "decimalPlaces": 1 }]
+        },
+        { "name": "seat_assignment_mode", "displayName": "Seat assignment mode", "shape": "string" }
+    ],
+    "timeframes": ["none"],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

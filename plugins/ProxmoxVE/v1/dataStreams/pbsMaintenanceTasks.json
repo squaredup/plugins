@@ -1,0 +1,57 @@
+{
+    "name": "pbsMaintenanceTasks",
+    "displayName": "Backup Server Tasks",
+    "description": "Task history for a datastore — backup, garbage collection, prune, and verify runs",
+    "tags": ["Backup Server", "Datastore", "Tasks"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "baseUrl": "{{dataSource.pbsHost}}/api2/json",
+        "httpMethod": "get",
+        "endpointPath": "/nodes/localhost/tasks",
+        "getArgs": [
+            { "key": "store", "value": "{{object.rawId}}" },
+            { "key": "since", "value": "{{timeframe.unixStart}}" },
+            { "key": "until", "value": "{{timeframe.unixEnd}}" },
+            { "key": "typefilter", "value": "{{taskType || null}}" },
+            { "key": "limit", "value": "500" }
+        ],
+        "headers": [
+            {
+                "key": "Authorization",
+                "value": "PBSAPIToken {{dataSource.pbsTokenId}}:{{dataSource.pbsTokenSecret}}"
+            }
+        ],
+        "postRequestScript": "pbsMaintenanceTasks.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Proxmox Backup Datastore"] } },
+    "ui": [
+        {
+            "name": "taskType",
+            "type": "autocomplete",
+            "label": "Task type",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "backup", "label": "Backup" },
+                    { "value": "garbage_collection", "label": "Garbage Collection" },
+                    { "value": "prunejob", "label": "Prune" },
+                    { "value": "verificationjob", "label": "Verify" }
+                ]
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "upid", "displayName": "UPID", "shape": "string", "visible": false },
+        { "name": "startTime", "displayName": "Started", "shape": "timestamp", "role": "timestamp" },
+        { "name": "endTime", "displayName": "Ended", "shape": "timestamp" },
+        { "name": "workerType", "displayName": "Task Type", "shape": "string" },
+        { "name": "workerId", "displayName": "Target", "shape": "string" },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        { "name": "outcome", "displayName": "Outcome", "shape": ["state", { "map": { "success": ["success"], "error": ["error"], "warning": ["running"] } }] },
+        { "name": "user", "displayName": "User", "shape": "string" }
+    ],
+    "timeframes": true
+}

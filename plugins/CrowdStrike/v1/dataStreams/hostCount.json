@@ -1,0 +1,86 @@
+{
+    "name": "hostCount",
+    "displayName": "Host Count",
+    "description": "Number of hosts, optionally filtered by platform or containment status, from a single request so it stays fast on large tenants",
+    "tags": [
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/devices/queries/devices/v1",
+        "getArgs": [
+            {
+                "key": "limit",
+                "value": "1"
+            },
+            {
+                "key": "filter",
+                "value": "{{ [ (typeof platform === 'undefined' || !platform ? [] : [].concat(platform).map(x => String(x && x.value !== undefined ? x.value : x))).map(v => \"platform_name:'\" + v + \"'\").join(\",\"), (typeof hostStatus === 'undefined' || !hostStatus ? [] : [].concat(hostStatus).map(x => String(x && x.value !== undefined ? x.value : x))).map(v => \"status:'\" + v + \"'\").join(\",\") ].filter(s => s).join(\"+\") || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "pathToData": "meta.pagination.total",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/falconApiError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "platform",
+            "label": "Platform",
+            "isMulti": false,
+            "options": [
+                {
+                    "value": "Windows",
+                    "label": "Windows"
+                },
+                {
+                    "value": "Mac",
+                    "label": "Mac"
+                },
+                {
+                    "value": "Linux",
+                    "label": "Linux"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "hostStatus",
+            "label": "Containment status",
+            "isMulti": false,
+            "options": [
+                {
+                    "value": "normal",
+                    "label": "Normal"
+                },
+                {
+                    "value": "contained",
+                    "label": "Contained"
+                },
+                {
+                    "value": "containment_pending",
+                    "label": "Containment pending"
+                },
+                {
+                    "value": "lift_containment_pending",
+                    "label": "Lift containment pending"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "result",
+            "displayName": "Hosts",
+            "shape": "number"
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,308 @@
+{
+    "name": "ipAddresses",
+    "displayName": "IP Addresses",
+    "description": "IP addresses with VRF, status, role, DNS name and assignment",
+    "tags": [
+        "IPAM",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/ipam/ip-addresses/",
+        "getArgs": [
+            {
+                "key": "fields",
+                "value": "id,address,display,display_url,family,vrf,tenant,status,role,assigned_object_id,assigned_object,dns_name,description,created,last_updated,tags,custom_fields"
+            },
+            {
+                "key": "assigned",
+                "value": "{{assignment || null}}"
+            },
+            {
+                "key": "status",
+                "value": "{{status || null}}"
+            },
+            {
+                "key": "parent",
+                "value": "{{ (typeof prefix !== 'undefined' && prefix && prefix.length) ? [].concat(prefix[0].name)[0] : null }}"
+            },
+            {
+                "key": "vrf_id",
+                "value": "{{ (typeof prefix !== 'undefined' && prefix && prefix.length) ? (typeof [].concat(prefix[0].vrfId)[0] !== 'undefined' && [].concat(prefix[0].vrfId)[0] !== null ? [].concat(prefix[0].vrfId)[0] : ([].concat(prefix[0].status)[0] === 'container' ? null : 'null')) : null }}"
+            },
+            {
+                "key": "device_id",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length) ? device.map(o => [].concat(o.rawId)[0]) : null }}"
+            },
+            {
+                "key": "virtual_machine_id",
+                "value": "{{ (typeof virtualMachine !== 'undefined' && virtualMachine && virtualMachine.length) ? virtualMachine.map(o => [].concat(o.rawId)[0]) : null }}"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "prefix",
+            "label": "Prefix (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Prefix"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "virtualMachine",
+            "label": "Virtual machine (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Virtual Machine"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "assignment",
+            "label": "Assignment",
+            "options": [
+                {
+                    "value": "true",
+                    "label": "Assigned"
+                },
+                {
+                    "value": "false",
+                    "label": "Unassigned"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "active",
+                    "label": "Active"
+                },
+                {
+                    "value": "reserved",
+                    "label": "Reserved"
+                },
+                {
+                    "value": "deprecated",
+                    "label": "Deprecated"
+                },
+                {
+                    "value": "dhcp",
+                    "label": "DHCP"
+                },
+                {
+                    "value": "slaac",
+                    "label": "SLAAC"
+                }
+            ]
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "address",
+            "displayName": "Address",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "display",
+            "displayName": "IP",
+            "shape": "string",
+            "valueExpression": "{{ typeof $[\"address\"] === \"string\" ? $[\"address\"].split(\"/\")[0] : null }}"
+        },
+        {
+            "name": "family.label",
+            "displayName": "Family",
+            "shape": "string"
+        },
+        {
+            "name": "family.value",
+            "visible": false
+        },
+        {
+            "name": "vrf.name",
+            "visible": false
+        },
+        {
+            "name": "vrfName",
+            "displayName": "VRF",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ typeof $[\"vrf.name\"] === \"string\" && $[\"vrf.name\"] ? $[\"vrf.name\"] : \"Global\" }}"
+        },
+        {
+            "name": "status.label",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "status.value",
+            "visible": false
+        },
+        {
+            "name": "role.label",
+            "displayName": "Role",
+            "shape": "string"
+        },
+        {
+            "name": "tenant.name",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "dns_name",
+            "displayName": "DNS Name",
+            "shape": "string"
+        },
+        {
+            "name": "assigned_object_id",
+            "visible": false
+        },
+        {
+            "name": "assigned_object.name",
+            "visible": false
+        },
+        {
+            "name": "assigned_object.display",
+            "visible": false
+        },
+        {
+            "name": "assigned_object.device.name",
+            "visible": false
+        },
+        {
+            "name": "assigned_object.virtual_machine.name",
+            "visible": false
+        },
+        {
+            "name": "assignedTo",
+            "displayName": "Assigned To",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (() => { const s = (v) => typeof v === \"string\" && v ? v : null; const parent = s($[\"assigned_object.device.name\"]) || s($[\"assigned_object.virtual_machine.name\"]); const iface = s($[\"assigned_object.name\"]) || s($[\"assigned_object.display\"]); return parent && iface ? parent + \" / \" + iface : (parent || iface); })() }}"
+        },
+        {
+            "name": "assigned",
+            "displayName": "Assigned",
+            "shape": "boolean",
+            "computed": true,
+            "valueExpression": "{{ typeof $[\"assigned_object_id\"] === \"number\" }}"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
+        },
+        {
+            "name": "display_url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        },
+        {
+            "pattern": "^custom_fields[.].*"
+        }
+    ],
+    "timeframes": false
+}

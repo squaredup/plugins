@@ -1,0 +1,143 @@
+{
+    "name": "releaseProgression",
+    "displayName": "Release Progression",
+    "description": "Recent releases of a project and the status of their deployment to each environment, one row per release and environment",
+    "tags": [
+        "Deployments"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{object.spaceId}}/progression/{{object.rawId}}",
+        "postRequestScript": "releaseProgression.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Project"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "number",
+            "name": "releaseCount",
+            "label": "Number of releases",
+            "defaultValue": 10
+        }
+    ],
+    "metadata": [
+        {
+            "name": "releaseVersion",
+            "displayName": "Release",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "environmentName",
+            "displayName": "Environment",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['state'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Success"
+                        ],
+                        "error": [
+                            "Failed",
+                            "TimedOut"
+                        ],
+                        "warning": [
+                            "Canceled",
+                            "Cancelling",
+                            "AwaitingIntervention"
+                        ],
+                        "unknown": [
+                            "Queued",
+                            "Executing",
+                            "ReadyToDeploy"
+                        ],
+                        "unmonitored": [
+                            "NotDeployed"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "detail",
+            "displayName": "Detail",
+            "shape": "string"
+        },
+        {
+            "name": "deployedTime",
+            "displayName": "Deployed",
+            "shape": "date"
+        },
+        {
+            "name": "channelName",
+            "displayName": "Channel",
+            "shape": "string"
+        },
+        {
+            "name": "releaseCreated",
+            "displayName": "Release Created",
+            "shape": "date"
+        },
+        {
+            "name": "releaseSortOrder",
+            "displayName": "Release Order",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "environmentSortOrder",
+            "displayName": "Environment Order",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "gridOrder",
+            "displayName": "Grid Order",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "releaseId",
+            "displayName": "Release ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "environmentId",
+            "displayName": "Environment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "environmentId",
+            "sourceType": "Environment",
+            "name": "environmentName"
+        }
+    ],
+    "timeframes": false
+}

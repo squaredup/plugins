@@ -1,0 +1,230 @@
+{
+    "name": "racks",
+    "displayName": "Racks",
+    "description": "All racks with site, location, status, height and device count",
+    "tags": [
+        "Inventory",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/dcim/racks/",
+        "getArgs": [
+            {
+                "key": "fields",
+                "value": "id,display,display_url,site,location,status,role,tenant,facility_id,serial,asset_tag,u_height,starting_unit,form_factor,device_count,powerfeed_count,description,created,last_updated,tags,custom_fields"
+            },
+            {
+                "key": "id",
+                "value": "{{ (typeof rack !== 'undefined' && rack && rack.length) ? rack.map(o => [].concat(o.rawId)[0]) : null }}"
+            },
+            {
+                "key": "site_id",
+                "value": "{{ (typeof site !== 'undefined' && site && site.length) ? site.map(s => [].concat(s.rawId)[0]) : null }}"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "250"
+            },
+            "offset": {
+                "mode": "row",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "results"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "results",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "rack",
+            "label": "Rack(s) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Rack"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "visible": false
+        },
+        {
+            "name": "display",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status.label",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "status.value",
+            "visible": false
+        },
+        {
+            "name": "site.name",
+            "displayName": "Site",
+            "shape": "string"
+        },
+        {
+            "name": "site.id",
+            "visible": false
+        },
+        {
+            "name": "site.url",
+            "visible": false,
+            "valueExpression": "{{ typeof $['site.id'] === 'number' ? String($['site.id']) : null }}"
+        },
+        {
+            "name": "location.name",
+            "displayName": "Location",
+            "shape": "string"
+        },
+        {
+            "name": "role.name",
+            "displayName": "Role",
+            "shape": "string"
+        },
+        {
+            "name": "tenant.name",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "facility_id",
+            "displayName": "Facility ID",
+            "shape": "string"
+        },
+        {
+            "name": "form_factor.label",
+            "displayName": "Form Factor",
+            "shape": "string"
+        },
+        {
+            "name": "u_height",
+            "displayName": "Height (U)",
+            "shape": "number"
+        },
+        {
+            "name": "device_count",
+            "displayName": "Devices",
+            "shape": "number"
+        },
+        {
+            "name": "powerfeed_count",
+            "displayName": "Power Feeds",
+            "shape": "number"
+        },
+        {
+            "name": "serial",
+            "displayName": "Serial Number",
+            "shape": "string"
+        },
+        {
+            "name": "asset_tag",
+            "displayName": "Asset Tag",
+            "shape": "string"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "created",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "last_updated",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
+        },
+        {
+            "name": "display_url",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in NetBox"
+                }
+            ]
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Rack",
+            "name": "display"
+        },
+        {
+            "pattern": "^custom_fields[.].*"
+        }
+    ],
+    "timeframes": false
+}

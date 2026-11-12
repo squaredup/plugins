@@ -1,0 +1,201 @@
+{
+    "name": "configurationItems",
+    "displayName": "Configuration Items",
+    "description": "Configuration items from the CMDB, one row per item, with type, status, ownership and location",
+    "tags": [
+        "Inventory",
+        "Service Management"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{dataSource.apiPath || 'odata'}}/businessobject/cis",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ [dataSource.ciFilter || null, (typeof filter !== 'undefined' ? filter : null)].filter(Boolean).join(' and ') || null }}"
+            }
+        ],
+        "pathToData": "value",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "$top",
+                "value": "{{ Math.max(1, Math.floor(Number(dataSource.pageLimit) || 100)) }}"
+            },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "value"
+                },
+                "base": 0
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "$skip"
+            }
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/odataError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Additional filter",
+            "placeholder": "CIType eq 'Server'",
+            "help": "Applied on top of the configuration item filter set on the data source, using the OData `$filter` syntax.",
+            "tileEditorStep": [
+                "Parameters"
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "CIType",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "Status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Active",
+                            "Operational",
+                            "Deployed"
+                        ],
+                        "warning": [
+                            "Maintenance",
+                            "Pending",
+                            "In Repair"
+                        ],
+                        "error": [
+                            "Retired",
+                            "Disposed",
+                            "Inactive"
+                        ],
+                        "unknown": [
+                            "In Stock",
+                            "Ordered"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Owner",
+            "displayName": "Owner",
+            "shape": "string"
+        },
+        {
+            "name": "PhysicalLocation",
+            "displayName": "Location",
+            "shape": "string"
+        },
+        {
+            "name": "SerialNumber",
+            "displayName": "Serial Number",
+            "shape": "string"
+        },
+        {
+            "name": "Manufacturer",
+            "displayName": "Manufacturer",
+            "shape": "string"
+        },
+        {
+            "name": "Model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "AssetTag",
+            "displayName": "Asset Tag",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "IPAddress",
+            "displayName": "IP Address",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "OperatingSystem",
+            "displayName": "Operating System",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "CreatedDateTime",
+            "displayName": "Created",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "LastModDateTime",
+            "displayName": "Last Modified",
+            "shape": "date"
+        },
+        {
+            "name": "RecId",
+            "displayName": "Record ID",
+            "shape": "guid",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "OwnerTeam",
+            "displayName": "Owner Team",
+            "shape": "string"
+        },
+        {
+            "name": "Description",
+            "displayName": "Description",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ivnt_AssignedUserName",
+            "displayName": "Assigned User",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ComplianceState",
+            "displayName": "Compliance State",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ivnt_WarrantyExpiry",
+            "displayName": "Warranty Expiry",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "LastScanDateTime",
+            "displayName": "Last Scanned",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

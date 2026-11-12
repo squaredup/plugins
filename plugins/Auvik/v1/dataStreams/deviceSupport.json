@@ -1,0 +1,340 @@
+{
+    "name": "deviceSupport",
+    "displayName": "Device Support",
+    "description": "Warranty and service coverage, or vendor lifecycle (end-of-sale and end-of-support) status, for each device",
+    "tags": [
+        "Inventory",
+        "Lifecycle"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/device/{{ (typeof coverage !== 'undefined' && coverage === 'lifecycle') ? 'lifecycle' : 'warranty' }}",
+        "getArgs": [
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || []).map((o) => String(o.value).trim()).join(',') || null) }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "deviceSupport.js"
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "coverage",
+            "label": "Coverage",
+            "options": [
+                {
+                    "value": "warranty",
+                    "label": "Warranty"
+                },
+                {
+                    "value": "lifecycle",
+                    "label": "Lifecycle"
+                }
+            ],
+            "defaultValue": "warranty"
+        },
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "Device"
+        },
+        {
+            "name": "warrantyCoverageStatus",
+            "displayName": "Warranty",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "covered",
+                            "Covered",
+                            "Active"
+                        ],
+                        "warning": [
+                            "available",
+                            "securityOnly",
+                            "Available"
+                        ],
+                        "error": [
+                            "expired",
+                            "Expired",
+                            "Not Covered",
+                            "NotCovered"
+                        ],
+                        "unknown": [
+                            "unpublished",
+                            "empty",
+                            "Unknown",
+                            "Not reported"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "warrantyExpirationDate",
+            "displayName": "Warranty expires",
+            "shape": "date"
+        },
+        {
+            "name": "daysUntilWarrantyExpiry",
+            "displayName": "Days until warranty expiry",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "serviceCoverageStatus",
+            "displayName": "Service coverage",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "covered",
+                            "Covered",
+                            "Active"
+                        ],
+                        "warning": [
+                            "available",
+                            "securityOnly",
+                            "Available"
+                        ],
+                        "error": [
+                            "expired",
+                            "Expired",
+                            "Not Covered",
+                            "NotCovered"
+                        ],
+                        "unknown": [
+                            "unpublished",
+                            "empty",
+                            "Unknown",
+                            "Not reported"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "serviceAttachmentStatus",
+            "displayName": "Service attachment",
+            "shape": "string"
+        },
+        {
+            "name": "contractRenewalAvailability",
+            "displayName": "Contract renewal",
+            "shape": "string"
+        },
+        {
+            "name": "recommendedSoftwareVersion",
+            "displayName": "Recommended software",
+            "shape": "string"
+        },
+        {
+            "name": "salesAvailability",
+            "displayName": "Sales availability",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "covered",
+                            "Covered",
+                            "Active"
+                        ],
+                        "warning": [
+                            "available",
+                            "securityOnly",
+                            "Available"
+                        ],
+                        "error": [
+                            "expired",
+                            "Expired",
+                            "Not Covered",
+                            "NotCovered"
+                        ],
+                        "unknown": [
+                            "unpublished",
+                            "empty",
+                            "Unknown",
+                            "Not reported"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "softwareMaintenanceStatus",
+            "displayName": "Software maintenance",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "covered",
+                            "Covered",
+                            "Active"
+                        ],
+                        "warning": [
+                            "available",
+                            "securityOnly",
+                            "Available"
+                        ],
+                        "error": [
+                            "expired",
+                            "Expired",
+                            "Not Covered",
+                            "NotCovered"
+                        ],
+                        "unknown": [
+                            "unpublished",
+                            "empty",
+                            "Unknown",
+                            "Not reported"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "securitySoftwareMaintenanceStatus",
+            "displayName": "Security maintenance",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "covered",
+                            "Covered",
+                            "Active"
+                        ],
+                        "warning": [
+                            "available",
+                            "securityOnly",
+                            "Available"
+                        ],
+                        "error": [
+                            "expired",
+                            "Expired",
+                            "Not Covered",
+                            "NotCovered"
+                        ],
+                        "unknown": [
+                            "unpublished",
+                            "empty",
+                            "Unknown",
+                            "Not reported"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "lastSupportStatus",
+            "displayName": "Last support",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "covered",
+                            "Covered",
+                            "Active"
+                        ],
+                        "warning": [
+                            "available",
+                            "securityOnly",
+                            "Available"
+                        ],
+                        "error": [
+                            "expired",
+                            "Expired",
+                            "Not Covered",
+                            "NotCovered"
+                        ],
+                        "unknown": [
+                            "unpublished",
+                            "empty",
+                            "Unknown",
+                            "Not reported"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "coverage",
+            "displayName": "Coverage",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}

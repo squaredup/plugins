@@ -1,0 +1,103 @@
+{
+    "company": "Contoso",
+    "incident": {
+        "service": "payments-api",
+        "title": "Payments API elevated error rate after release 4.12.0",
+        "startedMinutesAgo": 150,
+        "peakEndsMinutesAgo": 20,
+        "affectedServices": ["checkout-api", "orders-service"],
+        "affectedCustomers": ["northpeak-retail", "harbor-financial", "veltra-health"],
+        "pipeline": "payments-release",
+        "release": "4.12.0"
+    },
+    "regions": [
+        { "id": "us-east", "name": "US East (Virginia)", "provider": "AWS", "latitude": 38.95, "longitude": -77.45 },
+        { "id": "eu-west", "name": "EU West (Dublin)", "provider": "AWS", "latitude": 53.35, "longitude": -6.26 },
+        { "id": "ap-southeast", "name": "AP Southeast (Sydney)", "provider": "Azure", "latitude": -33.87, "longitude": 151.21 }
+    ],
+    "teams": [
+        { "id": "platform", "name": "Platform" },
+        { "id": "payments", "name": "Payments" },
+        { "id": "commerce", "name": "Commerce" },
+        { "id": "growth", "name": "Growth" },
+        { "id": "data", "name": "Data" }
+    ],
+    "services": [
+        { "id": "web-frontend", "name": "Web Frontend", "team": "growth", "tier": "Tier 1", "region": "us-east", "provider": "AWS", "latencyMs": 180, "requestsPerMin": 9200, "errorRate": 0.12, "sloTarget": 99.9, "monthlyCost": 6400 },
+        { "id": "api-gateway", "name": "API Gateway", "team": "platform", "tier": "Tier 1", "region": "us-east", "provider": "AWS", "latencyMs": 35, "requestsPerMin": 15800, "errorRate": 0.05, "sloTarget": 99.95, "monthlyCost": 8900 },
+        { "id": "auth-service", "name": "Auth Service", "team": "platform", "tier": "Tier 1", "region": "us-east", "provider": "AWS", "latencyMs": 60, "requestsPerMin": 7300, "errorRate": 0.04, "sloTarget": 99.95, "monthlyCost": 3100 },
+        { "id": "checkout-api", "name": "Checkout API", "team": "commerce", "tier": "Tier 1", "region": "us-east", "provider": "AWS", "latencyMs": 240, "requestsPerMin": 1850, "errorRate": 0.15, "sloTarget": 99.9, "monthlyCost": 5200 },
+        { "id": "payments-api", "name": "Payments API", "team": "payments", "tier": "Tier 1", "region": "us-east", "provider": "AWS", "latencyMs": 310, "requestsPerMin": 1420, "errorRate": 0.08, "sloTarget": 99.95, "monthlyCost": 7600 },
+        { "id": "orders-service", "name": "Orders Service", "team": "commerce", "tier": "Tier 1", "region": "eu-west", "provider": "AWS", "latencyMs": 120, "requestsPerMin": 2600, "errorRate": 0.1, "sloTarget": 99.9, "monthlyCost": 4300 },
+        { "id": "catalog-service", "name": "Catalog Service", "team": "commerce", "tier": "Tier 2", "region": "eu-west", "provider": "AWS", "latencyMs": 85, "requestsPerMin": 6100, "errorRate": 0.07, "sloTarget": 99.5, "monthlyCost": 3900 },
+        { "id": "search-service", "name": "Search Service", "team": "growth", "tier": "Tier 2", "region": "eu-west", "provider": "AWS", "latencyMs": 140, "requestsPerMin": 4800, "errorRate": 0.2, "sloTarget": 99.5, "monthlyCost": 9800 },
+        { "id": "notifications-service", "name": "Notifications Service", "team": "growth", "tier": "Tier 3", "region": "eu-west", "provider": "AWS", "latencyMs": 95, "requestsPerMin": 1300, "errorRate": 0.3, "sloTarget": 99.0, "monthlyCost": 1700 },
+        { "id": "billing-service", "name": "Billing Service", "team": "payments", "tier": "Tier 2", "region": "us-east", "provider": "AWS", "latencyMs": 210, "requestsPerMin": 380, "errorRate": 0.09, "sloTarget": 99.9, "monthlyCost": 2600 },
+        { "id": "customer-portal", "name": "Customer Portal", "team": "growth", "tier": "Tier 2", "region": "ap-southeast", "provider": "Azure", "latencyMs": 260, "requestsPerMin": 950, "errorRate": 0.18, "sloTarget": 99.5, "monthlyCost": 2900 },
+        { "id": "analytics-pipeline", "name": "Analytics Pipeline", "team": "data", "tier": "Tier 3", "region": "ap-southeast", "provider": "Azure", "latencyMs": 900, "requestsPerMin": 220, "errorRate": 0.4, "sloTarget": 99.0, "monthlyCost": 12400 }
+    ],
+    "dependencies": [
+        { "from": "web-frontend", "to": "api-gateway", "share": 1.0 },
+        { "from": "customer-portal", "to": "api-gateway", "share": 1.0 },
+        { "from": "api-gateway", "to": "auth-service", "share": 0.45 },
+        { "from": "api-gateway", "to": "catalog-service", "share": 0.3 },
+        { "from": "api-gateway", "to": "search-service", "share": 0.22 },
+        { "from": "api-gateway", "to": "checkout-api", "share": 0.12 },
+        { "from": "checkout-api", "to": "payments-api", "share": 0.75 },
+        { "from": "checkout-api", "to": "orders-service", "share": 0.9 },
+        { "from": "orders-service", "to": "notifications-service", "share": 0.5 },
+        { "from": "payments-api", "to": "billing-service", "share": 0.25 },
+        { "from": "orders-service", "to": "analytics-pipeline", "share": 0.08 }
+    ],
+    "hosts": [
+        { "id": "web-use-01", "service": "web-frontend", "region": "us-east", "os": "Ubuntu 24.04", "size": "c6i.xlarge", "cpu": 38, "memory": 52, "disk": 41 },
+        { "id": "web-use-02", "service": "web-frontend", "region": "us-east", "os": "Ubuntu 24.04", "size": "c6i.xlarge", "cpu": 35, "memory": 49, "disk": 39 },
+        { "id": "gw-use-01", "service": "api-gateway", "region": "us-east", "os": "Amazon Linux 2023", "size": "c6i.2xlarge", "cpu": 44, "memory": 47, "disk": 28 },
+        { "id": "gw-use-02", "service": "api-gateway", "region": "us-east", "os": "Amazon Linux 2023", "size": "c6i.2xlarge", "cpu": 42, "memory": 45, "disk": 30 },
+        { "id": "auth-use-01", "service": "auth-service", "region": "us-east", "os": "Amazon Linux 2023", "size": "m6i.large", "cpu": 27, "memory": 58, "disk": 33 },
+        { "id": "chk-use-01", "service": "checkout-api", "region": "us-east", "os": "Ubuntu 24.04", "size": "m6i.xlarge", "cpu": 41, "memory": 61, "disk": 46 },
+        { "id": "chk-use-02", "service": "checkout-api", "region": "us-east", "os": "Ubuntu 24.04", "size": "m6i.xlarge", "cpu": 39, "memory": 59, "disk": 44 },
+        { "id": "pay-use-01", "service": "payments-api", "region": "us-east", "os": "Ubuntu 24.04", "size": "m6i.xlarge", "cpu": 36, "memory": 55, "disk": 52 },
+        { "id": "pay-use-02", "service": "payments-api", "region": "us-east", "os": "Ubuntu 24.04", "size": "m6i.xlarge", "cpu": 34, "memory": 54, "disk": 50 },
+        { "id": "bill-use-01", "service": "billing-service", "region": "us-east", "os": "Windows Server 2022", "size": "m6i.large", "cpu": 22, "memory": 63, "disk": 71 },
+        { "id": "ord-euw-01", "service": "orders-service", "region": "eu-west", "os": "Ubuntu 24.04", "size": "m6i.xlarge", "cpu": 33, "memory": 57, "disk": 48 },
+        { "id": "ord-euw-02", "service": "orders-service", "region": "eu-west", "os": "Ubuntu 24.04", "size": "m6i.xlarge", "cpu": 31, "memory": 56, "disk": 47 },
+        { "id": "cat-euw-01", "service": "catalog-service", "region": "eu-west", "os": "Amazon Linux 2023", "size": "r6i.large", "cpu": 29, "memory": 72, "disk": 38 },
+        { "id": "srch-euw-01", "service": "search-service", "region": "eu-west", "os": "Amazon Linux 2023", "size": "r6i.2xlarge", "cpu": 57, "memory": 78, "disk": 64 },
+        { "id": "srch-euw-02", "service": "search-service", "region": "eu-west", "os": "Amazon Linux 2023", "size": "r6i.2xlarge", "cpu": 55, "memory": 76, "disk": 83 },
+        { "id": "ntf-euw-01", "service": "notifications-service", "region": "eu-west", "os": "Ubuntu 24.04", "size": "t3.large", "cpu": 18, "memory": 44, "disk": 36 },
+        { "id": "portal-ause-01", "service": "customer-portal", "region": "ap-southeast", "os": "Windows Server 2022", "size": "D4s v5", "cpu": 31, "memory": 66, "disk": 55 },
+        { "id": "etl-ause-01", "service": "analytics-pipeline", "region": "ap-southeast", "os": "Ubuntu 24.04", "size": "E8s v5", "cpu": 64, "memory": 81, "disk": 69 },
+        { "id": "etl-ause-02", "service": "analytics-pipeline", "region": "ap-southeast", "os": "Ubuntu 24.04", "size": "E8s v5", "cpu": 61, "memory": 79, "disk": 92 }
+    ],
+    "pipelines": [
+        { "id": "web-release", "name": "Web Release", "service": "web-frontend", "team": "growth", "tool": "GitHub Actions", "deploysPerDay": 6, "leadTimeHours": 5, "failureRate": 0.06, "durationMin": 11 },
+        { "id": "platform-release", "name": "Platform Release", "service": "api-gateway", "team": "platform", "tool": "GitHub Actions", "deploysPerDay": 2, "leadTimeHours": 18, "failureRate": 0.04, "durationMin": 22 },
+        { "id": "commerce-release", "name": "Commerce Release", "service": "checkout-api", "team": "commerce", "tool": "Azure DevOps", "deploysPerDay": 4, "leadTimeHours": 9, "failureRate": 0.08, "durationMin": 17 },
+        { "id": "payments-release", "name": "Payments Release", "service": "payments-api", "team": "payments", "tool": "Azure DevOps", "deploysPerDay": 1.5, "leadTimeHours": 30, "failureRate": 0.1, "durationMin": 26 },
+        { "id": "search-release", "name": "Search Release", "service": "search-service", "team": "growth", "tool": "GitHub Actions", "deploysPerDay": 3, "leadTimeHours": 7, "failureRate": 0.05, "durationMin": 14 },
+        { "id": "data-release", "name": "Data Release", "service": "analytics-pipeline", "team": "data", "tool": "Jenkins", "deploysPerDay": 0.7, "leadTimeHours": 52, "failureRate": 0.14, "durationMin": 41 }
+    ],
+    "customers": [
+        { "id": "northpeak-retail", "name": "Northpeak Retail", "city": "Chicago", "country": "United States", "latitude": 41.88, "longitude": -87.63, "plan": "Enterprise", "mrr": 48000, "slaTarget": 99.9, "seats": 1200 },
+        { "id": "harbor-financial", "name": "Harbor Financial", "city": "New York", "country": "United States", "latitude": 40.71, "longitude": -74.01, "plan": "Enterprise", "mrr": 62000, "slaTarget": 99.95, "seats": 2100 },
+        { "id": "veltra-health", "name": "Veltra Health", "city": "Boston", "country": "United States", "latitude": 42.36, "longitude": -71.06, "plan": "Enterprise", "mrr": 39000, "slaTarget": 99.9, "seats": 950 },
+        { "id": "brightline-logistics", "name": "Brightline Logistics", "city": "Dallas", "country": "United States", "latitude": 32.78, "longitude": -96.8, "plan": "Business", "mrr": 18500, "slaTarget": 99.5, "seats": 420 },
+        { "id": "cobalt-games", "name": "Cobalt Games", "city": "Seattle", "country": "United States", "latitude": 47.61, "longitude": -122.33, "plan": "Business", "mrr": 14200, "slaTarget": 99.5, "seats": 310 },
+        { "id": "summit-education", "name": "Summit Education", "city": "Denver", "country": "United States", "latitude": 39.74, "longitude": -104.99, "plan": "Business", "mrr": 9800, "slaTarget": 99.5, "seats": 600 },
+        { "id": "maple-civic", "name": "Maple Civic Services", "city": "Toronto", "country": "Canada", "latitude": 43.65, "longitude": -79.38, "plan": "Enterprise", "mrr": 27000, "slaTarget": 99.9, "seats": 800 },
+        { "id": "tidewater-energy", "name": "Tidewater Energy", "city": "Houston", "country": "United States", "latitude": 29.76, "longitude": -95.37, "plan": "Enterprise", "mrr": 33500, "slaTarget": 99.9, "seats": 700 },
+        { "id": "orbit-media", "name": "Orbit Media Group", "city": "London", "country": "United Kingdom", "latitude": 51.51, "longitude": -0.13, "plan": "Enterprise", "mrr": 41000, "slaTarget": 99.9, "seats": 1100 },
+        { "id": "fjord-mobility", "name": "Fjord Mobility", "city": "Oslo", "country": "Norway", "latitude": 59.91, "longitude": 10.75, "plan": "Business", "mrr": 12600, "slaTarget": 99.5, "seats": 280 },
+        { "id": "kestrel-insurance", "name": "Kestrel Insurance", "city": "Edinburgh", "country": "United Kingdom", "latitude": 55.95, "longitude": -3.19, "plan": "Enterprise", "mrr": 36800, "slaTarget": 99.95, "seats": 900 },
+        { "id": "lumen-pharma", "name": "Lumen Pharma", "city": "Basel", "country": "Switzerland", "latitude": 47.56, "longitude": 7.59, "plan": "Enterprise", "mrr": 52000, "slaTarget": 99.95, "seats": 1500 },
+        { "id": "atelier-fashion", "name": "Atelier Fashion House", "city": "Paris", "country": "France", "latitude": 48.86, "longitude": 2.35, "plan": "Business", "mrr": 15800, "slaTarget": 99.5, "seats": 350 },
+        { "id": "rhine-automotive", "name": "Rhine Automotive", "city": "Stuttgart", "country": "Germany", "latitude": 48.78, "longitude": 9.18, "plan": "Enterprise", "mrr": 44500, "slaTarget": 99.9, "seats": 1300 },
+        { "id": "duna-telecom", "name": "Duna Telecom", "city": "Budapest", "country": "Hungary", "latitude": 47.5, "longitude": 19.04, "plan": "Starter", "mrr": 4200, "slaTarget": 99.0, "seats": 90 },
+        { "id": "sakura-robotics", "name": "Sakura Robotics", "city": "Osaka", "country": "Japan", "latitude": 34.69, "longitude": 135.5, "plan": "Business", "mrr": 16900, "slaTarget": 99.5, "seats": 400 },
+        { "id": "coral-travel", "name": "Coral Travel Group", "city": "Singapore", "country": "Singapore", "latitude": 1.35, "longitude": 103.82, "plan": "Business", "mrr": 13300, "slaTarget": 99.5, "seats": 330 },
+        { "id": "southern-cross-bank", "name": "Southern Cross Bank", "city": "Sydney", "country": "Australia", "latitude": -33.87, "longitude": 151.21, "plan": "Enterprise", "mrr": 58000, "slaTarget": 99.95, "seats": 1700 },
+        { "id": "kauri-agritech", "name": "Kauri Agritech", "city": "Auckland", "country": "New Zealand", "latitude": -36.85, "longitude": 174.76, "plan": "Starter", "mrr": 3600, "slaTarget": 99.0, "seats": 60 },
+        { "id": "ipanema-retail", "name": "Ipanema Retail", "city": "São Paulo", "country": "Brazil", "latitude": -23.55, "longitude": -46.63, "plan": "Business", "mrr": 11200, "slaTarget": 99.5, "seats": 260 }
+    ]
+}
