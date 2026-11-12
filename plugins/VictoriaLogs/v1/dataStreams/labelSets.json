@@ -1,0 +1,107 @@
+{
+    "name": "labelSets",
+    "displayName": "Label Sets",
+    "description": "Distinct combinations of a set of log fields over the indexing lookback, one row per combination, used to index objects",
+    "tags": [
+        "Metadata",
+        "Indexing"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/stats_query",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{dataSource[pack] === false ? '_time:1s \"__squaredup_disabled__\":* | stats count() hits' : '_time:' + (dataSource.indexLookback || '1h') + ' ' + (match || required.split(',').map(f => '\"' + f.trim() + '\":*').join(' ')) + ' | stats by (' + (labels + (extraLabels ? ',' + extraLabels : '')).split(',').map(f => f.trim()).filter(f => f && f !== '-').map(f => '\"' + f + '\"').join(', ') + ') count() hits'}}"
+            }
+        ],
+        "postRequestScript": "labelSets.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "pack",
+            "label": "Index pack",
+            "help": "The **Objects to index** option that enables this label set, e.g. `indexK8s`."
+        },
+        {
+            "type": "text",
+            "name": "labels",
+            "label": "Fields",
+            "help": "Comma-separated log fields to group by, in the same order as **Property names**; `-` for a property this convention has no field for (e.g. the cluster), which then comes from the **Default cluster name**."
+        },
+        {
+            "type": "text",
+            "name": "keys",
+            "label": "Property names",
+            "help": "Comma-separated property names for each label, in the same order as **Labels**."
+        },
+        {
+            "type": "text",
+            "name": "required",
+            "label": "Required fields",
+            "help": "Comma-separated fields that must be present for a log to count."
+        },
+        {
+            "type": "text",
+            "name": "nameKey",
+            "label": "Name property",
+            "help": "The property whose value is used as the object name."
+        },
+        {
+            "type": "text",
+            "name": "aliases",
+            "label": "Alias label sets",
+            "help": "`|`-separated alternative field names for the same properties (`-` for not present). Used to build a scoping filter that also matches other field conventions."
+        },
+        {
+            "type": "text",
+            "name": "match",
+            "label": "Series selector override",
+            "help": "Optional LogsQL filter to use instead of requiring the **Required fields**."
+        },
+        {
+            "type": "text",
+            "name": "extraLabels",
+            "label": "Extra labels",
+            "help": "Comma-separated labels stored as properties but not part of the object identity, e.g. `service.namespace`."
+        },
+        {
+            "type": "text",
+            "name": "extraKeys",
+            "label": "Extra property names",
+            "help": "Property names for **Extra labels**, in the same order."
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "selector",
+            "displayName": "Selector",
+            "shape": "string"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false,
+    "visibility": {
+        "type": "hidden"
+    }
+}

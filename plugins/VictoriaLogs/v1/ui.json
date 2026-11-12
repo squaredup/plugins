@@ -1,0 +1,147 @@
+[
+    {
+        "type": "text",
+        "name": "url",
+        "label": "VictoriaLogs URL",
+        "placeholder": "http://victorialogs.example.com:9428",
+        "help": "The base URL that serves the VictoriaLogs querying API, **without** `/select/logsql`.\n\n- Single-node: `http://<host>:9428`\n- Cluster (vlselect): `http://<vlselect>:9471`\n- Behind vmauth or VictoriaMetrics Cloud: the URL your proxy exposes for log queries",
+        "validation": {
+            "required": true,
+            "pattern": {
+                "value": "^https?://[^\\s]+$",
+                "message": "Enter a URL starting with http:// or https://"
+            }
+        }
+    },
+    {
+        "type": "radio",
+        "name": "authType",
+        "label": "Authentication",
+        "defaultValue": "none",
+        "validation": {
+            "required": true
+        },
+        "options": [
+            {
+                "value": "none",
+                "label": "None"
+            },
+            {
+                "value": "token",
+                "label": "Bearer token"
+            },
+            {
+                "value": "basic",
+                "label": "Basic authentication"
+            }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": {
+            "authType": "token"
+        },
+        "fields": [
+            {
+                "type": "password",
+                "name": "apiToken",
+                "label": "Bearer token",
+                "help": "Sent as `Authorization: Bearer <token>` \u2014 for example a vmauth bearer token or a VictoriaMetrics Cloud access token with read access.",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": {
+            "authType": "basic"
+        },
+        "fields": [
+            {
+                "type": "text",
+                "name": "username",
+                "label": "Username",
+                "validation": {
+                    "required": true
+                }
+            },
+            {
+                "type": "password",
+                "name": "password",
+                "label": "Password",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
+    },
+    {
+        "type": "text",
+        "name": "accountId",
+        "label": "Account ID",
+        "placeholder": "0",
+        "help": "Tenant account ID for multitenant VictoriaLogs, sent as the `AccountID` header. Leave empty for the default tenant."
+    },
+    {
+        "type": "text",
+        "name": "projectId",
+        "label": "Project ID",
+        "placeholder": "0",
+        "help": "Tenant project ID for multitenant VictoriaLogs, sent as the `ProjectID` header. Leave empty for the default tenant."
+    },
+    {
+        "type": "checkbox",
+        "name": "ignoreCertificateErrors",
+        "label": "Ignore certificate errors",
+        "help": "Enable when connecting to an instance with a self-signed certificate."
+    },
+    {
+        "type": "markdown",
+        "name": "objectsToIndexHeading",
+        "content": "**Objects to index**"
+    },
+    {
+        "type": "checkbox",
+        "name": "indexOtelK8s",
+        "label": "Kubernetes (OpenTelemetry)",
+        "help": "OpenTelemetry `k8s.*` resource attributes, e.g. `k8s.namespace.name`, `k8s.pod.name`, `k8s.node.name`.",
+        "defaultValue": true
+    },
+    {
+        "type": "checkbox",
+        "name": "indexK8sCollector",
+        "label": "Kubernetes (log collector fields)",
+        "help": "Kubernetes metadata added by log collectors: Vector (`kubernetes.pod_namespace`, `kubernetes.pod_name`), Fluent Bit (`kubernetes.namespace_name`, `kubernetes.pod_name`) and plain `namespace`/`pod` labels.",
+        "defaultValue": true
+    },
+    {
+        "type": "checkbox",
+        "name": "indexOtelResource",
+        "label": "Services and hosts (OpenTelemetry)",
+        "help": "OpenTelemetry `service.name`, `host.name` and `deployment.environment.name`.",
+        "defaultValue": true
+    },
+    {
+        "type": "text",
+        "name": "indexLookback",
+        "label": "Indexing lookback",
+        "defaultValue": "1h",
+        "placeholder": "1h",
+        "help": "How far back to look for logs when discovering objects, as a LogsQL duration such as `30m`, `1h` or `6h`. Objects that haven't logged within this window aren't indexed. Longer windows find more objects but make indexing slower.",
+        "validation": {
+            "pattern": {
+                "value": "^\\d+(ms|s|m|h|d|w)$",
+                "message": "Use a duration such as 30m, 1h or 1d"
+            }
+        }
+    },
+    {
+        "type": "text",
+        "name": "defaultCluster",
+        "label": "Default cluster name",
+        "placeholder": "e.g. prod-eu-1",
+        "help": "Cluster to assume for logs without a cluster field (`k8s.cluster.name`, `cluster`). Set it when some or all of your logs lack a cluster field, so the same pod seen through different field conventions becomes one object and drilldowns resolve."
+    }
+]

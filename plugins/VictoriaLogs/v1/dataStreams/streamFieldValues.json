@@ -1,0 +1,116 @@
+{
+    "name": "streamFieldValues",
+    "displayName": "Stream Field Values",
+    "description": "Values of a log stream field in matching logs",
+    "tags": [
+        "Metadata"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/stream_field_values",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query || '*'}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "field",
+                "value": "{{field}}"
+            },
+            {
+                "key": "extra_filters",
+                "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            }
+        ],
+        "postRequestScript": "values.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "query",
+            "label": "Query (optional)",
+            "placeholder": "*",
+            "help": "LogsQL filter selecting the logs to inspect."
+        },
+        {
+            "type": "text",
+            "name": "field",
+            "label": "Field",
+            "help": "Field name, e.g. `service.name`.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Limit (optional)",
+            "help": "Return only the values with the most logs."
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include logs from the selected objects. Leave empty to search all logs.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Container",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Service",
+                        "Host",
+                        "Deployment Environment"
+                    ]
+                }
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "label",
+            "displayName": "Value",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Value (raw)",
+            "shape": "string",
+            "role": "value",
+            "visible": false
+        },
+        {
+            "name": "hits",
+            "displayName": "Logs",
+            "shape": "number"
+        }
+    ],
+    "timeframes": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}
