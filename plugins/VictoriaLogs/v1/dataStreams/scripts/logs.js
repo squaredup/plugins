@@ -14,9 +14,12 @@ const defaultCluster = typeof dataSource.defaultCluster === 'string' ? dataSourc
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 // Only this plugin's objects: a selected object can resolve to equivalent objects from
 // other plugins (e.g. the same service seen by VictoriaMetrics), whose properties differ.
-const scope = (Array.isArray(context.config?.scope) ? context.config.scope : []).filter((o) =>
-    [].concat(o?.sourceName || []).includes('VictoriaLogs')
-);
+// Prefer this plugin's objects: a selected object can resolve to, or be merged with,
+// equivalent objects from other plugins. Their ids follow the same rules, so fall back to
+// all of them when none is from this plugin.
+const allScope = Array.isArray(context.config?.scope) ? context.config.scope : [];
+const ownScope = allScope.filter((o) => [].concat(o?.sourceName || []).includes('VictoriaLogs'));
+const scope = ownScope.length ? ownScope : allScope;
 const fromScope = (key) => {
     const values = new Set(scope.map((o) => unwrap(o?.[key])).filter((v) => v));
     return values.size === 1 ? [...values][0] : '';
