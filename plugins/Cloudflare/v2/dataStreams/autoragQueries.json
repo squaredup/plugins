@@ -1,0 +1,82 @@
+{
+    "name": "autoragQueries",
+    "displayName": "AutoRAG Queries",
+    "description": "Search and AI Search query volume for an AutoRAG instance",
+    "tags": ["AI"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$instanceId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){aiSearchAPIAdaptiveGroups(limit:10000,filter:{instanceId:$instanceId,datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count sum{aiSearchCount searchCount} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "instanceId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare AutoRAG"]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "searchType",
+            "options": [
+                { "value": "searchType", "label": "Search Type" },
+                { "value": "embeddingModel", "label": "Embedding Model" },
+                { "value": "isStream", "label": "Streamed" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        { "name": "dimensions.searchType", "visible": false },
+        { "name": "dimensions.embeddingModel", "visible": false },
+        { "name": "dimensions.isStream", "visible": false },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "computed": true,
+            "valueExpression": "{{ $['dimensions.searchType'] || $['dimensions.embeddingModel'] || $['dimensions.isStream'] || 'Unknown' }}",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Search Events",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.aiSearchCount",
+            "displayName": "AI Searches",
+            "shape": "number"
+        },
+        {
+            "name": "sum.searchCount",
+            "displayName": "Searches",
+            "shape": "number"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
+}

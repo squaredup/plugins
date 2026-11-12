@@ -1,0 +1,65 @@
+{
+    "name": "kvOperations",
+    "displayName": "KV Operations",
+    "description": "Read, write, delete and list operation counts and latency for a Workers KV namespace",
+    "tags": ["Storage", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$namespaceId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){kvOperationsAdaptiveGroups(limit:10000,filter:{namespaceId:$namespaceId,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_DESC]){sum{requests}dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} actionType}quantiles{latencyMsP50 latencyMsP90 latencyMsP99}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "namespaceId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare KV Namespace"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "dimensions.actionType",
+            "displayName": "Operation",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "quantiles.latencyMsP50",
+            "displayName": "Latency P50",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "quantiles.latencyMsP90",
+            "displayName": "Latency P90",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "quantiles.latencyMsP99",
+            "displayName": "Latency P99",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth", "lastMonth"]
+}

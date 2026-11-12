@@ -1,0 +1,88 @@
+{
+    "name": "workerStaticAssets",
+    "displayName": "Worker Static Asset Requests",
+    "description": "Requests served from a Worker script's static assets, grouped by a selectable dimension",
+    "tags": [
+        "Compute",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$scriptName:string!){viewer{accounts(filter:{accountTag:$accountTag}){workersAssetsRequestsAdaptiveGroups(limit:10000,filter:{scriptName:$scriptName,datetime_geq:$start,datetime_leq:$end},orderBy:[sum_requests_DESC]){sum{requests} dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} {{breakdown || 'statusCode'}} }}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "scriptName": "{{object.name}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Worker"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "statusCode",
+            "options": [
+                {
+                    "value": "statusCode",
+                    "label": "Status Code"
+                },
+                {
+                    "value": "cacheStatus",
+                    "label": "Cache Status"
+                },
+                {
+                    "value": "hostname",
+                    "label": "Host"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth"
+    ]
+}

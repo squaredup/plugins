@@ -1,0 +1,102 @@
+{
+    "name": "pagesDeployments",
+    "displayName": "Pages Deployments",
+    "description": "Deployment history for a Cloudflare Pages project including branch, commit and status",
+    "tags": [
+        "Pages",
+        "CI/CD"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "accounts/{{object.accountId}}/pages/projects/{{object.name}}/deployments",
+        "postRequestScript": "pagesDeployments.js",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "10"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "result" },
+                "base": 1
+            },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Pages Project"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "short_id",
+            "displayName": "Deployment",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "environment",
+            "displayName": "Environment",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["success"],
+                        "error": ["failure", "canceled"],
+                        "warning": ["skipped", "active", "building", "queued"],
+                        "unknown": ["idle"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "stage",
+            "displayName": "Stage",
+            "shape": "string"
+        },
+        {
+            "name": "url",
+            "displayName": "URL",
+            "shape": "url"
+        },
+        {
+            "name": "branch",
+            "displayName": "Branch",
+            "shape": "string"
+        },
+        {
+            "name": "commit",
+            "displayName": "Commit",
+            "shape": "string"
+        },
+        {
+            "name": "commitMessage",
+            "displayName": "Commit Message",
+            "shape": "string"
+        },
+        {
+            "name": "created_on",
+            "displayName": "Created",
+            "shape": "date",
+            "role": "timestamp"
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,56 @@
+{
+    "name": "aiGatewayCache",
+    "displayName": "AI Gateway Cache",
+    "description": "Cache hit and miss counts for an AI Gateway",
+    "tags": ["AI", "Cache"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$gateway:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){aiGatewayCacheAdaptiveGroups(limit:10000,filter:{gateway:$gateway,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }} cacheOp}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "gateway": "{{object.name}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare AI Gateway"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        { "name": "dimensions.cacheOp", "visible": false },
+        {
+            "name": "cacheStatus",
+            "displayName": "Cache Status",
+            "computed": true,
+            "valueExpression": "{{ $['dimensions.cacheOp'] == 1 ? 'Hit' : 'Miss' }}",
+            "shape": "string"
+        },
+        {
+            "name": "count",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
+}
