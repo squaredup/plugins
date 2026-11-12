@@ -20,7 +20,7 @@ result = (data.list || []).map((alert) => ({
     conditionType: alert.condition ? alert.condition.type : null,
     folderName: alert.folder_name,
     owner: alert.owner || "",
-    tags: (alert.tags || []).join(", "),
+    tags: alert.tags || [],
     levelSince: usToIso(alert.level_since),
     lastOutcomeAt: usToIso(alert.last_outcome_at),
     lastOutcomeSince: usToIso(alert.last_outcome_since),

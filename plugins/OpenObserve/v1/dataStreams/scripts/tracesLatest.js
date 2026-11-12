@@ -65,8 +65,8 @@ if (bucketMs) {
             durationMs: row.duration / 1000,
             spanCount: (spans && spans[0]) || 0,
             serviceCount: (service_name || []).length,
-            services: (service_name || []).map((s) => s.service_name).join(", "),
-            models: (models || []).join(", "),
+            services: (service_name || []).map((s) => s.service_name),
+            models: models || [],
             traceUrl: `${webBase}/web/traces/trace-details?org_identifier=${ds.organization}&stream=${streamName}&trace_id=${row.trace_id}&from=${fromUs}&to=${toUs}`,
         };
     });

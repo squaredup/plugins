@@ -23,7 +23,6 @@ You will need your OpenObserve instance's **URL**, **port**, **organization iden
 | **Port** | The port your OpenObserve instance listens on. | Defaults to `5080`, OpenObserve's standard port. | Yes |
 | **Organization** | The organization identifier used in every API call. | Defaults to `default`; check **IAM → Organizations** if you use a different one. | Yes |
 | **API Key** | The full base64-encoded `username:password`/`username:token` pair, sent unmodified as `Authorization: Basic <key>`. | Built from a Service Account's login identity + token, or a user's email + password (see Setup step 4). | Yes |
-| **Ignore certificate errors** | Skips TLS certificate validation. | Enable only if your instance uses a self-signed certificate. | No |
 
 On save, the plugin validates these by fetching your organization's stream list; an invalid URL, port, organization, or API Key fails setup with an authentication error.
 
