@@ -28,7 +28,7 @@ You need the URL of a VictoriaTraces endpoint that serves the querying API, and 
 | **Bearer token** | Sent as an `Authorization: Bearer` header. Shown when **Bearer token** is selected. | Your vmauth config or VictoriaMetrics Cloud **Access tokens** page. | When using a bearer token |
 | **Username** / **Password** | Basic authentication credentials. Shown when **Basic authentication** is selected. | Your vmauth or reverse proxy config. | When using basic auth |
 | **Account ID** / **Project ID** | Tenant to query, sent as the `AccountID` and `ProjectID` headers. | Your VictoriaTraces multitenancy setup. | No (default tenant) |
-| **Objects to index** | Tick what to discover from your spans: **Services and dependencies** (`service.name` and the calls between services), **Operations** (server and consumer span names per service), **Kubernetes** (`k8s.*` resource attributes) and **Hosts and environments** (`host.name`, `deployment.environment.name`). | Untick **Operations** if span names include IDs or full URLs. | No (all ticked by default) |
+| **Objects to index** | Tick what to discover from your spans: **Services and dependencies** (`service.name` and the calls between services), **Operations** (server and consumer span names per service), **Kubernetes (OpenTelemetry)** (`k8s.*` resource attributes) and **Hosts and environments** (`host.name`, `deployment.environment.name`). | Untick **Operations** if span names include IDs or full URLs. | No (all ticked by default) |
 | **Indexing lookback** | How far back to look for spans when discovering objects, e.g. `1h`. | — | No (default `1h`) |
 | **Default cluster name** | Cluster to assume for spans without a `k8s.cluster.name` resource attribute, so Kubernetes objects match those from the VictoriaMetrics and VictoriaLogs plugins and drilldowns resolve. | Your cluster's name. | No |
 
@@ -41,7 +41,7 @@ On save, the plugin lists the span stream fields seen in the last hour. A failur
 - **Service map** — which services call which, and how often, in dashboards and as relationships in SquaredUp's graph.
 - **Where services run** — spans and RED metrics per Kubernetes pod, workload, namespace, node and host, linked to the same objects as the VictoriaMetrics and VictoriaLogs plugins.
 
-The out-of-the-box dashboards are **Services Overview** (with a service map) plus **Service**, **Operation** and **Pod Traces** perspectives.
+The out-of-the-box dashboards are **Traces Overview** (with a service map) plus **Service Traces**, **Operation Traces** and **Pod Traces** perspectives.
 
 ## Data streams
 
