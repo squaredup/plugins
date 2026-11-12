@@ -37,6 +37,38 @@ const componentIds = new Set(
     (Array.isArray(rawComponents) ? rawComponents : []).map((o) => (Array.isArray(o.rawId) ? o.rawId[0] : o.rawId))
 );
 
+// The same component name can appear in several groups (one per region or deployment), and grouping by name would
+// merge them. Name components as the import does: a repeated name is qualified with its group. Group names are only
+// in components.json, so read it when the windows repeat a name.
+const idsByName = new Map();
+for (const m of windows) {
+    for (const c of m.components || []) {
+        if (!idsByName.has(c.name)) idsByName.set(c.name, new Set());
+        idsByName.get(c.name).add(c.id);
+    }
+}
+
+let componentName = (c) => c.name;
+if ([...idsByName.values()].some((ids) => ids.size > 1)) {
+    try {
+        const response = await fetch(new URL('/api/v2/components.json', url).href);
+        const body = response.ok ? await response.json() : undefined;
+        if (body && Array.isArray(body.components)) {
+            const groups = new Map(body.components.filter((g) => g.group).map((g) => [g.id, g.name]));
+            const nameCounts = new Map();
+            for (const c of body.components.filter((c) => !c.group)) {
+                nameCounts.set(c.name, (nameCounts.get(c.name) || 0) + 1);
+            }
+            componentName = (c) => {
+                const group = c.group_id && groups.get(c.group_id);
+                return nameCounts.get(c.name) > 1 && group ? `${group} / ${c.name}` : c.name;
+            };
+        }
+    } catch (e) {
+        // Keep the names the windows carry.
+    }
+}
+
 const rows = [];
 for (const m of windows) {
     const start = toDate(m.scheduled_for);
@@ -63,7 +95,7 @@ for (const m of windows) {
         phase,
         state: STATES[phase],
         impact: IMPACTS[m.impact] || m.impact,
-        components: components.map((c) => c.name),
+        components: components.map(componentName),
         componentIds: components.map((c) => c.id),
         scheduledFor: start && start.toISOString(),
         scheduledUntil: end && end.toISOString(),

@@ -73,8 +73,8 @@ const worstComponentStatus = (updates) => {
 };
 
 // An incident's own component list can be empty or shorter than what its updates record as affected, so the
-// updates' components count too. Updates name a grouped component "Group - Name", so take display names from
-// components.json, fetched only when some incident needs it; the update's name is the fallback.
+// updates' components count too. Updates name a grouped component "Group - Name"; the update's name is the fallback
+// when components.json no longer lists the component.
 const updateNames = new Map();
 const updateOnlyCodes = (incident) => {
     const own = new Set((incident.components || []).map((c) => c.id));
@@ -90,17 +90,41 @@ const updateOnlyCodes = (incident) => {
     return codes;
 };
 
-let componentNames = new Map();
-if (data.incidents.some((incident) => updateOnlyCodes(incident).size > 0)) {
+// The same component name can appear in several groups (Duo has an "Admin Panel" per deployment), and grouping or
+// filtering by name would merge them. Name components as the import does: a repeated name is qualified with its
+// group. Group names are only in components.json, so read it when the incidents repeat a name or need update names.
+const idsByName = new Map();
+for (const incident of data.incidents) {
+    for (const c of incident.components || []) {
+        if (!idsByName.has(c.name)) idsByName.set(c.name, new Set());
+        idsByName.get(c.name).add(c.id);
+    }
+}
+const needsList =
+    [...idsByName.values()].some((ids) => ids.size > 1) ||
+    data.incidents.some((incident) => updateOnlyCodes(incident).size > 0);
+
+let componentName = (id, fallback) => fallback;
+if (needsList) {
     try {
         // `url` is incidents.json or incidents/unresolved.json, so resolve from the host.
         const response = await fetch(new URL('/api/v2/components.json', url).href);
         const body = response.ok ? await response.json() : undefined;
         if (body && Array.isArray(body.components)) {
-            componentNames = new Map(body.components.map((c) => [c.id, c.name]));
+            const byId = new Map(body.components.map((c) => [c.id, c]));
+            const nameCounts = new Map();
+            for (const c of body.components.filter((c) => !c.group)) {
+                nameCounts.set(c.name, (nameCounts.get(c.name) || 0) + 1);
+            }
+            componentName = (id, fallback) => {
+                const c = byId.get(id);
+                if (!c) return fallback;
+                const group = c.group_id && byId.get(c.group_id);
+                return nameCounts.get(c.name) > 1 && group ? `${group.name} / ${c.name}` : c.name;
+            };
         }
     } catch (e) {
-        componentNames = new Map();
+        // Keep the names the incidents carry.
     }
 }
 
@@ -124,9 +148,9 @@ for (const incident of data.incidents) {
 
     // Updates are listed newest first.
     const updates = incident.incident_updates || [];
-    const affected = (incident.components || []).map((c) => ({ id: c.id, name: c.name }));
+    const affected = (incident.components || []).map((c) => ({ id: c.id, name: componentName(c.id, c.name) }));
     for (const code of updateOnlyCodes(incident)) {
-        affected.push({ id: code, name: componentNames.get(code) || updateNames.get(code) });
+        affected.push({ id: code, name: componentName(code, updateNames.get(code)) });
     }
 
     if (selectedComponents.size > 0 && !affected.some((c) => selectedComponents.has(c.id))) continue;
