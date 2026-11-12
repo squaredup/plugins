@@ -45,7 +45,7 @@ The out-of-the-box dashboards are **Traces Overview** (with a service map) plus 
 
 ## Data streams
 
-- **Service Metrics (RED)** — requests per second, error rate and p50/p95/p99 latency calculated from spans, per service, per operation or overall, as a time series or as totals for the timeframe. Measures incoming requests (server and consumer spans) by default, or outgoing calls (client spans).
+- **RED Metrics** — requests per second, error rate and p50/p95/p99 latency calculated from spans, per service, per operation or overall, as a time series or as totals for the timeframe. Measures incoming requests (server and consumer spans) by default, or outgoing calls (client spans).
 - **Traces** — traces with at least one matching span, one row per trace with its root service and operation, start time, duration, span count and errors, slowest or newest first. Restricting to objects returns the whole traces that pass through them, counting the spans within the timeframe.
 - **Spans** — spans matching a LogsQL filter, newest first (200 by default, up to 500), with service, operation, kind, duration, status and status message, trace and span IDs, links to the service or operation, pod, node and host, and the remaining attributes.
 - **Trace Spans** — the spans of one trace (up to the first 500), in start order with their offset from the start of the trace; a **Truncated** column shows when the trace had more.
