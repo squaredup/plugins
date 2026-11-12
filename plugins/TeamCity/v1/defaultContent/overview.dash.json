@@ -1,0 +1,1066 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "77618656-3967-477f-ad30-fb344e0f1dd4",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Builds",
+                    "description": "Builds finished in the timeframe, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "composite",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bebb42c9-bdfb-4f1a-8255-1e2807e4b3de",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Success Rate",
+                    "description": "Share of builds finished in the timeframe that succeeded, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(CAST(COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'SUCCESS') AS DOUBLE) * 100 / NULLIF(COUNT(*), 0), 1) AS \"successRate\" FROM \"dataset\" WHERE COALESCE(CAST(\"composite\" AS VARCHAR), 'false') <> 'true'"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "successRate",
+                                    "type": "quantitative",
+                                    "title": "Success Rate"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeShowLabelText": false,
+                                "labelFormat": "{{{{raw}}}}{{value}}%{{{{/raw}}}}",
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.7,
+                                        "color": "#DE0038"
+                                    },
+                                    {
+                                        "to": 0.9,
+                                        "color": "#E18700"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#259A51"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "053234cc-a25a-49bc-8ad8-1262c916c00e",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Running Builds",
+                    "description": "Builds running now",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[runningBuilds]}}",
+                        "name": "runningBuilds",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "02a882e9-0637-4cd7-9aee-452b6f7ebd62",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Queued Builds",
+                    "description": "Builds waiting in the queue now",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[buildQueue]}}",
+                        "name": "buildQueue",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "85015657-bf66-4e84-bf61-c87290d987ff",
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Build Configuration Health",
+                    "description": "Status of the last finished build of each build configuration, grouped by project",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[buildConfigurationStatus]}}",
+                        "name": "buildConfigurationStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "fullName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "group": {
+                                    "field": "projectName",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridPrimaryTemplate": "{{{{raw}}}}{{name}}{{{{/raw}}}}",
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}#{{lastBuildNumber}}{{{{/raw}}}}",
+                                "statusGridColumnsPerRow": 4,
+                                "statusGridLabelWrap": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "48ebb84c-4551-44a0-8316-30d0e6a42241",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Builds per Day",
+                    "description": "Finished builds per day by status, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "composite",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "finishDate",
+                                    "byDay"
+                                ],
+                                [
+                                    "status",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "finishDate_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "finishDate_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Builds"
+                                },
+                                "series": {
+                                    "field": "status_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Status"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "mappedColors": {
+                                    "success": "#259A51",
+                                    "error": "#DE0038",
+                                    "failure": "#DE0038",
+                                    "unknown": "#9CA3AF"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8ca2e192-ee5f-4258-9228-dac6993fc01e",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Average Build Duration",
+                    "description": "Mean build duration and time spent queued per day, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "composite",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "finishDate",
+                                    "byDay"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "duration"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "queueTime"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "finishDate_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "finishDate_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": [
+                                    {
+                                        "field": "duration_mean",
+                                        "type": "quantitative",
+                                        "title": "Build Duration"
+                                    },
+                                    {
+                                        "field": "queueTime_mean",
+                                        "type": "quantitative",
+                                        "title": "Queue Time"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3166f5a6-54d1-4a9d-9fc2-5ee862df778a",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Build History",
+                    "description": "Outcome of finished builds over the timeframe for each build configuration",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "healthHistory",
+                            "encoding": {
+                                "time": {
+                                    "field": "finishDate",
+                                    "type": "temporal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "label": {
+                                    "field": "buildConfiguration",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridLabelWidth": 320,
+                                "historyUptimeLabel": "success"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "aac5d0b2-f2a0-4731-bf83-64cb6df65f5b",
+                "x": 0,
+                "y": 11,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Failed Builds",
+                    "description": "Failed builds in the timeframe, most recent first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "status[Expanded].rawState",
+                                    "operation": "equals",
+                                    "value": "FAILURE"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "finishDate",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "buildConfiguration",
+                                        "title": "Build Configuration",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "number",
+                                        "title": "Build",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "branchName",
+                                        "title": "Branch",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "statusText",
+                                        "title": "Status Text",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "finishDate",
+                                        "title": "Finished",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "duration",
+                                        "title": "Duration",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "agent.name",
+                                        "title": "Agent",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "triggered.user.username",
+                                        "title": "Triggered By",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "finishDate",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f39b0e3a-2640-4f93-97d7-d2dc4aff4a1b",
+                "x": 0,
+                "y": 14,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Running Builds",
+                    "description": "Builds running now, with progress",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[runningBuilds]}}",
+                        "name": "runningBuilds",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "buildConfigurationName",
+                                        "title": "Build Configuration",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "number",
+                                        "title": "Build",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "branchName",
+                                        "title": "Branch",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "running-info.currentStageText",
+                                        "title": "Current Stage",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "percentageComplete",
+                                        "title": "Progress",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "running-info.elapsedSeconds",
+                                        "title": "Elapsed",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "running-info.probablyHanging",
+                                        "title": "Probably Hanging",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueColor": "#DE0038"
+                                        }
+                                    },
+                                    {
+                                        "field": "agent.name",
+                                        "title": "Agent",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "29739f69-fee4-488a-bc5c-f89ef4cafe63",
+                "x": 2,
+                "y": 14,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Build Queue",
+                    "description": "Queued builds and why they are waiting",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[buildQueue]}}",
+                        "name": "buildQueue",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "buildConfigurationName",
+                                        "title": "Build Configuration",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "branchName",
+                                        "title": "Branch",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "queuedDate",
+                                        "title": "Queued",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "waitingSeconds",
+                                        "title": "Waiting",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "waitReason",
+                                        "title": "Wait Reason",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "triggered.user.username",
+                                        "title": "Triggered By",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "waitingSeconds",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "631b8802-6960-4c90-b276-b860a44811ad",
+                "x": 0,
+                "y": 17,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Connected Agents",
+                    "description": "Authorized agents connected to the server now",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[agents]}}",
+                        "name": "agents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "connected",
+                                    "operation": "equals",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "aadf74cc-8773-4502-97c3-ad291f8e6c45",
+                "x": 1,
+                "y": 17,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Disconnected Agents",
+                    "description": "Authorized agents not connected to the server",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[agents]}}",
+                        "name": "agents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "connected",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        }
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d81ad5d4-4e4e-4a59-aff5-ff33c5123032",
+                "x": 2,
+                "y": 17,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "TeamCity Server",
+                    "description": "Server version and when it last started",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[server]}}",
+                        "name": "server",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "version",
+                                        "title": "Version",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "buildNumber",
+                                        "title": "Build Number",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "role",
+                                        "title": "Node Role",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2bdc2750-00bb-4750-ba72-8f898abd88a3",
+                "x": 0,
+                "y": 19,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Agents",
+                    "description": "Authorized build agents and what they are running",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[agents]}}",
+                        "name": "agents",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Agent",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "pool.name",
+                                        "title": "Pool",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "build.buildType.name",
+                                        "title": "Current Build Configuration",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "build.number",
+                                        "title": "Current Build",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "environment.osName",
+                                        "title": "OS",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lastActivityTime",
+                                        "title": "Last Activity",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "enabledInfo.comment.text",
+                                        "title": "Disabled Reason",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "name",
+                                    "direction": "asc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

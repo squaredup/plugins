@@ -23,16 +23,39 @@ When you save, SquaredUp checks it can reach the server and read its version wit
 
 ## What this plugin monitors
 
-<!-- finalized in Phase 9 -->
+- **Build configuration health**: the status of the latest finished build of every build configuration on its default branch, and whether the configuration is paused.
+- **Build history**: every finished build in a timeframe, with status, branch, duration, queue time, who or what triggered it and the agent it ran on. Use it for success rates, build volume and duration trends.
+- **Work in progress**: builds running now, with progress and elapsed time, and builds waiting in the queue with the reason they are waiting.
+- **Tests**: the tests run by the latest finished build of a build configuration, including new failures, muted and ignored tests.
+- **Build agents**: whether each agent is connected, enabled, authorized and up to date, what it is building, its pool and its operating system.
+
+The out-of-the-box dashboards include an **Overview** of the whole server, plus a perspective for each **Project**, **Build Configuration** and **Agent**.
 
 ## Data streams
 
-<!-- finalized in Phase 9 -->
+- **Build Configuration Status**: one row per build configuration, with the status of its latest finished build. Server-wide, or filtered to selected projects or build configurations.
+- **Builds**: one row per finished build in the timeframe. Server-wide, or filtered to selected projects, build configurations or agents.
+- **Running Builds**: builds running now, with percentage complete and elapsed time. Server-wide, or filtered to selected projects, build configurations or agents.
+- **Build Queue**: queued builds, how long they have waited and why. Server-wide, or filtered to selected projects or build configurations.
+- **Agents**: the current status of authorized build agents, optionally including unauthorized agents. Server-wide, or filtered to selected agents.
+- **Test Results**: the tests from the latest finished build of a build configuration, optionally failed tests only. Per build configuration.
+- **Server**: the TeamCity version, build number and start time.
 
 ## What gets indexed
 
-<!-- finalized in Phase 9 -->
+| Object type | API source | Represents |
+| --- | --- | --- |
+| **Project** | `/app/rest/projects` | A TeamCity project or subproject. Named with its parent, e.g. `Backend / Services`. |
+| **Build Configuration** | `/app/rest/buildTypes` | A build configuration. Named with its full project path, e.g. `Backend / Services / Build`. |
+| **Agent** | `/app/rest/agents` | An authorized build agent, connected or not. |
+
+Objects are imported every 12 hours. Build results, the queue and agent status are always read live, so they are not affected by the import schedule.
 
 ## Known limitations
 
-<!-- finalized in Phase 9 -->
+- **Ephemeral cloud agents are not imported.** TeamCity removes JetBrains-hosted and cloud-profile agents from its agent list once they stop, so only persistent agents, such as self-hosted agents, appear as **Agent** objects. Builds still show the name of the agent they ran on.
+- **Deleted objects fail until the next import.** If a tile is filtered to a build configuration or agent that has since been deleted from TeamCity, TeamCity rejects the request and the tile shows an error until the next import removes the object.
+- **Renaming an ID creates a new object.** Projects and build configurations are identified by their TeamCity ID. Changing the ID in TeamCity creates a new object on the next import, and dashboards using the old one need updating.
+- **Large timeframes on busy servers.** The **Builds** stream returns one row per build. On a server that runs many thousands of builds a day, a long timeframe can exceed SquaredUp's response size limit; filter to a project or shorten the timeframe.
+- **Default branch only for health.** **Build Configuration Status** and **Test Results** use the latest finished build on the default branch, excluding personal and cancelled builds. **Builds** includes all branches.
+- **Pipelines** appear as a set of auto-generated build configurations plus a composite "Pipeline Head" build configuration. The out-of-the-box success rate and duration tiles on the **Overview** and **Project** dashboards leave out composite builds so a pipeline failure is not counted twice.
