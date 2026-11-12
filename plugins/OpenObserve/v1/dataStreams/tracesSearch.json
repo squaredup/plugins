@@ -1,16 +1,16 @@
 {
-    "name": "search",
-    "displayName": "Search",
-    "description": "Log, metric, or trace records matching a SQL query against a stream",
+    "name": "tracesSearch",
+    "displayName": "Traces Search",
+    "description": "Trace span records matching a SQL query against a trace stream",
     "tags": ["Search"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "post",
         "endpointPath": "_search",
-        "getArgs": [{ "key": "type", "value": "{{object.stream_type}}" }],
+        "getArgs": [{ "key": "type", "value": "traces" }],
         "postBody": {
             "query": {
-                "sql": "{{sql}}",
+                "sql": "{{sql || 'SELECT * FROM \"' + object.name + '\"'}}",
                 "start_time": "{{timeframe.unixStart * 1000000}}",
                 "end_time": "{{timeframe.unixEnd * 1000000}}",
                 "from": 0,
@@ -20,15 +20,18 @@
         },
         "postRequestScript": "search.js"
     },
-    "matches": { "sourceType": { "type": "oneOf", "values": ["Stream"] } },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Stream"] },
+        "stream_type": { "type": "equals", "value": "traces" }
+    },
     "ui": [
         {
             "type": "textarea",
             "name": "sql",
             "label": "SQL Query",
-            "help": "The stream name isn't auto-substituted — type it yourself in the FROM clause, e.g. SELECT * FROM \"default\" LIMIT 100",
-            "placeholder": "SELECT * FROM \"default\" LIMIT 100",
-            "validation": { "required": true }
+            "help": "{{object.name}} is replaced with the selected stream's name when the query runs, e.g. SELECT * FROM \"{{object.name}}\" WHERE level = 'error'. Leave blank to return the latest records from the selected stream.",
+            "placeholder": "SELECT * FROM \"{{object.name}}\"",
+            "defaultValue": "SELECT * FROM \"{{object.name}}\""
         },
         {
             "type": "number",

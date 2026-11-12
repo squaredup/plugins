@@ -43,8 +43,7 @@ The out-of-the-box dashboards include an org-wide **Overview** plus a **Stream**
 
 - **Streams** — streams of a chosen type (logs/metrics/traces), with name, document count, and size; account-wide. Backs import and is hidden from the tile editor.
 - **Stream Details** — streams of a chosen type (logs/metrics/traces), with document counts, storage size, schema, and settings; account-wide.
-- **Search** — records matching a user-supplied SQL query against one stream; scoped to a stream.
-- **Logs Search** — records matching a user-supplied SQL query against any log stream, without picking a stream first; account-wide.
+- **Logs Search**, **Metrics Search**, **Traces Search** — records from one stream, either the latest records or those matching an optional SQL query; each is scoped to streams of its own type, so the object picker only lists log, metric, or trace streams respectively.
 - **Traces Latest** — recent traces within the last hour, with a span count and a link to view each trace in OpenObserve; scoped to a trace stream. An optional **Bucket interval** (e.g. `5m`) switches it to one row per time bucket (trace count plus avg/min/max duration) for charting finer than the tile editor's own hourly minimum.
 - **Metrics Query** — time series data matching a PromQL query; account-wide.
 - **Simple Metrics Query** — time series data for a metric, built from a guided picker (metric → label → values → aggregation) instead of hand-written PromQL; account-wide.
@@ -63,8 +62,8 @@ The out-of-the-box dashboards include an org-wide **Overview** plus a **Stream**
 
 ## Known limitations
 
-- **Search and Logs Search require the stream name typed manually** — the SQL's `FROM` clause isn't auto-filled; default tiles ship with placeholder/example SQL that may need editing to match your streams.
-- **Very broad search timeframes may exceed the platform's response size limit** — narrow the timeframe or reduce **Max rows** if a Search, Logs Search, or Traces Latest tile fails to load. A Simple Metrics Query or Metrics Query with no label filter can hit the same limit on a high-cardinality metric over a wide timeframe — add a label filter or narrow the timeframe.
+- **Search queries reference the stream with `{{object.name}}`** — the SQL Query field on Logs Search, Metrics Search, and Traces Search is pre-filled with `SELECT * FROM "{{object.name}}"`, which is replaced with the selected stream's name when the query runs (the field itself shows the expression, not the name). A blank field runs the same query.
+- **Very broad search timeframes may exceed the platform's response size limit** — narrow the timeframe or reduce **Max rows** if a Logs Search, Metrics Search, Traces Search, or Traces Latest tile fails to load. A Simple Metrics Query or Metrics Query with no label filter can hit the same limit on a high-cardinality metric over a wide timeframe — add a label filter or narrow the timeframe.
 - **Pipeline History's Query Took unit is inferred, not documented** — OpenObserve doesn't document the unit anywhere; it's shown as milliseconds, matching the `took` field's documented unit on the Search endpoint and the realistic magnitude seen in testing (single-digit ms for a lightweight scheduled query).
 - **Pipeline History doesn't include Delay or Evaluation Took** — OpenObserve's history API has `delay_in_secs` and `evaluation_took_in_secs` fields, but they were empty on every run of the instance this plugin was tested against, so they aren't exposed as columns.
 - **Traces Latest only applies to trace-type streams** — it isn't included on the Stream perspective dashboard (which covers all three stream types); add it manually on a dashboard scoped to a trace stream.
