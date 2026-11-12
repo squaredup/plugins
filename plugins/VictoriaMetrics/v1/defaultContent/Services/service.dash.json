@@ -496,7 +496,7 @@
                                 "scope": "{{scopes.[OpenTelemetry Services]}}"
                             }
                         },
-                        "sql": "WITH buckets AS (\n    SELECT\n        \"timestamp\",\n        CASE WHEN \"unit\" = 's' THEN TRY_CAST(\"le\" AS DOUBLE) * 1000 ELSE TRY_CAST(\"le\" AS DOUBLE) END AS \"le_ms\",\n        SUM(\"value\") AS \"cumulative\"\n    FROM \"dataset\"\n    WHERE \"unit\" IN ('s', 'ms') AND \"value\" IS NOT NULL\n    GROUP BY 1, 2\n)\nSELECT\n    \"timestamp\",\n    ROUND(\"le_ms\", 3) AS \"latencyMs\",\n    GREATEST(\"cumulative\" - COALESCE(LAG(\"cumulative\") OVER (PARTITION BY \"timestamp\" ORDER BY \"le_ms\"), 0), 0) AS \"requestsPerSec\"\nFROM buckets\nWHERE isfinite(\"le_ms\")\nORDER BY \"timestamp\", \"le_ms\""
+                        "sql": "WITH buckets AS (\n    SELECT\n        \"timestamp\",\n        \"unit\",\n        CASE WHEN \"unit\" = 's' THEN TRY_CAST(\"le\" AS DOUBLE) * 1000 ELSE TRY_CAST(\"le\" AS DOUBLE) END AS \"le_ms\",\n        SUM(\"value\") AS \"cumulative\"\n    FROM \"dataset\"\n    WHERE \"unit\" IN ('s', 'ms') AND \"value\" IS NOT NULL\n    GROUP BY 1, 2, 3\n),\nper_bucket AS (\n    -- Difference cumulative buckets within each histogram family before combining them,\n    -- so families with different bucket boundaries don't get subtracted from each other.\n    SELECT\n        \"timestamp\",\n        \"le_ms\",\n        GREATEST(\"cumulative\" - COALESCE(LAG(\"cumulative\") OVER (PARTITION BY \"timestamp\", \"unit\" ORDER BY \"le_ms\"), 0), 0) AS \"requests\"\n    FROM buckets\n    WHERE isfinite(\"le_ms\")\n)\nSELECT\n    \"timestamp\",\n    ROUND(\"le_ms\", 3) AS \"latencyMs\",\n    SUM(\"requests\") AS \"requestsPerSec\"\nFROM per_bucket\nGROUP BY 1, 2\nORDER BY \"timestamp\", \"latencyMs\""
                     },
                     "variables": [
                         "{{variables.[Service]}}"
@@ -521,7 +521,7 @@
                                 "y": {
                                     "field": "latencyMs",
                                     "type": "ordinal",
-                                    "title": "≤ ms"
+                                    "title": "\u2264 ms"
                                 },
                                 "color": {
                                     "field": "requestsPerSec",
@@ -789,7 +789,7 @@
                         "name": "query",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": {
-                            "query": "sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name, k8s.node.name, host.name, service.version) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\"))",
+                            "query": "sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name, k8s.node.name, host.name, service.version) (label_copy(rate({__name__=~\"http_server_request_duration_seconds_count|http_server_duration_seconds_count|http_server_duration_milliseconds_count|rpc_server_duration_milliseconds_count\"}[5m]), \"service_name\", \"service.name\", \"k8s_cluster_name\", \"k8s.cluster.name\", \"k8s_namespace_name\", \"k8s.namespace.name\", \"k8s_pod_name\", \"k8s.pod.name\", \"k8s_node_name\", \"k8s.node.name\", \"host_name\", \"host.name\", \"service_version\", \"service.version\"))",
                             "queryType": "instant",
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
@@ -830,14 +830,14 @@
                                         }
                                     },
                                     {
-                                        "field": "NodeLink",
+                                        "field": "k8s.node.name",
                                         "title": "Node",
                                         "renderer": {
                                             "type": "text"
                                         }
                                     },
                                     {
-                                        "field": "HostLink",
+                                        "field": "host.name",
                                         "title": "Host",
                                         "renderer": {
                                             "type": "text"

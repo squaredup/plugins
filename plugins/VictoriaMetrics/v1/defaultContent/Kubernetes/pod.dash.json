@@ -31,7 +31,7 @@
                         "name": "query",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": {
-                            "query": "(sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h])))\nor ((sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name, k8s.container.name) (increase(k8s_container_restarts[1h]))) unless on() ((sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h])))))",
+                            "query": "(sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h])))\nor ((label_move(label_move(label_move(label_move(label_move(label_move(label_move(label_move(label_move(label_move(sum by (k8s.cluster.name, k8s.namespace.name, k8s.pod.name, k8s_cluster_name, k8s_namespace_name, k8s_pod_name, k8s.container.name, k8s_container_name) (increase(k8s_container_restarts[1h])), \"k8s.cluster.name\", \"cluster\"), \"k8s_cluster_name\", \"cluster\"), \"k8s.namespace.name\", \"namespace\"), \"k8s_namespace_name\", \"namespace\"), \"k8s.pod.name\", \"pod\"), \"k8s_pod_name\", \"pod\"), \"k8s.node.name\", \"node\"), \"k8s_node_name\", \"node\"), \"k8s.container.name\", \"container\"), \"k8s_container_name\", \"container\")) unless on(namespace, pod, container) (sum by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[1h]))))",
                             "queryType": "instant",
                             "scope": {
                                 "variable": "{{variables.[Kubernetes Pod]}}",
@@ -187,7 +187,7 @@
                         "name": "query",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": {
-                            "query": "100 * (sum by (container) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or sum by (container) (container_memory_usage_bytes{container!=\"\", container!=\"POD\"})) / sum by (container) (kube_pod_container_resource_limits{resource=\"memory\"}) or label_move(100 * sum by (k8s.container.name) ({__name__=~\"container_memory_working_set(_bytes)?\"}) / sum by (k8s.container.name) ({__name__=~\"k8s_container_memory_limit(_bytes)?\"}), \"k8s.container.name\", \"container\")",
+                            "query": "100 * (sum by (container) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) or sum by (container) (container_memory_usage_bytes{container!=\"\", container!=\"POD\"})) / (sum by (container) (kube_pod_container_resource_limits{resource=\"memory\"}) > 0) or label_move(100 * sum by (k8s.container.name) ({__name__=~\"container_memory_working_set(_bytes)?\"}) / (sum by (k8s.container.name) ({__name__=~\"k8s_container_memory_limit(_bytes)?\"}) > 0), \"k8s.container.name\", \"container\")",
                             "queryType": "instant",
                             "scope": {
                                 "variable": "{{variables.[Kubernetes Pod]}}",

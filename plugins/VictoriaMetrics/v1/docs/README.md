@@ -25,7 +25,7 @@ You need the URL of a VictoriaMetrics endpoint that serves the Prometheus queryi
 | **Authentication** | **None**, **Bearer token** or **Basic authentication**. | Depends on how your endpoint is protected. | Yes |
 | **Bearer token** | Sent as an `Authorization: Bearer` header. Shown when **Bearer token** is selected. | Your vmauth config or VictoriaMetrics Cloud **Access tokens** page. | When using a bearer token |
 | **Username** / **Password** | Basic authentication credentials. Shown when **Basic authentication** is selected. | Your vmauth or reverse proxy config. | When using basic auth |
-| **Ignore certificate errors** | Skip TLS certificate validation, for self-signed certificates. | — | No |
+| **Ignore certificate errors** | Skip TLS certificate validation, for self-signed certificates. (Added by SquaredUp to every HTTP data source.) | — | No |
 | **Objects to index** | Tick the label conventions to discover objects from: **Kubernetes** (standard `namespace`/`pod`/`node` labels from kube-state-metrics, cAdvisor and scrape configs), **Kubernetes (OpenTelemetry)** (`k8s.*` attributes), **Services and hosts (OpenTelemetry)** (`service.name`, `host.name`, `deployment.environment.name`), **Cloud resources (OpenTelemetry)** (AWS, GCP and Heroku attributes) and **Scrape jobs and targets** (`job`/`instance` on `up`). | Tick the conventions your metrics use. | No (all ticked by default) |
 | **Default cluster name** | Cluster to assume for series without a `cluster` or `k8s.cluster.name` label. Set it when some or all series lack a cluster label, so the same pod seen through different label conventions becomes one object and drilldowns from charts resolve. | Your cluster's name, e.g. the `cluster` label on your other series. | No |
 
@@ -57,7 +57,6 @@ The following streams are hidden from the tile editor's stream list but availabl
 - **Cardinality** — top series counts by metric name, label and label value pair (the TSDB status / cardinality explorer API).
 - **Metric Name Usage** — how often each metric name is queried, for finding unused metrics.
 - **Raw Samples** — raw samples of the series matching a selector (export API).
-- **Exemplars** — exemplars, such as trace IDs, attached to series.
 - **Connection Check** and **Label Sets** — used by setup validation and object indexing.
 
 ## What gets indexed
@@ -91,7 +90,7 @@ Objects are discovered from the labels on your current series, with one `count b
 | **GCP GCE Instance** / **GCP Cloud Run Job Execution** | `gcp.gce.instance.hostname`, `gcp.cloud_run.job.execution` | GCP compute resources. |
 | **Heroku App** | `heroku.app.id` | A Heroku app. |
 
-Every Kubernetes object other than the cluster includes the cluster in its identity — from the `cluster`/`k8s.cluster.name` label, or the **Default cluster name** when a series has neither — so identically named objects in different clusters stay separate. Objects are re-indexed every hour.
+Every Kubernetes object other than the cluster includes the cluster in its identity — from the `cluster`/`k8s.cluster.name` label, or the **Default cluster name** when a series has neither — so identically named objects in different clusters stay separate. Namespaces are named `<cluster> / <namespace>` and containers `<pod> / <container>`, so common names such as `default` or `istio-proxy` can be told apart. When **Default cluster name** is set, a Kubernetes Cluster object is created for it too. Objects are re-indexed every hour.
 
 Query results link back to these objects: each row of **MetricsQL Query** carries a `Pod`, `Namespace`, `Node`, `Service`, `Host` (etc.) column, built from the series' labels, that drills down to the matching object. Within the Kubernetes hierarchy only the most specific object gets a link (a container rather than its pod), so charts stay clickable. To link from an aggregated query, keep the identifying labels in `by (...)` — e.g. `sum by (cluster, namespace, pod)`; when the tile is scoped to an object, missing cluster and namespace labels are taken from that object.
 
@@ -103,6 +102,7 @@ Query results link back to these objects: each row of **MetricsQL Query** carrie
 - **Cluster labels** — if only some of your series carry a cluster label and **Default cluster name** is empty, the same object can be indexed twice (with and without its cluster). Set **Default cluster name** for single-cluster setups; for several clusters, add `k8s.cluster.name` (e.g. with the OpenTelemetry `resource` or `k8sattributes` processor) or a `cluster` external label to every series.
 - **Drilldown from aggregated queries** — a query result links to an object only when its series still carry the labels that identify the object (or the tile is scoped to it). Results of `sum(...)` without `by` have no links.
 - **Workload and Node perspectives depend on your labels** — cAdvisor and kube-state-metrics container series don't carry `deployment`, `statefulset` or `daemonset` labels, so on the **Workload** dashboard CPU, memory, throttling, requests and restarts appear only if those labels are added by relabelling or the series come from the OpenTelemetry Collector's Kubernetes receivers (which add `k8s.deployment.name` etc.). Likewise, the **Node** dashboard's utilisation gauges need node-exporter series to carry a `node` label (relabel from `__meta_kubernetes_pod_node_name`) or OpenTelemetry `k8s.node.name`.
+- **Dashboards expect the common metric sources** — the Kubernetes dashboards read kube-state-metrics, cAdvisor and node-exporter, falling back to the OpenTelemetry Kubernetes receivers per object, and the service dashboards read OpenTelemetry HTTP and gRPC duration histograms. Requests, limits and restarts come from kube-state-metrics. Underscored OpenTelemetry labels (`k8s_pod_name`) are indexed, but most dashboard tiles group by the dotted form (`k8s.pod.name`) that VictoriaMetrics' OpenTelemetry ingestion produces.
 - **Alerts and rules need vmalert** — **Alerts** and **Rules** only return data when `-vmalert.proxyURL` is configured on VictoriaMetrics single-node or `vmselect`.
-- **Version-dependent endpoints** — **Metric Metadata**, **Metric Name Usage** and **Exemplars** need a recent VictoriaMetrics release with the corresponding features enabled; on older versions they return no rows or an error.
+- **Version-dependent endpoints** — **Metric Metadata** and **Metric Name Usage** need a recent VictoriaMetrics release with the corresponding features enabled; on older versions they return no rows or an error.
 - **Series Count** reports the total for the whole database; VictoriaMetrics ignores selectors on this endpoint.
