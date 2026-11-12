@@ -8,7 +8,7 @@ result = [{
     usedBytes: used,
     availableBytes: avail,
     sizeBytes: size,
-    usedPercent: used !== null && size ? Math.round((used / size) * 1000) / 10 : null,
+    usedPercent: used !== null && size ? (used / size) * 100 : null,
     measuredAt: data && data.timestamp ? data.timestamp : null,
     projectRef: project.rawId,
     projectName: project.name

@@ -7,11 +7,12 @@ if (data && data.error) {
 
 // The logs API returns bucket starts as UTC without a zone suffix
 const toIso = (value) => {
-    const text = String(value);
-    return new Date(/(Z|[+-]\d\d:?\d\d)$/.test(text) ? text : `${text}Z`).toISOString();
+    if (typeof value !== 'string' || !value) return null;
+    const date = new Date(/(Z|[+-]\d\d:?\d\d)$/.test(value) ? value : `${value}Z`);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
 };
 
-result = (Array.isArray(data && data.result) ? data.result : []).map((row) => ({
+result = (Array.isArray(data && data.result) ? data.result : []).filter((row) => toIso(row.bucket)).map((row) => ({
     timestamp: toIso(row.bucket),
     service: row.service,
     statusClass: row.status_class,

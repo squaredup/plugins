@@ -137,7 +137,7 @@
                         "id": "{{dataStreams.[serviceHealth]}}",
                         "name": "serviceHealth",
                         "pluginConfigId": "{{configId}}",
-                        "sql": "SELECT \"projectName\" AS \"project\", MAX(CASE WHEN \"serviceKey\" = 'db' THEN \"status\" END) AS \"db\", MAX(CASE WHEN \"serviceKey\" = 'pooler' THEN \"status\" END) AS \"pooler\", MAX(CASE WHEN \"serviceKey\" = 'auth' THEN \"status\" END) AS \"auth\", MAX(CASE WHEN \"serviceKey\" = 'rest' THEN \"status\" END) AS \"rest\", MAX(CASE WHEN \"serviceKey\" = 'realtime' THEN \"status\" END) AS \"realtime\", MAX(CASE WHEN \"serviceKey\" = 'storage' THEN \"status\" END) AS \"storage\" FROM \"dataset\" GROUP BY 1 ORDER BY 1"
+                        "sql": "WITH d AS (SELECT *, CASE WHEN \"projectName\" IN (SELECT \"projectName\" FROM \"dataset\" GROUP BY 1 HAVING COUNT(DISTINCT \"projectRef\") > 1) THEN \"projectName\" || ' (' || \"projectRef\" || ')' ELSE \"projectName\" END AS \"projectLabel\" FROM \"dataset\") SELECT \"projectLabel\" AS \"project\", MAX(CASE WHEN \"serviceKey\" = 'db' THEN \"status\" END) AS \"db\", MAX(CASE WHEN \"serviceKey\" = 'pooler' THEN \"status\" END) AS \"pooler\", MAX(CASE WHEN \"serviceKey\" = 'auth' THEN \"status\" END) AS \"auth\", MAX(CASE WHEN \"serviceKey\" = 'rest' THEN \"status\" END) AS \"rest\", MAX(CASE WHEN \"serviceKey\" = 'realtime' THEN \"status\" END) AS \"realtime\", MAX(CASE WHEN \"serviceKey\" = 'storage' THEN \"status\" END) AS \"storage\" FROM d GROUP BY \"projectRef\", \"projectLabel\" ORDER BY 1"
                     },
                     "scope": {
                         "scope": "{{scopes.[Projects]}}",
@@ -213,7 +213,7 @@
                         "id": "{{dataStreams.[backups]}}",
                         "name": "backups",
                         "pluginConfigId": "{{configId}}",
-                        "sql": "SELECT \"projectName\" AS \"project\", \"status\" AS \"health\", CASE WHEN \"status[Expanded].rawState\" = 'NONE' THEN 'No backups' ELSE CONCAT_WS(' · ', \"backupType\", REPLACE(SUBSTR(CAST(\"insertedAt\" AS VARCHAR), 1, 16), 'T', ' ') || ' UTC') END AS \"detail\" FROM \"dataset\" QUALIFY ROW_NUMBER() OVER (PARTITION BY \"projectName\" ORDER BY \"insertedAt\" DESC NULLS LAST) = 1 ORDER BY 1"
+                        "sql": "WITH d AS (SELECT *, CASE WHEN \"projectName\" IN (SELECT \"projectName\" FROM \"dataset\" GROUP BY 1 HAVING COUNT(DISTINCT \"projectRef\") > 1) THEN \"projectName\" || ' (' || \"projectRef\" || ')' ELSE \"projectName\" END AS \"projectLabel\" FROM \"dataset\") SELECT \"projectLabel\" AS \"project\", \"status\" AS \"health\", CASE WHEN \"status[Expanded].rawState\" = 'NONE' THEN 'No backups' WHEN \"status[Expanded].rawState\" = 'PITR' THEN 'Point-in-time recovery' ELSE CONCAT_WS(' · ', \"backupType\", REPLACE(SUBSTR(CAST(\"insertedAt\" AS VARCHAR), 1, 16), 'T', ' ') || ' UTC') END AS \"detail\" FROM d QUALIFY ROW_NUMBER() OVER (PARTITION BY \"projectRef\" ORDER BY \"insertedAt\" DESC NULLS LAST) = 1 ORDER BY 1"
                     },
                     "scope": {
                         "scope": "{{scopes.[Projects]}}",
@@ -247,7 +247,7 @@
                 "i": "88c41877-b162-4320-b49e-f9763a1deb0e",
                 "x": 0,
                 "y": 5,
-                "w": 2,
+                "w": 4,
                 "h": 3,
                 "moved": false,
                 "static": false,
@@ -297,123 +297,6 @@
                 }
             },
             {
-                "i": "45e591a0-58d0-4bc0-9ff1-167e7a5efa6c",
-                "x": 2,
-                "y": 5,
-                "w": 2,
-                "h": 3,
-                "moved": false,
-                "static": false,
-                "z": 0,
-                "config": {
-                    "_type": "tile/data-stream",
-                    "title": "API Traffic by Project",
-                    "description": "Requests through each project's API gateway in the last 24 hours, with client (4xx) and server (5xx) errors and the share that failed",
-                    "activePluginConfigIds": [
-                        "{{configId}}"
-                    ],
-                    "dataStream": {
-                        "id": "{{dataStreams.[apiResponses]}}",
-                        "name": "apiResponses",
-                        "pluginConfigId": "{{configId}}",
-                        "sql": "SELECT \"projectName\" AS \"project\", CAST(SUM(\"requests\") AS DOUBLE) AS \"total\", CAST(COALESCE(SUM(\"requests\") FILTER (WHERE \"statusClass\" = '4xx'), 0) AS DOUBLE) AS \"clientErrors\", CAST(COALESCE(SUM(\"requests\") FILTER (WHERE \"statusClass\" = '5xx'), 0) AS DOUBLE) AS \"serverErrors\", ROUND(CAST(COALESCE(SUM(\"requests\") FILTER (WHERE \"statusClass\" IN ('4xx', '5xx')), 0) AS DOUBLE) * 100 / NULLIF(CAST(SUM(\"requests\") AS DOUBLE), 0), 1) AS \"errorRate\" FROM \"dataset\" GROUP BY 1 ORDER BY \"total\" DESC"
-                    },
-                    "scope": {
-                        "scope": "{{scopes.[Projects]}}",
-                        "workspace": "{{workspaceId}}"
-                    },
-                    "timeframe": "last24hours",
-                    "vizSpec": {
-                        "version": "1.0",
-                        "visualization": {
-                            "chartType": "richTable",
-                            "encoding": {
-                                "columns": [
-                                    {
-                                        "field": "project",
-                                        "title": "Project",
-                                        "renderer": {
-                                            "type": "text"
-                                        }
-                                    },
-                                    {
-                                        "field": "total",
-                                        "title": "Requests",
-                                        "renderer": {
-                                            "type": "bar",
-                                            "color": "#3b82f6"
-                                        }
-                                    },
-                                    {
-                                        "field": "clientErrors",
-                                        "title": "4xx",
-                                        "renderer": {
-                                            "type": "number",
-                                            "thresholds": [
-                                                {
-                                                    "to": 0,
-                                                    "color": "#64748b"
-                                                },
-                                                {
-                                                    "to": 1000000000000,
-                                                    "color": "#f59e0b"
-                                                }
-                                            ]
-                                        },
-                                        "align": "right"
-                                    },
-                                    {
-                                        "field": "serverErrors",
-                                        "title": "5xx",
-                                        "renderer": {
-                                            "type": "number",
-                                            "thresholds": [
-                                                {
-                                                    "to": 0,
-                                                    "color": "#64748b"
-                                                },
-                                                {
-                                                    "to": 1000000000000,
-                                                    "color": "#ef4444"
-                                                }
-                                            ]
-                                        },
-                                        "align": "right"
-                                    },
-                                    {
-                                        "field": "errorRate",
-                                        "title": "Error rate",
-                                        "renderer": {
-                                            "type": "number",
-                                            "suffix": "%",
-                                            "decimals": 1,
-                                            "thresholds": [
-                                                {
-                                                    "to": 1,
-                                                    "color": "#16a34a"
-                                                },
-                                                {
-                                                    "to": 5,
-                                                    "color": "#f59e0b"
-                                                },
-                                                {
-                                                    "to": 100,
-                                                    "color": "#ef4444"
-                                                }
-                                            ]
-                                        },
-                                        "align": "right"
-                                    }
-                                ]
-                            },
-                            "style": {
-                                "richTableHideCount": true
-                            }
-                        }
-                    }
-                }
-            },
-            {
                 "i": "b159267c-92ea-42a4-9c77-711a4de06b09",
                 "x": 0,
                 "y": 8,
@@ -433,7 +316,7 @@
                         "id": "{{dataStreams.[advisors]}}",
                         "name": "advisors",
                         "pluginConfigId": "{{configId}}",
-                        "sql": "WITH f AS (SELECT \"projectName\" AS \"project\", CASE \"level[Expanded].rawState\" WHEN 'ERROR' THEN 'Error' WHEN 'WARN' THEN 'Warning' ELSE 'Info' END AS \"severity\", CASE \"level[Expanded].rawState\" WHEN 'ERROR' THEN 0 WHEN 'WARN' THEN 1 ELSE 2 END AS \"rk\" FROM \"dataset\") SELECT \"project\", \"severity\", CAST(COUNT(*) AS DOUBLE) AS \"findings\" FROM f GROUP BY \"project\", \"severity\", \"rk\" ORDER BY \"project\", \"rk\""
+                        "sql": "WITH d AS (SELECT *, CASE WHEN \"projectName\" IN (SELECT \"projectName\" FROM \"dataset\" GROUP BY 1 HAVING COUNT(DISTINCT \"projectRef\") > 1) THEN \"projectName\" || ' (' || \"projectRef\" || ')' ELSE \"projectName\" END AS \"projectLabel\" FROM \"dataset\") , f AS (SELECT \"projectLabel\" AS \"project\", \"projectRef\", CASE \"level[Expanded].rawState\" WHEN 'ERROR' THEN 'Error' WHEN 'WARN' THEN 'Warning' ELSE 'Info' END AS \"severity\", CASE \"level[Expanded].rawState\" WHEN 'ERROR' THEN 0 WHEN 'WARN' THEN 1 ELSE 2 END AS \"rk\" FROM d) SELECT \"project\", \"severity\", CAST(COUNT(*) AS DOUBLE) AS \"findings\" FROM f GROUP BY \"projectRef\", \"project\", \"severity\", \"rk\" ORDER BY \"project\", \"rk\""
                     },
                     "scope": {
                         "scope": "{{scopes.[Projects]}}",

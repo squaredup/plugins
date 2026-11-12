@@ -18,7 +18,7 @@ You need a Supabase **personal access token**. One token covers every organizati
 4. Set an expiry that suits you. When the token expires the plugin stops collecting data until you paste in a new one.
 5. Copy the token, which starts with `sbp_`, and paste it into the **Personal access token** field.
 
-A token missing one of these permissions still connects, but the streams that need it fail with a permission error. See [Personal access tokens](https://supabase.com/docs/guides/platform/personal-access-tokens) in the Supabase docs for more on scoping.
+Without **Projects (account-wide)** the token fails the **Authenticate** step on save. A token missing any of the other permissions still connects, but the streams that need it fail with a permission error. See [Personal access tokens](https://supabase.com/docs/guides/platform/personal-access-tokens) in the Supabase docs for more on scoping.
 
 ## Configuration fields
 

@@ -10,7 +10,12 @@ const base = {
     projectName: project.name
 };
 
-// A project with no backups still emits one row so it stays visible in per-project tiles
+// A project with no listed backups still emits one row so it stays visible in per-project tiles.
+// PITR projects are protected by continuous WAL archiving, so they report PITR rather than NONE.
+const emptyRow = base.pitrEnabled
+    ? { backupId: null, insertedAt: latest, status: 'PITR', backupType: 'Point-in-time recovery', ...base }
+    : { backupId: null, insertedAt: null, status: 'NONE', backupType: null, ...base };
+
 result = list.length
     ? list.map((b) => ({
           backupId: b.id == null ? null : String(b.id),
@@ -19,4 +24,4 @@ result = list.length
           backupType: b.is_physical_backup ? 'Physical' : 'Logical',
           ...base
       }))
-    : [{ backupId: null, insertedAt: null, status: 'NONE', backupType: null, ...base }];
+    : [emptyRow];

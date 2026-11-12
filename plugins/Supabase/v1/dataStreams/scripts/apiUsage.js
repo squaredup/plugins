@@ -10,9 +10,17 @@ if (data && data.error) {
     throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
 }
 
+// Timestamps can arrive as UTC without a zone suffix
+const toIso = (value) => {
+    if (typeof value !== 'string' || !value) return null;
+    const date = new Date(/(Z|[+-]\d\d:?\d\d)$/.test(value) ? value : `${value}Z`);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 const rows = [];
 for (const point of Array.isArray(data && data.result) ? data.result : []) {
-    const timestamp = new Date(point.timestamp).toISOString();
+    const timestamp = toIso(point.timestamp);
+    if (!timestamp) continue;
     for (const [service, key] of services) {
         rows.push({
             timestamp,

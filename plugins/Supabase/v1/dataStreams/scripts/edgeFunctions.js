@@ -4,6 +4,7 @@ const toIso = (ms) => (typeof ms === 'number' ? new Date(ms).toISOString() : nul
 result = (Array.isArray(data) ? data : []).map((fn) => ({
     id: fn.id,
     name: fn.name,
+    objectName: `${project.name} / ${fn.name}`,
     slug: fn.slug,
     status: fn.status,
     version: fn.version,
