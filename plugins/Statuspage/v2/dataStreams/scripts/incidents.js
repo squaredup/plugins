@@ -72,6 +72,38 @@ const worstComponentStatus = (updates) => {
     return worst >= 0 ? COMPONENT_LEVELS[worst][1] : undefined;
 };
 
+// An incident's own component list can be empty or shorter than what its updates record as affected, so the
+// updates' components count too. Updates name a grouped component "Group - Name", so take display names from
+// components.json, fetched only when some incident needs it; the update's name is the fallback.
+const updateNames = new Map();
+const updateOnlyCodes = (incident) => {
+    const own = new Set((incident.components || []).map((c) => c.id));
+    const codes = new Set();
+    for (const update of incident.incident_updates || []) {
+        for (const c of update.affected_components || []) {
+            if (c.code && !own.has(c.code)) {
+                codes.add(c.code);
+                if (!updateNames.has(c.code)) updateNames.set(c.code, c.name);
+            }
+        }
+    }
+    return codes;
+};
+
+let componentNames = new Map();
+if (data.incidents.some((incident) => updateOnlyCodes(incident).size > 0)) {
+    try {
+        // `url` is incidents.json or incidents/unresolved.json, so resolve from the host.
+        const response = await fetch(new URL('/api/v2/components.json', url).href);
+        const body = response.ok ? await response.json() : undefined;
+        if (body && Array.isArray(body.components)) {
+            componentNames = new Map(body.components.map((c) => [c.id, c.name]));
+        }
+    } catch (e) {
+        componentNames = new Map();
+    }
+}
+
 const rows = [];
 for (const incident of data.incidents) {
     const started = toDate(incident.started_at || incident.created_at);
@@ -93,17 +125,11 @@ for (const incident of data.incidents) {
     // Updates are listed newest first.
     const updates = incident.incident_updates || [];
     const affected = (incident.components || []).map((c) => ({ id: c.id, name: c.name }));
-
-    if (selectedComponents.size > 0) {
-        // An incident's own component list is sometimes empty, but its updates still record what was affected.
-        const fromUpdates = updates.flatMap((u) =>
-            (u.affected_components || []).map((c) => ({ id: c.code, name: c.name }))
-        );
-        for (const c of fromUpdates) {
-            if (selectedComponents.has(c.id) && !affected.some((a) => a.id === c.id)) affected.push(c);
-        }
-        if (!affected.some((c) => selectedComponents.has(c.id))) continue;
+    for (const code of updateOnlyCodes(incident)) {
+        affected.push({ id: code, name: componentNames.get(code) || updateNames.get(code) });
     }
+
+    if (selectedComponents.size > 0 && !affected.some((c) => selectedComponents.has(c.id))) continue;
 
     let state = 'success';
     if (!closed) {
