@@ -4,9 +4,9 @@ Track the health of any public status page hosted on [Atlassian Statuspage](http
 
 ## Setup
 
-1. Under **Status page**, choose how to identify the page:
-    - **Select from list**: pick the vendor from **Page**. The list holds well-known status pages that have been checked to work.
-    - **Custom**: enter the page's address in **Status page URL**, such as `status.example.com`.
+1. In **Status page**, either:
+    - Type the vendor's name and pick it from the list. The list holds well-known status pages that have been checked to work.
+    - Paste the address of any other status page, such as `https://status.example.com`, and select it.
 2. Save. The data source reads the status page to check it is reachable and runs on Statuspage.
 
 Add one data source per status page. To track several vendors, add the data source once for each.
@@ -19,9 +19,7 @@ To read the page from inside your network, for example where outbound traffic mu
 
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ---------------- | -------- |
-| **Status page** | Whether to pick the page from the list or enter its address. | Choose **Select from list** or **Custom**. | Yes |
-| **Page** | A well-known status page, shown when **Select from list** is chosen. | Type the vendor's name to search the list. | Yes, for **Select from list** |
-| **Status page URL** | The address of any status page hosted on Statuspage, shown when **Custom** is chosen. Accepts a full URL (`https://status.example.com`), a host name (`status.example.com`), or a Statuspage page ID or subdomain (`abc123xyz`, read from `abc123xyz.statuspage.io`). Any path is ignored, and requests always use HTTPS. | The vendor's status page link, usually in the footer of their website or their support pages. | Yes, for **Custom** |
+| **Status page** | A well-known status page from the list, or the address of any status page hosted on Statuspage. An address can be a full URL (`https://status.example.com`), a host name (`status.example.com`), or a Statuspage page ID or subdomain (`abc123xyz`, read from `abc123xyz.statuspage.io`). Any path is ignored, and requests always use HTTPS. | Type the vendor's name to search the list. For a page that isn't listed, use the status page link from the vendor's website, usually in the footer or on their support pages. | Yes |
 
 When you save, the data source runs two checks:
 
@@ -84,13 +82,13 @@ Select a component to open the **Component** perspective, or pick components in 
 
 ## Adding a status page to the list
 
-The **Page** list is defined in this plugin's [`ui.json`](https://github.com/squaredup/plugins/blob/main/plugins/Statuspage/v2/ui.json), so anyone can propose a new entry with a pull request to the [squaredup/plugins](https://github.com/squaredup/plugins) repository. Until it is added, any Statuspage page works with **Custom**.
+The **Status page** list is defined in this plugin's [`ui.json`](https://github.com/squaredup/plugins/blob/main/plugins/Statuspage/v2/ui.json), so anyone can propose a new entry with a pull request to the [squaredup/plugins](https://github.com/squaredup/plugins) repository. Until it is added, any Statuspage page works by pasting its address into **Status page**.
 
 1. **Check the page runs on Statuspage.** Open both of these in a browser, using the page's own address:
     - `https://<address>/api/v2/summary.json` must return JSON with `page`, `status` and `components`.
-    - `https://<address>/api/v2/scheduled-maintenances/upcoming.json` must return JSON, not a 404 page. A 404 means the page imitates Statuspage, so leave it out of the list. Users can still add it with **Custom**.
+    - `https://<address>/api/v2/scheduled-maintenances/upcoming.json` must return JSON, not a 404 page. A 404 means the page imitates Statuspage, so leave it out of the list. Users can still add it by pasting its address.
 2. **Use the vendor's published address.** Use the host name the vendor links to, such as `status.example.com`. Don't guess a `<name>.statuspage.io` subdomain, because those can belong to a different page.
-3. **Add an entry to the `knownPage` field** in `ui.json`, under `data.values`, in alphabetical order of `label`. `value` is the host name only, with no `https://` and no path, and `label` is the vendor or product name as the vendor styles it:
+3. **Add an entry to the `statusPage` field** in `ui.json`, under `data.values`, in alphabetical order of `label`. `value` is the host name only, with no `https://` and no path, and `label` is the vendor or product name as the vendor styles it:
 
     ```json
     {
