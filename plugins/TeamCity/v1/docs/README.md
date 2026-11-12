@@ -6,7 +6,7 @@ Monitor build health, success rates, durations, the build queue and build agents
 
 You need the address of your TeamCity server and an **access token** for a user who can view the projects you want to monitor.
 
-1. Sign in to TeamCity with the user the data source should connect as. The data source only reads, so a user with the **Project viewer** role on the projects you want to monitor is enough.
+1. Sign in to TeamCity with the user the data source should connect as. The data source only reads, so a user with the **Project viewer** role on the projects you want to monitor is enough for projects, build configurations, builds, the build queue and tests. **Project viewer** can't see build agents, though. To monitor agents, the user also needs the **View agent details** permission. Rather than giving the user a role that can run builds, such as **Project developer**, an administrator can add **View agent details** to a role under **Administration → Roles**. See [Roles and permissions](https://www.jetbrains.com/help/teamcity/managing-roles-and-permissions.html). Without it, agent data isn't available and the optional agent import step is skipped.
 2. Click your avatar in the top-right corner, choose **Profile**, then open **Access Tokens**.
 3. Click **Create access token**, give it a name such as `SquaredUp`, choose an expiration date, and leave the permission scope as **Same as current user**. See [Manage access tokens](https://www.jetbrains.com/help/teamcity/managing-your-user-account.html#Managing+Access+Tokens).
 4. Copy the token. TeamCity only shows it once.
