@@ -1,0 +1,234 @@
+{
+    "name": "builds",
+    "displayName": "Builds",
+    "description": "Finished TeamCity builds within the selected timeframe, one row per build",
+    "tags": [
+        "Builds"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "builds",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "{{ (() => { const f = d => new Date(d).toISOString().slice(0, 19).split('-').join('').split(':').join('') + '+0000'; const ids = v => (v || []).map(o => { const r = o.rawId !== undefined ? o.rawId : o.sourceId; return Array.isArray(r) ? r[0] : r; }).filter(Boolean); const dim = (n, v) => { const a = ids(v); return a.length === 0 ? null : a.length === 1 ? `${n}:(id:${a[0]})` : `${n}:(${a.map(i => `item:(id:${i})`).join(',')})`; }; return ['defaultFilter:false', 'state:finished', 'personal:false', 'branch:default:any', `finishDate:(date:${f(timeframe.start)},condition:after)`, `finishDate:(date:${f(timeframe.end)},condition:before)`, dim('affectedProject', typeof project === 'undefined' ? null : project), dim('buildType', typeof buildConfiguration === 'undefined' ? null : buildConfiguration), dim('agent', typeof agent === 'undefined' ? null : agent), 'count:500'].filter(Boolean).join(','); })() }}"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,build(id,number,status,statusText,buildTypeId,branchName,queuedDate,startDate,finishDate,composite,webUrl,buildType(name,projectName),triggered(type,user(username)),agent(id,name))"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "pagedList.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "buildConfiguration",
+            "label": "Build Configuration(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Build Configuration"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "agent",
+            "label": "Agent(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Agent"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Build ID",
+            "shape": "number",
+            "role": "id"
+        },
+        {
+            "name": "number",
+            "displayName": "Build Number",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "SUCCESS"
+                        ],
+                        "error": [
+                            "FAILURE"
+                        ],
+                        "unknown": [
+                            "UNKNOWN"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "shape": "string"
+        },
+        {
+            "name": "buildTypeId",
+            "displayName": "Build Configuration ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "buildType.name",
+            "displayName": "Build Configuration Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "buildType.projectName",
+            "displayName": "Project",
+            "shape": "string"
+        },
+        {
+            "name": "buildConfiguration",
+            "displayName": "Build Configuration",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ $['buildType.projectName'] ? `${$['buildType.projectName']} / ${$['buildType.name']}` : $['buildType.name'] }}"
+        },
+        {
+            "name": "branchName",
+            "displayName": "Branch",
+            "shape": "string"
+        },
+        {
+            "name": "queuedDate",
+            "displayName": "Queued",
+            "shape": [
+                "date",
+                {
+                    "inputPattern": "yyyyMMdd'T'HHmmssxx"
+                }
+            ]
+        },
+        {
+            "name": "startDate",
+            "displayName": "Started",
+            "shape": [
+                "date",
+                {
+                    "inputPattern": "yyyyMMdd'T'HHmmssxx"
+                }
+            ]
+        },
+        {
+            "name": "finishDate",
+            "displayName": "Finished",
+            "shape": [
+                "date",
+                {
+                    "inputPattern": "yyyyMMdd'T'HHmmssxx"
+                }
+            ],
+            "role": "timestamp"
+        },
+        {
+            "name": "duration",
+            "displayName": "Duration",
+            "shape": "seconds",
+            "computed": true,
+            "valueExpression": "{{ (() => { const p = s => new Date(s).getTime(); return $['finishDate'] && $['startDate'] ? Math.round((p($['finishDate']) - p($['startDate'])) / 1000) : null; })() }}"
+        },
+        {
+            "name": "queueTime",
+            "displayName": "Queue Time",
+            "shape": "seconds",
+            "computed": true,
+            "valueExpression": "{{ (() => { const p = s => new Date(s).getTime(); return $['startDate'] && $['queuedDate'] ? Math.round((p($['startDate']) - p($['queuedDate'])) / 1000) : null; })() }}"
+        },
+        {
+            "name": "triggered.type",
+            "displayName": "Trigger Type",
+            "shape": "string"
+        },
+        {
+            "name": "triggered.user.username",
+            "displayName": "Triggered By",
+            "shape": "string"
+        },
+        {
+            "name": "agent.id",
+            "displayName": "Agent ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "agent.name",
+            "displayName": "Agent",
+            "shape": "string"
+        },
+        {
+            "name": "composite",
+            "displayName": "Composite",
+            "shape": "boolean"
+        },
+        {
+            "name": "webUrl",
+            "displayName": "URL",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in TeamCity"
+                }
+            ]
+        },
+        {
+            "sourceId": "buildTypeId",
+            "sourceType": "Build Configuration",
+            "name": "buildConfiguration"
+        },
+        {
+            "sourceId": "agent.id",
+            "sourceType": "Agent",
+            "name": "agent.name"
+        }
+    ],
+    "timeframes": true
+}

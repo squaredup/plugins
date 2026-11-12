@@ -1,0 +1,211 @@
+{
+    "name": "runningBuilds",
+    "displayName": "Running Builds",
+    "description": "Builds running right now, with progress, elapsed time and the agent running them",
+    "tags": [
+        "Builds"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "builds",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "{{ ['state:running','defaultFilter:false','personal:false','branch:default:any','count:500'].concat([['affectedProject',project],['buildType',buildConfiguration],['agent',agent]].filter(p => p[1] && p[1].length).map(p => { const ids = p[1].map(o => Array.isArray(o.rawId) ? o.rawId[0] : o.rawId); return p[0] + ':' + (ids.length > 1 ? '(' + ids.map(i => 'item:(id:' + i + ')').join(',') + ')' : '(id:' + ids[0] + ')'); })).join(',') }}"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,build(id,number,status,statusText,branchName,buildTypeId,buildType(name,projectName),startDate,webUrl,percentageComplete,agent(id,name),running-info(percentageComplete,elapsedSeconds,estimatedTotalSeconds,currentStageText,probablyHanging))"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "pagedList.js",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "buildConfiguration",
+            "label": "Build Configuration(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Build Configuration"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "agent",
+            "label": "Agent(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Agent"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "valueExpression": "{{ String($['id']) }}"
+        },
+        {
+            "name": "number",
+            "displayName": "Build Number",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "buildTypeId",
+            "displayName": "Build Configuration ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "buildType.name",
+            "displayName": "Build Configuration Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "buildType.projectName",
+            "displayName": "Project",
+            "shape": "string"
+        },
+        {
+            "name": "buildConfigurationName",
+            "displayName": "Build Configuration",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ $['buildType.projectName'] ? `${$['buildType.projectName']} / ${$['buildType.name']}` : $['buildType.name'] }}"
+        },
+        {
+            "sourceId": "buildTypeId",
+            "sourceType": "Build Configuration",
+            "name": "buildConfigurationName"
+        },
+        {
+            "name": "branchName",
+            "displayName": "Branch",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "SUCCESS"
+                        ],
+                        "error": [
+                            "FAILURE"
+                        ],
+                        "unknown": [
+                            "UNKNOWN"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "shape": "string"
+        },
+        {
+            "name": "running-info.currentStageText",
+            "displayName": "Current Stage",
+            "shape": "string"
+        },
+        {
+            "name": "percentageComplete",
+            "displayName": "Percent Complete",
+            "shape": "percent"
+        },
+        {
+            "name": "running-info.elapsedSeconds",
+            "displayName": "Elapsed",
+            "shape": "seconds"
+        },
+        {
+            "name": "running-info.estimatedTotalSeconds",
+            "displayName": "Estimated Total",
+            "shape": "seconds"
+        },
+        {
+            "name": "running-info.probablyHanging",
+            "displayName": "Probably Hanging",
+            "shape": "boolean"
+        },
+        {
+            "name": "startDate",
+            "displayName": "Started",
+            "shape": [
+                "date",
+                {
+                    "inputPattern": "yyyyMMdd'T'HHmmssxx"
+                }
+            ]
+        },
+        {
+            "name": "agent.id",
+            "displayName": "Agent ID",
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['agent.id'] == null ? null : String($['agent.id']) }}"
+        },
+        {
+            "name": "agent.name",
+            "displayName": "Agent",
+            "shape": "string"
+        },
+        {
+            "sourceId": "agent.id",
+            "sourceType": "Agent",
+            "name": "agent.name"
+        },
+        {
+            "name": "webUrl",
+            "displayName": "URL",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in TeamCity"
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}
