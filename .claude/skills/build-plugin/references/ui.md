@@ -307,7 +307,7 @@ Use the plainest field that fits:
 { "type": "fieldGroup", "label": "Advanced Options", "fields": [ ...field definitions... ] }
 ```
 
-**`displayAs`** controls how the group renders. In `ui.json`, use a plain `fieldGroup` with no `displayAs`. The layouts below are for a data stream's `ui` array only:
+**`displayAs`** controls how the group renders. In `ui.json`, use `row` or `inlineFields` only for fields that read as one line, such as a host and port. Use `tabs` and `fieldGroupToggle` in a data stream's `ui` array only:
 
 - `"fieldGroupToggle"` — a switch that shows one child field at a time, for example Path or Script. Each child needs a short `label`:
 
