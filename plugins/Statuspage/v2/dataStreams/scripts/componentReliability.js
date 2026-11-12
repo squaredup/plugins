@@ -17,7 +17,6 @@ const now = Date.now();
 const tf = context.timeframe || {};
 const windowStart = toMs(tf.start) ?? now - 30 * DAY;
 const windowEnd = Math.min(toMs(tf.end) ?? now, now);
-const windowMinutes = Math.max(windowEnd - windowStart, 0) / MINUTE;
 
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const selected = (context.config && context.config.components) || [];
@@ -111,10 +110,10 @@ for (const incident of incidents) {
 }
 
 // Overlapping incidents can hold the same component in different states; count each moment once, at the worst.
-const minutesByLevel = (intervals) => {
+const minutesByLevel = (intervals, from) => {
     const events = [];
     for (const i of intervals) {
-        const start = Math.max(i.start, windowStart);
+        const start = Math.max(i.start, from);
         const end = Math.min(i.end, windowEnd);
         if (end > start) {
             events.push([start, i.level, 1], [end, i.level, -1]);
@@ -141,7 +140,7 @@ const oldestStart = Math.min(
     ...incidents.map((i) => Math.min(toMs(i.created_at) ?? Infinity, toMs(i.started_at) ?? Infinity))
 );
 const historyTruncated = incidents.length >= 50 && oldestStart > windowStart;
-const historyFrom = new Date(historyTruncated ? oldestStart : windowStart).toISOString();
+const historyStart = historyTruncated ? oldestStart : windowStart;
 
 const warnings = [];
 if (historyTruncated) {
@@ -163,13 +162,22 @@ if (warnings.length > 0) {
     api.report.warning(warnings.join(' '));
 }
 
+// A component only counts from when it existed: start_date is the date Statuspage counts its uptime from, and is
+// often backdated before created_at; created_at covers the components (about a quarter) that have no start_date.
+const existedFrom = (c) => (c ? (toMs(c.start_date) ?? toMs(c.created_at)) : undefined);
+
 // Components that are no longer on the page (only seen in old incidents) are dropped when the list is available.
 let components;
 if (pageComponents) {
     const groups = new Map(pageComponents.filter((c) => c.group).map((c) => [c.id, c.name]));
     components = pageComponents
         .filter((c) => !c.group)
-        .map((c) => ({ id: c.id, name: c.name, group: c.group_id ? groups.get(c.group_id) : 'Ungrouped' }));
+        .map((c) => ({
+            id: c.id,
+            name: c.name,
+            group: c.group_id ? groups.get(c.group_id) : 'Ungrouped',
+            since: existedFrom(c)
+        }));
 } else {
     // incident.components gives the plain name (affected_components names carry a "Group - " prefix) and group_id,
     // but group names are only known if a group itself was listed on an incident.
@@ -181,7 +189,12 @@ if (pageComponents) {
     components = [...mentioned].map(([id, name]) => {
         const c = known.get(id);
         const groupId = c && c.group_id;
-        return { id, name: (c && c.name) || name, group: groupId ? groupNames.get(groupId) : 'Ungrouped' };
+        return {
+            id,
+            name: (c && c.name) || name,
+            group: groupId ? groupNames.get(groupId) : 'Ungrouped',
+            since: existedFrom(c)
+        };
     });
 }
 
@@ -189,13 +202,21 @@ if (pageComponents) {
 const nameCounts = new Map();
 for (const c of components) nameCounts.set(c.name, (nameCounts.get(c.name) || 0) + 1);
 
+// Measure each component from the later of the window start and when it existed, and leave out any that didn't
+// exist until after the window ended.
+const measureFrom = (c) => Math.max(windowStart, c.since ?? windowStart);
+
 result = components
     .filter((c) => selectedIds.size === 0 || selectedIds.has(c.id))
+    .filter((c) => measureFrom(c) < windowEnd)
     .map((c) => {
-        const [, maintenance, degraded, partial, major] = minutesByLevel(intervalsByComponent.get(c.id) || []);
+        const from = measureFrom(c);
+        const minutes = (windowEnd - from) / MINUTE;
+        const [, maintenance, degraded, partial, major] = minutesByLevel(intervalsByComponent.get(c.id) || [], from);
         const spans = incidentSpans.get(c.id) || new Map();
-        const incidentCount = [...spans.values()].filter((s) => s.first <= windowEnd && s.last >= windowStart).length;
-        const percentUp = (downMinutes) => (windowMinutes > 0 ? 100 * (1 - downMinutes / windowMinutes) : undefined);
+        const incidentCount = [...spans.values()].filter((s) => s.first <= windowEnd && s.last >= from).length;
+        const percentUp = (downMinutes) => (minutes > 0 ? 100 * (1 - downMinutes / minutes) : undefined);
+        const historyFrom = new Date(Math.max(historyStart, from)).toISOString();
 
         return {
             component: nameCounts.get(c.name) > 1 && c.group ? `${c.group} / ${c.name}` : c.name,
