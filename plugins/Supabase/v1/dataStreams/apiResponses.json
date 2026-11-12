@@ -1,0 +1,82 @@
+{
+  "name": "apiResponses",
+  "displayName": "API responses",
+  "description": "API gateway requests over time for a project, split by service and HTTP status class so error rates can be charted",
+  "tags": [
+    "Usage"
+  ],
+  "baseDataSourceName": "httpRequestScopedSingle",
+  "matches": {
+    "sourceType": {
+      "type": "equals",
+      "value": "Project"
+    }
+  },
+  "config": {
+    "httpMethod": "get",
+    "endpointPath": "/v1/projects/{{object.rawId}}/analytics/endpoints/logs",
+    "getArgs": [
+      {
+        "key": "sql",
+        "value": "select toStartOfInterval(timestamp, INTERVAL {{ ({ last1hour: '1 minute', last12hours: '15 minute' })[timeframe.enum] || '30 minute' }}) as bucket, multiIf(position(splitByString(' | ', event_message)[3], '/rest/v1') > 0, 'Data API', position(splitByString(' | ', event_message)[3], '/auth/v1') > 0, 'Auth', position(splitByString(' | ', event_message)[3], '/storage/v1') > 0, 'Storage', position(splitByString(' | ', event_message)[3], '/realtime/v1') > 0, 'Realtime', position(splitByString(' | ', event_message)[3], '/functions/v1') > 0, 'Edge Functions', position(splitByString(' | ', event_message)[3], '/graphql/v1') > 0, 'GraphQL', 'Other') as service, concat(substring(splitByString(' | ', event_message)[2], 1, 1), 'xx') as status_class, count() as requests from logs where source = 'edge_logs' group by bucket, service, status_class order by bucket"
+      },
+      {
+        "key": "iso_timestamp_start",
+        "value": "{{timeframe.start}}"
+      },
+      {
+        "key": "iso_timestamp_end",
+        "value": "{{timeframe.end}}"
+      }
+    ],
+    "paging": {
+      "mode": "none"
+    },
+    "postRequestScript": "apiResponses.js"
+  },
+  "metadata": [
+    {
+      "name": "timestamp",
+      "displayName": "Time",
+      "shape": "date",
+      "role": "timestamp"
+    },
+    {
+      "name": "service",
+      "displayName": "Service",
+      "shape": "string"
+    },
+    {
+      "name": "statusClass",
+      "displayName": "Status class",
+      "shape": "string"
+    },
+    {
+      "name": "requests",
+      "displayName": "Requests",
+      "shape": "number",
+      "role": "value"
+    },
+    {
+      "name": "projectRef",
+      "displayName": "Project reference ID",
+      "shape": "string",
+      "visible": false
+    },
+    {
+      "name": "projectName",
+      "displayName": "Project",
+      "shape": "string"
+    },
+    {
+      "sourceId": "projectRef",
+      "sourceType": "Project",
+      "name": "projectName"
+    }
+  ],
+  "timeframes": [
+    "last1hour",
+    "last12hours",
+    "last24hours"
+  ]
+}

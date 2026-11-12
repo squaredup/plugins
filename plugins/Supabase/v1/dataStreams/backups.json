@@ -1,0 +1,42 @@
+{
+    "name": "backups",
+    "displayName": "Database backups",
+    "description": "Database backup history and point-in-time recovery status for a project",
+    "tags": ["Database"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": { "type": "equals", "value": "Project" }
+    },
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/projects/{{object.rawId}}/database/backups",
+        "paging": { "mode": "none" },
+        "postRequestScript": "backups.js"
+    },
+    "metadata": [
+        { "name": "backupId", "displayName": "Backup ID", "shape": "string", "visible": false },
+        { "name": "insertedAt", "displayName": "Taken", "shape": "date", "role": "timestamp" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["COMPLETED"],
+                        "warning": ["PENDING", "CANCELLED", "NONE"],
+                        "error": ["FAILED"],
+                        "unmonitored": ["REMOVED", "ARCHIVED"]
+                    }
+                }
+            ]
+        },
+        { "name": "backupType", "displayName": "Backup type", "shape": "string" },
+        { "name": "pitrEnabled", "displayName": "Point-in-time recovery", "shape": "boolean" },
+        { "name": "latestPhysicalBackup", "displayName": "Latest physical backup", "shape": "date" },
+        { "name": "projectRef", "displayName": "Project reference ID", "shape": "string", "visible": false },
+        { "name": "projectName", "displayName": "Project", "shape": "string" },
+        { "sourceId": "projectRef", "sourceType": "Project", "name": "projectName" }
+    ],
+    "timeframes": false
+}

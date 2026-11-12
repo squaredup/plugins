@@ -1,0 +1,90 @@
+{
+  "name": "serviceHealth",
+  "displayName": "Service health",
+  "description": "Current health of each Supabase service (Auth, Database, Connection pooler, Realtime, Data API and Storage) for a project",
+  "tags": [
+    "Projects"
+  ],
+  "baseDataSourceName": "httpRequestScopedSingle",
+  "matches": {
+    "sourceType": {
+      "type": "equals",
+      "value": "Project"
+    }
+  },
+  "config": {
+    "httpMethod": "get",
+    "endpointPath": "/v1/projects/{{object.rawId}}/health",
+    "getArgs": [
+      {
+        "key": "services",
+        "value": "auth,db,pooler,realtime,rest,storage"
+      }
+    ],
+    "paging": {
+      "mode": "none"
+    },
+    "postRequestScript": "serviceHealth.js"
+  },
+  "metadata": [
+    {
+      "name": "service",
+      "displayName": "Service",
+      "shape": "string",
+      "role": "label"
+    },
+    {
+      "name": "serviceKey",
+      "displayName": "Service key",
+      "shape": "string",
+      "visible": false
+    },
+    {
+      "name": "status",
+      "displayName": "Status",
+      "shape": [
+        "state",
+        {
+          "map": {
+            "success": [
+              "ACTIVE_HEALTHY"
+            ],
+            "warning": [
+              "COMING_UP"
+            ],
+            "error": [
+              "UNHEALTHY"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "displayName": "Version",
+      "shape": "string"
+    },
+    {
+      "name": "error",
+      "displayName": "Error",
+      "shape": "string"
+    },
+    {
+      "name": "projectRef",
+      "displayName": "Project reference ID",
+      "shape": "string",
+      "visible": false
+    },
+    {
+      "name": "projectName",
+      "displayName": "Project",
+      "shape": "string"
+    },
+    {
+      "sourceId": "projectRef",
+      "sourceType": "Project",
+      "name": "projectName"
+    }
+  ],
+  "timeframes": false
+}
