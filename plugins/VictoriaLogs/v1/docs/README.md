@@ -45,8 +45,6 @@ The out-of-the-box dashboards are **Logs Overview** plus **Service Logs**, **Nam
 
 - **Logs** — log entries matching a LogsQL query in the tile's timeframe, newest first (200 by default, up to 500), with time, normalised severity (critical, error, warning, info, debug, unknown), message, and links to the pod or container, node, service and host each entry came from. The remaining fields are in a **Fields** column; list fields under **Columns** to show them as their own columns.
 - **Log Stats** — the result of a LogsQL query ending in a [`stats` pipe](https://docs.victoriametrics.com/victorialogs/logsql/#stats-pipe), as a time series (range) or as totals over the timeframe (instant). An optional **Pivot field** turns values into columns — pivot on `__name__` to get one row per object with a column per stats result, e.g. `logs` and `errors`.
-
-**Logs**, **Log Stats** and **Log Volume** queries can use two shortcuts: `| normalize_severity` adds a `severity` field (critical, error, warning, info, debug or unknown) using the same rules as the **Logs** severity column, and `| normalize_k8s` adds `cluster`, `namespace`, `pod` and `container` fields from whichever Kubernetes field convention a log uses. For example, `* | normalize_severity | stats by (severity) count() logs`.
 - **Log Volume** — the number of matching logs over time, optionally split by a field (the top values plus `other` for the rest).
 
 Every stream can be restricted to selected objects (**Objects**), which works for any pod, container, namespace, node, service or host however its logs label it, and is how the dashboard perspectives scope their tiles.

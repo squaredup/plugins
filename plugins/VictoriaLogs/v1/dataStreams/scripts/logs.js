@@ -95,7 +95,7 @@ const linksFor = (m) => {
 };
 
 // ---- Severity -------------------------------------------------------------------
-// Same rules as the `| normalize_severity` LogsQL pipe the query streams provide, so a log shows the same severity
+// Same rules as the LogsQL severity pipe used by the dashboards, so a log shows the same severity
 // in a table as in the charts: severity fields first, then the OpenTelemetry severity
 // number, then a level token in the message, then error words as a last resort.
 const SEVERITY_FIELDS = ['severity_text', 'level', 'severity', 'log.level', 'detected_level', 'loglevel'];
