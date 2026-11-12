@@ -1,0 +1,97 @@
+{
+    "name": "streamFieldNames",
+    "displayName": "Stream Field Names",
+    "description": "Names of the log stream fields in matching logs",
+    "tags": [
+        "Metadata"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/stream_field_names",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query || '*'}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "extra_filters",
+                "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            }
+        ],
+        "postRequestScript": "values.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "query",
+            "label": "Query (optional)",
+            "placeholder": "*",
+            "help": "LogsQL filter selecting the logs to inspect."
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include logs from the selected objects. Leave empty to search all logs.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Container",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Service",
+                        "Host",
+                        "Deployment Environment"
+                    ]
+                }
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "label",
+            "displayName": "Value",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Value (raw)",
+            "shape": "string",
+            "role": "value",
+            "visible": false
+        },
+        {
+            "name": "hits",
+            "displayName": "Logs",
+            "shape": "number"
+        }
+    ],
+    "timeframes": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

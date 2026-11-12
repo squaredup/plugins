@@ -1,0 +1,682 @@
+{
+    "name": "Service Logs",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [
+        "{{variables.[Service]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "1affc0ed-3b72-4717-8864-73469f9872e9",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Logs",
+                    "description": "Log entries in the timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | stats count() logs",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b5707497-caff-4576-8916-889637fb2fe2",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Errors",
+                    "description": "Critical and error logs, plus logs with no severity that mention error, exception, fatal or panic",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | format if (severity_text:*) \"<lc:severity_text>\" as severity | format if (-severity_text:* level:*) \"<lc:level>\" as severity | format if (-severity_text:* -level:* severity:*) \"<lc:severity>\" as severity | format if (-severity:* severity_number:range[21, 24]) \"critical\" as severity | format if (-severity:* severity_number:range[17, 20]) \"error\" as severity | format if (-severity:* severity_number:range[13, 16]) \"warning\" as severity | replace_regexp (\"^(fatal|panic|emerg|emergency|alert|crit|critical).*$\", \"critical\") at severity | replace_regexp (\"^(err|error|severe).*$\", \"error\") at severity | replace_regexp (\"^warn.*$\", \"warning\") at severity | replace_regexp (\"^(info|information|informational|notice)$\", \"info\") at severity | replace_regexp (\"^(debug|trace|verbose).*$\", \"debug\") at severity | replace_regexp (\"^(unspecified|unset|none|-)$\", \"unknown\") at severity | format if (-severity:*) \"unknown\" as severity | format if (severity:=unknown _msg:~\"\\\\b(FATAL|PANIC|CRITICAL|CRIT)\\\\b|(?i:\\\\b(level|lvl)=(fatal|panic|crit|critical)\\\\b|^\\\\S+\\\\s+(fatal|panic|crit|critical)\\\\s|^\\\\s*(crit):)\") \"critical\" as severity | format if (severity:=unknown _msg:~\"\\\\b(ERROR|ERR)\\\\b|(?i:\\\\b(level|lvl)=(error|err|eror)\\\\b|^\\\\S+\\\\s+(error|err)\\\\s|^\\\\s*(fail|error):)\") \"error\" as severity | format if (severity:=unknown _msg:~\"\\\\bWARN(ING)?\\\\b|(?i:\\\\b(level|lvl)=warn(ing)?\\\\b|^\\\\S+\\\\s+warn(ing)?\\\\s|^\\\\s*(warn):)\") \"warning\" as severity | format if (severity:=unknown _msg:~\"\\\\bINFO\\\\b|(?i:\\\\b(level|lvl)=info\\\\b|^\\\\S+\\\\s+info\\\\s|^\\\\s*(info):)\") \"info\" as severity | format if (severity:=unknown _msg:~\"\\\\b(DEBUG|TRACE)\\\\b|(?i:\\\\b(level|lvl)=(debug|dbug|trace)\\\\b|^\\\\S+\\\\s+(debug|trace)\\\\s|^\\\\s*(dbug|trce):)\") \"debug\" as severity | format if (severity:=unknown _msg:~\"(?i:\\\\b(error|exception|fatal|panic)\\\\b)\") \"error\" as severity | stats count() if (severity:in(critical, error)) errors",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none",
+                                "scalarValueColor": "#f2164d"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ca8cab13-1876-47fa-aa56-0e0eb5097230",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Error Rate",
+                    "description": "Errors as a share of all logs",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | format if (severity_text:*) \"<lc:severity_text>\" as severity | format if (-severity_text:* level:*) \"<lc:level>\" as severity | format if (-severity_text:* -level:* severity:*) \"<lc:severity>\" as severity | format if (-severity:* severity_number:range[21, 24]) \"critical\" as severity | format if (-severity:* severity_number:range[17, 20]) \"error\" as severity | format if (-severity:* severity_number:range[13, 16]) \"warning\" as severity | replace_regexp (\"^(fatal|panic|emerg|emergency|alert|crit|critical).*$\", \"critical\") at severity | replace_regexp (\"^(err|error|severe).*$\", \"error\") at severity | replace_regexp (\"^warn.*$\", \"warning\") at severity | replace_regexp (\"^(info|information|informational|notice)$\", \"info\") at severity | replace_regexp (\"^(debug|trace|verbose).*$\", \"debug\") at severity | replace_regexp (\"^(unspecified|unset|none|-)$\", \"unknown\") at severity | format if (-severity:*) \"unknown\" as severity | format if (severity:=unknown _msg:~\"\\\\b(FATAL|PANIC|CRITICAL|CRIT)\\\\b|(?i:\\\\b(level|lvl)=(fatal|panic|crit|critical)\\\\b|^\\\\S+\\\\s+(fatal|panic|crit|critical)\\\\s|^\\\\s*(crit):)\") \"critical\" as severity | format if (severity:=unknown _msg:~\"\\\\b(ERROR|ERR)\\\\b|(?i:\\\\b(level|lvl)=(error|err|eror)\\\\b|^\\\\S+\\\\s+(error|err)\\\\s|^\\\\s*(fail|error):)\") \"error\" as severity | format if (severity:=unknown _msg:~\"\\\\bWARN(ING)?\\\\b|(?i:\\\\b(level|lvl)=warn(ing)?\\\\b|^\\\\S+\\\\s+warn(ing)?\\\\s|^\\\\s*(warn):)\") \"warning\" as severity | format if (severity:=unknown _msg:~\"\\\\bINFO\\\\b|(?i:\\\\b(level|lvl)=info\\\\b|^\\\\S+\\\\s+info\\\\s|^\\\\s*(info):)\") \"info\" as severity | format if (severity:=unknown _msg:~\"\\\\b(DEBUG|TRACE)\\\\b|(?i:\\\\b(level|lvl)=(debug|dbug|trace)\\\\b|^\\\\S+\\\\s+(debug|trace)\\\\s|^\\\\s*(dbug|trce):)\") \"debug\" as severity | format if (severity:=unknown _msg:~\"(?i:\\\\b(error|exception|fatal|panic)\\\\b)\") \"error\" as severity | stats count() logs, count() if (severity:in(critical, error)) errors | math errors * 100 / max(logs, 1) as error_pct | delete logs, errors",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ],
+                                "displayName": "Error rate"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "value",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "83a17459-9e27-4381-ac48-71e07ff2c585",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Pods Logging",
+                    "description": "Pods sending logs for this service; the data lists each pod",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | format if (-namespace:*) \"<k8s.namespace.name><kubernetes.pod_namespace><kubernetes.namespace_name>\" as namespace | format if (-pod:*) \"<k8s.pod.name><kubernetes.pod_name>\" as pod | format if (-container:*) \"<k8s.container.name><kubernetes.container_name>\" as container | filter pod:* | stats by (namespace, pod) count() logs",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "78e06a26-38f8-4797-81fb-86f2bccd55c7",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Log Volume by Severity",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | format if (severity_text:*) \"<lc:severity_text>\" as severity | format if (-severity_text:* level:*) \"<lc:level>\" as severity | format if (-severity_text:* -level:* severity:*) \"<lc:severity>\" as severity | format if (-severity:* severity_number:range[21, 24]) \"critical\" as severity | format if (-severity:* severity_number:range[17, 20]) \"error\" as severity | format if (-severity:* severity_number:range[13, 16]) \"warning\" as severity | replace_regexp (\"^(fatal|panic|emerg|emergency|alert|crit|critical).*$\", \"critical\") at severity | replace_regexp (\"^(err|error|severe).*$\", \"error\") at severity | replace_regexp (\"^warn.*$\", \"warning\") at severity | replace_regexp (\"^(info|information|informational|notice)$\", \"info\") at severity | replace_regexp (\"^(debug|trace|verbose).*$\", \"debug\") at severity | replace_regexp (\"^(unspecified|unset|none|-)$\", \"unknown\") at severity | format if (-severity:*) \"unknown\" as severity | format if (severity:=unknown _msg:~\"\\\\b(FATAL|PANIC|CRITICAL|CRIT)\\\\b|(?i:\\\\b(level|lvl)=(fatal|panic|crit|critical)\\\\b|^\\\\S+\\\\s+(fatal|panic|crit|critical)\\\\s|^\\\\s*(crit):)\") \"critical\" as severity | format if (severity:=unknown _msg:~\"\\\\b(ERROR|ERR)\\\\b|(?i:\\\\b(level|lvl)=(error|err|eror)\\\\b|^\\\\S+\\\\s+(error|err)\\\\s|^\\\\s*(fail|error):)\") \"error\" as severity | format if (severity:=unknown _msg:~\"\\\\bWARN(ING)?\\\\b|(?i:\\\\b(level|lvl)=warn(ing)?\\\\b|^\\\\S+\\\\s+warn(ing)?\\\\s|^\\\\s*(warn):)\") \"warning\" as severity | format if (severity:=unknown _msg:~\"\\\\bINFO\\\\b|(?i:\\\\b(level|lvl)=info\\\\b|^\\\\S+\\\\s+info\\\\s|^\\\\s*(info):)\") \"info\" as severity | format if (severity:=unknown _msg:~\"\\\\b(DEBUG|TRACE)\\\\b|(?i:\\\\b(level|lvl)=(debug|dbug|trace)\\\\b|^\\\\S+\\\\s+(debug|trace)\\\\s|^\\\\s*(dbug|trce):)\") \"debug\" as severity | format if (severity:=unknown _msg:~\"(?i:\\\\b(error|exception|fatal|panic)\\\\b)\") \"error\" as severity | stats by (severity) count() logs",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Logs"
+                                },
+                                "series": {
+                                    "field": "severity",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "mappedColors": {
+                                    "critical": "#a1002c",
+                                    "error": "#f2164d",
+                                    "warning": "#ffaa00",
+                                    "info": "#3EB5FF",
+                                    "debug": "#9aa3ab",
+                                    "unknown": "#d0d5da"
+                                },
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Logs"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3cb88ed1-83c2-4e31-8d3a-10d6d2d22acf",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Error Rate",
+                    "description": "Errors as a share of all logs over time",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | format if (severity_text:*) \"<lc:severity_text>\" as severity | format if (-severity_text:* level:*) \"<lc:level>\" as severity | format if (-severity_text:* -level:* severity:*) \"<lc:severity>\" as severity | format if (-severity:* severity_number:range[21, 24]) \"critical\" as severity | format if (-severity:* severity_number:range[17, 20]) \"error\" as severity | format if (-severity:* severity_number:range[13, 16]) \"warning\" as severity | replace_regexp (\"^(fatal|panic|emerg|emergency|alert|crit|critical).*$\", \"critical\") at severity | replace_regexp (\"^(err|error|severe).*$\", \"error\") at severity | replace_regexp (\"^warn.*$\", \"warning\") at severity | replace_regexp (\"^(info|information|informational|notice)$\", \"info\") at severity | replace_regexp (\"^(debug|trace|verbose).*$\", \"debug\") at severity | replace_regexp (\"^(unspecified|unset|none|-)$\", \"unknown\") at severity | format if (-severity:*) \"unknown\" as severity | format if (severity:=unknown _msg:~\"\\\\b(FATAL|PANIC|CRITICAL|CRIT)\\\\b|(?i:\\\\b(level|lvl)=(fatal|panic|crit|critical)\\\\b|^\\\\S+\\\\s+(fatal|panic|crit|critical)\\\\s|^\\\\s*(crit):)\") \"critical\" as severity | format if (severity:=unknown _msg:~\"\\\\b(ERROR|ERR)\\\\b|(?i:\\\\b(level|lvl)=(error|err|eror)\\\\b|^\\\\S+\\\\s+(error|err)\\\\s|^\\\\s*(fail|error):)\") \"error\" as severity | format if (severity:=unknown _msg:~\"\\\\bWARN(ING)?\\\\b|(?i:\\\\b(level|lvl)=warn(ing)?\\\\b|^\\\\S+\\\\s+warn(ing)?\\\\s|^\\\\s*(warn):)\") \"warning\" as severity | format if (severity:=unknown _msg:~\"\\\\bINFO\\\\b|(?i:\\\\b(level|lvl)=info\\\\b|^\\\\S+\\\\s+info\\\\s|^\\\\s*(info):)\") \"info\" as severity | format if (severity:=unknown _msg:~\"\\\\b(DEBUG|TRACE)\\\\b|(?i:\\\\b(level|lvl)=(debug|dbug|trace)\\\\b|^\\\\S+\\\\s+(debug|trace)\\\\s|^\\\\s*(dbug|trce):)\") \"debug\" as severity | format if (severity:=unknown _msg:~\"(?i:\\\\b(error|exception|fatal|panic)\\\\b)\") \"error\" as severity | stats count() logs, count() if (severity:in(critical, error)) errors | math errors * 100 / max(logs, 1) as error_pct | delete logs, errors",
+                            "queryType": "range",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "value",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ],
+                                "displayName": "Error rate"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Error rate"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Error rate",
+                                "cartesianAreaGradient": true,
+                                "mappedColors": {
+                                    "error_pct": "#f2164d"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "467ee396-1898-4a76-b277-3307e0ab7f61",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Message Patterns",
+                    "description": "The most frequent messages, with numbers collapsed so similar messages group",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | format if (severity_text:*) \"<lc:severity_text>\" as severity | format if (-severity_text:* level:*) \"<lc:level>\" as severity | format if (-severity_text:* -level:* severity:*) \"<lc:severity>\" as severity | format if (-severity:* severity_number:range[21, 24]) \"critical\" as severity | format if (-severity:* severity_number:range[17, 20]) \"error\" as severity | format if (-severity:* severity_number:range[13, 16]) \"warning\" as severity | replace_regexp (\"^(fatal|panic|emerg|emergency|alert|crit|critical).*$\", \"critical\") at severity | replace_regexp (\"^(err|error|severe).*$\", \"error\") at severity | replace_regexp (\"^warn.*$\", \"warning\") at severity | replace_regexp (\"^(info|information|informational|notice)$\", \"info\") at severity | replace_regexp (\"^(debug|trace|verbose).*$\", \"debug\") at severity | replace_regexp (\"^(unspecified|unset|none|-)$\", \"unknown\") at severity | format if (-severity:*) \"unknown\" as severity | format if (severity:=unknown _msg:~\"\\\\b(FATAL|PANIC|CRITICAL|CRIT)\\\\b|(?i:\\\\b(level|lvl)=(fatal|panic|crit|critical)\\\\b|^\\\\S+\\\\s+(fatal|panic|crit|critical)\\\\s|^\\\\s*(crit):)\") \"critical\" as severity | format if (severity:=unknown _msg:~\"\\\\b(ERROR|ERR)\\\\b|(?i:\\\\b(level|lvl)=(error|err|eror)\\\\b|^\\\\S+\\\\s+(error|err)\\\\s|^\\\\s*(fail|error):)\") \"error\" as severity | format if (severity:=unknown _msg:~\"\\\\bWARN(ING)?\\\\b|(?i:\\\\b(level|lvl)=warn(ing)?\\\\b|^\\\\S+\\\\s+warn(ing)?\\\\s|^\\\\s*(warn):)\") \"warning\" as severity | format if (severity:=unknown _msg:~\"\\\\bINFO\\\\b|(?i:\\\\b(level|lvl)=info\\\\b|^\\\\S+\\\\s+info\\\\s|^\\\\s*(info):)\") \"info\" as severity | format if (severity:=unknown _msg:~\"\\\\b(DEBUG|TRACE)\\\\b|(?i:\\\\b(level|lvl)=(debug|dbug|trace)\\\\b|^\\\\S+\\\\s+(debug|trace)\\\\s|^\\\\s*(dbug|trce):)\") \"debug\" as severity | format if (severity:=unknown _msg:~\"(?i:\\\\b(error|exception|fatal|panic)\\\\b)\") \"error\" as severity | collapse_nums | stats by (severity, _msg) count() logs | sort by (logs desc) | limit 15",
+                            "queryType": "instant",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity",
+                                        "title": "Severity",
+                                        "renderer": {
+                                            "type": "logLevel"
+                                        },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "_msg",
+                                        "title": "Message pattern",
+                                        "renderer": {
+                                            "type": "logMessage"
+                                        }
+                                    },
+                                    {
+                                        "field": "value",
+                                        "title": "Logs",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#3EB5FF"
+                                        },
+                                        "width": 140
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "value",
+                                    "direction": "desc"
+                                },
+                                "richTableWrapText": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4c1a353c-7f2a-4a09-a16b-0d0fa1556cbe",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Pods",
+                    "description": "Pods logging for this service, with their errors and warnings",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[stats]}}",
+                        "name": "stats",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "* | format if (-namespace:*) \"<k8s.namespace.name><kubernetes.pod_namespace><kubernetes.namespace_name>\" as namespace | format if (-pod:*) \"<k8s.pod.name><kubernetes.pod_name>\" as pod | format if (-container:*) \"<k8s.container.name><kubernetes.container_name>\" as container | format if (severity_text:*) \"<lc:severity_text>\" as severity | format if (-severity_text:* level:*) \"<lc:level>\" as severity | format if (-severity_text:* -level:* severity:*) \"<lc:severity>\" as severity | format if (-severity:* severity_number:range[21, 24]) \"critical\" as severity | format if (-severity:* severity_number:range[17, 20]) \"error\" as severity | format if (-severity:* severity_number:range[13, 16]) \"warning\" as severity | replace_regexp (\"^(fatal|panic|emerg|emergency|alert|crit|critical).*$\", \"critical\") at severity | replace_regexp (\"^(err|error|severe).*$\", \"error\") at severity | replace_regexp (\"^warn.*$\", \"warning\") at severity | replace_regexp (\"^(info|information|informational|notice)$\", \"info\") at severity | replace_regexp (\"^(debug|trace|verbose).*$\", \"debug\") at severity | replace_regexp (\"^(unspecified|unset|none|-)$\", \"unknown\") at severity | format if (-severity:*) \"unknown\" as severity | format if (severity:=unknown _msg:~\"\\\\b(FATAL|PANIC|CRITICAL|CRIT)\\\\b|(?i:\\\\b(level|lvl)=(fatal|panic|crit|critical)\\\\b|^\\\\S+\\\\s+(fatal|panic|crit|critical)\\\\s|^\\\\s*(crit):)\") \"critical\" as severity | format if (severity:=unknown _msg:~\"\\\\b(ERROR|ERR)\\\\b|(?i:\\\\b(level|lvl)=(error|err|eror)\\\\b|^\\\\S+\\\\s+(error|err)\\\\s|^\\\\s*(fail|error):)\") \"error\" as severity | format if (severity:=unknown _msg:~\"\\\\bWARN(ING)?\\\\b|(?i:\\\\b(level|lvl)=warn(ing)?\\\\b|^\\\\S+\\\\s+warn(ing)?\\\\s|^\\\\s*(warn):)\") \"warning\" as severity | format if (severity:=unknown _msg:~\"\\\\bINFO\\\\b|(?i:\\\\b(level|lvl)=info\\\\b|^\\\\S+\\\\s+info\\\\s|^\\\\s*(info):)\") \"info\" as severity | format if (severity:=unknown _msg:~\"\\\\b(DEBUG|TRACE)\\\\b|(?i:\\\\b(level|lvl)=(debug|dbug|trace)\\\\b|^\\\\S+\\\\s+(debug|trace)\\\\s|^\\\\s*(dbug|trce):)\") \"debug\" as severity | format if (severity:=unknown _msg:~\"(?i:\\\\b(error|exception|fatal|panic)\\\\b)\") \"error\" as severity | filter pod:* | stats by (namespace, pod) count() logs, count() if (severity:in(critical, error)) errors, count() if (severity:=warning) warnings | math errors * 100 / max(logs, 1) as error_pct",
+                            "queryType": "instant",
+                            "pivot": "__name__",
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        },
+                        "metadata": [
+                            {
+                                "name": "error_pct",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ],
+                                "displayName": "Error %"
+                            }
+                        ]
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "PodLink",
+                                        "title": "Pod",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "logs",
+                                        "title": "Logs",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#3EB5FF"
+                                        }
+                                    },
+                                    {
+                                        "field": "errors",
+                                        "title": "Errors",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 1000000000000.0,
+                                                    "color": "#f2164d"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "warnings",
+                                        "title": "Warnings",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 1000000000000.0,
+                                                    "color": "#ffaa00"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "error_pct",
+                                        "title": "Error %",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "thresholds": [
+                                                {
+                                                    "to": 1,
+                                                    "color": "#2bb660"
+                                                },
+                                                {
+                                                    "to": 5,
+                                                    "color": "#ffaa00"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#f2164d"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "logs",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "896eea0c-2777-41b7-abc8-b40c322df6b8",
+                "x": 0,
+                "y": 9,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Logs",
+                    "description": "The latest 200 logs from the service",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[logs]}}",
+                        "name": "logs",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "*",
+                            "limit": 200,
+                            "scope": {
+                                "variable": "{{variables.[Service]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Services]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Service]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "timestamp",
+                                        "title": "Time",
+                                        "renderer": {
+                                            "type": "date",
+                                            "showMilliseconds": true
+                                        },
+                                        "width": 170
+                                    },
+                                    {
+                                        "field": "severity",
+                                        "title": "Severity",
+                                        "renderer": {
+                                            "type": "logLevel",
+                                            "messageField": "message"
+                                        },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "message",
+                                        "title": "Message",
+                                        "renderer": {
+                                            "type": "logMessage"
+                                        }
+                                    },
+                                    {
+                                        "field": "PodLink",
+                                        "title": "Pod",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 160
+                                    },
+                                    {
+                                        "field": "ContainerLink",
+                                        "title": "Container",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 160
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "timestamp",
+                                    "direction": "desc"
+                                },
+                                "detailsPanel": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

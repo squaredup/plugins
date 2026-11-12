@@ -1,0 +1,314 @@
+{
+    "name": "stats",
+    "displayName": "Log Stats",
+    "description": "Results of a LogsQL stats query over the timeframe, as a time series (range) or totals (instant), optionally limited to selected objects",
+    "tags": [
+        "Logs",
+        "LogsQL",
+        "Metrics"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{queryType === 'instant' ? 'select/logsql/stats_query' : 'select/logsql/stats_query_range'}}",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "time",
+                "value": "{{queryType === 'instant' ? Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000)) : null}}"
+            },
+            {
+                "key": "step",
+                "value": "{{queryType === 'instant' ? null : (step || Math.max(60, Math.ceil((timeframe.unixEnd - timeframe.unixStart) / 120)) + 's')}}"
+            },
+            {
+                "key": "extra_filters",
+                "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            }
+        ],
+        "postRequestScript": "stats.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "code",
+            "name": "query",
+            "label": "Query",
+            "language": "sql",
+            "help": "A LogsQL query ending in a [stats pipe](https://docs.victoriametrics.com/victorialogs/logsql/#stats-pipe), e.g. `* | stats by (service.name) count() logs`. The tile's timeframe is applied automatically.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "switch",
+            "name": "queryType",
+            "label": "Query type",
+            "defaultValue": "range",
+            "options": [
+                {
+                    "value": "range",
+                    "label": "Range (time series)"
+                },
+                {
+                    "value": "instant",
+                    "label": "Instant (totals for the timeframe)"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include logs from the selected objects. Leave empty to search all logs.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Container",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Service",
+                        "Host",
+                        "Deployment Environment"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "step",
+            "label": "Step (optional)",
+            "placeholder": "e.g. 5m",
+            "help": "Bucket size of range queries. Defaults to about 120 buckets across the timeframe."
+        },
+        {
+            "type": "text",
+            "name": "pivot",
+            "label": "Pivot field (optional)",
+            "placeholder": "e.g. __name__",
+            "help": "Turn the values of this field into columns: results that differ only by this field become one row, with a column per value. Use `__name__` to give each stats result its own column, e.g. `* | stats by (service.name) count() logs, count() if (level:error) errors` with pivot `__name__` gives one row per service with `logs` and `errors` columns."
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "__name__",
+            "displayName": "Result",
+            "shape": "string"
+        },
+        {
+            "name": "ContainerLink",
+            "displayName": "Container",
+            "shape": "string",
+            "sourceId": "ContainerLinkId",
+            "sourceType": "Kubernetes Container"
+        },
+        {
+            "name": "ContainerLinkId",
+            "displayName": "Container ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "PodLink",
+            "displayName": "Pod",
+            "shape": "string",
+            "sourceId": "PodLinkId",
+            "sourceType": "Kubernetes Pod"
+        },
+        {
+            "name": "PodLinkId",
+            "displayName": "Pod ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DeploymentLink",
+            "displayName": "Deployment",
+            "shape": "string",
+            "sourceId": "DeploymentLinkId",
+            "sourceType": "Kubernetes Deployment"
+        },
+        {
+            "name": "DeploymentLinkId",
+            "displayName": "Deployment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "StatefulSetLink",
+            "displayName": "StatefulSet",
+            "shape": "string",
+            "sourceId": "StatefulSetLinkId",
+            "sourceType": "Kubernetes StatefulSet"
+        },
+        {
+            "name": "StatefulSetLinkId",
+            "displayName": "StatefulSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DaemonSetLink",
+            "displayName": "DaemonSet",
+            "shape": "string",
+            "sourceId": "DaemonSetLinkId",
+            "sourceType": "Kubernetes DaemonSet"
+        },
+        {
+            "name": "DaemonSetLinkId",
+            "displayName": "DaemonSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ReplicaSetLink",
+            "displayName": "ReplicaSet",
+            "shape": "string",
+            "sourceId": "ReplicaSetLinkId",
+            "sourceType": "Kubernetes ReplicaSet"
+        },
+        {
+            "name": "ReplicaSetLinkId",
+            "displayName": "ReplicaSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeJobLink",
+            "displayName": "Job",
+            "shape": "string",
+            "sourceId": "KubeJobLinkId",
+            "sourceType": "Kubernetes Job"
+        },
+        {
+            "name": "KubeJobLinkId",
+            "displayName": "Job ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeCronJobLink",
+            "displayName": "CronJob",
+            "shape": "string",
+            "sourceId": "KubeCronJobLinkId",
+            "sourceType": "Kubernetes CronJob"
+        },
+        {
+            "name": "KubeCronJobLinkId",
+            "displayName": "CronJob ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NamespaceLink",
+            "displayName": "Namespace",
+            "shape": "string",
+            "sourceId": "NamespaceLinkId",
+            "sourceType": "Kubernetes Namespace"
+        },
+        {
+            "name": "NamespaceLinkId",
+            "displayName": "Namespace ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NodeLink",
+            "displayName": "Node",
+            "shape": "string",
+            "sourceId": "NodeLinkId",
+            "sourceType": "Kubernetes Node"
+        },
+        {
+            "name": "NodeLinkId",
+            "displayName": "Node ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ClusterLink",
+            "displayName": "Cluster",
+            "shape": "string",
+            "sourceId": "ClusterLinkId",
+            "sourceType": "Kubernetes Cluster"
+        },
+        {
+            "name": "ClusterLinkId",
+            "displayName": "Cluster ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ServiceLink",
+            "displayName": "Service",
+            "shape": "string",
+            "sourceId": "ServiceLinkId",
+            "sourceType": "Service"
+        },
+        {
+            "name": "ServiceLinkId",
+            "displayName": "Service ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "HostLink",
+            "displayName": "Host",
+            "shape": "string",
+            "sourceId": "HostLinkId",
+            "sourceType": "Host"
+        },
+        {
+            "name": "HostLinkId",
+            "displayName": "Host ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true
+}

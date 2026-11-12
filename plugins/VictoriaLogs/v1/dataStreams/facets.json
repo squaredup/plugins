@@ -1,0 +1,109 @@
+{
+    "name": "facets",
+    "displayName": "Facets",
+    "description": "The most frequent values of each field in matching logs",
+    "tags": [
+        "Metadata"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/facets",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query || '*'}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "limit",
+                "value": "{{limit || 10}}"
+            },
+            {
+                "key": "keep_const_fields",
+                "value": "1"
+            },
+            {
+                "key": "extra_filters",
+                "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            }
+        ],
+        "postRequestScript": "facets.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "query",
+            "label": "Query (optional)",
+            "placeholder": "*"
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Values per field",
+            "defaultValue": 10
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include logs from the selected objects. Leave empty to search all logs.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Container",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Service",
+                        "Host",
+                        "Deployment Environment"
+                    ]
+                }
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "field",
+            "displayName": "Field",
+            "shape": "string"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "hits",
+            "displayName": "Logs",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}
