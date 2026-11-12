@@ -64,25 +64,21 @@ const linksFor = (m) => {
         links[`${kind.column}LinkId`] = [cluster].concat(kind.parts.map((p) => parts[p]), [name]).join('/');
     }
 
-    const node = label(m, 'node', 'k8s.node.name');
-    if (node) {
-        links.NodeLink = node;
-        links.NodeLinkId = `${cluster}/${node}`;
-    }
-    const service = label(m, null, 'service.name');
-    if (service) {
-        links.ServiceLink = service;
-        links.ServiceLinkId = service;
-    }
-    const host = label(m, null, 'host.name');
-    if (host) {
-        links.HostLink = host;
-        links.HostLinkId = host;
-    }
-    const clusterLabel = label(m, 'cluster', 'k8s.cluster.name');
-    if (clusterLabel && Object.keys(links).length === 0) {
-        links.ClusterLink = clusterLabel;
-        links.ClusterLinkId = clusterLabel;
+    // One link per row: charts drill down only when a row has a single link, so the node,
+    // service, host and cluster are linked only when nothing more specific is.
+    const others = [
+        ['Node', label(m, 'node', 'k8s.node.name'), (v) => `${cluster}/${v}`],
+        ['Service', label(m, null, 'service.name'), (v) => v],
+        ['Host', label(m, null, 'host.name'), (v) => v],
+        ['Cluster', label(m, 'cluster', 'k8s.cluster.name'), (v) => v]
+    ];
+    if (!kind) {
+        const other = others.find(([, value]) => value);
+        if (other) {
+            const [column, value, toId] = other;
+            links[`${column}Link`] = value;
+            links[`${column}LinkId`] = toId(value);
+        }
     }
     return links;
 };
@@ -135,7 +131,11 @@ if (resultType === 'scalar' || resultType === 'string') {
             if (!pivotRows.has(key)) {
                 pivotRows.set(key, Object.assign({}, base, { timestamp: toIso(t) }));
             }
-            pivotRows.get(key)[s.column] = toNumber(v);
+            // A pivot value that matches an existing field (e.g. `timestamp`, `series` or a label)
+            // gets a suffix rather than overwriting it.
+            const row = pivotRows.get(key);
+            const column = s.column in base || s.column === 'timestamp' ? `${s.column} (${pivot})` : s.column;
+            row[column] = toNumber(v);
         });
     });
     result = pivot ? [...pivotRows.values()] : rows;

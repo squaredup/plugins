@@ -13,7 +13,7 @@
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{dataSource[pack] === false ? 'vector(0)' : 'count by (' + labels + (extraLabels ? ',' + extraLabels : '') + ') (' + (match || '{' + required.split(',').map(l => l.trim() + '!=\"\"').join(',') + '}') + ')'}}"
+                "value": "{{dataSource[pack] === false ? 'vector(0)' : 'count by (' + (labels + (extraLabels ? ',' + extraLabels : '')).split(',').flatMap(l => l.split('/')).map(l => l.trim()).filter(l => l && l !== '-').join(',') + ') (' + (match || '{' + required.split(',').map(l => l.trim() + '!=\"\"').join(',') + '}') + ')'}}"
             }
         ],
         "postRequestScript": "labelSets.js",
@@ -32,7 +32,7 @@
             "type": "text",
             "name": "labels",
             "label": "Labels",
-            "help": "Comma-separated label names to group by, e.g. `cluster,namespace,pod`."
+            "help": "Comma-separated label names to group by, e.g. `cluster,namespace,pod`. A label may list alternatives separated by `/`, e.g. `cluster/k8s.cluster.name`; the first non-empty one is used."
         },
         {
             "type": "text",
@@ -50,7 +50,7 @@
             "type": "text",
             "name": "nameKey",
             "label": "Name property",
-            "help": "The property whose value is used as the object name."
+            "help": "The property (or comma-separated properties, joined with ' / ') used as the object name."
         },
         {
             "type": "text",

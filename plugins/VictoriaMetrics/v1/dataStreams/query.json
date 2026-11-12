@@ -34,7 +34,7 @@
             },
             {
                 "key": "extra_filters[]",
-                "value": "{{Array.isArray(scope) && scope.length ? '{' + scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') + '}' : null}}"
+                "value": "{{Array.isArray(scope) && scope.length ? '{' + (scope.flatMap(o => [].concat(o.selector || [])).filter(s => typeof s === 'string' && s && !s.includes('\":=') && !s.includes('\":in(')).join(' or ') || '__name__=\"__squaredup_no_matching_objects__\"') + '}' : null}}"
             }
         ],
         "postRequestScript": "query.js",
@@ -73,7 +73,7 @@
             "type": "objects",
             "name": "scope",
             "label": "Objects (optional)",
-            "help": "Restrict every series selector in the query to the selected objects. Leave empty to query everything.",
+            "help": "Restrict every series selector in the query to the selected objects. Leave empty to query everything. Objects that only come from other plugins (for example VictoriaLogs) don't match any series.",
             "matches": {
                 "sourceType": {
                     "type": "oneOf",
