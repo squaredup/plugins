@@ -36,7 +36,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         }
                     },
@@ -97,7 +97,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         },
                         "metadata": [
@@ -170,7 +170,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         },
                         "metadata": [
@@ -243,7 +243,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         },
                         "metadata": [
@@ -316,7 +316,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         }
                     },
@@ -398,7 +398,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         },
                         "metadata": [
@@ -493,7 +493,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         },
                         "sql": "WITH buckets AS (\n    SELECT\n        \"timestamp\",\n        \"unit\",\n        CASE WHEN \"unit\" = 's' THEN TRY_CAST(\"le\" AS DOUBLE) * 1000 ELSE TRY_CAST(\"le\" AS DOUBLE) END AS \"le_ms\",\n        SUM(\"value\") AS \"cumulative\"\n    FROM \"dataset\"\n    WHERE \"unit\" IN ('s', 'ms') AND \"value\" IS NOT NULL\n    GROUP BY 1, 2, 3\n),\nper_bucket AS (\n    -- Difference cumulative buckets within each histogram family before combining them,\n    -- so families with different bucket boundaries don't get subtracted from each other.\n    SELECT\n        \"timestamp\",\n        \"le_ms\",\n        GREATEST(\"cumulative\" - COALESCE(LAG(\"cumulative\") OVER (PARTITION BY \"timestamp\", \"unit\" ORDER BY \"le_ms\"), 0), 0) AS \"requests\"\n    FROM buckets\n    WHERE isfinite(\"le_ms\")\n)\nSELECT\n    \"timestamp\",\n    ROUND(\"le_ms\", 3) AS \"latencyMs\",\n    SUM(\"requests\") AS \"requestsPerSec\"\nFROM per_bucket\nGROUP BY 1, 2\nORDER BY \"timestamp\", \"latencyMs\""
@@ -565,7 +565,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         }
                     },
@@ -652,7 +652,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         },
                         "metadata": [
@@ -794,7 +794,7 @@
                             "scope": {
                                 "variable": "{{variables.[Service]}}",
                                 "workspace": "{{workspaceId}}",
-                                "scope": "{{scopes.[OpenTelemetry Services]}}"
+                                "scope": "{{scopes.[Services]}}"
                             }
                         }
                     },
