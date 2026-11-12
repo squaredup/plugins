@@ -14,7 +14,7 @@
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{(kind === 'client' ? 'kind:=3' : kind === 'all' ? '*' : 'kind:in(2, 5)') + ' ' + (filter || '') + ' | stats ' + (groupBy === 'none' ? '' : groupBy === 'operation' ? 'by (\"resource_attr:service.name\", name) ' : 'by (\"resource_attr:service.name\") ') + 'count() calls, count() if (status_code:=2) errors, quantile(0.5, duration) p50, quantile(0.95, duration) p95, quantile(0.99, duration) p99'}}"
+                "value": "{{(kind === 'client' ? 'kind:=3' : kind === 'all' ? '*' : 'kind:in(2, 5)') + (filter ? ' (' + filter + ')' : '') + ' | stats ' + (groupBy === 'none' ? '' : groupBy === 'operation' ? 'by (\"resource_attr:service.name\", name) ' : 'by (\"resource_attr:service.name\") ') + 'count() calls, count() if (status_code:=2) errors, quantile(0.5, duration) p50, quantile(0.95, duration) p95, quantile(0.99, duration) p99'}}"
             },
             {
                 "key": "start",
@@ -35,6 +35,10 @@
             {
                 "key": "extra_filters",
                 "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            },
+            {
+                "key": "disable_latency_offset",
+                "value": "true"
             }
         ],
         "postRequestScript": "red.js",
@@ -139,7 +143,13 @@
             "name": "step",
             "label": "Step (optional)",
             "placeholder": "e.g. 5m",
-            "help": "Bucket size of range queries. Defaults to about 120 buckets across the timeframe."
+            "help": "Bucket size of range queries. Defaults to about 120 buckets across the timeframe.",
+            "validation": {
+                "pattern": {
+                    "value": "^(\\d+(\\.\\d+)?(ms|s|m|h|d|w|y))+$",
+                    "message": "Use a duration such as 30s, 5m, 1.5h or 1h30m"
+                }
+            }
         }
     ],
     "manualConfigApply": true,

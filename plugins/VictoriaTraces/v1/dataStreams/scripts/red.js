@@ -33,37 +33,52 @@ const k8sChain = [
 // Span kinds of the spans operations are indexed from (server, consumer).
 const OPERATION_KINDS = ['2', '5', 'server', 'consumer', 'SPAN_KIND_SERVER', 'SPAN_KIND_CONSUMER'];
 
-const linksFor = (m) => {
+const linksFor = (m, options = {}) => {
     const links = {};
+    const add = (column, name, id) => {
+        links[`${column}Link`] = name;
+        links[`${column}LinkId`] = id;
+    };
+    const done = () => options.single && Object.keys(links).length > 0;
+
+    // Service or operation. Operations are only indexed from server and consumer spans, so a
+    // row links to its operation only when its spans are known to be of those kinds - from the
+    // row's own `kind`, or from `options.operationKinds` when the query selected the kind.
+    const serviceAttr = attr(m, 'service.name');
+    const service = first(serviceAttr, fromScope('serviceName'), fromScope('service'));
+    const operation = first(m.name, m.operation);
+    const kindValue = m.kind === undefined ? undefined : String(m.kind);
+    const operationIndexed = kindValue === undefined ? options.operationKinds === true : OPERATION_KINDS.includes(kindValue);
+    if (service && operation && operationIndexed) {
+        add('Operation', operation, `${service}/${operation}`);
+    } else if (serviceAttr) {
+        add('Service', serviceAttr, serviceAttr);
+    }
+    // With `single`, a row gets only its most specific link: charts drill down only when a
+    // row has exactly one. Tables of individual spans keep every link.
+    if (done()) {
+        return links;
+    }
     const cluster = first(attr(m, 'k8s.cluster.name'), fromScope('cluster'), defaultCluster);
     const namespace = first(attr(m, 'k8s.namespace.name'), fromScope('namespace'));
     const kind = k8sChain.find((k) => attr(m, k.name) && (k.parts.length === 0 || namespace));
     if (kind) {
         const name = attr(m, kind.name);
-        links[`${kind.column}Link`] = name;
-        links[`${kind.column}LinkId`] = [cluster].concat(kind.parts.length ? [namespace] : [], [name]).join('/');
+        add(kind.column, name, [cluster].concat(kind.parts.length ? [namespace] : [], [name]).join('/'));
+    }
+    if (done()) {
+        return links;
     }
     const node = attr(m, 'k8s.node.name');
     if (node) {
-        links.NodeLink = node;
-        links.NodeLinkId = `${cluster}/${node}`;
+        add('Node', node, `${cluster}/${node}`);
     }
-    // A row for one operation links to the operation rather than its service, so charts of
-    // operations stay clickable (charts drill down only when a row has a single link).
-    const service = first(attr(m, 'service.name'), fromScope('serviceName'), fromScope('service'));
-    const operation = first(m.name, m.operation);
-    const kindValue = m.kind === undefined ? undefined : String(m.kind);
-    if (service && operation && (kindValue === undefined || OPERATION_KINDS.includes(kindValue))) {
-        links.OperationLink = operation;
-        links.OperationLinkId = `${service}/${operation}`;
-    } else if (attr(m, 'service.name')) {
-        links.ServiceLink = attr(m, 'service.name');
-        links.ServiceLinkId = attr(m, 'service.name');
+    if (done()) {
+        return links;
     }
     const host = attr(m, 'host.name');
     if (host) {
-        links.HostLink = host;
-        links.HostLinkId = host;
+        add('Host', host, host);
     }
     return links;
 };
@@ -73,18 +88,34 @@ const toNumber = (v) => {
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
 };
+// The span kinds the query selected (see red.json): incoming (server and consumer) by default.
+const kindParam = typeof context.config?.kind === 'string' ? context.config.kind : '';
 const raw = Array.isArray(data?.data?.result) ? data.data.result : [];
 const instant = data?.data?.resultType === 'vector';
 
 // Seconds each value covers: the whole timeframe for an instant query, else the step.
 const tf = context.timeframe || {};
 const span = Math.max(1, Number(tf.unixEnd) - Number(tf.unixStart));
-const stepFromConfig = (() => {
-    const m = /^(\d+)(s|m|h|d)$/.exec(String(context.config?.step || '').trim());
-    return m ? Number(m[1]) * { s: 1, m: 60, h: 3600, d: 86400 }[m[2]] : null;
-})();
-const step = stepFromConfig || Math.max(60, Math.ceil(span / 120));
-const window = instant ? Math.min(span, Math.floor(Date.now() / 1000) - Number(tf.unixStart)) || span : step;
+// LogsQL durations such as `30s`, `1.5h`, `1h30m`, `500ms` or `1w`, in seconds.
+const UNITS = { ms: 0.001, s: 1, m: 60, h: 3600, d: 86400, w: 604800, y: 31536000 };
+const parseDuration = (text) => {
+    const value = String(text || '').trim();
+    const parts = [...value.matchAll(/(\d+(?:\.\d+)?)(ms|s|m|h|d|w|y)/g)];
+    if (!value || parts.map((p) => p[0]).join('') !== value) {
+        return null;
+    }
+    const seconds = parts.reduce((sum, p) => sum + Number(p[1]) * UNITS[p[2]], 0);
+    return seconds > 0 ? seconds : null;
+};
+const step = parseDuration(context.config?.step) || Math.max(60, Math.ceil(span / 120));
+const now = Math.floor(Date.now() / 1000);
+const start = Number(tf.unixStart);
+const end = Math.min(Number(tf.unixEnd), now);
+// Seconds a value covers: the elapsed timeframe for an instant query, else the step.
+// VictoriaTraces aligns range buckets to the step and counts each whole bucket (the first
+// bucket starts at or before the timeframe start), so every bucket spans a full step.
+const windowFor = () => (instant ? Math.max(1, end - start) : step);
+
 
 const rows = new Map();
 raw.forEach((s) => {
@@ -95,7 +126,7 @@ raw.forEach((s) => {
         if (!rows.has(key)) {
             const service = group[R + 'service.name'] || '';
             const operation = group.name || '';
-            rows.set(key, Object.assign({}, linksFor(group), {
+            rows.set(key, Object.assign({}, linksFor(group, { single: true, operationKinds: !kindParam || kindParam === 'server' }), {
                 timestamp: new Date(Number(t) * 1000).toISOString(),
                 service: service || undefined,
                 operation: operation || undefined,
@@ -112,7 +143,7 @@ result = [...rows.values()].map((r) => {
     return {
         ...r,
         calls,
-        callsPerSecond: calls / window,
+        callsPerSecond: calls / windowFor(),
         errors: r.errors || 0,
         errorPercent: calls > 0 ? (100 * (r.errors || 0)) / calls : null,
         p50: ms(r.p50),

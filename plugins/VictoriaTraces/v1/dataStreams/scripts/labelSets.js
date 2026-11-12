@@ -7,10 +7,9 @@
 // (sent as `extra_filters`). The selector is wrapped in parentheses so it can be
 // combined with other filters without `or` escaping a time range.
 //
-// Fields not listed in `required` are optional (e.g. the cluster). They are matched
-// with `in("<value>", "")` so the selector also matches logs that lack the field. A
-// missing `cluster` falls back to the data source's "Default cluster name", the same
-// rule the query streams use to build drilldown ids, so ids always agree.
+// Fields not listed in `required` are optional (e.g. the cluster). A missing `cluster`
+// falls back to the data source's "Default cluster name", the same rule the query streams
+// use to build drilldown ids, so ids always agree (see `matcher` for how it is matched).
 //
 // `extraLabels` / `extraKeys` add properties that are not part of the id or selector.
 const split = (s) => (s || '').split(',').map((x) => x.trim()).filter((x) => x.length > 0);
@@ -35,12 +34,25 @@ const defaultCluster = typeof dataSource.defaultCluster === 'string' ? dataSourc
 
 const quote = (v) => JSON.stringify(String(v));
 
+// Spans without a cluster belong to the default cluster, so only an object in the default
+// cluster also matches spans without the field; objects in other clusters match it exactly,
+// and an object with no cluster at all matches only spans without one (the same rule as the
+// VictoriaMetrics and VictoriaLogs plugins).
 const matcher = (label, i, value) => {
-    if (label === '-' || !value) {
+    if (label === '-') {
         return null;
     }
-    return optional[i] ? `${quote(label)}:in(${quote(value)}, "")` : `${quote(label)}:=${quote(value)}`;
+    if (!optional[i]) {
+        return value ? `${quote(label)}:=${quote(value)}` : null;
+    }
+    if (!value) {
+        return `${quote(label)}:=""`;
+    }
+    return keys[i] === 'cluster' && value === defaultCluster
+        ? `${quote(label)}:in(${quote(value)}, "")`
+        : `${quote(label)}:=${quote(value)}`;
 };
+
 
 // Response body: { status, data: { resultType, result: [{ metric, value }] } }
 const results = Array.isArray(data?.data?.result) ? data.data.result : [];

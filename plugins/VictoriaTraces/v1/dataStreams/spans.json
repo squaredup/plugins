@@ -14,11 +14,7 @@
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{query || 'span_id:*'}}"
-            },
-            {
-                "key": "limit",
-                "value": "{{Math.min(Number(limit) || 200, 500)}}"
+                "value": "{{'(' + (query || '*') + ') span_id:* | sort by (start_time_unix_nano desc) | limit ' + Math.max(1, Math.min(Math.round(Number(limit)) || 200, 500))}}"
             },
             {
                 "key": "start",
@@ -31,6 +27,10 @@
             {
                 "key": "extra_filters",
                 "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            },
+            {
+                "key": "disable_latency_offset",
+                "value": "true"
             }
         ],
         "postRequestScript": "spans.js",

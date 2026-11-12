@@ -1,7 +1,7 @@
 {
     "name": "traceSpans",
     "displayName": "Trace Spans",
-    "description": "All spans of one trace, in start order with their offset from the start of the trace",
+    "description": "Spans of one trace in start order with their offset from the start of the trace, up to the first 500 spans",
     "tags": [
         "Traces",
         "Spans"
@@ -13,11 +13,7 @@
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{'trace_id:=' + JSON.stringify(String(traceId || '').trim())}}"
-            },
-            {
-                "key": "limit",
-                "value": "500"
+                "value": "{{'trace_id:=' + JSON.stringify(String(traceId || '').trim()) + ' span_id:* | sort by (start_time_unix_nano) | limit 500'}}"
             },
             {
                 "key": "start",
@@ -26,6 +22,10 @@
             {
                 "key": "end",
                 "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "disable_latency_offset",
+                "value": "true"
             }
         ],
         "postRequestScript": "spans.js",
@@ -288,6 +288,11 @@
             "name": "attributes",
             "displayName": "Attributes",
             "shape": "json"
+        },
+        {
+            "name": "truncated",
+            "displayName": "Truncated",
+            "shape": "boolean"
         },
         {
             "pattern": ".*"

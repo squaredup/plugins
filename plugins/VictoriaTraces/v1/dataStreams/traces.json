@@ -1,7 +1,7 @@
 {
     "name": "traces",
     "displayName": "Traces",
-    "description": "Whole traces with a matching span in the timeframe, one row per trace with its root service and operation, duration, span count and errors",
+    "description": "Traces with a matching span in the timeframe, one row per trace with its root service and operation, duration, span count and errors, counting the spans within the timeframe",
     "tags": [
         "Traces",
         "APM"
@@ -13,7 +13,7 @@
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{'trace_id:in((' + (filter || '*') + ')' + (Array.isArray(scope) && scope.length ? ' (' + scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') + ')' : '') + ' | fields trace_id) | stats by (trace_id) count() spans, count() if (status_code:=2) errors, min(start_time_unix_nano) start_ns, max(end_time_unix_nano) end_ns, row_min(start_time_unix_nano, name, \"resource_attr:service.name\") root | math (end_ns - start_ns) / 1000000 as duration_ms | delete end_ns' + (errorsOnly ? ' | filter errors:>0' : '') + ' | sort by (' + (sort === 'newest' ? 'start_ns' : 'duration_ms') + ' desc) | limit ' + Math.min(Number(limit) || 50, 500)}}"
+                "value": "{{'trace_id:in((' + (filter || '*') + ')' + (Array.isArray(scope) && scope.length ? ' (' + scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') + ')' : '') + ' | fields trace_id) | stats by (trace_id) count() spans, count() if (status_code:=2) errors, min(start_time_unix_nano) start_ns, max(end_time_unix_nano) end_ns, row_min(start_time_unix_nano, name, \"resource_attr:service.name\") root | math (end_ns - start_ns) / 1000000 as duration_ms | delete end_ns' + (errorsOnly ? ' | filter errors:>0' : '') + ' | sort by (' + (sort === 'newest' ? 'start_ns' : 'duration_ms') + ' desc) | limit ' + Math.max(1, Math.min(Math.round(Number(limit)) || 50, 500))}}"
             },
             {
                 "key": "start",
@@ -26,6 +26,10 @@
             {
                 "key": "time",
                 "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "disable_latency_offset",
+                "value": "true"
             }
         ],
         "postRequestScript": "traces.js",
@@ -94,7 +98,17 @@
             "name": "limit",
             "label": "Limit",
             "defaultValue": 50,
-            "help": "Maximum number of traces (up to 500)."
+            "help": "Maximum number of traces (up to 500).",
+            "validation": {
+                "min": {
+                    "value": 1,
+                    "message": "Return at least 1 trace"
+                },
+                "max": {
+                    "value": 500,
+                    "message": "At most 500 traces can be returned"
+                }
+            }
         }
     ],
     "manualConfigApply": true,

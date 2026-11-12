@@ -34,37 +34,52 @@ const k8sChain = [
 // Span kinds of the spans operations are indexed from (server, consumer).
 const OPERATION_KINDS = ['2', '5', 'server', 'consumer', 'SPAN_KIND_SERVER', 'SPAN_KIND_CONSUMER'];
 
-const linksFor = (m) => {
+const linksFor = (m, options = {}) => {
     const links = {};
+    const add = (column, name, id) => {
+        links[`${column}Link`] = name;
+        links[`${column}LinkId`] = id;
+    };
+    const done = () => options.single && Object.keys(links).length > 0;
+
+    // Service or operation. Operations are only indexed from server and consumer spans, so a
+    // row links to its operation only when its spans are known to be of those kinds - from the
+    // row's own `kind`, or from `options.operationKinds` when the query selected the kind.
+    const serviceAttr = attr(m, 'service.name');
+    const service = first(serviceAttr, fromScope('serviceName'), fromScope('service'));
+    const operation = first(m.name, m.operation);
+    const kindValue = m.kind === undefined ? undefined : String(m.kind);
+    const operationIndexed = kindValue === undefined ? options.operationKinds === true : OPERATION_KINDS.includes(kindValue);
+    if (service && operation && operationIndexed) {
+        add('Operation', operation, `${service}/${operation}`);
+    } else if (serviceAttr) {
+        add('Service', serviceAttr, serviceAttr);
+    }
+    // With `single`, a row gets only its most specific link: charts drill down only when a
+    // row has exactly one. Tables of individual spans keep every link.
+    if (done()) {
+        return links;
+    }
     const cluster = first(attr(m, 'k8s.cluster.name'), fromScope('cluster'), defaultCluster);
     const namespace = first(attr(m, 'k8s.namespace.name'), fromScope('namespace'));
     const kind = k8sChain.find((k) => attr(m, k.name) && (k.parts.length === 0 || namespace));
     if (kind) {
         const name = attr(m, kind.name);
-        links[`${kind.column}Link`] = name;
-        links[`${kind.column}LinkId`] = [cluster].concat(kind.parts.length ? [namespace] : [], [name]).join('/');
+        add(kind.column, name, [cluster].concat(kind.parts.length ? [namespace] : [], [name]).join('/'));
+    }
+    if (done()) {
+        return links;
     }
     const node = attr(m, 'k8s.node.name');
     if (node) {
-        links.NodeLink = node;
-        links.NodeLinkId = `${cluster}/${node}`;
+        add('Node', node, `${cluster}/${node}`);
     }
-    // A row for one operation links to the operation rather than its service, so charts of
-    // operations stay clickable (charts drill down only when a row has a single link).
-    const service = first(attr(m, 'service.name'), fromScope('serviceName'), fromScope('service'));
-    const operation = first(m.name, m.operation);
-    const kindValue = m.kind === undefined ? undefined : String(m.kind);
-    if (service && operation && (kindValue === undefined || OPERATION_KINDS.includes(kindValue))) {
-        links.OperationLink = operation;
-        links.OperationLinkId = `${service}/${operation}`;
-    } else if (attr(m, 'service.name')) {
-        links.ServiceLink = attr(m, 'service.name');
-        links.ServiceLinkId = attr(m, 'service.name');
+    if (done()) {
+        return links;
     }
     const host = attr(m, 'host.name');
     if (host) {
-        links.HostLink = host;
-        links.HostLinkId = host;
+        add('Host', host, host);
     }
     return links;
 };
@@ -119,6 +134,8 @@ const rows = spans.map((s) => {
     });
     if (traceMode) {
         row.offsetMs = Number.isFinite(start) && Number.isFinite(traceStart) ? (start - traceStart) / 1e6 : null;
+        // Trace Spans returns at most the first 500 spans of a trace (in start order).
+        row.truncated = spans.length >= 500;
     }
     return { row, start };
 });

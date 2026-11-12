@@ -1,18 +1,18 @@
 {
     "name": "fieldValues",
     "displayName": "Field Values",
-    "description": "Values of a field in matching spans, with the number of spans for each",
+    "description": "The most common values of a span field in matching spans, with the number of spans for each",
     "tags": [
         "Metadata"
     ],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
-        "endpointPath": "select/logsql/field_values",
+        "endpointPath": "select/logsql/stats_query",
         "getArgs": [
             {
                 "key": "query",
-                "value": "{{query || '*'}}"
+                "value": "{{'(' + (query || '*') + ') | stats by (' + JSON.stringify(String(field || '').trim()) + ') count() hits | sort by (hits desc) | limit ' + Math.max(1, Math.min(Math.round(Number(limit)) || 100, 1000))}}"
             },
             {
                 "key": "start",
@@ -23,15 +23,19 @@
                 "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
             },
             {
-                "key": "field",
-                "value": "{{field}}"
+                "key": "time",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
             },
             {
                 "key": "extra_filters",
                 "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            },
+            {
+                "key": "disable_latency_offset",
+                "value": "true"
             }
         ],
-        "postRequestScript": "values.js",
+        "postRequestScript": "fieldValues.js",
         "paging": {
             "mode": "none"
         }
@@ -57,7 +61,12 @@
             "type": "number",
             "name": "limit",
             "label": "Limit (optional)",
-            "help": "Return only the values with the most logs."
+            "help": "Number of values to return, most common first (up to 1,000).",
+            "defaultValue": 100,
+            "validation": {
+                "min": 1,
+                "max": 1000
+            }
         },
         {
             "type": "objects",
