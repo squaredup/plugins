@@ -92,17 +92,12 @@ const updateOnlyCodes = (incident) => {
 
 // The same component name can appear in several groups (Duo has an "Admin Panel" per deployment), and grouping or
 // filtering by name would merge them. Name components as the import does: a repeated name is qualified with its
-// group. Group names are only in components.json, so read it when the incidents repeat a name or need update names.
-const idsByName = new Map();
-for (const incident of data.incidents) {
-    for (const c of incident.components || []) {
-        if (!idsByName.has(c.name)) idsByName.set(c.name, new Set());
-        idsByName.get(c.name).add(c.id);
-    }
-}
-const needsList =
-    [...idsByName.values()].some((ids) => ids.size > 1) ||
-    data.incidents.some((incident) => updateOnlyCodes(incident).size > 0);
+// group. Whether a name repeats is decided across the whole page, not just these incidents, so a component keeps
+// the same name in every tile. Group names are only in components.json, so read it whenever there is a component
+// to name.
+const needsList = data.incidents.some(
+    (incident) => (incident.components || []).length > 0 || updateOnlyCodes(incident).size > 0
+);
 
 let componentName = (id, fallback) => fallback;
 if (needsList) {

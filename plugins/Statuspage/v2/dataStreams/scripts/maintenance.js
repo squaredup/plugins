@@ -38,18 +38,11 @@ const componentIds = new Set(
 );
 
 // The same component name can appear in several groups (one per region or deployment), and grouping by name would
-// merge them. Name components as the import does: a repeated name is qualified with its group. Group names are only
-// in components.json, so read it when the windows repeat a name.
-const idsByName = new Map();
-for (const m of windows) {
-    for (const c of m.components || []) {
-        if (!idsByName.has(c.name)) idsByName.set(c.name, new Set());
-        idsByName.get(c.name).add(c.id);
-    }
-}
-
+// merge them. Name components as the import does: a repeated name is qualified with its group. Whether a name
+// repeats is decided across the whole page, not just these windows, so a component keeps the same name in every
+// tile. Group names are only in components.json, so read it whenever there is a component to name.
 let componentName = (c) => c.name;
-if ([...idsByName.values()].some((ids) => ids.size > 1)) {
+if (windows.some((m) => (m.components || []).length > 0)) {
     try {
         const response = await fetch(new URL('/api/v2/components.json', url).href);
         const body = response.ok ? await response.json() : undefined;
