@@ -1,0 +1,154 @@
+[
+    {
+        "type": "text",
+        "name": "url",
+        "label": "VictoriaTraces URL",
+        "placeholder": "http://victoriatraces.example.com:10428",
+        "help": "The base URL that serves the VictoriaTraces querying API, **without** `/select`.\n\n- Single-node: `http://<host>:10428`\n- Cluster (vtselect): `http://<vtselect>:10471`\n- Behind vmauth or VictoriaMetrics Cloud: the URL your proxy exposes for trace queries",
+        "validation": {
+            "required": true,
+            "pattern": {
+                "value": "^https?://[^\\s]+$",
+                "message": "Enter a URL starting with http:// or https://"
+            }
+        }
+    },
+    {
+        "type": "radio",
+        "name": "authType",
+        "label": "Authentication",
+        "defaultValue": "none",
+        "validation": {
+            "required": true
+        },
+        "options": [
+            {
+                "value": "none",
+                "label": "None"
+            },
+            {
+                "value": "token",
+                "label": "Bearer token"
+            },
+            {
+                "value": "basic",
+                "label": "Basic authentication"
+            }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": {
+            "authType": "token"
+        },
+        "fields": [
+            {
+                "type": "password",
+                "name": "apiToken",
+                "label": "Bearer token",
+                "help": "Sent as `Authorization: Bearer <token>` \u2014 for example a vmauth bearer token or a VictoriaMetrics Cloud access token with read access.",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
+    },
+    {
+        "type": "fieldGroup",
+        "visible": {
+            "authType": "basic"
+        },
+        "fields": [
+            {
+                "type": "text",
+                "name": "username",
+                "label": "Username",
+                "validation": {
+                    "required": true
+                }
+            },
+            {
+                "type": "password",
+                "name": "password",
+                "label": "Password",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
+    },
+    {
+        "type": "text",
+        "name": "accountId",
+        "label": "Account ID",
+        "placeholder": "0",
+        "help": "Tenant account ID for multitenant VictoriaTraces, sent as the `AccountID` header. Leave empty for the default tenant."
+    },
+    {
+        "type": "text",
+        "name": "projectId",
+        "label": "Project ID",
+        "placeholder": "0",
+        "help": "Tenant project ID for multitenant VictoriaTraces, sent as the `ProjectID` header. Leave empty for the default tenant."
+    },
+    {
+        "type": "checkbox",
+        "name": "ignoreCertificateErrors",
+        "label": "Ignore certificate errors",
+        "help": "Enable when connecting to an instance with a self-signed certificate."
+    },
+    {
+        "type": "markdown",
+        "name": "objectsToIndexHeading",
+        "content": "**Objects to index**"
+    },
+    {
+        "type": "checkbox",
+        "name": "indexServices",
+        "label": "Services and dependencies",
+        "help": "Services (`service.name`) and the calls between them, from the service graph.",
+        "defaultValue": true
+    },
+    {
+        "type": "checkbox",
+        "name": "indexOperations",
+        "label": "Operations",
+        "help": "The operations (server and consumer span names) of each service. Leave unticked if your span names include IDs or full URLs, which would create very many objects.",
+        "defaultValue": true
+    },
+    {
+        "type": "checkbox",
+        "name": "indexOtelK8s",
+        "label": "Kubernetes",
+        "help": "Kubernetes clusters, nodes, namespaces, workloads and pods from OpenTelemetry `k8s.*` resource attributes.",
+        "defaultValue": true
+    },
+    {
+        "type": "checkbox",
+        "name": "indexHosts",
+        "label": "Hosts and environments",
+        "help": "Hosts (`host.name`) and deployment environments (`deployment.environment.name`).",
+        "defaultValue": true
+    },
+    {
+        "type": "text",
+        "name": "indexLookback",
+        "label": "Indexing lookback",
+        "defaultValue": "1h",
+        "placeholder": "1h",
+        "help": "How far back to look for spans when discovering objects, as a duration such as `30m`, `1h` or `6h`. Objects without spans in this window aren't indexed. Longer windows find more objects but make indexing slower.",
+        "validation": {
+            "pattern": {
+                "value": "^\\d+(ms|s|m|h|d|w)$",
+                "message": "Use a duration such as 30m, 1h or 1d"
+            }
+        }
+    },
+    {
+        "type": "text",
+        "name": "defaultCluster",
+        "label": "Default cluster name",
+        "placeholder": "e.g. prod-eu-1",
+        "help": "Cluster to assume for spans without a `k8s.cluster.name` resource attribute, so Kubernetes objects match those from the VictoriaMetrics and VictoriaLogs plugins and drilldowns resolve."
+    }
+]

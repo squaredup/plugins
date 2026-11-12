@@ -1,0 +1,297 @@
+{
+    "name": "traceSpans",
+    "displayName": "Trace Spans",
+    "description": "All spans of one trace, in start order with their offset from the start of the trace",
+    "tags": [
+        "Traces",
+        "Spans"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/query",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{'trace_id:=' + JSON.stringify(String(traceId || '').trim())}}"
+            },
+            {
+                "key": "limit",
+                "value": "500"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            }
+        ],
+        "postRequestScript": "spans.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "text",
+            "name": "traceId",
+            "label": "Trace ID",
+            "validation": {
+                "required": true
+            },
+            "help": "The trace to show. The tile's timeframe must include the trace."
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Start",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "offsetMs",
+            "displayName": "Offset",
+            "shape": [
+                "milliseconds",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "service",
+            "displayName": "Service name",
+            "shape": "string"
+        },
+        {
+            "name": "operation",
+            "displayName": "Operation",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "kind",
+            "displayName": "Kind",
+            "shape": "string"
+        },
+        {
+            "name": "durationMs",
+            "displayName": "Duration",
+            "shape": [
+                "milliseconds",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "ok",
+                            "unset"
+                        ],
+                        "error": [
+                            "error"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusMessage",
+            "displayName": "Status message",
+            "shape": "string"
+        },
+        {
+            "name": "traceId",
+            "displayName": "Trace ID",
+            "shape": "string"
+        },
+        {
+            "name": "spanId",
+            "displayName": "Span ID",
+            "shape": "string"
+        },
+        {
+            "name": "parentSpanId",
+            "displayName": "Parent span ID",
+            "shape": "string"
+        },
+        {
+            "name": "PodLink",
+            "displayName": "Pod",
+            "shape": "string",
+            "sourceId": "PodLinkId",
+            "sourceType": "Kubernetes Pod"
+        },
+        {
+            "name": "PodLinkId",
+            "displayName": "Pod ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DeploymentLink",
+            "displayName": "Deployment",
+            "shape": "string",
+            "sourceId": "DeploymentLinkId",
+            "sourceType": "Kubernetes Deployment"
+        },
+        {
+            "name": "DeploymentLinkId",
+            "displayName": "Deployment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "StatefulSetLink",
+            "displayName": "StatefulSet",
+            "shape": "string",
+            "sourceId": "StatefulSetLinkId",
+            "sourceType": "Kubernetes StatefulSet"
+        },
+        {
+            "name": "StatefulSetLinkId",
+            "displayName": "StatefulSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DaemonSetLink",
+            "displayName": "DaemonSet",
+            "shape": "string",
+            "sourceId": "DaemonSetLinkId",
+            "sourceType": "Kubernetes DaemonSet"
+        },
+        {
+            "name": "DaemonSetLinkId",
+            "displayName": "DaemonSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ReplicaSetLink",
+            "displayName": "ReplicaSet",
+            "shape": "string",
+            "sourceId": "ReplicaSetLinkId",
+            "sourceType": "Kubernetes ReplicaSet"
+        },
+        {
+            "name": "ReplicaSetLinkId",
+            "displayName": "ReplicaSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeJobLink",
+            "displayName": "Job",
+            "shape": "string",
+            "sourceId": "KubeJobLinkId",
+            "sourceType": "Kubernetes Job"
+        },
+        {
+            "name": "KubeJobLinkId",
+            "displayName": "Job ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeCronJobLink",
+            "displayName": "CronJob",
+            "shape": "string",
+            "sourceId": "KubeCronJobLinkId",
+            "sourceType": "Kubernetes CronJob"
+        },
+        {
+            "name": "KubeCronJobLinkId",
+            "displayName": "CronJob ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NamespaceLink",
+            "displayName": "Namespace",
+            "shape": "string",
+            "sourceId": "NamespaceLinkId",
+            "sourceType": "Kubernetes Namespace"
+        },
+        {
+            "name": "NamespaceLinkId",
+            "displayName": "Namespace ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NodeLink",
+            "displayName": "Node",
+            "shape": "string",
+            "sourceId": "NodeLinkId",
+            "sourceType": "Kubernetes Node"
+        },
+        {
+            "name": "NodeLinkId",
+            "displayName": "Node ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "OperationLink",
+            "displayName": "Operation",
+            "shape": "string",
+            "sourceId": "OperationLinkId",
+            "sourceType": "Service Operation"
+        },
+        {
+            "name": "OperationLinkId",
+            "displayName": "Operation ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ServiceLink",
+            "displayName": "Service",
+            "shape": "string",
+            "sourceId": "ServiceLinkId",
+            "sourceType": "Service"
+        },
+        {
+            "name": "ServiceLinkId",
+            "displayName": "Service ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "HostLink",
+            "displayName": "Host",
+            "shape": "string",
+            "sourceId": "HostLinkId",
+            "sourceType": "Host"
+        },
+        {
+            "name": "HostLinkId",
+            "displayName": "Host ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "attributes",
+            "displayName": "Attributes",
+            "shape": "json"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true
+}

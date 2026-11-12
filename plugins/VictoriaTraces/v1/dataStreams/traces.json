@@ -1,0 +1,166 @@
+{
+    "name": "traces",
+    "displayName": "Traces",
+    "description": "Whole traces with a matching span in the timeframe, one row per trace with its root service and operation, duration, span count and errors",
+    "tags": [
+        "Traces",
+        "APM"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/stats_query",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{'trace_id:in((' + (filter || '*') + ')' + (Array.isArray(scope) && scope.length ? ' (' + scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') + ')' : '') + ' | fields trace_id) | stats by (trace_id) count() spans, count() if (status_code:=2) errors, min(start_time_unix_nano) start_ns, max(end_time_unix_nano) end_ns, row_min(start_time_unix_nano, name, \"resource_attr:service.name\") root | math (end_ns - start_ns) / 1000000 as duration_ms | delete end_ns' + (errorsOnly ? ' | filter errors:>0' : '') + ' | sort by (' + (sort === 'newest' ? 'start_ns' : 'duration_ms') + ' desc) | limit ' + Math.min(Number(limit) || 50, 500)}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "time",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            }
+        ],
+        "postRequestScript": "traces.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include traces that pass through the selected objects. The whole trace is returned.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Service",
+                        "Service Operation",
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Host",
+                        "Deployment Environment"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Span filter (optional)",
+            "placeholder": "e.g. name:=\"GET /api/orders\"",
+            "help": "A LogsQL filter; traces with at least one matching span are returned."
+        },
+        {
+            "type": "switch",
+            "name": "sort",
+            "label": "Order",
+            "defaultValue": "slowest",
+            "options": [
+                {
+                    "value": "slowest",
+                    "label": "Slowest first"
+                },
+                {
+                    "value": "newest",
+                    "label": "Newest first"
+                }
+            ]
+        },
+        {
+            "type": "checkbox",
+            "name": "errorsOnly",
+            "label": "Only traces with errors"
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Limit",
+            "defaultValue": 50,
+            "help": "Maximum number of traces (up to 500)."
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "start",
+            "displayName": "Start",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "traceId",
+            "displayName": "Trace ID",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "rootService",
+            "displayName": "Root service",
+            "shape": "string"
+        },
+        {
+            "name": "rootOperation",
+            "displayName": "Root operation",
+            "shape": "string"
+        },
+        {
+            "name": "durationMs",
+            "displayName": "Duration",
+            "shape": [
+                "milliseconds",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "spans",
+            "displayName": "Spans",
+            "shape": "number"
+        },
+        {
+            "name": "errors",
+            "displayName": "Errors",
+            "shape": "number"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "state"
+        },
+        {
+            "name": "ServiceLink",
+            "displayName": "Service",
+            "shape": "string",
+            "sourceId": "ServiceLinkId",
+            "sourceType": "Service"
+        },
+        {
+            "name": "ServiceLinkId",
+            "displayName": "Service ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true
+}
