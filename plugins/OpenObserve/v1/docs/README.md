@@ -40,11 +40,10 @@ The out-of-the-box dashboards include an org-wide **Overview** plus a **Stream**
 
 ## Data streams
 
-- **Streams** — streams of a chosen type (logs/metrics/traces), with name, document count, and size; account-wide. Backs import and is hidden from the tile editor.
-- **Stream Details** — streams of a chosen type (logs/metrics/traces), with document counts, storage size, schema, and settings; account-wide.
+- **Streams** — streams of a chosen type (logs/metrics/traces), with document counts, storage size, and settings; account-wide. Turn on **Include field schema** to also fill the Total Fields and Schema columns. Also backs import.
 - **Logs Search**, **Metrics Search**, **Traces Search** — records from one stream, either the latest records or those matching an optional SQL query; each is scoped to streams of its own type, so the object picker only lists log, metric, or trace streams respectively.
 - **Traces Latest** — recent traces within the last hour, with a span count and a link to view each trace in OpenObserve; scoped to a trace stream. An optional **Bucket interval** (e.g. `5m`) switches it to one row per time bucket (trace count plus avg/min/max duration) for charting finer than the tile editor's own hourly minimum.
-- **Metrics Query** — time series data matching a PromQL query; account-wide.
+- **Metrics Query** — time series data matching a PromQL query; account-wide. Here and in Simple Metrics Query, a blank **Step** scales with the timeframe: about 1,000 points per series, and never less than 60s.
 - **Simple Metrics Query** — time series data for a metric, built from a guided picker (metric → label → values → aggregation) instead of hand-written PromQL; account-wide.
 - **Metric Names**, **Metric Labels**, **Label Values** — back the Simple Metrics Query picker's cascading dropdowns; hidden from the tile editor.
 - **Pipelines** — data-transformation pipelines defined in the organization, with node/edge counts and last error; account-wide.

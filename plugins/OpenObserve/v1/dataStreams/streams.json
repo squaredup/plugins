@@ -1,7 +1,7 @@
 {
     "name": "streams",
     "displayName": "Streams",
-    "description": "Streams registered in the organization, with stats and settings",
+    "description": "Streams registered in the organization, with stats, settings, and optionally their field schema",
     "tags": ["Streams"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
@@ -9,7 +9,7 @@
         "endpointPath": "streams",
         "getArgs": [
             { "key": "type", "value": "{{type}}" },
-            { "key": "fetchSchema", "value": "false" }
+            { "key": "fetchSchema", "value": "{{String(includeSchema) === 'true' ? 'true' : 'false'}}" }
         ],
         "expandInnerObjects": true,
         "pathToData": "list"
@@ -32,14 +32,23 @@
                     { "value": "traces", "label": "Traces" }
                 ]
             }
+        },
+        {
+            "type": "toggle",
+            "name": "includeSchema",
+            "label": "Include field schema",
+            "help": "Fills the Total Fields and Schema columns. When off, Total Fields is 0 and Schema is empty."
         }
     ],
     "metadata": [
-        { "name": "name", "displayName": "Name", "shape": "string" },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
         { "name": "stream_type", "displayName": "Stream Type", "shape": "string" },
+        { "name": "total_fields", "displayName": "Total Fields", "shape": "number" },
         { "name": "stats.doc_num", "displayName": "Document Count", "shape": "number" },
         { "name": "stats.storage_size", "displayName": "Storage Size (MB)", "shape": ["megabytes", {}] },
         { "name": "stats.compressed_size", "displayName": "Compressed Size (MB)", "shape": ["megabytes", {}] },
+        { "name": "schema", "displayName": "Schema", "shape": "json" },
+        { "name": "settings", "displayName": "Settings", "shape": "json" },
         {
             "name": "sourceId",
             "displayName": "Source ID",
@@ -48,6 +57,5 @@
             "visible": false
         }
     ],
-    "visibility": { "type": "hidden" },
     "timeframes": false
 }

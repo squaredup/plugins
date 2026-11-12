@@ -23,8 +23,8 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": { "type": "logs" },
                         "group": { "by": [], "aggregate": [{ "type": "count" }] }
@@ -57,8 +57,8 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": { "type": "metrics" },
                         "group": { "by": [], "aggregate": [{ "type": "count" }] }
@@ -91,8 +91,8 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": { "type": "traces" },
                         "group": { "by": [], "aggregate": [{ "type": "count" }] }
@@ -125,8 +125,8 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": { "type": "logs" },
                         "group": { "by": [], "aggregate": [{ "type": "sum", "names": ["stats.doc_num"] }] }
@@ -159,8 +159,8 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": { "type": "logs" },
                         "group": { "by": [], "aggregate": [{ "type": "sum", "names": ["stats.storage_size"] }] }
@@ -193,8 +193,8 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": { "type": "logs" },
                         "group": { "by": [], "aggregate": [{ "type": "sum", "names": ["stats.compressed_size"] }] }
@@ -227,10 +227,10 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
-                        "dataSourceConfig": { "type": "logs" },
+                        "dataSourceConfig": { "type": "logs", "includeSchema": true },
                         "group": { "by": [], "aggregate": [{ "type": "mean", "names": ["total_fields"] }] }
                     },
                     "visualisation": {
@@ -261,8 +261,8 @@
                     "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.streamDetails}}",
-                        "name": "streamDetails",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
                         "dataSourceConfig": { "type": "logs" },
                         "sort": { "by": [["stats.doc_num", "desc"]] }
@@ -275,12 +275,11 @@
                                 "columnOrder": [
                                     "name",
                                     "stream_type",
-                                    "total_fields",
                                     "stats.doc_num",
                                     "stats.storage_size",
                                     "stats.compressed_size"
                                 ],
-                                "hiddenColumns": ["schema", "settings"]
+                                "hiddenColumns": ["total_fields", "schema", "settings"]
                             }
                         }
                     }
@@ -530,28 +529,30 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Metric Count Over Time",
-                    "description": "Example PromQL query against this instance's metric_count metric — edit the query in the tile's parameters",
+                    "title": "Metric Streams",
+                    "description": "Registered metric streams with document counts and storage size",
+                    "timeframe": "none",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
-                        "id": "{{dataStreams.metricsQuery}}",
-                        "name": "metricsQuery",
+                        "id": "{{dataStreams.streams}}",
+                        "name": "streams",
                         "pluginConfigId": "{{configId}}",
-                        "dataSourceConfig": { "promql": "metric_count" },
-                        "sort": { "by": [["timestamp", "asc"]] }
+                        "dataSourceConfig": { "type": "metrics" },
+                        "sort": { "by": [["stats.doc_num", "desc"]] }
                     },
                     "visualisation": {
-                        "type": "data-stream-line-graph",
+                        "type": "data-stream-table",
                         "config": {
-                            "data-stream-line-graph": {
-                                "xAxisColumn": "timestamp",
-                                "yAxisColumn": ["value"],
-                                "seriesColumn": "series",
-                                "showLegend": true,
-                                "legendPosition": "bottom",
-                                "yAxisLabel": "Value",
-                                "showYAxisLabel": true,
-                                "showTrendLine": false
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "name",
+                                    "stream_type",
+                                    "stats.doc_num",
+                                    "stats.storage_size",
+                                    "stats.compressed_size"
+                                ],
+                                "hiddenColumns": ["total_fields", "schema", "settings"]
                             }
                         }
                     }
