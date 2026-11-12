@@ -1,0 +1,332 @@
+{
+    "name": "spans",
+    "displayName": "Spans",
+    "description": "Spans matching a LogsQL query in the timeframe, newest first, optionally limited to selected objects",
+    "tags": [
+        "Traces",
+        "Spans",
+        "LogsQL"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/logsql/query",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{query || 'span_id:*'}}"
+            },
+            {
+                "key": "limit",
+                "value": "{{Math.min(Number(limit) || 200, 500)}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "extra_filters",
+                "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            }
+        ],
+        "postRequestScript": "spans.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "code",
+            "name": "query",
+            "label": "Query",
+            "language": "sql",
+            "defaultValue": "span_id:*",
+            "help": "A [LogsQL](https://docs.victoriametrics.com/victorialogs/logsql/) filter over spans, e.g. `status_code:=2` for failed spans or `duration:>500000000` for spans over 500 ms (durations are in nanoseconds). Span attributes are `span_attr:<name>` and resource attributes `resource_attr:<name>`."
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include spans from the selected objects. Leave empty to include all spans.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Service",
+                        "Service Operation",
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Host",
+                        "Deployment Environment"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Limit",
+            "defaultValue": 200,
+            "help": "Maximum number of spans, newest first (up to 500).",
+            "validation": {
+                "min": 1,
+                "max": {
+                    "value": 500,
+                    "message": "At most 500 spans can be returned"
+                }
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Start",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "service",
+            "displayName": "Service name",
+            "shape": "string"
+        },
+        {
+            "name": "operation",
+            "displayName": "Operation",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "kind",
+            "displayName": "Kind",
+            "shape": "string"
+        },
+        {
+            "name": "durationMs",
+            "displayName": "Duration",
+            "shape": [
+                "milliseconds",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "ok",
+                            "unset"
+                        ],
+                        "error": [
+                            "error"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusMessage",
+            "displayName": "Status message",
+            "shape": "string"
+        },
+        {
+            "name": "traceId",
+            "displayName": "Trace ID",
+            "shape": "string"
+        },
+        {
+            "name": "spanId",
+            "displayName": "Span ID",
+            "shape": "string"
+        },
+        {
+            "name": "parentSpanId",
+            "displayName": "Parent span ID",
+            "shape": "string"
+        },
+        {
+            "name": "PodLink",
+            "displayName": "Pod",
+            "shape": "string",
+            "sourceId": "PodLinkId",
+            "sourceType": "Kubernetes Pod"
+        },
+        {
+            "name": "PodLinkId",
+            "displayName": "Pod ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DeploymentLink",
+            "displayName": "Deployment",
+            "shape": "string",
+            "sourceId": "DeploymentLinkId",
+            "sourceType": "Kubernetes Deployment"
+        },
+        {
+            "name": "DeploymentLinkId",
+            "displayName": "Deployment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "StatefulSetLink",
+            "displayName": "StatefulSet",
+            "shape": "string",
+            "sourceId": "StatefulSetLinkId",
+            "sourceType": "Kubernetes StatefulSet"
+        },
+        {
+            "name": "StatefulSetLinkId",
+            "displayName": "StatefulSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DaemonSetLink",
+            "displayName": "DaemonSet",
+            "shape": "string",
+            "sourceId": "DaemonSetLinkId",
+            "sourceType": "Kubernetes DaemonSet"
+        },
+        {
+            "name": "DaemonSetLinkId",
+            "displayName": "DaemonSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ReplicaSetLink",
+            "displayName": "ReplicaSet",
+            "shape": "string",
+            "sourceId": "ReplicaSetLinkId",
+            "sourceType": "Kubernetes ReplicaSet"
+        },
+        {
+            "name": "ReplicaSetLinkId",
+            "displayName": "ReplicaSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeJobLink",
+            "displayName": "Job",
+            "shape": "string",
+            "sourceId": "KubeJobLinkId",
+            "sourceType": "Kubernetes Job"
+        },
+        {
+            "name": "KubeJobLinkId",
+            "displayName": "Job ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeCronJobLink",
+            "displayName": "CronJob",
+            "shape": "string",
+            "sourceId": "KubeCronJobLinkId",
+            "sourceType": "Kubernetes CronJob"
+        },
+        {
+            "name": "KubeCronJobLinkId",
+            "displayName": "CronJob ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NamespaceLink",
+            "displayName": "Namespace",
+            "shape": "string",
+            "sourceId": "NamespaceLinkId",
+            "sourceType": "Kubernetes Namespace"
+        },
+        {
+            "name": "NamespaceLinkId",
+            "displayName": "Namespace ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NodeLink",
+            "displayName": "Node",
+            "shape": "string",
+            "sourceId": "NodeLinkId",
+            "sourceType": "Kubernetes Node"
+        },
+        {
+            "name": "NodeLinkId",
+            "displayName": "Node ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "OperationLink",
+            "displayName": "Operation",
+            "shape": "string",
+            "sourceId": "OperationLinkId",
+            "sourceType": "Service Operation"
+        },
+        {
+            "name": "OperationLinkId",
+            "displayName": "Operation ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ServiceLink",
+            "displayName": "Service",
+            "shape": "string",
+            "sourceId": "ServiceLinkId",
+            "sourceType": "Service"
+        },
+        {
+            "name": "ServiceLinkId",
+            "displayName": "Service ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "HostLink",
+            "displayName": "Host",
+            "shape": "string",
+            "sourceId": "HostLinkId",
+            "sourceType": "Host"
+        },
+        {
+            "name": "HostLinkId",
+            "displayName": "Host ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "attributes",
+            "displayName": "Attributes",
+            "shape": "json"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true
+}

@@ -1,0 +1,82 @@
+{
+    "name": "dependencies",
+    "displayName": "Service Dependencies",
+    "description": "Calls between services in the timeframe, one row per caller and callee, optionally limited to calls to or from selected services",
+    "tags": [
+        "Service Map",
+        "APM"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/jaeger/api/dependencies",
+        "getArgs": [
+            {
+                "key": "endTs",
+                "value": "{{Math.min(timeframe.unixEnd * 1000, Date.now())}}"
+            },
+            {
+                "key": "lookback",
+                "value": "{{(Math.min(timeframe.unixEnd * 1000, Date.now()) - timeframe.unixStart * 1000)}}"
+            }
+        ],
+        "postRequestScript": "dependencies.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include calls to or from the selected services.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Service"
+                    ]
+                }
+            }
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "CallerLink",
+            "displayName": "Caller",
+            "shape": "string",
+            "sourceId": "CallerLinkId",
+            "sourceType": "Service",
+            "role": "label"
+        },
+        {
+            "name": "CallerLinkId",
+            "displayName": "Caller ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "CalleeLink",
+            "displayName": "Callee",
+            "shape": "string",
+            "sourceId": "CalleeLinkId",
+            "sourceType": "Service"
+        },
+        {
+            "name": "CalleeLinkId",
+            "displayName": "Callee ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "calls",
+            "displayName": "Calls",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": true
+}

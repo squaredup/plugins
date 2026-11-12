@@ -1,0 +1,389 @@
+{
+    "name": "red",
+    "displayName": "Service Metrics (RED)",
+    "description": "Request rate, error rate and latency percentiles calculated from spans, per service, per operation or overall",
+    "tags": [
+        "APM",
+        "RED",
+        "Latency"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{queryType === 'instant' ? 'select/logsql/stats_query' : 'select/logsql/stats_query_range'}}",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{(kind === 'client' ? 'kind:=3' : kind === 'all' ? '*' : 'kind:in(2, 5)') + ' ' + (filter || '') + ' | stats ' + (groupBy === 'none' ? '' : groupBy === 'operation' ? 'by (\"resource_attr:service.name\", name) ' : 'by (\"resource_attr:service.name\") ') + 'count() calls, count() if (status_code:=2) errors, quantile(0.5, duration) p50, quantile(0.95, duration) p95, quantile(0.99, duration) p99'}}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000))}}"
+            },
+            {
+                "key": "time",
+                "value": "{{queryType === 'instant' ? Math.min(timeframe.unixEnd, Math.floor(Date.now() / 1000)) : null}}"
+            },
+            {
+                "key": "step",
+                "value": "{{queryType === 'instant' ? null : (step || Math.max(60, Math.ceil((timeframe.unixEnd - timeframe.unixStart) / 120)) + 's')}}"
+            },
+            {
+                "key": "extra_filters",
+                "value": "{{Array.isArray(scope) && scope.length ? scope.map(o => [].concat(o.selector || [])[0]).filter(s => s).join(' or ') || null : null}}"
+            }
+        ],
+        "postRequestScript": "red.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "groupBy",
+            "label": "Group by",
+            "defaultValue": "service",
+            "options": [
+                {
+                    "value": "service",
+                    "label": "Service"
+                },
+                {
+                    "value": "operation",
+                    "label": "Operation"
+                },
+                {
+                    "value": "none",
+                    "label": "None"
+                }
+            ]
+        },
+        {
+            "type": "switch",
+            "name": "kind",
+            "label": "Spans",
+            "defaultValue": "server",
+            "options": [
+                {
+                    "value": "server",
+                    "label": "Incoming (server and consumer)"
+                },
+                {
+                    "value": "client",
+                    "label": "Outgoing (client)"
+                },
+                {
+                    "value": "all",
+                    "label": "All"
+                }
+            ],
+            "help": "Which spans to measure. **Incoming** measures the requests a service handles; **Outgoing** measures the calls it makes."
+        },
+        {
+            "type": "switch",
+            "name": "queryType",
+            "label": "Query type",
+            "defaultValue": "range",
+            "options": [
+                {
+                    "value": "range",
+                    "label": "Range (time series)"
+                },
+                {
+                    "value": "instant",
+                    "label": "Instant (totals for the timeframe)"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Objects (optional)",
+            "help": "Only include spans from the selected objects. Leave empty to include all spans.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Service",
+                        "Service Operation",
+                        "Kubernetes Cluster",
+                        "Kubernetes Node",
+                        "Kubernetes Namespace",
+                        "Kubernetes Pod",
+                        "Kubernetes Deployment",
+                        "Kubernetes StatefulSet",
+                        "Kubernetes DaemonSet",
+                        "Kubernetes ReplicaSet",
+                        "Kubernetes Job",
+                        "Kubernetes CronJob",
+                        "Host",
+                        "Deployment Environment"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "filter",
+            "label": "Filter (optional)",
+            "placeholder": "e.g. \"span_attr:http.route\":=\"/api/cart\"",
+            "help": "An extra LogsQL filter applied to the spans before measuring."
+        },
+        {
+            "type": "text",
+            "name": "step",
+            "label": "Step (optional)",
+            "placeholder": "e.g. 5m",
+            "help": "Bucket size of range queries. Defaults to about 120 buckets across the timeframe."
+        }
+    ],
+    "manualConfigApply": true,
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "service",
+            "displayName": "Service name",
+            "shape": "string"
+        },
+        {
+            "name": "operation",
+            "displayName": "Operation name",
+            "shape": "string"
+        },
+        {
+            "name": "callsPerSecond",
+            "displayName": "Requests/sec",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "calls",
+            "displayName": "Requests",
+            "shape": "number"
+        },
+        {
+            "name": "errors",
+            "displayName": "Errors",
+            "shape": "number"
+        },
+        {
+            "name": "errorPercent",
+            "displayName": "Error rate",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "p50",
+            "displayName": "p50 latency",
+            "shape": [
+                "milliseconds",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "p95",
+            "displayName": "p95 latency",
+            "shape": [
+                "milliseconds",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "p99",
+            "displayName": "p99 latency",
+            "shape": [
+                "milliseconds",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "PodLink",
+            "displayName": "Pod",
+            "shape": "string",
+            "sourceId": "PodLinkId",
+            "sourceType": "Kubernetes Pod"
+        },
+        {
+            "name": "PodLinkId",
+            "displayName": "Pod ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DeploymentLink",
+            "displayName": "Deployment",
+            "shape": "string",
+            "sourceId": "DeploymentLinkId",
+            "sourceType": "Kubernetes Deployment"
+        },
+        {
+            "name": "DeploymentLinkId",
+            "displayName": "Deployment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "StatefulSetLink",
+            "displayName": "StatefulSet",
+            "shape": "string",
+            "sourceId": "StatefulSetLinkId",
+            "sourceType": "Kubernetes StatefulSet"
+        },
+        {
+            "name": "StatefulSetLinkId",
+            "displayName": "StatefulSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "DaemonSetLink",
+            "displayName": "DaemonSet",
+            "shape": "string",
+            "sourceId": "DaemonSetLinkId",
+            "sourceType": "Kubernetes DaemonSet"
+        },
+        {
+            "name": "DaemonSetLinkId",
+            "displayName": "DaemonSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ReplicaSetLink",
+            "displayName": "ReplicaSet",
+            "shape": "string",
+            "sourceId": "ReplicaSetLinkId",
+            "sourceType": "Kubernetes ReplicaSet"
+        },
+        {
+            "name": "ReplicaSetLinkId",
+            "displayName": "ReplicaSet ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeJobLink",
+            "displayName": "Job",
+            "shape": "string",
+            "sourceId": "KubeJobLinkId",
+            "sourceType": "Kubernetes Job"
+        },
+        {
+            "name": "KubeJobLinkId",
+            "displayName": "Job ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "KubeCronJobLink",
+            "displayName": "CronJob",
+            "shape": "string",
+            "sourceId": "KubeCronJobLinkId",
+            "sourceType": "Kubernetes CronJob"
+        },
+        {
+            "name": "KubeCronJobLinkId",
+            "displayName": "CronJob ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NamespaceLink",
+            "displayName": "Namespace",
+            "shape": "string",
+            "sourceId": "NamespaceLinkId",
+            "sourceType": "Kubernetes Namespace"
+        },
+        {
+            "name": "NamespaceLinkId",
+            "displayName": "Namespace ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "NodeLink",
+            "displayName": "Node",
+            "shape": "string",
+            "sourceId": "NodeLinkId",
+            "sourceType": "Kubernetes Node"
+        },
+        {
+            "name": "NodeLinkId",
+            "displayName": "Node ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "OperationLink",
+            "displayName": "Operation",
+            "shape": "string",
+            "sourceId": "OperationLinkId",
+            "sourceType": "Service Operation"
+        },
+        {
+            "name": "OperationLinkId",
+            "displayName": "Operation ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ServiceLink",
+            "displayName": "Service",
+            "shape": "string",
+            "sourceId": "ServiceLinkId",
+            "sourceType": "Service"
+        },
+        {
+            "name": "ServiceLinkId",
+            "displayName": "Service ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "HostLink",
+            "displayName": "Host",
+            "shape": "string",
+            "sourceId": "HostLinkId",
+            "sourceType": "Host"
+        },
+        {
+            "name": "HostLinkId",
+            "displayName": "Host ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true
+}

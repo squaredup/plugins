@@ -1,0 +1,62 @@
+{
+    "name": "dependencyList",
+    "displayName": "Dependency List",
+    "description": "Calls between services over the indexing lookback, one row per caller and callee, used to index dependencies",
+    "tags": [
+        "Service Map",
+        "Indexing"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "select/jaeger/api/dependencies",
+        "getArgs": [
+            {
+                "key": "endTs",
+                "value": "{{Date.now()}}"
+            },
+            {
+                "key": "lookback",
+                "value": "{{(() => { const m = /^(\\d+)(ms|s|m|h|d|w)$/.exec(String(dataSource.indexLookback || '1h').trim()) || [null, '1', 'h']; return Number(m[1]) * { ms: 1, s: 1000, m: 60000, h: 3600000, d: 86400000, w: 604800000 }[m[2]]; })()}}"
+            }
+        ],
+        "postRequestScript": "dependencyList.js",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "parent",
+            "displayName": "Caller",
+            "shape": "string"
+        },
+        {
+            "name": "child",
+            "displayName": "Callee",
+            "shape": "string"
+        },
+        {
+            "name": "callCount",
+            "displayName": "Calls",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "timeframes": false,
+    "visibility": {
+        "type": "hidden"
+    }
+}
