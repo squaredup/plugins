@@ -1,0 +1,199 @@
+{
+    "name": "incidents",
+    "displayName": "Incidents",
+    "description": "Incidents on the status page, one row per incident or per affected component, with impact, timing and the latest update",
+    "tags": ["Incidents"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "incidents.js",
+        "endpointPath": "incidents.json"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "toggle",
+            "name": "oneRowPerComponent",
+            "label": "One row per affected component",
+            "defaultValue": false,
+            "help": "Splits an incident that affects several components into one row per component, so tiles can group by component. When off, each incident is one row."
+        },
+        {
+            "type": "choiceChips",
+            "name": "phase",
+            "label": "Phase",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "Active",
+                    "label": "Active"
+                },
+                {
+                    "value": "Resolved",
+                    "label": "Resolved"
+                }
+            ],
+            "help": "Leave empty to include all phases."
+        },
+        {
+            "type": "choiceChips",
+            "name": "impact",
+            "label": "Impact",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "None",
+                    "label": "None"
+                },
+                {
+                    "value": "Minor",
+                    "label": "Minor"
+                },
+                {
+                    "value": "Major",
+                    "label": "Major"
+                },
+                {
+                    "value": "Critical",
+                    "label": "Critical"
+                },
+                {
+                    "value": "Maintenance",
+                    "label": "Maintenance"
+                }
+            ],
+            "help": "Leave empty to include all impacts."
+        },
+        {
+            "type": "objects",
+            "name": "components",
+            "label": "Components",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "Component"
+                }
+            },
+            "help": "Leave empty to include all components."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "state"
+        },
+        {
+            "name": "name",
+            "displayName": "Incident",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "impact",
+            "displayName": "Impact",
+            "shape": "string"
+        },
+        {
+            "name": "worstComponentStatus",
+            "displayName": "Worst Component Status",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "phase",
+            "displayName": "Phase",
+            "shape": "string"
+        },
+        {
+            "name": "components",
+            "displayName": "Components",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "componentIds",
+            "displayName": "Component IDs",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "startedAt",
+            "displayName": "Started",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "resolvedAt",
+            "displayName": "Resolved",
+            "shape": "date"
+        },
+        {
+            "name": "updatedAt",
+            "displayName": "Last Updated",
+            "shape": "date"
+        },
+        {
+            "name": "timeToResolveMinutes",
+            "displayName": "Time To Resolve",
+            "shape": "minutes"
+        },
+        {
+            "name": "updateCount",
+            "displayName": "Updates",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "latestUpdate",
+            "displayName": "Latest Update",
+            "shape": "string"
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "View Incident"
+                }
+            ],
+            "role": "link"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [["startedAt", "desc"]]
+        }
+    },
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}
