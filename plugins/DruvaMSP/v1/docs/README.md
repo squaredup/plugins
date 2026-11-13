@@ -29,19 +29,19 @@ On save, the plugin requests an access token and lists your first MSP customer. 
 - **Customers and tenants**: every customer you manage and each product tenant they hold, with provisioning status, edition, licence expiry and quota.
 - **Consumption**: daily consumption units per customer, product module and service plan, for chargeback.
 - **Backup storage**: Microsoft 365 storage and resource counts per workload, and Enterprise Workloads storage per backup set.
-- **Alerts**: Endpoints alerts with their severity, the affected user or device, and when they first and last occurred.
+- **Endpoint alerts**: alerts with their severity, the affected user or device, and when they first and last occurred.
 
 The out-of-the-box dashboards include an MSP-wide **Overview** plus a perspective for each **Customer** and **Tenant**.
 
 ## Data streams
 
-- **Backup jobs**: Enterprise Workloads backup jobs with status, start and end times, duration, backup set, VM, workload and policy.
-- **Microsoft 365 backup status**: the last backup of each Microsoft 365 user per workload, with its status, age and an at-risk state.
-- **Endpoint backup status**: the last backup of each endpoint device, with its status, age, connectivity and an at-risk state.
+- **Backup Jobs**: Enterprise Workloads backup jobs with status, start and end times, duration, backup set, VM, workload and policy.
+- **Microsoft 365 Backup Status**: the last backup of each Microsoft 365 user per workload, with its status, age and an at-risk state.
+- **Endpoint Backup Status**: the last backup of each endpoint device, with its status, age, connectivity and an at-risk state.
 - **Customers**: your MSP customers with account details, provisioning status and cloud. Account-wide.
 - **Tenants**: product tenants with status, edition, licence expiry and quota.
 - **Consumption**: daily consumption units per customer, product module, entity and service plan.
-- **Alerts**: Endpoints alerts with severity, affected entity, whether the alert is still active, and its occurrence window.
+- **Endpoint Alerts**: endpoint alerts with severity, affected entity, whether the alert is still active, and its occurrence window.
 - **Microsoft 365 Storage Consumption**: backup storage, resource count and enabled resources per customer and workload.
 - **Storage Consumption by Backup Set**: source size, changes, estimated cloud storage, storage tier and reduction factor per Enterprise Workloads backup set.
 
@@ -60,7 +60,7 @@ Every stream except **Customers** has an optional **Customer** picker. Leave it 
 
 - **Consumption covers the last 7 days only**: a longer window returns more data than SquaredUp can load in one request, so longer ranges are not offered. Consumption tiles stay on 7 days even when you widen the dashboard timeframe.
 - **Consumption mixes units**: the **Consumption** column holds both resource counts and terabytes. Filter or group on **Units** before you add values up, or the total is meaningless.
-- **Alerts are Endpoints alerts only**: the Druva MSP API has no general alert or event feed, so alerts from other Druva products do not appear. The timeframe filters on when an alert was last updated.
+- **Only endpoint alerts are available**: the Druva MSP API has no general alert or event feed, so alerts from other Druva products do not appear. The timeframe filters on when an alert was last updated.
 - **Storage is a current snapshot**: the two storage streams show the latest values and ignore the dashboard timeframe. There is no storage history.
 - **Report figures can lag**: Druva refreshes its reporting data periodically, so backup, consumption, storage and alert figures can be an hour or two behind.
 - **Some report rows have no matching customer**: Druva reports can include customers that are not in your current customer list. They appear in all-customer views but never on a **Customer** perspective.
