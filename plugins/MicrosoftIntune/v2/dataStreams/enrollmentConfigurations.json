@@ -1,0 +1,38 @@
+{
+    "name": "enrollmentConfigurations",
+    "displayName": "Enrollment Configurations",
+    "description": "Device enrollment configurations such as device limits, platform restrictions, Windows Hello for Business and Enrollment Status Page settings",
+    "tags": ["Enrollment"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/deviceEnrollmentConfigurations",
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "displayName", "displayName": "Name", "shape": "string", "role": "label" },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (() => { const t = ($['@odata.type'] || '').replace('#microsoft.graph.', ''); const names = { deviceEnrollmentLimitConfiguration: 'Device limit', deviceEnrollmentPlatformRestrictionsConfiguration: 'Platform restrictions', deviceEnrollmentPlatformRestrictionConfiguration: 'Platform restriction', deviceEnrollmentWindowsHelloForBusinessConfiguration: 'Windows Hello for Business', windows10EnrollmentCompletionPageConfiguration: 'Enrollment Status Page' }; return names[t] || t || null; })() }}"
+        },
+        { "name": "priority", "displayName": "Priority", "shape": ["number", { "thousandsSeparator": false }] },
+        { "name": "limit", "displayName": "Device Limit", "shape": "number" },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        { "name": "version", "displayName": "Version", "shape": ["number", { "thousandsSeparator": false }] },
+        { "name": "createdDateTime", "displayName": "Created", "shape": "date" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "@odata.type", "displayName": "OData Type", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["priority", "asc"]] } },
+    "timeframes": false
+}

@@ -1,0 +1,69 @@
+{
+    "name": "appleVppTokens",
+    "displayName": "Apple VPP Tokens",
+    "description": "Apple Volume Purchase Program location tokens with their state, expiry and last sync",
+    "tags": ["Tenant Health"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceAppManagement/vppTokens",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "id,organizationName,appleId,vppTokenAccountType,state,expirationDateTime,lastSyncDateTime,lastSyncStatus,lastModifiedDateTime,countryOrRegion,automaticallyUpdateApps"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "health",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ (() => { const s = $['state']; if (s === 'expired') { return 'Expired'; } if (s === 'invalid') { return 'Invalid'; } if (s === 'assignedToExternalMDM') { return 'Assigned to another MDM'; } const t = new Date($['expirationDateTime']).getTime(); if (!$['expirationDateTime'] || isNaN(t)) { return 'Unknown'; } const days = (t - Date.now()) / 86400000; if (days < 0) { return 'Expired'; } if ($['lastSyncStatus'] === 'failed') { return 'Sync failed'; } return days <= 30 ? 'Expiring soon' : s === 'valid' ? 'Valid' : 'Unknown'; })() }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Valid"],
+                        "warning": ["Expiring soon", "Sync failed"],
+                        "error": ["Expired", "Invalid", "Assigned to another MDM"],
+                        "unknown": ["Unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "organizationName",
+            "displayName": "Organization",
+            "shape": "string",
+            "role": "label"
+        },
+        { "name": "appleId", "displayName": "Apple ID", "shape": "string" },
+        { "name": "vppTokenAccountType", "displayName": "Account Type", "shape": "string" },
+        { "name": "state", "displayName": "Token State", "shape": "string" },
+        { "name": "expirationDateTime", "displayName": "Expires", "shape": "date" },
+        {
+            "name": "daysUntilExpiry",
+            "displayName": "Days Until Expiry",
+            "computed": true,
+            "valueExpression": "{{ (() => { const t = new Date($['expirationDateTime']).getTime(); return !$['expirationDateTime'] || isNaN(t) ? null : Math.floor((t - Date.now()) / 86400000); })() }}",
+            "shape": ["number", { "decimalPlaces": 0 }],
+            "role": "value"
+        },
+        { "name": "lastSyncStatus", "displayName": "Last Sync Status", "shape": "string" },
+        { "name": "lastSyncDateTime", "displayName": "Last Sync", "shape": "date" },
+        { "name": "countryOrRegion", "displayName": "Country or Region", "shape": "string" },
+        { "name": "automaticallyUpdateApps", "displayName": "Automatic App Updates", "shape": "boolean" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["expirationDateTime", "asc"]] } },
+    "timeframes": false
+}

@@ -1,0 +1,53 @@
+{
+    "name": "complianceSettingSummaries",
+    "displayName": "Compliance Setting Summaries",
+    "description": "Device counts by compliance status for each compliance setting across the tenant",
+    "tags": ["Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/deviceCompliancePolicySettingStateSummaries",
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ $['nonCompliantDeviceCount'] > 0 || $['errorDeviceCount'] > 0 ? 'error' : $['conflictDeviceCount'] > 0 ? 'warning' : 'success' }}",
+            "shape": "state"
+        },
+        {
+            "name": "settingName",
+            "displayName": "Setting",
+            "valueExpression": "{{ ({ 'DefaultDeviceCompliancePolicy.RequireDeviceCompliancePolicyAssigned': 'Has a compliance policy assigned', 'DefaultDeviceCompliancePolicy.RequireRemainContact': 'Is active', 'DefaultDeviceCompliancePolicy.RequireUserExistence': 'Enrolled user exists' })[$['setting']] || String($['setting'] || '').split('.').slice(1).join('.') || $['setting'] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "policyType",
+            "displayName": "Policy Type",
+            "computed": true,
+            "valueExpression": "{{ String($['setting'] || '').split('.')[0] || null }}",
+            "shape": "string"
+        },
+        { "name": "platformType", "displayName": "Platform", "shape": "string" },
+        { "name": "compliantDeviceCount", "displayName": "Compliant", "shape": "number" },
+        { "name": "nonCompliantDeviceCount", "displayName": "Not Compliant", "shape": "number", "role": "value" },
+        { "name": "errorDeviceCount", "displayName": "Error", "shape": "number" },
+        { "name": "conflictDeviceCount", "displayName": "Conflict", "shape": "number" },
+        { "name": "remediatedDeviceCount", "displayName": "Remediated", "shape": "number" },
+        { "name": "notApplicableDeviceCount", "displayName": "Not Applicable", "shape": "number" },
+        { "name": "unknownDeviceCount", "displayName": "Unknown", "shape": "number" },
+        { "name": "setting", "displayName": "Setting ID", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["nonCompliantDeviceCount", "desc"]] } },
+    "timeframes": false
+}

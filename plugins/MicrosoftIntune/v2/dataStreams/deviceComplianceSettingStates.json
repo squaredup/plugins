@@ -1,0 +1,104 @@
+{
+    "name": "deviceComplianceSettingStates",
+    "displayName": "Device Compliance Setting States",
+    "description": "State of each compliance setting evaluated on the selected managed device, showing why it is not compliant",
+    "tags": ["Compliance"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/managedDevices/{{object.rawId}}/deviceCompliancePolicyStates",
+        "getArgs": [{ "key": "$select", "value": "id,displayName,state" }],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "postRequestScript": "deviceComplianceSettingStates.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Managed Device"] } },
+    "ui": [
+        {
+            "type": "toggle",
+            "name": "includeCompliant",
+            "label": "Include compliant settings",
+            "defaultValue": false
+        }
+    ],
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["compliant", "remediated"],
+                        "warning": ["conflict"],
+                        "error": ["nonCompliant", "error"],
+                        "unknown": ["unknown", "notApplicable", "notAssigned"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "settingName",
+            "displayName": "Setting",
+            "valueExpression": "{{ ({ 'DefaultDeviceCompliancePolicy.RequireDeviceCompliancePolicyAssigned': 'Has a compliance policy assigned', 'DefaultDeviceCompliancePolicy.RequireRemainContact': 'Is active', 'DefaultDeviceCompliancePolicy.RequireUserExistence': 'Enrolled user exists' })[$['setting']] || String($['setting'] || '').split('.').slice(1).join('.') || $['setting'] }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "policyName",
+            "displayName": "Compliance Policy",
+            "shape": "string",
+            "sourceId": "policyId",
+            "sourceType": "Compliance Policy"
+        },
+        {
+            "name": "currentValue",
+            "displayName": "Current Value",
+            "shape": "string"
+        },
+        {
+            "name": "errorDescription",
+            "displayName": "Error",
+            "shape": "string"
+        },
+        {
+            "name": "errorCode",
+            "displayName": "Error Code",
+            "shape": ["number", { "thousandsSeparator": false }]
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User Principal Name",
+            "shape": "string"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Managed Device",
+            "shape": "string",
+            "sourceId": "deviceId",
+            "sourceType": "Managed Device"
+        },
+        {
+            "name": "setting",
+            "displayName": "Setting ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "policyId",
+            "displayName": "Policy ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

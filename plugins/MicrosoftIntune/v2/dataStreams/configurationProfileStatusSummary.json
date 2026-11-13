@@ -1,0 +1,44 @@
+{
+    "name": "configurationProfileStatusSummary",
+    "displayName": "Configuration Profile Status Summary",
+    "description": "Number of configuration profiles with assignment errors, one row per profile type (beta report)",
+    "tags": ["Configuration"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "beta/deviceManagement/reports/getDeviceConfigurationPolicyStatusSummary",
+        "postBody": {
+            "filter": "(PolicyBaseTypeName ne 'Microsoft.Management.Services.Api.DeviceCompliancePolicy')"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "reportRows.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ $['ErrorProfileCount'] > 0 ? 'error' : 'success' }}",
+            "shape": "state"
+        },
+        {
+            "name": "PolicyBaseTypeName",
+            "displayName": "Profile Type",
+            "shape": "string",
+            "role": "label",
+            "formatExpression": "{{ (n => ({ DeviceManagementConfigurationPolicy: 'Settings catalog', DeviceConfiguration: 'Device configuration', GroupPolicyConfiguration: 'Administrative templates' })[n] || n)(String($['PolicyBaseTypeName']).replace('Microsoft.Management.Services.Api.', '')) }}"
+        },
+        {
+            "name": "ErrorProfileCount",
+            "displayName": "Profiles With Errors",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

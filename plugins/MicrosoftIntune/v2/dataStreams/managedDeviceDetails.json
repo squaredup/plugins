@@ -1,0 +1,176 @@
+{
+    "name": "managedDeviceDetails",
+    "displayName": "Managed Device Details",
+    "description": "Current compliance, hardware, ownership and sync details for the selected managed device",
+    "tags": ["Devices"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/managedDevices/{{object.rawId}}",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "id,deviceName,complianceState,operatingSystem,osVersion,model,manufacturer,serialNumber,managedDeviceOwnerType,managementAgent,deviceEnrollmentType,enrolledDateTime,lastSyncDateTime,isEncrypted,isSupervised,jailBroken,totalStorageSpaceInBytes,freeStorageSpaceInBytes,physicalMemoryInBytes,userPrincipalName,userDisplayName,azureADDeviceId,partnerReportedThreatState"
+            }
+        ],
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Managed Device"] } },
+    "metadata": [
+        {
+            "name": "complianceState",
+            "displayName": "Compliance State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["compliant"],
+                        "warning": ["inGracePeriod", "conflict", "configManager"],
+                        "error": ["noncompliant", "error"],
+                        "unknown": ["unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Managed Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Managed Device"
+        },
+        {
+            "name": "id",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "operatingSystem",
+            "displayName": "Operating System",
+            "shape": "string"
+        },
+        {
+            "name": "osVersion",
+            "displayName": "OS Version",
+            "shape": "string"
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "manufacturer",
+            "displayName": "Manufacturer",
+            "shape": "string"
+        },
+        {
+            "name": "serialNumber",
+            "displayName": "Serial Number",
+            "shape": "string"
+        },
+        {
+            "name": "managedDeviceOwnerType",
+            "displayName": "Ownership",
+            "shape": "string"
+        },
+        {
+            "name": "managementAgent",
+            "displayName": "Management Agent",
+            "shape": "string"
+        },
+        {
+            "name": "deviceEnrollmentType",
+            "displayName": "Enrollment Type",
+            "shape": "string"
+        },
+        {
+            "name": "enrolledDateTime",
+            "displayName": "Enrolled",
+            "shape": "date"
+        },
+        {
+            "name": "lastSyncDateTime",
+            "displayName": "Last Sync",
+            "shape": "date"
+        },
+        {
+            "name": "isEncrypted",
+            "displayName": "Encrypted",
+            "shape": "boolean"
+        },
+        {
+            "name": "isSupervised",
+            "displayName": "Supervised",
+            "shape": "boolean"
+        },
+        {
+            "name": "jailBroken",
+            "displayName": "Jailbroken",
+            "shape": "string"
+        },
+        {
+            "name": "totalStorageSpaceInBytes",
+            "displayName": "Total Storage (Raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "freeStorageSpaceInBytes",
+            "displayName": "Free Storage (Raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "physicalMemoryInBytes",
+            "displayName": "Physical Memory (Raw)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "totalStorage",
+            "displayName": "Total Storage",
+            "computed": true,
+            "shape": "bytes",
+            "valueExpression": "{{ $['totalStorageSpaceInBytes'] > 0 ? $['totalStorageSpaceInBytes'] : null }}"
+        },
+        {
+            "name": "freeStorage",
+            "displayName": "Free Storage",
+            "computed": true,
+            "shape": "bytes",
+            "valueExpression": "{{ $['totalStorageSpaceInBytes'] > 0 ? $['freeStorageSpaceInBytes'] : null }}"
+        },
+        {
+            "name": "physicalMemory",
+            "displayName": "Physical Memory",
+            "computed": true,
+            "shape": "bytes",
+            "valueExpression": "{{ $['physicalMemoryInBytes'] > 0 ? $['physicalMemoryInBytes'] : null }}"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User Principal Name",
+            "shape": "string"
+        },
+        {
+            "name": "userDisplayName",
+            "displayName": "User",
+            "shape": "string"
+        },
+        {
+            "name": "azureADDeviceId",
+            "displayName": "Entra Device ID",
+            "shape": "string"
+        },
+        {
+            "name": "partnerReportedThreatState",
+            "displayName": "Partner Threat State",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

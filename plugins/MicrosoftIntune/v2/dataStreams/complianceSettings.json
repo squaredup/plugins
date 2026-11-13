@@ -1,0 +1,54 @@
+{
+    "name": "complianceSettings",
+    "displayName": "Compliance Settings",
+    "description": "Tenant-wide compliance policy settings, including how devices with no compliance policy assigned are marked (beta API)",
+    "tags": ["Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/settings",
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ $['secureByDefault'] === true ? 'success' : $['secureByDefault'] === false ? 'warning' : 'unknown' }}",
+            "shape": "state"
+        },
+        {
+            "name": "noPolicyDeviceStatus",
+            "displayName": "Devices With No Policy Marked As",
+            "computed": true,
+            "valueExpression": "{{ $['secureByDefault'] === true ? 'Not compliant' : $['secureByDefault'] === false ? 'Compliant' : null }}",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "enhancedJailBreak",
+            "displayName": "Enhanced Jailbreak Detection",
+            "shape": "boolean"
+        },
+        {
+            "name": "deviceComplianceCheckinThresholdDays",
+            "displayName": "Compliance Validity Period (Days)",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "isScheduledActionEnabled",
+            "displayName": "Scheduled Actions Enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "secureByDefault",
+            "displayName": "Secure by Default",
+            "shape": "boolean",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

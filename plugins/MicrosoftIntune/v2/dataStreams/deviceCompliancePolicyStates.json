@@ -1,0 +1,79 @@
+{
+    "name": "deviceCompliancePolicyStates",
+    "displayName": "Device Compliance Policy States",
+    "description": "Compliance state of each compliance policy assigned to the selected managed device",
+    "tags": ["Compliance"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/managedDevices/{{object.rawId}}/deviceCompliancePolicyStates",
+        "getArgs": [{ "key": "$select", "value": "id,displayName,state,platformType,version,settingCount" }],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "postRequestScript": "devicePolicyStates.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Managed Device"] } },
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["compliant", "remediated"],
+                        "warning": ["conflict"],
+                        "error": ["nonCompliant", "error"],
+                        "unknown": ["unknown", "notApplicable", "notAssigned"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "policyName",
+            "displayName": "Compliance Policy",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "policyId",
+            "sourceType": "Compliance Policy"
+        },
+        {
+            "name": "policyId",
+            "displayName": "Policy ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "platformType",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "version",
+            "displayName": "Version",
+            "shape": ["number", { "thousandsSeparator": false }]
+        },
+        {
+            "name": "settingCount",
+            "displayName": "Settings",
+            "shape": "number"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Managed Device",
+            "shape": "string",
+            "sourceId": "deviceId",
+            "sourceType": "Managed Device"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

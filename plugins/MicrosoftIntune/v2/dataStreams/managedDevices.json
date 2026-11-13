@@ -1,0 +1,119 @@
+{
+    "name": "managedDevices",
+    "displayName": "Managed Devices",
+    "description": "Devices enrolled in Intune with their compliance state, platform and primary user",
+    "tags": ["Devices"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/managedDevices",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "id,deviceName,complianceState,operatingSystem,osVersion,model,manufacturer,managedDeviceOwnerType,managementAgent,userId,userPrincipalName,userDisplayName,lastSyncDateTime,enrolledDateTime,serialNumber,isEncrypted,azureADDeviceId"
+            },
+            {
+                "key": "$filter",
+                "value": "{{ [[].concat(complianceStates || []).map((v) => (v && v.value) || v).filter(Boolean).map((v) => `complianceState eq '${String(v).split(`'`).join(`''`)}'`).join(' or '), [].concat(operatingSystems || []).map((v) => (v && v.value) || v).filter(Boolean).map((v) => `operatingSystem eq '${String(v).split(`'`).join(`''`)}'`).join(' or ')].filter(Boolean).map((c) => `(${c})`).join(' and ') || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "$top", "value": "999" },
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "complianceStates",
+            "label": "Compliance state(s)",
+            "isMulti": true,
+            "isClearable": true,
+            "allowCustomValues": false,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "compliant", "label": "Compliant" },
+                    { "value": "noncompliant", "label": "Not compliant" },
+                    { "value": "inGracePeriod", "label": "In grace period" },
+                    { "value": "conflict", "label": "Conflict" },
+                    { "value": "error", "label": "Error" },
+                    { "value": "configManager", "label": "Configuration Manager" },
+                    { "value": "unknown", "label": "Not evaluated" }
+                ]
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "operatingSystems",
+            "label": "Operating system(s)",
+            "isMulti": true,
+            "isClearable": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "Windows", "label": "Windows" },
+                    { "value": "iOS", "label": "iOS" },
+                    { "value": "iPadOS", "label": "iPadOS" },
+                    { "value": "Android", "label": "Android" },
+                    { "value": "macOS", "label": "macOS" },
+                    { "value": "Linux", "label": "Linux" }
+                ]
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "complianceState",
+            "displayName": "Compliance State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["compliant"],
+                        "warning": ["inGracePeriod", "conflict", "configManager"],
+                        "error": ["noncompliant", "error"],
+                        "unknown": ["unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Managed Device"
+        },
+        { "name": "operatingSystem", "displayName": "Operating System", "shape": "string" },
+        { "name": "osVersion", "displayName": "OS Version", "shape": "string" },
+        { "name": "manufacturer", "displayName": "Manufacturer", "shape": "string" },
+        { "name": "model", "displayName": "Model", "shape": "string" },
+        { "name": "userDisplayName", "displayName": "Primary User", "shape": "string" },
+        { "name": "userPrincipalName", "displayName": "User Principal Name", "shape": "string" },
+        { "name": "managedDeviceOwnerType", "displayName": "Ownership", "shape": "string" },
+        { "name": "managementAgent", "displayName": "Management Agent", "shape": "string" },
+        { "name": "lastSyncDateTime", "displayName": "Last Sync", "shape": "date" },
+        { "name": "enrolledDateTime", "displayName": "Enrolled", "shape": "date" },
+        { "name": "isEncrypted", "displayName": "Encrypted", "shape": "boolean" },
+        { "name": "serialNumber", "displayName": "Serial Number", "shape": "string" },
+        {
+            "name": "intuneLink",
+            "displayName": "Intune",
+            "computed": true,
+            "valueExpression": "{{ `https://intune.microsoft.com/#view/Microsoft_Intune_Devices/DeviceSettingsMenuBlade/~/overview/mdmDeviceId/${$['id']}` }}",
+            "shape": ["url", { "label": "View in Intune" }]
+        },
+        { "name": "azureADDeviceId", "displayName": "Entra Device ID", "shape": "string", "visible": false },
+        { "name": "userId", "displayName": "User ID", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["deviceName", "asc"]] } },
+    "timeframes": false
+}

@@ -1,0 +1,109 @@
+{
+    "name": "deviceConfigurationStates",
+    "displayName": "Device Configuration States",
+    "description": "State of each configuration profile assigned to the selected managed device (beta report)",
+    "tags": ["Configuration"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "beta/deviceManagement/reports/getConfigurationPoliciesReportForDevice",
+        "postBody": {
+            "select": [
+                "PolicyId",
+                "PolicyName",
+                "UnifiedPolicyType",
+                "UnifiedPolicyPlatformType",
+                "PolicyStatus",
+                "ReportStatus",
+                "UPN",
+                "PspdpuLastModifiedTimeUtc"
+            ],
+            "filter": "((PolicyBaseTypeName eq 'Microsoft.Management.Services.Api.DeviceConfiguration') or (PolicyBaseTypeName eq 'DeviceManagementConfigurationPolicy') or (PolicyBaseTypeName eq 'DeviceConfigurationAdmxPolicy') or (PolicyBaseTypeName eq 'Microsoft.Management.Services.Api.DeviceManagementIntent')) and (IntuneDeviceId eq '{{object.rawId}}')",
+            "orderBy": ["PolicyName"]
+        },
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "body", "path": "top", "value": 1000 },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "Values" },
+                "base": 0
+            },
+            "out": { "realm": "body", "path": "skip" }
+        },
+        "postRequestScript": "deviceConfigurationStates.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Managed Device"] } },
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Succeeded"],
+                        "warning": ["Conflict"],
+                        "error": ["Error"],
+                        "unknown": ["NotApplicable"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "policyName",
+            "displayName": "Configuration Profile",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "policyId",
+            "sourceType": "Configuration Profile"
+        },
+        {
+            "name": "policyId",
+            "displayName": "Policy ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "policyType",
+            "displayName": "Profile Type",
+            "shape": "string"
+        },
+        {
+            "name": "platform",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User Principal Name",
+            "shape": "string"
+        },
+        {
+            "name": "lastReportedDateTime",
+            "displayName": "Last Reported",
+            "shape": "date"
+        },
+        {
+            "name": "statusCode",
+            "displayName": "Status Code",
+            "shape": ["number", { "thousandsSeparator": false }],
+            "visible": false
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Managed Device",
+            "shape": "string",
+            "sourceId": "deviceId",
+            "sourceType": "Managed Device"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

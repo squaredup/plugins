@@ -1,0 +1,98 @@
+{
+    "name": "compliancePolicyDeviceStatuses",
+    "displayName": "Compliance Policy Device Statuses",
+    "description": "Compliance status of each device the selected compliance policy reports on",
+    "tags": ["Compliance"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/deviceCompliancePolicies/{{object.rawId}}/deviceStatuses",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "$top", "value": "999" },
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "postRequestScript": "policyDeviceStatuses.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Compliance Policy"] } },
+    "ui": [
+        {
+            "type": "toggle",
+            "name": "includeUnknown",
+            "label": "Include unknown status",
+            "defaultValue": false
+        }
+    ],
+    "metadata": [
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["compliant", "remediated"],
+                        "warning": ["conflict"],
+                        "error": ["nonCompliant", "error"],
+                        "unknown": ["unknown", "notApplicable", "notAssigned"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusRank",
+            "displayName": "Status Rank",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "Managed Device"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "userName",
+            "displayName": "User",
+            "shape": "string"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User Principal Name",
+            "shape": "string"
+        },
+        {
+            "name": "lastReportedDateTime",
+            "displayName": "Last Reported",
+            "shape": "date"
+        },
+        {
+            "name": "gracePeriodExpirationDateTime",
+            "displayName": "Grace Period Ends",
+            "shape": "date"
+        },
+        {
+            "name": "policyName",
+            "displayName": "Policy",
+            "shape": "string",
+            "sourceId": "policyId",
+            "sourceType": "Compliance Policy"
+        },
+        {
+            "name": "policyId",
+            "displayName": "Policy ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

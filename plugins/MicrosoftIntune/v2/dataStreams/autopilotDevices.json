@@ -1,0 +1,84 @@
+{
+    "name": "autopilotDevices",
+    "displayName": "Autopilot Devices",
+    "description": "Windows Autopilot device identities with their enrollment state, group tag and profile assignment",
+    "tags": ["Enrollment"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/windowsAutopilotDeviceIdentities",
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "enrollmentState",
+            "displayName": "Enrollment State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["enrolled"],
+                        "warning": ["pendingReset", "notContacted"],
+                        "error": ["failed", "blocked"],
+                        "unknown": ["unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "serialNumber",
+            "displayName": "Serial Number",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "managedDeviceId",
+            "sourceType": "Managed Device"
+        },
+        { "name": "manufacturer", "displayName": "Manufacturer", "shape": "string" },
+        { "name": "model", "displayName": "Model", "shape": "string" },
+        { "name": "groupTag", "displayName": "Group Tag", "shape": "string" },
+        {
+            "name": "deploymentProfileAssignmentStatus",
+            "displayName": "Profile Assignment",
+            "shape": "string"
+        },
+        {
+            "name": "deploymentProfileAssignedDateTime",
+            "displayName": "Profile Assigned",
+            "shape": "date",
+            "valueExpression": "{{ String($['deploymentProfileAssignedDateTime'] || '').startsWith('0001-') ? null : $['deploymentProfileAssignedDateTime'] }}"
+        },
+        {
+            "name": "lastContactedDateTime",
+            "displayName": "Last Contacted",
+            "shape": "date",
+            "valueExpression": "{{ String($['lastContactedDateTime'] || '').startsWith('0001-') ? null : $['lastContactedDateTime'] }}"
+        },
+        { "name": "userPrincipalName", "displayName": "User Principal Name", "shape": "string" },
+        { "name": "addressableUserName", "displayName": "Addressable User Name", "shape": "string" },
+        { "name": "purchaseOrderIdentifier", "displayName": "Purchase Order", "shape": "string" },
+        { "name": "displayName", "displayName": "Display Name", "shape": "string" },
+        {
+            "name": "managedDeviceId",
+            "displayName": "Managed Device ID",
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['managedDeviceId'] && $['managedDeviceId'] !== '00000000-0000-0000-0000-000000000000' ? $['managedDeviceId'] : null }}"
+        },
+        {
+            "name": "azureActiveDirectoryDeviceId",
+            "displayName": "Entra Device ID",
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['azureActiveDirectoryDeviceId'] && $['azureActiveDirectoryDeviceId'] !== '00000000-0000-0000-0000-000000000000' ? $['azureActiveDirectoryDeviceId'] : null }}"
+        },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["serialNumber", "asc"]] } },
+    "timeframes": false
+}

@@ -1,0 +1,68 @@
+{
+    "name": "appleEnrollmentTokens",
+    "displayName": "Apple Enrollment Tokens",
+    "description": "Apple Automated Device Enrollment tokens with their expiry and last sync (beta API)",
+    "tags": ["Tenant Health"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/depOnboardingSettings",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "id,tokenName,appleIdentifier,tokenType,tokenExpirationDateTime,lastModifiedDateTime,lastSuccessfulSyncDateTime,lastSyncTriggeredDateTime,lastSyncErrorCode,syncedDeviceCount"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "health",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ (() => { const t = new Date($['tokenExpirationDateTime']).getTime(); if (!$['tokenExpirationDateTime'] || isNaN(t)) { return 'Unknown'; } const days = (t - Date.now()) / 86400000; if (days < 0) { return 'Expired'; } if (Number($['lastSyncErrorCode']) > 0) { return 'Sync error'; } return days <= 30 ? 'Expiring soon' : 'Valid'; })() }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Valid"],
+                        "warning": ["Expiring soon"],
+                        "error": ["Expired", "Sync error"],
+                        "unknown": ["Unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "tokenName",
+            "displayName": "Token",
+            "shape": "string",
+            "role": "label"
+        },
+        { "name": "appleIdentifier", "displayName": "Apple ID", "shape": "string" },
+        { "name": "tokenType", "displayName": "Token Type", "shape": "string" },
+        { "name": "tokenExpirationDateTime", "displayName": "Expires", "shape": "date" },
+        {
+            "name": "daysUntilExpiry",
+            "displayName": "Days Until Expiry",
+            "computed": true,
+            "valueExpression": "{{ (() => { const t = new Date($['tokenExpirationDateTime']).getTime(); return !$['tokenExpirationDateTime'] || isNaN(t) ? null : Math.floor((t - Date.now()) / 86400000); })() }}",
+            "shape": ["number", { "decimalPlaces": 0 }],
+            "role": "value"
+        },
+        { "name": "syncedDeviceCount", "displayName": "Synced Devices", "shape": "number" },
+        { "name": "lastSuccessfulSyncDateTime", "displayName": "Last Successful Sync", "shape": "date" },
+        { "name": "lastSyncTriggeredDateTime", "displayName": "Last Sync Triggered", "shape": "date" },
+        { "name": "lastSyncErrorCode", "displayName": "Last Sync Error Code", "shape": ["number", { "thousandsSeparator": false }] },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["tokenExpirationDateTime", "asc"]] } },
+    "timeframes": false
+}

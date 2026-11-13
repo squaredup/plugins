@@ -1,0 +1,98 @@
+{
+    "name": "configurationProfileDeviceStatuses",
+    "displayName": "Configuration Profile Device Statuses",
+    "description": "Configuration status of each device the selected configuration profile reports on",
+    "tags": ["Configuration"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/deviceConfigurations/{{object.rawId}}/deviceStatuses",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": { "realm": "queryArg", "path": "$top", "value": "999" },
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "postRequestScript": "policyDeviceStatuses.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Configuration Profile"] } },
+    "ui": [
+        {
+            "type": "toggle",
+            "name": "includeUnknown",
+            "label": "Include unknown status",
+            "defaultValue": false
+        }
+    ],
+    "metadata": [
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["compliant", "remediated"],
+                        "warning": ["conflict"],
+                        "error": ["nonCompliant", "error"],
+                        "unknown": ["unknown", "notApplicable", "notAssigned"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusRank",
+            "displayName": "Status Rank",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "Managed Device"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "userName",
+            "displayName": "User",
+            "shape": "string"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User Principal Name",
+            "shape": "string"
+        },
+        {
+            "name": "lastReportedDateTime",
+            "displayName": "Last Reported",
+            "shape": "date"
+        },
+        {
+            "name": "gracePeriodExpirationDateTime",
+            "displayName": "Grace Period Ends",
+            "shape": "date"
+        },
+        {
+            "name": "policyName",
+            "displayName": "Profile",
+            "shape": "string",
+            "sourceId": "policyId",
+            "sourceType": "Configuration Profile"
+        },
+        {
+            "name": "policyId",
+            "displayName": "Profile ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

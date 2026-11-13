@@ -1,0 +1,55 @@
+{
+    "name": "applePushCertificate",
+    "displayName": "Apple Push Certificate",
+    "description": "Apple MDM push certificate with its expiry, needed to manage iOS, iPadOS and macOS devices",
+    "tags": ["Tenant Health"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/deviceManagement/applePushNotificationCertificate",
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "health",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ (() => { const t = new Date($['expirationDateTime']).getTime(); if (!$['expirationDateTime'] || isNaN(t)) { return 'Unknown'; } const days = (t - Date.now()) / 86400000; return days < 0 ? 'Expired' : days <= 30 ? 'Expiring soon' : 'Valid'; })() }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Valid"],
+                        "warning": ["Expiring soon"],
+                        "error": ["Expired"],
+                        "unknown": ["Unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "appleIdentifier",
+            "displayName": "Apple ID",
+            "shape": "string",
+            "role": "label"
+        },
+        { "name": "topicIdentifier", "displayName": "Topic", "shape": "string" },
+        { "name": "expirationDateTime", "displayName": "Expires", "shape": "date" },
+        {
+            "name": "daysUntilExpiry",
+            "displayName": "Days Until Expiry",
+            "computed": true,
+            "valueExpression": "{{ (() => { const t = new Date($['expirationDateTime']).getTime(); return !$['expirationDateTime'] || isNaN(t) ? null : Math.floor((t - Date.now()) / 86400000); })() }}",
+            "shape": ["number", { "decimalPlaces": 0 }],
+            "role": "value"
+        },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "certificateUploadStatus", "displayName": "Upload Status", "shape": "string" },
+        { "name": "certificateUploadFailureReason", "displayName": "Upload Failure Reason", "shape": "string" },
+        { "name": "certificateSerialNumber", "displayName": "Serial Number", "shape": "string" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

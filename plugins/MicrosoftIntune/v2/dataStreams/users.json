@@ -1,0 +1,47 @@
+{
+    "name": "users",
+    "displayName": "Users",
+    "description": "Microsoft Entra ID users (returns rows only when Index users is on)",
+    "tags": ["Users"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ dataSource.indexUsers === true || dataSource.indexUsers === 'true' ? 'v1.0/users' : 'v1.0/deviceManagement/managedDeviceOverview' }}",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "{{ dataSource.indexUsers === true || dataSource.indexUsers === 'true' ? 'id,displayName,userPrincipalName,mail,jobTitle,department,officeLocation,accountEnabled' : null }}"
+            },
+            {
+                "key": "$top",
+                "value": "{{ dataSource.indexUsers === true || dataSource.indexUsers === 'true' ? '999' : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "postRequestScript": "users.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "User"
+        },
+        { "name": "userPrincipalName", "displayName": "User Principal Name", "shape": "string" },
+        { "name": "mail", "displayName": "Email", "shape": "string" },
+        { "name": "jobTitle", "displayName": "Job Title", "shape": "string" },
+        { "name": "department", "displayName": "Department", "shape": "string" },
+        { "name": "officeLocation", "displayName": "Office Location", "shape": "string" },
+        { "name": "accountEnabled", "displayName": "Account Enabled", "shape": "boolean" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false,
+    "visibility": { "type": "hidden" }
+}

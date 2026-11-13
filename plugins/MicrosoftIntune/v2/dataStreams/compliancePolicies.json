@@ -1,0 +1,46 @@
+{
+    "name": "compliancePolicies",
+    "displayName": "Compliance Policies",
+    "description": "Device compliance policies with their platform and version",
+    "tags": ["Compliance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/deviceCompliancePolicies",
+        "getArgs": [
+            { "key": "$select", "value": "id,displayName,description,createdDateTime,lastModifiedDateTime,version" }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Compliance Policy"
+        },
+        {
+            "name": "platform",
+            "displayName": "Platform",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ ($['@odata.type'] || '').replace('#microsoft.graph.', '') || null }}"
+        },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        { "name": "version", "displayName": "Version", "shape": "number" },
+        { "name": "createdDateTime", "displayName": "Created", "shape": "date" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "@odata.type", "displayName": "OData Type", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["displayName", "asc"]] } },
+    "timeframes": false
+}

@@ -1,0 +1,46 @@
+{
+    "name": "configurationProfiles",
+    "displayName": "Configuration Profiles",
+    "description": "Device configuration profiles with their platform and version (template-based profiles, not settings catalog policies)",
+    "tags": ["Configuration"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/deviceConfigurations",
+        "getArgs": [
+            { "key": "$select", "value": "id,displayName,description,createdDateTime,lastModifiedDateTime,version" }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Configuration Profile"
+        },
+        {
+            "name": "platform",
+            "displayName": "Platform",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ ($['@odata.type'] || '').replace('#microsoft.graph.', '') || null }}"
+        },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        { "name": "version", "displayName": "Version", "shape": "number" },
+        { "name": "createdDateTime", "displayName": "Created", "shape": "date" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "@odata.type", "displayName": "OData Type", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["displayName", "asc"]] } },
+    "timeframes": false
+}
