@@ -31,7 +31,7 @@ On save, the plugin requests an access token and lists your first MSP customer. 
 - **Backup storage**: Microsoft 365 storage and resource counts per workload, and Enterprise Workloads storage per backup set.
 - **Endpoint alerts**: alerts with their severity, the affected user or device, and when they first and last occurred.
 
-The out-of-the-box dashboards are **Backup Health** and **Accounts & Usage** across all customers, plus **Customer Backup Health** and **Customer Usage** perspectives for each customer.
+The out-of-the-box dashboards are **Backup Health** and **Account Usage** across all customers, plus **Backup Health** and **Usage** perspectives for each customer.
 
 ## Data streams
 
@@ -61,7 +61,7 @@ Every stream except **Customers** has an optional **Customer** picker. Leave it 
 - **Storage is a current snapshot**: the two storage streams show the latest values and ignore the dashboard timeframe. There is no storage history.
 - **Report figures can lag**: Druva refreshes its reporting data periodically, so backup, consumption, storage and alert figures can be an hour or two behind.
 - **Some report rows have no matching customer**: Druva reports can include customers that are not in your current customer list. They appear in all-customer views but never on a **Customer** perspective.
-- **Tenants are data, not objects**: tenant details appear in the **Tenants** stream and on the **Customer Usage** dashboard, but tenants are not imported, so they cannot be searched for, picked as a dashboard variable or drilled into. Druva reports backup figures per customer, so backup views filter by customer.
+- **Tenants are data, not objects**: tenant details appear in the **Tenants** stream and on each customer's **Usage** dashboard, but tenants are not imported, so they cannot be searched for, picked as a dashboard variable or drilled into. Druva reports backup figures per customer, so backup views filter by customer.
 - **Backup jobs show only jobs that ran**: a backup set with no job in the selected window does not appear at all, so a backup set that has stopped running entirely will not show as failed.
 - **Large estates may need a shorter backup jobs window**: 30 days of jobs from a large MSP can be more than SquaredUp loads in one request and return incomplete results. Use 7 days or 24 hours if totals look low.
 - **Failed backups show the attempt, not the last success**: for a failed backup the time shown is the failed attempt, because Druva does not report when the last successful backup was.
