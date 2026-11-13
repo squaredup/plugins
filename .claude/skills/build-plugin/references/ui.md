@@ -161,12 +161,12 @@ The `validation` object accepts [react-hook-form](https://react-hook-form.com/do
 
 Use the plainest field that fits:
 
-- **One on/off:** `checkbox`. Use `toggle` to turn on a feature or show an advanced section.
-- **Some items from a fixed set** (for example, object types to import): one `checkbox` per item, stacked. To make them optional, put them in a `fieldGroup` that a master checkbox shows.
-- **One option from 2–5:** `radio`. Long labels are fine.
+- **One on/off:** `toggle`, including a toggle that shows an advanced section (`visible: { "x": "true" }`).
+- **Some items from a fixed set** (for example, object types to import): one `checkbox` per item, stacked. To make the set optional, put them in a `fieldGroup` that a master `toggle` shows (for example, "Configure your import").
+- **One option from 2–4 short labels** (about 20 characters each): `switch`. Set `defaultValue`, because a click on the selected option clears it.
+- **One option with long labels, or options that need a description:** `radio`.
 - **One option from a long or growing list** (regions, API versions): `autocomplete` with `"isMulti": false`.
 - **A list of IDs or names that the user types:** `autocomplete` with `"isMulti": true` and `"allowCustomValues": true`.
-- **`switch`:** 2–3 options with short labels only, for example "US / EU". It does not wrap.
 - **`choiceChips`:** tile-editor parameters in a data stream's `ui` only, for example a severity filter.
 
 **`checkbox`** — single boolean:
