@@ -19,7 +19,7 @@ result = (data.data || [])
     .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
     .map((r) => {
         const end = r.endTime ? new Date(r.endTime).getTime() : NaN;
-        const hours = Number.isFinite(end) ? Math.round(((now - end) / 3600000) * 10) / 10 : null;
+        const hours = Number.isFinite(end) ? (now - end) / 3600000 : null;
         // Any status other than the success wording, a missing end time, or a stale
         // last backup counts as at risk.
         const atRisk = r.status !== OK_STATUS || hours === null || hours > staleAfterHours;

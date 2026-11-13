@@ -10,7 +10,7 @@ const na = (v) => (v === undefined || v === null || v === '' || v === 'NA' ? nul
 const minutes = (r) => {
     if (!r.started || !r.ended) return null;
     const ms = Date.parse(r.ended) - Date.parse(r.started);
-    return Number.isNaN(ms) || ms < 0 ? null : Math.round((ms / 60000) * 10) / 10;
+    return Number.isNaN(ms) || ms < 0 ? null : ms / 60000;
 };
 
 // Only the columns the stream exposes are returned to keep rows small.
