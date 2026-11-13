@@ -1,0 +1,106 @@
+{
+    "name": "m365BackupStatus",
+    "displayName": "Microsoft 365 Backup Status",
+    "description": "Last backup status per Microsoft 365 user and workload with RPO risk (excludes deleted users, optionally filtered to customers and tenants)",
+    "tags": ["Backup"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "/msp/reporting/v2/reports/mspM365UserLastBackupStatus",
+        "postBody": {
+            "filters": {
+                "pageSize": 500,
+                "filterBy": [
+                    { "columnName": "lastUpdatedTime", "operator": "GTE", "value": "2000-01-01T00:00:00Z" }
+                ]
+            }
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "none" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "body", "path": "pageToken" }
+        },
+        "postRequestScript": "m365BackupStatus.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "placeholder": "Select...",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant (optional)",
+            "placeholder": "Select...",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Tenant"] } }
+        },
+        {
+            "type": "number",
+            "name": "staleAfterHours",
+            "label": "Stale after (hours)",
+            "defaultValue": 24,
+            "validation": { "min": 0 }
+        }
+    ],
+    "metadata": [
+        { "name": "dcpUniqueKey", "displayName": "Record Key", "shape": "string", "visible": false },
+        { "name": "customerGlobalId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        {
+            "name": "customer",
+            "displayName": "Customer",
+            "sourceId": "customerGlobalId",
+            "sourceType": "Customer",
+            "objectPropertyPath": "name"
+        },
+        { "name": "userName", "displayName": "User", "shape": "string", "role": "label" },
+        { "name": "userEmail", "displayName": "Email", "shape": "string" },
+        { "name": "workloadType", "displayName": "Workload", "shape": "string" },
+        {
+            "name": "atRisk",
+            "displayName": "Risk",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["At risk"],
+                        "warning": ["Warning"],
+                        "success": ["Protected"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "lastBackupStatus",
+            "displayName": "Last backup status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Backed Up Successfully"],
+                        "warning": ["Backed Up With Errors"],
+                        "error": ["Backup Failed", "Never Backed Up"]
+                    }
+                }
+            ]
+        },
+        { "name": "endTime", "displayName": "Last backup attempt", "shape": "date", "role": "timestamp" },
+        {
+            "name": "hoursSinceLastBackup",
+            "displayName": "Hours since last backup",
+            "shape": ["number", { "decimalPlaces": 1, "thousandsSeparator": true }]
+        },
+        {
+            "name": "itemsMissed",
+            "displayName": "Items missed",
+            "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }]
+        },
+        { "name": "lastBackupData", "displayName": "Last backup size", "shape": "bytes" },
+        { "name": "statusDetails", "displayName": "Status details", "shape": "string" }
+    ],
+    "timeframes": false
+}
