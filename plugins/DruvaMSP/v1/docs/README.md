@@ -1,4 +1,4 @@
-Monitor the customers and product tenants you manage in the [Druva Managed Services Center](https://www.druva.com/partners/msp) (MSC) in SquaredUp: tenant status and licensing, consumption, backup storage and endpoint alerts, via the [Druva MSP API](https://developer.druva.com/docs/getting-started-with-druva-msp-api-1).
+Monitor the customers and product tenants you manage in the [Druva Managed Services Center](https://www.druva.com/partners/msp) (MSC) in SquaredUp: backup activity and protection risk, tenant status and licensing, consumption, backup storage and endpoint alerts, via the [Druva MSP API](https://developer.druva.com/docs/getting-started-with-druva-msp-api-1).
 
 > ⚠️ This plugin uses the **MSP** API, so it needs credentials created in the Managed Services Center. API credentials created inside a single customer's Druva Cloud Platform console will not work.
 
@@ -24,6 +24,8 @@ On save, the plugin requests an access token and lists your first MSP customer. 
 
 ## What this plugin monitors
 
+- **Backup jobs**: every Enterprise Workloads backup job, with its outcome (successful, failed, skipped, window expired), timing and the backup set and VM it covered.
+- **Backup risk**: the last backup of every Microsoft 365 user and endpoint device, flagged **At risk** when it failed, never ran, or is older than the threshold you set.
 - **Customers and tenants**: every customer you manage and each product tenant they hold, with provisioning status, edition, licence expiry and quota.
 - **Consumption**: daily consumption units per customer, product module and service plan, for chargeback.
 - **Backup storage**: Microsoft 365 storage and resource counts per workload, and Enterprise Workloads storage per backup set.
@@ -33,6 +35,9 @@ The out-of-the-box dashboards include an MSP-wide **Overview** plus a perspectiv
 
 ## Data streams
 
+- **Backup jobs**: Enterprise Workloads backup jobs with status, start and end times, duration, backup set, VM, workload and policy.
+- **Microsoft 365 backup status**: the last backup of each Microsoft 365 user per workload, with its status, age and an at-risk state.
+- **Endpoint backup status**: the last backup of each endpoint device, with its status, age, connectivity and an at-risk state.
 - **Customers**: your MSP customers with account details, provisioning status and cloud. Account-wide.
 - **Tenants**: product tenants with status, edition, licence expiry and quota.
 - **Consumption**: daily consumption units per customer, product module, entity and service plan.
@@ -40,7 +45,7 @@ The out-of-the-box dashboards include an MSP-wide **Overview** plus a perspectiv
 - **Microsoft 365 Storage Consumption**: backup storage, resource count and enabled resources per customer and workload.
 - **Storage Consumption by Backup Set**: source size, changes, estimated cloud storage, storage tier and reduction factor per Enterprise Workloads backup set.
 
-Every stream except **Customers** has an optional **Customer** picker. Leave it empty to see all customers, or pick one or more to narrow the results.
+Every stream except **Customers** has an optional **Customer** picker. Leave it empty to see all customers, or pick one or more to narrow the results. The three backup streams also have an optional **Tenant** picker, and the two backup status streams have a **Stale after (hours)** threshold, 24 by default, beyond which a last backup counts as at risk.
 
 ## What gets indexed
 
@@ -57,9 +62,14 @@ Every stream except **Customers** has an optional **Customer** picker. Leave it 
 - **Consumption mixes units**: the **Consumption** column holds both resource counts and terabytes. Filter or group on **Units** before you add values up, or the total is meaningless.
 - **Alerts are Endpoints alerts only**: the Druva MSP API has no general alert or event feed, so alerts from other Druva products do not appear. The timeframe filters on when an alert was last updated.
 - **Storage is a current snapshot**: the two storage streams show the latest values and ignore the dashboard timeframe. There is no storage history.
-- **Report figures can lag**: Druva refreshes its reporting data periodically, so consumption, storage and alert figures can be an hour or two behind.
+- **Report figures can lag**: Druva refreshes its reporting data periodically, so backup, consumption, storage and alert figures can be an hour or two behind.
 - **Some report rows have no matching customer**: Druva reports can include customers that are not in your current customer list. They appear in all-customer views but never on a **Customer** perspective.
-- **The Tenant perspective is limited**: Druva reports its figures per customer, not per tenant, so the **Tenant** dashboard shows the tenant's status and details only.
+- **Tenant views match on customer and product**: Druva reports its figures per customer, not per tenant, so a tenant's backup data is its customer's data for that tenant's product. Backup jobs appear only for **Enterprise Workloads** tenants, and Microsoft 365 and endpoint backup status only for **SaaS Apps and Endpoints** tenants. Consumption, storage and alerts are per customer only.
+- **Backup jobs show only jobs that ran**: a backup set with no job in the selected window does not appear at all, so a backup set that has stopped running entirely will not show as failed.
+- **Large estates may need a shorter backup jobs window**: 30 days of jobs from a large MSP can be more than SquaredUp loads in one request and return incomplete results. Use 7 days or 24 hours if totals look low.
+- **Failed backups show the attempt, not the last success**: for a failed backup the time shown is the failed attempt, because Druva does not report when the last successful backup was.
+- **Microsoft 365 backup status covers Exchange Online and OneDrive**: other Microsoft 365 workloads are not included.
+- **Deleted users and devices are left out** of the backup status streams, since they are no longer a backup risk.
 - **Status shows health state**: status columns use SquaredUp's health colours and wording, so a suspended tenant shows as **Error** and a ready customer as **Success**.
 - **Customers and tenants refresh every 12 hours**: a new customer or tenant appears after the next import.
 - **Read-only**: the plugin never creates, changes or deletes anything in Druva.
