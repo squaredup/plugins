@@ -16,8 +16,10 @@ const tenantCustomerIds = new Set(
         .filter(Boolean)
 );
 
-const parsed = Number(context.config && context.config.staleAfterHours);
-const staleAfterHours = Number.isFinite(parsed) && context.config.staleAfterHours !== '' ? parsed : 24;
+// The threshold arrives as a number (or a string, or nothing when unset); fall back to 24.
+const rawThreshold = context.config && context.config.staleAfterHours;
+const parsed = rawThreshold === undefined || rawThreshold === null || rawThreshold === '' ? NaN : Number(rawThreshold);
+const staleAfterHours = Number.isFinite(parsed) ? parsed : 24;
 const now = Date.now();
 
 result = (data.data || [])
