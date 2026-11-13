@@ -1,0 +1,77 @@
+{
+    "name": "topVms",
+    "displayName": "Top VMs",
+    "description": "The busiest AHV VMs over the timeframe, ranked by CPU, memory, CPU ready, IOPS or latency (one row per VM)",
+    "tags": ["Performance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/vmm/v4.0/ahv/stats/vms",
+        "getArgs": [
+            { "key": "$startTime", "value": "{{timeframe.start}}" },
+            { "key": "$endTime", "value": "{{timeframe.end}}" },
+            { "key": "$samplingInterval", "value": "{{ Math.max(30, timeframe.unixEnd - timeframe.unixStart) }}" },
+            { "key": "$statType", "value": "AVG" },
+            {
+                "key": "$select",
+                "value": "stats/hypervisorCpuUsagePpm,stats/hypervisorCpuReadyTimePpm,stats/memoryUsagePpm,stats/controllerNumIops,stats/controllerAvgIoLatencyMicros,stats/controllerIoBandwidthKbps,stats/cluster"
+            },
+            {
+                "key": "$orderby",
+                "value": "{{ 'stats/' + (({ memory: 'memoryUsagePpm', cpuReady: 'hypervisorCpuReadyTimePpm', iops: 'controllerNumIops', latency: 'controllerAvgIoLatencyMicros' })[typeof rankBy !== 'undefined' ? rankBy : ''] || 'hypervisorCpuUsagePpm') + ' desc' }}"
+            },
+            {
+                "key": "$filter",
+                "value": "{{ (typeof cluster !== 'undefined' && cluster && cluster.length) ? cluster.map(c => \"stats/cluster eq '\" + [].concat(c.rawId)[0] + \"'\").join(' or ') : null }}"
+            },
+            {
+                "key": "$limit",
+                "value": "{{ Math.min(100, Math.max(1, Number(typeof top !== 'undefined' && top ? top : 10))) }}"
+            }
+        ],
+        "paging": { "mode": "none" },
+        "postRequestScript": "topVms.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "rankBy",
+            "label": "Rank by",
+            "defaultValue": "cpu",
+            "options": [
+                { "value": "cpu", "label": "CPU" },
+                { "value": "memory", "label": "Memory" },
+                { "value": "cpuReady", "label": "CPU ready" },
+                { "value": "iops", "label": "IOPS" },
+                { "value": "latency", "label": "Latency" }
+            ]
+        },
+        {
+            "type": "number",
+            "name": "top",
+            "label": "Number of VMs",
+            "defaultValue": 10,
+            "validation": { "min": 1, "max": 100 }
+        },
+        {
+            "type": "objects",
+            "name": "cluster",
+            "label": "Cluster (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Cluster"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "vmExtId", "displayName": "VM ID", "shape": "string", "visible": false },
+        { "name": "vmName", "displayName": "VM", "shape": "string", "role": "label", "sourceId": "vmExtId", "sourceType": "VM", "objectPropertyPath": "name" },
+        { "name": "clusterExtId", "displayName": "Cluster ID", "shape": "string", "visible": false },
+        { "name": "clusterName", "displayName": "Cluster", "shape": "string", "sourceId": "clusterExtId", "sourceType": "Cluster", "objectPropertyPath": "name" },
+        { "name": "cpuUsagePercent", "displayName": "CPU usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "cpuReadyPercent", "displayName": "CPU ready", "shape": ["percent", { "decimalPlaces": 2 }] },
+        { "name": "memoryUsagePercent", "displayName": "Memory usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "iops", "displayName": "IOPS", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "latencyMs", "displayName": "Latency (ms)", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "bandwidthKBps", "displayName": "Bandwidth", "shape": "kilobytespersecond" }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days"]
+}

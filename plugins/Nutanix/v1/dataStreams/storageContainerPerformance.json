@@ -1,0 +1,56 @@
+{
+    "name": "storageContainerPerformance",
+    "displayName": "Storage Container Performance",
+    "description": "Used, free and total capacity, data reduction, IOPS, latency and bandwidth for a storage container over the timeframe",
+    "tags": ["Performance"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/clustermgmt/v4.0/stats/storage-containers/{{object.rawId}}",
+        "getArgs": [
+            { "key": "$startTime", "value": "{{timeframe.start}}" },
+            { "key": "$endTime", "value": "{{timeframe.end}}" },
+            {
+                "key": "$samplingInterval",
+                "value": "{{ (typeof summary !== 'undefined' && ['average', 'peak', 'latest'].includes(summary)) ? Math.max(30, timeframe.unixEnd - timeframe.unixStart) : Math.max(30, Math.ceil((timeframe.unixEnd - timeframe.unixStart) / 120 / 30) * 30) }}"
+            },
+            {
+                "key": "$statType",
+                "value": "{{ (typeof summary !== 'undefined' && ({ peak: 'MAX', latest: 'LAST' })[summary]) || 'AVG' }}"
+            }
+        ],
+        "postRequestScript": "storageContainerPerformance.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Storage Container"] } },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "summary",
+            "label": "Summarize",
+            "defaultValue": "timeline",
+            "options": [
+                { "value": "timeline", "label": "Timeline" },
+                { "value": "average", "label": "Average" },
+                { "value": "peak", "label": "Peak" },
+                { "value": "latest", "label": "Latest" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "containerExtId", "displayName": "Storage container ID", "shape": "string", "visible": false },
+        { "name": "containerName", "displayName": "Storage container", "shape": "string", "role": "label", "sourceId": "containerExtId", "sourceType": "Storage Container" },
+        { "name": "usagePercent", "displayName": "Usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "usedTiB", "displayName": "Used", "shape": "terabytes" },
+        { "name": "freeTiB", "displayName": "Free", "shape": "terabytes" },
+        { "name": "capacityTiB", "displayName": "Capacity", "shape": "terabytes" },
+        { "name": "dataReductionRatio", "displayName": "Data reduction ratio", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "dataReductionSavedTiB", "displayName": "Data reduction savings", "shape": "terabytes" },
+        { "name": "snapshotReclaimableGiB", "displayName": "Snapshot reclaimable", "shape": "gigabytes" },
+        { "name": "iops", "displayName": "IOPS", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "readIops", "displayName": "Read IOPS", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "writeIops", "displayName": "Write IOPS", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "latencyMs", "displayName": "Latency (ms)", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "bandwidthKBps", "displayName": "Bandwidth", "shape": "kilobytespersecond" }
+    ]
+}

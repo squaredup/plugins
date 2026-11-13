@@ -1,0 +1,80 @@
+{
+    "name": "vms",
+    "displayName": "VMs",
+    "description": "AHV virtual machines with power state, sizing, placement, guest OS and IP addresses (optionally filtered to clusters or hosts)",
+    "tags": ["Inventory"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/vmm/v4.0/ahv/config/vms",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ [(typeof cluster !== 'undefined' && cluster && cluster.length) ? '(' + cluster.map(c => \"cluster/extId eq '\" + [].concat(c.rawId)[0] + \"'\").join(' or ') + ')' : null, (typeof host !== 'undefined' && host && host.length) ? '(' + host.map(h => \"host/extId eq '\" + [].concat(h.rawId)[0] + \"'\").join(' or ') + ')' : null].filter(Boolean).join(' and ') || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "$limit", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "base": 0,
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" }
+            },
+            "out": { "realm": "queryArg", "path": "$page" }
+        },
+        "postRequestScript": "vms.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "cluster",
+            "label": "Cluster (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Cluster"] } }
+        },
+        {
+            "type": "objects",
+            "name": "host",
+            "label": "Host (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Host"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "extId", "displayName": "ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "name", "displayName": "VM", "shape": "string", "role": "label", "sourceId": "extId", "sourceType": "VM" },
+        {
+            "name": "powerState",
+            "displayName": "Power state",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["ON"],
+                        "warning": ["PAUSED"],
+                        "unknown": ["UNDETERMINED"],
+                        "unmonitored": ["OFF"]
+                    }
+                }
+            ]
+        },
+        { "name": "clusterExtId", "displayName": "Cluster ID", "shape": "string", "visible": false },
+        { "name": "clusterName", "displayName": "Cluster", "shape": "string", "sourceId": "clusterExtId", "sourceType": "Cluster", "objectPropertyPath": "name" },
+        { "name": "hostExtId", "displayName": "Host ID", "shape": "string", "visible": false },
+        { "name": "hostName", "displayName": "Host", "shape": "string", "sourceId": "hostExtId", "sourceType": "Host", "objectPropertyPath": "name" },
+        { "name": "vCpus", "displayName": "vCPUs", "shape": "number" },
+        { "name": "numSockets", "displayName": "Sockets", "shape": "number", "visible": false },
+        { "name": "numCoresPerSocket", "displayName": "Cores per socket", "shape": "number", "visible": false },
+        { "name": "memoryGiB", "displayName": "Memory", "shape": "gigabytes" },
+        { "name": "diskCapacityGiB", "displayName": "Disk capacity", "shape": "gigabytes" },
+        { "name": "diskCount", "displayName": "Disks", "shape": "number" },
+        { "name": "guestOs", "displayName": "Guest OS", "shape": "string" },
+        { "name": "guestTools", "displayName": "Guest tools", "shape": "string" },
+        { "name": "ipAddresses", "displayName": "IP addresses", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "machineType", "displayName": "Machine type", "shape": "string", "visible": false },
+        { "name": "isAgentVm", "displayName": "Agent VM", "shape": "boolean", "visible": false },
+        { "name": "description", "displayName": "Description", "shape": "string", "visible": false },
+        { "name": "createTime", "displayName": "Created", "shape": "date" }
+    ],
+    "timeframes": false
+}

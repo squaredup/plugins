@@ -1,0 +1,1174 @@
+{
+    "name": "Capacity",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "123e4f10-ac15-4dbe-aca3-dfe0e19770b7",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Storage",
+                    "description": "Physical storage used and available across all clusters, as of the end of the timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH c AS (SELECT \"clusterName\", AVG(\"storageUsedTiB\") AS \"used\", AVG(\"storageCapacityTiB\") AS \"capacity\" FROM \"perf\" GROUP BY 1) SELECT SUM(\"used\") AS \"used\", SUM(\"capacity\") AS \"capacity\", 100.0 * SUM(\"used\") / NULLIF(SUM(\"capacity\"), 0) AS \"usedPercent\" FROM c",
+                            "tables": [
+                                {
+                                    "tableName": "perf",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[clusterPerformance]}}",
+                                            "name": "clusterPerformance",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "summary": "latest"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[Nutanix Clusters]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "used",
+                                "shape": "terabytes"
+                            },
+                            {
+                                "name": "capacity",
+                                "shape": "terabytes"
+                            },
+                            {
+                                "name": "usedPercent",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "used",
+                                        "type": "quantitative",
+                                        "title": "Used",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "capacity",
+                                        "type": "quantitative",
+                                        "title": "Capacity",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "usedPercent",
+                                        "type": "quantitative",
+                                        "title": "Used %",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9a07a901-2a44-4b63-9c90-e8f01e3485b7",
+                "x": 4,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "vCPU Allocation",
+                    "description": "vCPUs given to powered-on VMs against the physical cores in every host. Above 3 per core deserves a look",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH h AS (SELECT SUM(\"cpuCores\") AS \"cores\", SUM(\"memoryGiB\") AS \"hostMemory\" FROM \"hosts\"), v AS (SELECT SUM(\"vCpus\") AS \"vcpus\", SUM(\"memoryGiB\") AS \"vmMemory\" FROM \"vms\" WHERE \"powerState[Expanded].rawState\" = 'ON') SELECT COALESCE(v.\"vcpus\", 0) AS \"vcpus\", h.\"cores\", 1.0 * COALESCE(v.\"vcpus\", 0) / NULLIF(h.\"cores\", 0) AS \"cpuRatio\", COALESCE(v.\"vmMemory\", 0) AS \"vmMemory\", h.\"hostMemory\", 100.0 * COALESCE(v.\"vmMemory\", 0) / NULLIF(h.\"hostMemory\", 0) AS \"memoryAllocated\" FROM h, v",
+                            "tables": [
+                                {
+                                    "tableName": "hosts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[hosts]}}",
+                                            "name": "hosts",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "vms",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[vms]}}",
+                                            "name": "vms",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "cpuRatio",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 2
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "vcpus",
+                                        "type": "quantitative",
+                                        "title": "vCPUs",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "cores",
+                                        "type": "quantitative",
+                                        "title": "Cores",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "cpuRatio",
+                                        "type": "quantitative",
+                                        "title": "vCPU per Core",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6cfd3f99-644a-4642-8554-64956f0b6cd9",
+                "x": 8,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Memory Allocation",
+                    "description": "Memory given to powered-on VMs against the physical memory in every host",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH h AS (SELECT SUM(\"cpuCores\") AS \"cores\", SUM(\"memoryGiB\") AS \"hostMemory\" FROM \"hosts\"), v AS (SELECT SUM(\"vCpus\") AS \"vcpus\", SUM(\"memoryGiB\") AS \"vmMemory\" FROM \"vms\" WHERE \"powerState[Expanded].rawState\" = 'ON') SELECT COALESCE(v.\"vcpus\", 0) AS \"vcpus\", h.\"cores\", 1.0 * COALESCE(v.\"vcpus\", 0) / NULLIF(h.\"cores\", 0) AS \"cpuRatio\", COALESCE(v.\"vmMemory\", 0) AS \"vmMemory\", h.\"hostMemory\", 100.0 * COALESCE(v.\"vmMemory\", 0) / NULLIF(h.\"hostMemory\", 0) AS \"memoryAllocated\" FROM h, v",
+                            "tables": [
+                                {
+                                    "tableName": "hosts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[hosts]}}",
+                                            "name": "hosts",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "vms",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[vms]}}",
+                                            "name": "vms",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "vmMemory",
+                                "shape": "gigabytes"
+                            },
+                            {
+                                "name": "hostMemory",
+                                "shape": "gigabytes"
+                            },
+                            {
+                                "name": "memoryAllocated",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "vmMemory",
+                                        "type": "quantitative",
+                                        "title": "Allocated",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "hostMemory",
+                                        "type": "quantitative",
+                                        "title": "Physical",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "memoryAllocated",
+                                        "type": "quantitative",
+                                        "title": "Allocated %",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2a661a6f-a5c7-4511-b505-a1ee51a20cb2",
+                "x": 0,
+                "y": 2,
+                "w": 12,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Allocation by Cluster",
+                    "description": "Over-commit per cluster: vCPUs and memory given to powered-on VMs against the physical cores and memory of its hosts",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH h AS (SELECT \"clusterName\" AS \"cluster\", COUNT(*) AS \"hosts\", SUM(\"cpuCores\") AS \"cores\", SUM(\"memoryGiB\") AS \"hostMemory\" FROM \"hosts\" GROUP BY 1), v AS (SELECT \"clusterName\" AS \"cluster\", COUNT(*) AS \"vms\", SUM(\"vCpus\") AS \"vcpus\", SUM(\"memoryGiB\") AS \"vmMemory\" FROM \"vms\" WHERE \"powerState[Expanded].rawState\" = 'ON' GROUP BY 1) SELECT h.\"cluster\", h.\"hosts\", COALESCE(v.\"vms\", 0) AS \"vms\", h.\"cores\", COALESCE(v.\"vcpus\", 0) AS \"vcpus\", 1.0 * COALESCE(v.\"vcpus\", 0) / NULLIF(h.\"cores\", 0) AS \"cpuRatio\", h.\"hostMemory\", COALESCE(v.\"vmMemory\", 0) AS \"vmMemory\", 100.0 * COALESCE(v.\"vmMemory\", 0) / NULLIF(h.\"hostMemory\", 0) AS \"memoryAllocated\" FROM h LEFT JOIN v ON v.\"cluster\" = h.\"cluster\" ORDER BY \"cpuRatio\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "hosts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[hosts]}}",
+                                            "name": "hosts",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "vms",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[vms]}}",
+                                            "name": "vms",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "cluster",
+                                        "title": "Cluster",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "hosts",
+                                        "title": "Hosts",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "vms",
+                                        "title": "Powered-on VMs",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "cores",
+                                        "title": "Physical Cores",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "vcpus",
+                                        "title": "vCPUs",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "cpuRatio",
+                                        "title": "vCPU per Core",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " : 1",
+                                            "thresholds": [
+                                                {
+                                                    "to": 3,
+                                                    "color": "#22c55e"
+                                                },
+                                                {
+                                                    "to": 5,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 1000,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "hostMemory",
+                                        "title": "Physical Memory",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " GiB"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "vmMemory",
+                                        "title": "Allocated Memory",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " GiB"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "memoryAllocated",
+                                        "title": "Memory Allocated",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "max": 100,
+                                            "thresholds": [
+                                                {
+                                                    "to": 75,
+                                                    "color": "#22c55e"
+                                                },
+                                                {
+                                                    "to": 90,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableSort": {
+                                    "field": "cpuRatio",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5e40eacb-1af6-49f7-83d5-f00024b62d78",
+                "x": 0,
+                "y": 6,
+                "w": 6,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "vCPUs vs Physical Cores",
+                    "description": "vCPUs allocated to powered-on VMs beside the physical cores available, per cluster",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH h AS (SELECT \"clusterName\" AS \"cluster\", COUNT(*) AS \"hosts\", SUM(\"cpuCores\") AS \"cores\", SUM(\"memoryGiB\") AS \"hostMemory\" FROM \"hosts\" GROUP BY 1), v AS (SELECT \"clusterName\" AS \"cluster\", COUNT(*) AS \"vms\", SUM(\"vCpus\") AS \"vcpus\", SUM(\"memoryGiB\") AS \"vmMemory\" FROM \"vms\" WHERE \"powerState[Expanded].rawState\" = 'ON' GROUP BY 1) SELECT h.\"cluster\", h.\"hosts\", COALESCE(v.\"vms\", 0) AS \"vms\", h.\"cores\", COALESCE(v.\"vcpus\", 0) AS \"vcpus\", 1.0 * COALESCE(v.\"vcpus\", 0) / NULLIF(h.\"cores\", 0) AS \"cpuRatio\", h.\"hostMemory\", COALESCE(v.\"vmMemory\", 0) AS \"vmMemory\", 100.0 * COALESCE(v.\"vmMemory\", 0) / NULLIF(h.\"hostMemory\", 0) AS \"memoryAllocated\" FROM h LEFT JOIN v ON v.\"cluster\" = h.\"cluster\" ORDER BY \"cpuRatio\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "hosts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[hosts]}}",
+                                            "name": "hosts",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "vms",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[vms]}}",
+                                            "name": "vms",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "cluster",
+                                    "type": "nominal",
+                                    "title": "Cluster"
+                                },
+                                "y": [
+                                    {
+                                        "field": "cores",
+                                        "type": "quantitative",
+                                        "title": "Physical Cores"
+                                    },
+                                    {
+                                        "field": "vcpus",
+                                        "type": "quantitative",
+                                        "title": "Allocated vCPUs"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#cbd5e1",
+                                    "#6366f1"
+                                ],
+                                "cartesianShowVerticalGridLines": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6afca828-302f-4d45-ab58-8abde80422f9",
+                "x": 6,
+                "y": 6,
+                "w": 6,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "VM Memory vs Physical Memory",
+                    "description": "Memory allocated to powered-on VMs beside the physical memory of the hosts, per cluster (GiB)",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH h AS (SELECT \"clusterName\" AS \"cluster\", COUNT(*) AS \"hosts\", SUM(\"cpuCores\") AS \"cores\", SUM(\"memoryGiB\") AS \"hostMemory\" FROM \"hosts\" GROUP BY 1), v AS (SELECT \"clusterName\" AS \"cluster\", COUNT(*) AS \"vms\", SUM(\"vCpus\") AS \"vcpus\", SUM(\"memoryGiB\") AS \"vmMemory\" FROM \"vms\" WHERE \"powerState[Expanded].rawState\" = 'ON' GROUP BY 1) SELECT h.\"cluster\", h.\"hosts\", COALESCE(v.\"vms\", 0) AS \"vms\", h.\"cores\", COALESCE(v.\"vcpus\", 0) AS \"vcpus\", 1.0 * COALESCE(v.\"vcpus\", 0) / NULLIF(h.\"cores\", 0) AS \"cpuRatio\", h.\"hostMemory\", COALESCE(v.\"vmMemory\", 0) AS \"vmMemory\", 100.0 * COALESCE(v.\"vmMemory\", 0) / NULLIF(h.\"hostMemory\", 0) AS \"memoryAllocated\" FROM h LEFT JOIN v ON v.\"cluster\" = h.\"cluster\" ORDER BY \"cpuRatio\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "hosts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[hosts]}}",
+                                            "name": "hosts",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "vms",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[vms]}}",
+                                            "name": "vms",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "cluster",
+                                    "type": "nominal",
+                                    "title": "Cluster"
+                                },
+                                "y": [
+                                    {
+                                        "field": "hostMemory",
+                                        "type": "quantitative",
+                                        "title": "Physical Memory"
+                                    },
+                                    {
+                                        "field": "vmMemory",
+                                        "type": "quantitative",
+                                        "title": "Allocated Memory"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#cbd5e1",
+                                    "#8b5cf6"
+                                ],
+                                "cartesianShowVerticalGridLines": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fd415ffc-64d7-45f4-84f2-aa3a4daa1bcc",
+                "x": 0,
+                "y": 10,
+                "w": 6,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Storage Used vs Free",
+                    "description": "Physical storage used and free in each cluster at the end of the timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[clusterPerformance]}}",
+                        "name": "clusterPerformance",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "summary": "latest"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "clusterName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "storageUsedTiB"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "storageFreeTiB"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "storageUsedTiB_mean",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Nutanix Clusters]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "clusterName_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Cluster"
+                                },
+                                "y": [
+                                    {
+                                        "field": "storageUsedTiB_mean",
+                                        "type": "quantitative",
+                                        "title": "Used"
+                                    },
+                                    {
+                                        "field": "storageFreeTiB_mean",
+                                        "type": "quantitative",
+                                        "title": "Free"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#14b8a6",
+                                    "#cbd5e1"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d4b1104c-f871-4129-8b2a-307fba4cea95",
+                "x": 6,
+                "y": 10,
+                "w": 6,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Storage Growth",
+                    "description": "Physical storage used in each cluster across the timeframe. The dashed trend line shows which way it is heading",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[clusterPerformance]}}",
+                        "name": "clusterPerformance",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "summary": "timeline"
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Nutanix Clusters]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "storageUsedTiB",
+                                    "type": "quantitative",
+                                    "title": "Used"
+                                },
+                                "series": {
+                                    "field": "clusterName",
+                                    "type": "nominal",
+                                    "title": "Cluster"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "cartesianSymbol": "none",
+                                "cartesianLineWidth": 2,
+                                "cartesianShowVerticalGridLines": false,
+                                "cartesianTrendLine": true,
+                                "legendPosition": "bottom",
+                                "cartesianYAxisRangeMode": "fit"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "138bf656-2e1a-4e9c-a572-de8e0515c579",
+                "x": 0,
+                "y": 14,
+                "w": 6,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Peak CPU and Memory",
+                    "description": "Highest CPU and memory usage each cluster reached in the timeframe, against an 80% headroom line",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[clusterPerformance]}}",
+                        "name": "clusterPerformance",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "summary": "peak"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "clusterName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "max",
+                                    "names": [
+                                        "cpuUsagePercent"
+                                    ]
+                                },
+                                {
+                                    "type": "max",
+                                    "names": [
+                                        "memoryUsagePercent"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Nutanix Clusters]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "clusterName_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Cluster"
+                                },
+                                "y": [
+                                    {
+                                        "field": "cpuUsagePercent_max",
+                                        "type": "quantitative",
+                                        "title": "Peak CPU"
+                                    },
+                                    {
+                                        "field": "memoryUsagePercent_max",
+                                        "type": "quantitative",
+                                        "title": "Peak Memory"
+                                    }
+                                ]
+                            },
+                            "markLines": [
+                                {
+                                    "value": 80,
+                                    "label": "80%",
+                                    "color": "#f59e0b"
+                                }
+                            ],
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianYAxisRangeMode": "percentage",
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#3b82f6",
+                                    "#8b5cf6"
+                                ],
+                                "cartesianShowVerticalGridLines": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0c09490d-3aa4-47ce-ad61-4f62b9f23311",
+                "x": 6,
+                "y": 14,
+                "w": 6,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Inefficient VMs by Cluster",
+                    "description": "VMs Prism flags as over-provisioned, under-provisioned, inactive or constrained, per cluster. Right-sizing these frees capacity",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[clusters]}}",
+                        "name": "clusters",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "inefficientVmCount",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "name",
+                                    "type": "nominal",
+                                    "title": "Cluster"
+                                },
+                                "y": {
+                                    "field": "inefficientVmCount",
+                                    "type": "quantitative",
+                                    "title": "Inefficient VMs"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "showLabels": true,
+                                "colors": [
+                                    "#f59e0b"
+                                ],
+                                "cartesianShowVerticalGridLines": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6e0ec0cf-782b-4742-a89e-5a12b9201a44",
+                "x": 0,
+                "y": 18,
+                "w": 12,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Storage Containers",
+                    "description": "Usage, data reduction and reclaimable snapshot space for every storage container at the end of the timeframe, fullest first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[storageContainerPerformance]}}",
+                        "name": "storageContainerPerformance",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "summary": "latest"
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "containerName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "usagePercent"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "usedTiB"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "capacityTiB"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "dataReductionRatio"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "dataReductionSavedTiB"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "snapshotReclaimableGiB"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "usagePercent_mean",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Nutanix Storage Containers]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "containerName_uniqueValues",
+                                        "title": "Container",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "usagePercent_mean",
+                                        "title": "Usage",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "max": 100,
+                                            "thresholds": [
+                                                {
+                                                    "to": 75,
+                                                    "color": "#22c55e"
+                                                },
+                                                {
+                                                    "to": 90,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "usedTiB_mean",
+                                        "title": "Used",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " TiB"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "capacityTiB_mean",
+                                        "title": "Capacity",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " TiB"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "dataReductionRatio_mean",
+                                        "title": "Data Reduction",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " : 1"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "dataReductionSavedTiB_mean",
+                                        "title": "Saved",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": " TiB"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "snapshotReclaimableGiB_mean",
+                                        "title": "Snapshot Reclaimable",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": " GiB"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableSort": {
+                                    "field": "usagePercent_mean",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

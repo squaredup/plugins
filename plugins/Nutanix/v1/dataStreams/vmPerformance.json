@@ -1,0 +1,61 @@
+{
+    "name": "vmPerformance",
+    "displayName": "VM Performance",
+    "description": "CPU, CPU ready, memory, disk, IOPS, latency, bandwidth and network traffic for a VM over the timeframe",
+    "tags": ["Performance"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/vmm/v4.0/ahv/stats/vms/{{object.rawId}}",
+        "getArgs": [
+            { "key": "$startTime", "value": "{{timeframe.start}}" },
+            { "key": "$endTime", "value": "{{timeframe.end}}" },
+            {
+                "key": "$samplingInterval",
+                "value": "{{ (typeof summary !== 'undefined' && ['average', 'peak', 'latest'].includes(summary)) ? Math.max(30, timeframe.unixEnd - timeframe.unixStart) : Math.max(30, Math.ceil((timeframe.unixEnd - timeframe.unixStart) / 120 / 30) * 30) }}"
+            },
+            {
+                "key": "$statType",
+                "value": "{{ (typeof summary !== 'undefined' && ({ peak: 'MAX', latest: 'LAST' })[summary]) || 'AVG' }}"
+            },
+            {
+                "key": "$select",
+                "value": "stats/hypervisorCpuUsagePpm,stats/hypervisorCpuReadyTimePpm,stats/memoryUsagePpm,stats/guestMemoryUsagePpm,stats/diskUsagePpm,stats/diskCapacityBytes,stats/controllerNumIops,stats/controllerNumReadIops,stats/controllerNumWriteIops,stats/controllerAvgIoLatencyMicros,stats/controllerIoBandwidthKbps,stats/hypervisorNumReceivedBytes,stats/hypervisorNumTransmittedBytes"
+            }
+        ],
+        "postRequestScript": "vmPerformance.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["VM"] } },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "summary",
+            "label": "Summarize",
+            "defaultValue": "timeline",
+            "options": [
+                { "value": "timeline", "label": "Timeline" },
+                { "value": "average", "label": "Average" },
+                { "value": "peak", "label": "Peak" },
+                { "value": "latest", "label": "Latest" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "vmExtId", "displayName": "VM ID", "shape": "string", "visible": false },
+        { "name": "vmName", "displayName": "VM", "shape": "string", "role": "label", "sourceId": "vmExtId", "sourceType": "VM" },
+        { "name": "cpuUsagePercent", "displayName": "CPU usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "cpuReadyPercent", "displayName": "CPU ready", "shape": ["percent", { "decimalPlaces": 2 }] },
+        { "name": "memoryUsagePercent", "displayName": "Memory usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "guestMemoryUsagePercent", "displayName": "Guest memory usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "diskUsagePercent", "displayName": "Disk usage", "shape": ["percent", { "decimalPlaces": 1 }] },
+        { "name": "diskCapacityGiB", "displayName": "Disk capacity", "shape": "gigabytes" },
+        { "name": "iops", "displayName": "IOPS", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "readIops", "displayName": "Read IOPS", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "writeIops", "displayName": "Write IOPS", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "latencyMs", "displayName": "Latency (ms)", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "bandwidthKBps", "displayName": "Bandwidth", "shape": "kilobytespersecond" },
+        { "name": "networkReceivedMiB", "displayName": "Network received", "shape": "megabytes" },
+        { "name": "networkTransmittedMiB", "displayName": "Network transmitted", "shape": "megabytes" }
+    ]
+}

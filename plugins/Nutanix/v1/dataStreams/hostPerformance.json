@@ -1,0 +1,251 @@
+{
+    "name": "hostPerformance",
+    "displayName": "Host Performance",
+    "description": "CPU, memory, storage, IOPS, latency, bandwidth and health score for a host over the timeframe",
+    "tags": [
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/clustermgmt/v4.0/stats/clusters/{{object.clusterExtId}}/hosts/{{object.rawId}}",
+        "getArgs": [
+            {
+                "key": "$startTime",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "$endTime",
+                "value": "{{timeframe.end}}"
+            },
+            {
+                "key": "$samplingInterval",
+                "value": "{{ (typeof summary !== 'undefined' && ['average', 'peak', 'latest'].includes(summary)) ? Math.max(30, timeframe.unixEnd - timeframe.unixStart) : Math.max(30, Math.ceil((timeframe.unixEnd - timeframe.unixStart) / 120 / 30) * 30) }}"
+            },
+            {
+                "key": "$statType",
+                "value": "{{ (typeof summary !== 'undefined' && ({ peak: 'MAX', latest: 'LAST' })[summary]) || 'AVG' }}"
+            },
+            {
+                "key": "$select",
+                "value": "hypervisorCpuUsagePpm,overallMemoryUsagePpm,overallMemoryUsageBytes,memoryCapacityBytes,controllerNumIops,controllerNumReadIops,controllerNumWriteIops,controllerAvgIoLatencyUsecs,controllerAvgReadIoLatencyUsecs,controllerAvgWriteIoLatencyUsecs,ioBandwidthKbps,storageUsageBytes,storageCapacityBytes,freePhysicalStorageBytes,healthCheckScore,powerConsumptionInstantWatt"
+            }
+        ],
+        "postRequestScript": "hostPerformance.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Host"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "summary",
+            "label": "Summarize",
+            "defaultValue": "timeline",
+            "options": [
+                {
+                    "value": "timeline",
+                    "label": "Timeline"
+                },
+                {
+                    "value": "average",
+                    "label": "Average"
+                },
+                {
+                    "value": "peak",
+                    "label": "Peak"
+                },
+                {
+                    "value": "latest",
+                    "label": "Latest"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "hostExtId",
+            "displayName": "Host ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "hostName",
+            "displayName": "Host",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "hostExtId",
+            "sourceType": "Host"
+        },
+        {
+            "name": "cpuUsagePercent",
+            "displayName": "CPU usage",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "memoryUsagePercent",
+            "displayName": "Memory usage",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "storageUsagePercent",
+            "displayName": "Storage usage",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "iops",
+            "displayName": "IOPS",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "readIops",
+            "displayName": "Read IOPS",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "writeIops",
+            "displayName": "Write IOPS",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "latencyMs",
+            "displayName": "Latency (ms)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "readLatencyMs",
+            "displayName": "Read latency (ms)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "writeLatencyMs",
+            "displayName": "Write latency (ms)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "bandwidthKBps",
+            "displayName": "Bandwidth",
+            "shape": "kilobytespersecond"
+        },
+        {
+            "name": "storageUsedTiB",
+            "displayName": "Storage used",
+            "shape": "terabytes"
+        },
+        {
+            "name": "storageCapacityTiB",
+            "displayName": "Storage capacity",
+            "shape": "terabytes"
+        },
+        {
+            "name": "storageFreeTiB",
+            "displayName": "Storage free",
+            "shape": "terabytes"
+        },
+        {
+            "name": "memoryUsedGiB",
+            "displayName": "Memory used",
+            "shape": "gigabytes"
+        },
+        {
+            "name": "memoryCapacityGiB",
+            "displayName": "Memory capacity",
+            "shape": "gigabytes"
+        },
+        {
+            "name": "powerWatts",
+            "displayName": "Power (W)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "healthScore",
+            "displayName": "Health score",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Good"
+                        ],
+                        "warning": [
+                            "Warning"
+                        ],
+                        "error": [
+                            "Critical"
+                        ],
+                        "unknown": [
+                            "Unknown"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

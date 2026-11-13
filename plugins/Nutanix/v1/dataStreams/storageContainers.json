@@ -1,0 +1,53 @@
+{
+    "name": "storageContainers",
+    "displayName": "Storage Containers",
+    "description": "Storage containers across every cluster, with capacity, replication factor and data reduction settings (Nutanix-managed system containers excluded)",
+    "tags": ["Inventory"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/clustermgmt/v4.0/config/storage-containers",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ (typeof cluster !== 'undefined' && cluster && cluster.length) ? cluster.map(c => \"clusterExtId eq '\" + [].concat(c.rawId)[0] + \"'\").join(' or ') : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "$limit", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "base": 0,
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" }
+            },
+            "out": { "realm": "queryArg", "path": "$page" }
+        },
+        "postRequestScript": "storageContainers.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "cluster",
+            "label": "Cluster (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Cluster"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "extId", "displayName": "ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "displayName", "displayName": "Storage container", "shape": "string", "role": "label", "sourceId": "extId", "sourceType": "Storage Container" },
+        { "name": "name", "displayName": "Name", "shape": "string", "visible": false },
+        { "name": "clusterExtId", "displayName": "Cluster ID", "shape": "string", "visible": false },
+        { "name": "clusterName", "displayName": "Cluster", "shape": "string" },
+        { "name": "maxCapacityTiB", "displayName": "Max capacity", "shape": "terabytes" },
+        { "name": "advertisedCapacityTiB", "displayName": "Advertised capacity", "shape": "terabytes" },
+        { "name": "replicationFactor", "displayName": "Replication factor", "shape": "number" },
+        { "name": "compression", "displayName": "Compression", "shape": "string" },
+        { "name": "deduplication", "displayName": "Deduplication", "shape": "string" },
+        { "name": "erasureCoding", "displayName": "Erasure coding", "shape": "string" },
+        { "name": "isEncrypted", "displayName": "Encrypted", "shape": "boolean" },
+        { "name": "isMarkedForRemoval", "displayName": "Marked for removal", "shape": "boolean", "visible": false }
+    ],
+    "timeframes": false
+}

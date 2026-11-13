@@ -1,0 +1,156 @@
+{
+    "name": "clusters",
+    "displayName": "Clusters",
+    "description": "Clusters registered to Prism Central, with AOS version, node and VM counts, resilience and availability",
+    "tags": [
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/clustermgmt/v4.0/config/clusters",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "$limit",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "$page"
+            }
+        },
+        "postRequestScript": "clusters.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "extId",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Cluster",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "extId",
+            "sourceType": "Cluster"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Available"
+                        ],
+                        "warning": [
+                            "Reduced resilience",
+                            "Degraded"
+                        ],
+                        "error": [
+                            "Unavailable"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "aosVersion",
+            "displayName": "AOS version",
+            "shape": "string"
+        },
+        {
+            "name": "hypervisorTypes",
+            "displayName": "Hypervisors",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "nodeCount",
+            "displayName": "Nodes",
+            "shape": "number"
+        },
+        {
+            "name": "vmCount",
+            "displayName": "VMs",
+            "shape": "number"
+        },
+        {
+            "name": "inefficientVmCount",
+            "displayName": "Inefficient VMs",
+            "shape": "number"
+        },
+        {
+            "name": "redundancyFactor",
+            "displayName": "Redundancy factor",
+            "shape": "number"
+        },
+        {
+            "name": "currentFaultTolerance",
+            "displayName": "Fault tolerance",
+            "shape": "number"
+        },
+        {
+            "name": "desiredFaultTolerance",
+            "displayName": "Desired fault tolerance",
+            "shape": "number"
+        },
+        {
+            "name": "isAvailable",
+            "displayName": "Available",
+            "shape": "boolean",
+            "visible": false
+        },
+        {
+            "name": "operationMode",
+            "displayName": "Operation mode",
+            "shape": "string"
+        },
+        {
+            "name": "upgradeStatus",
+            "displayName": "Upgrade status",
+            "shape": "string"
+        },
+        {
+            "name": "externalAddress",
+            "displayName": "Cluster IP",
+            "shape": "string"
+        },
+        {
+            "name": "fqdn",
+            "displayName": "FQDN",
+            "shape": "string"
+        },
+        {
+            "name": "isLts",
+            "displayName": "LTS release",
+            "shape": "boolean"
+        },
+        {
+            "name": "timezone",
+            "displayName": "Time zone",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

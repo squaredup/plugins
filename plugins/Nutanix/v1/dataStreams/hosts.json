@@ -1,0 +1,201 @@
+{
+    "name": "hosts",
+    "displayName": "Hosts",
+    "description": "Hosts across every cluster, with hypervisor, hardware, CVM address and maintenance status",
+    "tags": [
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/clustermgmt/v4.0/config/hosts",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ (typeof cluster !== 'undefined' && cluster && cluster.length) ? cluster.map(c => \"cluster/uuid eq '\" + [].concat(c.rawId)[0] + \"'\").join(' or ') : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "$limit",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "base": 0,
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "data"
+                }
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "$page"
+            }
+        },
+        "postRequestScript": "hosts.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "cluster",
+            "label": "Cluster (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Cluster"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "extId",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "hostName",
+            "displayName": "Host",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "extId",
+            "sourceType": "Host"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Normal"
+                        ],
+                        "warning": [
+                            "Maintenance",
+                            "Degraded",
+                            "Reboot pending"
+                        ],
+                        "error": [
+                            "Disconnected"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "clusterExtId",
+            "displayName": "Cluster ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "clusterName",
+            "displayName": "Cluster",
+            "shape": "string"
+        },
+        {
+            "name": "hostType",
+            "displayName": "Host type",
+            "shape": "string"
+        },
+        {
+            "name": "hypervisorType",
+            "displayName": "Hypervisor",
+            "shape": "string"
+        },
+        {
+            "name": "hypervisorVersion",
+            "displayName": "Hypervisor version",
+            "shape": "string"
+        },
+        {
+            "name": "hypervisorState",
+            "displayName": "Hypervisor state",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "vmCount",
+            "displayName": "VMs",
+            "shape": "number"
+        },
+        {
+            "name": "cpuModel",
+            "displayName": "CPU model",
+            "shape": "string"
+        },
+        {
+            "name": "cpuSockets",
+            "displayName": "CPU sockets",
+            "shape": "number"
+        },
+        {
+            "name": "cpuCores",
+            "displayName": "CPU cores",
+            "shape": "number"
+        },
+        {
+            "name": "cpuThreads",
+            "displayName": "CPU threads",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "cpuCapacityGhz",
+            "displayName": "CPU capacity (GHz)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "memoryGiB",
+            "displayName": "Memory",
+            "shape": "gigabytes"
+        },
+        {
+            "name": "cvmIp",
+            "displayName": "CVM IP",
+            "shape": "string"
+        },
+        {
+            "name": "hypervisorIp",
+            "displayName": "Hypervisor IP",
+            "shape": "string"
+        },
+        {
+            "name": "ipmiIp",
+            "displayName": "IPMI IP",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "blockModel",
+            "displayName": "Block model",
+            "shape": "string"
+        },
+        {
+            "name": "blockSerial",
+            "displayName": "Block serial",
+            "shape": "string"
+        },
+        {
+            "name": "isRebootPending",
+            "displayName": "Reboot pending",
+            "shape": "boolean",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

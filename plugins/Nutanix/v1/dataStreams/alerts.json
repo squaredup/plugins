@@ -1,0 +1,86 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "description": "Prism Central alerts with severity, source entity, impact and possible cause (open alerts, or all alerts raised in the timeframe)",
+    "tags": ["Alerts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/monitoring/v4.0/serviceability/alerts",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ (typeof status !== 'undefined' && status === 'all') ? null : 'isResolved eq false' }}"
+            },
+            { "key": "$orderby", "value": "creationTime desc" }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "$limit", "value": "100" },
+            "offset": {
+                "mode": "page",
+                "base": 0,
+                "rowCountIn": { "realm": "payloadArraySize", "path": "data" }
+            },
+            "out": { "realm": "queryArg", "path": "$page" }
+        },
+        "postRequestScript": "alerts.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Alerts",
+            "defaultValue": "open",
+            "options": [
+                { "value": "open", "label": "Open" },
+                { "value": "all", "label": "All raised in the timeframe" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "entity",
+            "label": "Cluster, host, VM or storage container (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Cluster", "Host", "VM", "Storage Container"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "extId", "displayName": "ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "title", "displayName": "Alert", "shape": "string", "role": "label" },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["CRITICAL"],
+                        "warning": ["WARNING"],
+                        "success": ["INFO"]
+                    }
+                }
+            ]
+        },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        { "name": "message", "displayName": "Message", "shape": "string" },
+        { "name": "sourceEntityType", "displayName": "Entity type", "shape": "string" },
+        { "name": "sourceEntityName", "displayName": "Entity", "shape": "string" },
+        { "name": "sourceEntityExtId", "displayName": "Entity ID", "shape": "string", "visible": false },
+        { "name": "clusterExtId", "displayName": "Cluster ID", "shape": "string", "visible": false },
+        { "name": "clusterName", "displayName": "Cluster", "shape": "string", "sourceId": "clusterExtId", "sourceType": "Cluster", "objectPropertyPath": "name" },
+        { "name": "impactTypes", "displayName": "Impact", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "classifications", "displayName": "Classification", "shape": ["array", { "itemShape": "string" }], "visible": false },
+        { "name": "possibleCause", "displayName": "Possible cause", "shape": "string" },
+        { "name": "resolution", "displayName": "Resolution", "shape": "string", "visible": false },
+        { "name": "creationTime", "displayName": "Raised", "shape": "date", "role": "timestamp" },
+        { "name": "lastUpdatedTime", "displayName": "Updated", "shape": "date", "visible": false },
+        { "name": "resolvedTime", "displayName": "Resolved at", "shape": "date", "visible": false },
+        { "name": "isAcknowledged", "displayName": "Acknowledged", "shape": "boolean", "visible": false },
+        { "name": "isResolved", "displayName": "Resolved", "shape": "boolean", "visible": false },
+        { "name": "alertType", "displayName": "Alert type", "shape": "string", "visible": false },
+        { "name": "serviceName", "displayName": "Service", "shape": "string", "visible": false }
+    ],
+    "timeframes": true,
+    "supportsNoneTimeframe": true
+}
