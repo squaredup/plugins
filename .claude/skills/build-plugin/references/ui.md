@@ -163,7 +163,7 @@ Use the plainest field that fits:
 
 - **One on/off:** `toggle`, including a toggle that shows an advanced section (`visible: { "x": "true" }`).
 - **Some items from a fixed set** (for example, object types to import): one `checkbox` per item, stacked. To make the set optional, put them in a `fieldGroup` that a master `toggle` shows (for example, "Configure your import").
-- **One of 2–4 short options** (about 20 characters each): `switch`. Set `defaultValue`, because a click on the selected option clears it.
+- **One of 2–4 short options** (about 20 characters each): `switch`. It does not wrap, so all options must fit on one line. Set `defaultValue`, because a click on the selected option clears it.
 - **One of 2–5 options, where a label is long or needs a description:** `radio`.
 - **One of a long or growing list** (regions, API versions): `autocomplete` with `"isMulti": false`.
 - **A list of IDs or names that the user types:** `autocomplete` with `"isMulti": true` and `"allowCustomValues": true`.
