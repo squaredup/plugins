@@ -1,0 +1,78 @@
+{
+    "name": "endpointBackupStatus",
+    "displayName": "Endpoint backup status",
+    "description": "Last backup of each endpoint device with an at-risk or protected state based on how long ago it last backed up (optionally filtered to customers or tenants)",
+    "tags": ["Backup", "Status"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "/msp/reporting/v2/reports/mspEPLastBackupStatus",
+        "postBody": {
+            "filters": {
+                "pageSize": 500
+            }
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "none" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "body", "path": "pageToken" }
+        },
+        "postRequestScript": "endpointBackupStatus.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "number",
+            "name": "staleAfterHours",
+            "label": "Stale after (hours)",
+            "defaultValue": 24,
+            "validation": { "min": 0 }
+        },
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Tenant"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "dcpUniqueKey", "displayName": "Device key", "shape": "string", "role": "id", "visible": false },
+        { "name": "customerGlobalId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        {
+            "name": "customer",
+            "displayName": "Customer",
+            "sourceId": "customerGlobalId",
+            "sourceType": "Customer",
+            "objectPropertyPath": "name"
+        },
+        { "name": "device", "displayName": "Device", "shape": "string", "role": "label" },
+        { "name": "userName", "displayName": "User", "shape": "string" },
+        {
+            "name": "atRisk",
+            "displayName": "Risk",
+            "shape": ["state", { "map": { "error": ["At risk"], "success": ["Protected"] } }]
+        },
+        { "name": "status", "displayName": "Last backup status", "shape": "string" },
+        { "name": "endTime", "displayName": "Last backup", "shape": "date", "role": "timestamp" },
+        {
+            "name": "hoursSinceLastBackup",
+            "displayName": "Hours since last backup",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        },
+        { "name": "deviceConnectivity", "displayName": "Connectivity", "shape": "string" },
+        { "name": "deviceStatus", "displayName": "Device status", "shape": "string" },
+        { "name": "filesMissed", "displayName": "Files missed", "shape": "number" },
+        { "name": "osPlatform", "displayName": "OS", "shape": "string" },
+        { "name": "clientVersion", "displayName": "Client version", "shape": "string" },
+        { "name": "errorCode", "displayName": "Error code", "shape": "string", "visible": false },
+        { "name": "profile", "displayName": "Profile", "shape": "string" }
+    ],
+    "timeframes": false
+}
