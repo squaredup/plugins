@@ -1,20 +1,9 @@
-// Optional `customer` and `tenant` object pickers; empty means no filter on that
-// dimension. Picked objects expose their properties as single-element arrays.
+// Optional `customer` object picker; empty means no filter. Picked objects expose
+// their properties as single-element arrays.
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const picked = (name) => (context.config && context.config[name]) || [];
 
 const customerIds = new Set(picked('customer').map((o) => unwrap(o.rawId)).filter(Boolean));
-
-// The report has no tenant id. Every row belongs to the "SaaS Apps and Endpoints"
-// product, and customer + product identifies exactly one tenant, so a tenant
-// matches only when it is the SaaS tenant of the row's customer.
-const tenants = picked('tenant');
-const tenantCustomerIds = new Set(
-    tenants
-        .filter((o) => unwrap(o.productName) === 'SaaS Apps and Endpoints')
-        .map((o) => unwrap(o.customerId))
-        .filter(Boolean)
-);
 
 // The threshold arrives as a number (or a string, or nothing when unset); fall back to 24.
 const rawThreshold = context.config && context.config.staleAfterHours;
@@ -26,7 +15,6 @@ result = (data.data || [])
     // Deleted users are not an RPO risk.
     .filter((r) => r.isDeleted !== 'Yes')
     .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
-    .filter((r) => !tenants.length || tenantCustomerIds.has(r.customerGlobalId))
     .map((r) => {
         // endTime is the last backup attempt (a failed attempt for failed rows), not
         // the last success, which this report does not provide.

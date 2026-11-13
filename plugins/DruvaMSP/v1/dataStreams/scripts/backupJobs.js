@@ -1,19 +1,9 @@
-// Optional `customer` and `tenant` object pickers; empty means no restriction.
+// Optional `customer` object picker; empty means no restriction.
 // The Customer sourceId is the Druva customerGlobalId, so rawId compares directly.
-// Picked Tenant objects expose their properties as single-element arrays.
-// Every row of this report belongs to the "Enterprise Workloads" product, so a
-// tenant of any other product matches no rows.
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const cfg = context.config || {};
 const customers = cfg.customer || [];
-const tenants = cfg.tenant || [];
 const customerIds = new Set(customers.map((o) => unwrap(o.rawId)).filter(Boolean));
-const tenantCustomerIds = new Set(
-    tenants
-        .filter((o) => unwrap(o.productName) === 'Enterprise Workloads')
-        .map((o) => unwrap(o.customerId))
-        .filter(Boolean)
-);
 
 const na = (v) => (v === undefined || v === null || v === '' || v === 'NA' ? null : v);
 
@@ -26,7 +16,6 @@ const minutes = (r) => {
 // Only the columns the stream exposes are returned to keep rows small.
 result = (data.data || [])
     .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
-    .filter((r) => !tenants.length || tenantCustomerIds.has(r.customerGlobalId))
     .map((r) => ({
         customerGlobalId: r.customerGlobalId,
         backupSet: na(r.backupSet),

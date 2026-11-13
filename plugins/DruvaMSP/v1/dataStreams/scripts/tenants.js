@@ -1,6 +1,7 @@
 // Tenants have no name of their own, so the label combines product and edition;
 // the customer name is resolved separately from the indexed Customer object.
 const products = { 1: 'Enterprise Workloads', 2: 'SaaS Apps and Endpoints' };
+const tenantTypes = { 1: 'Sandbox', 2: 'Evaluation', 3: 'Commercial' };
 const statuses = {
     0: 'Creation pending',
     1: 'Ready',
@@ -27,7 +28,7 @@ result = (data.tenants || [])
             productName,
             edition,
             statusName: statuses[t.status] || 'Unknown',
-            tenantType: t.tenantType,
+            tenantType: tenantTypes[t.tenantType] || (t.tenantType == null ? null : `Type ${t.tenantType}`),
             licenseExpiryDate: t.licenseExpiryDate || null,
             quota: t.quota,
             quotaStartDate: t.quotaStartDate || null,
