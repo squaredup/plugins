@@ -1,0 +1,53 @@
+{
+    "name": "statusPageIncidents",
+    "displayName": "Status Page Incidents",
+    "description": "Incidents published to a status page that had an impact within the selected timeframe, with affected components, worst impact and duration",
+    "tags": ["Status Pages"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/status_page_incidents",
+        "getArgs": [
+            { "key": "status_page_id", "value": "{{object.rawId}}" },
+            { "key": "start_at", "value": "{{timeframe.enum === 'none' ? null : timeframe.start}}" },
+            { "key": "end_at", "value": "{{timeframe.enum === 'none' ? null : timeframe.end}}" }
+        ],
+        "pathToData": "status_page_incidents",
+        "postRequestScript": "statusPageIncidents.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "250" },
+            "in": { "realm": "payload", "path": "pagination_meta.after" },
+            "out": { "realm": "queryArg", "path": "after" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Status Page"] } },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "incidentStatus", "displayName": "Status", "shape": "string" },
+        { "name": "statusState", "displayName": "Status State", "shape": "state" },
+        { "name": "publishedAt", "displayName": "Published At", "shape": "date", "role": "timestamp" },
+        { "name": "resolvedAt", "displayName": "Resolved At", "shape": "date" },
+        { "name": "durationMinutes", "displayName": "Duration", "shape": "minutes" },
+        { "name": "affectedComponents", "displayName": "Affected Components", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "worstImpact", "displayName": "Worst Impact", "shape": "string" },
+        { "name": "latestUpdate", "displayName": "Latest Update", "shape": "string" }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

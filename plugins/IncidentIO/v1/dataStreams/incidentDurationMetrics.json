@@ -1,0 +1,103 @@
+{
+    "name": "incidentDurationMetrics",
+    "displayName": "Incident Duration Metrics",
+    "description": "Duration metrics for incidents within the selected timeframe, one row per incident per metric, in minutes and hours. Only completed metrics are included unless incomplete ones are requested",
+    "tags": ["Incidents"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/incidents",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "created_at[date_range]",
+                "value": "{{timeframe.enum === 'none' ? null : (timeframe.start + '~' + timeframe.end)}}"
+            },
+            {
+                "key": "status_category[one_of]",
+                "value": "{{ (typeof statusCategory !== 'undefined' && Array.isArray(statusCategory) && statusCategory.length) ? statusCategory.map(v => (v && typeof v === 'object') ? v.value : v) : null }}"
+            },
+            {
+                "key": "mode[one_of]",
+                "value": "{{ (typeof includeTestIncidents !== 'undefined' && (includeTestIncidents === true || includeTestIncidents === 'true')) ? ['standard', 'retrospective', 'test', 'tutorial'] : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "100" },
+            "in": { "realm": "payload", "path": "pagination_meta.after" },
+            "out": { "realm": "queryArg", "path": "after" }
+        },
+        "postRequestScript": "incidentDurationMetrics.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "statusCategory",
+            "label": "Status category",
+            "isMulti": true,
+            "help": "Only include incidents whose status is in one of the selected categories. Leave empty for all categories.",
+            "options": [
+                { "value": "triage", "label": "Triage" },
+                { "value": "live", "label": "Active" },
+                { "value": "learning", "label": "Post-incident" },
+                { "value": "paused", "label": "Paused" },
+                { "value": "closed", "label": "Closed" },
+                { "value": "declined", "label": "Declined" },
+                { "value": "canceled", "label": "Canceled" },
+                { "value": "merged", "label": "Merged" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team (optional)",
+            "help": "Only include incidents that involve one of the selected teams.",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Team"] } }
+        },
+        {
+            "type": "toggle",
+            "name": "includeTestIncidents",
+            "label": "Include test and tutorial incidents",
+            "defaultValue": false,
+            "help": "By default incident.io returns only standard and retrospective incidents."
+        },
+        {
+            "type": "toggle",
+            "name": "includeIncomplete",
+            "label": "Include incomplete metrics",
+            "defaultValue": false,
+            "help": "Also include metrics that could not be calculated, for example because a required timestamp is missing. Their values are empty."
+        }
+    ],
+    "metadata": [
+        { "name": "incidentId", "displayName": "Incident ID", "shape": "string", "visible": false },
+        { "name": "reference", "displayName": "Reference", "shape": "string" },
+        { "name": "incidentName", "displayName": "Incident", "shape": "string", "role": "label" },
+        { "name": "severity", "displayName": "Severity", "shape": "string" },
+        { "name": "incidentType", "displayName": "Type", "shape": "string" },
+        { "name": "statusCategory", "displayName": "Status Category", "shape": "string" },
+        { "name": "created_at", "displayName": "Created At", "shape": "date", "role": "timestamp" },
+        { "name": "metricName", "displayName": "Metric", "shape": "string" },
+        { "name": "status", "displayName": "Metric Status", "shape": "string" },
+        { "name": "valueMinutes", "displayName": "Duration (min)", "shape": ["number", { "decimalPlaces": 1 }] },
+        { "name": "valueHours", "displayName": "Duration (hours)", "shape": ["number", { "decimalPlaces": 2 }] }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

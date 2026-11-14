@@ -1,0 +1,97 @@
+{
+    "name": "escalations",
+    "displayName": "Escalations",
+    "description": "Escalations raised in the organization, one row per escalation, with status, priority, acknowledgement time and the incidents and alerts they relate to",
+    "tags": ["On-Call", "Escalations"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/escalations",
+        "getArgs": [
+            {
+                "key": "created_at[date_range]",
+                "value": "{{timeframe.enum === 'none' ? null : (timeframe.start + '~' + timeframe.end)}}"
+            },
+            { "key": "status[one_of]", "value": "{{ (typeof status !== 'undefined' && Array.isArray(status) && status.length) ? status.map(v => (v && typeof v === 'object') ? v.value : v) : (status || null) }}" }
+        ],
+        "postRequestScript": "escalations.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "50" },
+            "in": { "realm": "payload", "path": "pagination_meta.after" },
+            "out": { "realm": "queryArg", "path": "after" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "status",
+            "label": "Status (optional)",
+            "allowCustomValues": false,
+            "isMulti": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "triggered", "label": "Triggered" },
+                    { "value": "pending", "label": "Pending" },
+                    { "value": "acked", "label": "Acknowledged" },
+                    { "value": "resolved", "label": "Resolved" },
+                    { "value": "cancelled", "label": "Cancelled" },
+                    { "value": "expired", "label": "Expired" }
+                ]
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "title", "displayName": "Title", "shape": "string", "role": "label" },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        {
+            "name": "statusState",
+            "displayName": "Status State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["triggered", "pending"],
+                        "warning": ["acked"],
+                        "success": ["resolved"],
+                        "unknown": ["cancelled", "expired"]
+                    }
+                }
+            ]
+        },
+        { "name": "priority", "displayName": "Priority", "shape": "string" },
+        { "name": "escalationPathId", "displayName": "Escalation Path ID", "shape": "string", "visible": false },
+        { "name": "creator", "displayName": "Creator", "shape": "string" },
+        { "name": "created_at", "displayName": "Created At", "shape": "date", "role": "timestamp" },
+        { "name": "updated_at", "displayName": "Updated At", "shape": "date" },
+        { "name": "acknowledgedAt", "displayName": "Acknowledged At", "shape": "date" },
+        { "name": "acknowledgedBy", "displayName": "Acknowledged By", "shape": ["array", { "itemShape": "string" }] },
+        {
+            "name": "timeToAckMinutes",
+            "displayName": "Time To Acknowledge (Minutes)",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        },
+        { "name": "relatedIncidents", "displayName": "Related Incidents", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "relatedAlerts", "displayName": "Related Alerts", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "description", "displayName": "Description", "shape": "string", "visible": false }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

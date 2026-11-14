@@ -1,7 +1,7 @@
 {
     "name": "scheduleShifts",
     "displayName": "Schedule Shifts",
-    "description": "The schedule's effective shifts across a time window, accounting for overrides",
+    "description": "The schedule's shifts across a time window - the dashboard timeframe or the next 24 hours to 30 days - for final, scheduled or override entries",
     "tags": ["On-Call", "Schedules"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
@@ -9,12 +9,17 @@
         "endpointPath": "v2/schedule_entries",
         "getArgs": [
             { "key": "schedule_id", "value": "{{object.rawId}}" },
-            { "key": "entry_window_start", "value": "{{timeframe.start}}" },
-            { "key": "entry_window_end", "value": "{{timeframe.end}}" }
+            {
+                "key": "entry_window_start",
+                "value": "{{(v => (Array.isArray(v) ? (v[0] && (v[0].value || v[0])) : (v && (v.value || v))) || 'timeframe')(typeof window !== 'undefined' ? window : null) !== 'timeframe' ? new Date().toISOString() : timeframe.start}}"
+            },
+            {
+                "key": "entry_window_end",
+                "value": "{{(w => w !== 'timeframe' ? new Date(Date.now() + ({next24hours:1,next7days:7,next14days:14,next30days:30}[w] || 7) * 86400000).toISOString() : timeframe.end)((v => (Array.isArray(v) ? (v[0] && (v[0].value || v[0])) : (v && (v.value || v))) || 'timeframe')(typeof window !== 'undefined' ? window : null))}}"
+            }
         ],
-        "expandInnerObjects": true,
-        "pathToData": "schedule_entries.final",
-        "paging": { "mode": "none" }
+        "paging": { "mode": "none" },
+        "postRequestScript": "scheduleShifts.js"
     },
     "matches": { "sourceType": { "type": "oneOf", "values": ["Schedule"] } },
     "metadata": [
@@ -24,9 +29,47 @@
         { "name": "end_at", "displayName": "End", "shape": "date" },
         { "name": "rotation_id", "displayName": "Rotation ID", "shape": "string" },
         { "name": "layer_id", "displayName": "Layer ID", "shape": "string" },
+        { "name": "durationHours", "displayName": "Duration (Hours)", "shape": ["number", { "decimalPlaces": 1 }] },
+        { "name": "isCurrent", "displayName": "Is Current", "shape": "boolean" },
         { "name": "entry_id", "displayName": "Entry ID", "shape": "string", "visible": false },
         { "name": "fingerprint", "displayName": "Fingerprint", "shape": "string", "visible": false },
         { "pattern": ".*" }
     ],
-    "timeframes": true
+    "timeframes": true,
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "window",
+            "label": "Window",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "timeframe",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "timeframe", "label": "Dashboard Timeframe" },
+                    { "value": "next24hours", "label": "Next 24 Hours" },
+                    { "value": "next7days", "label": "Next 7 Days" },
+                    { "value": "next14days", "label": "Next 14 Days" },
+                    { "value": "next30days", "label": "Next 30 Days" }
+                ]
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "entryType",
+            "label": "Entry Type",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "final",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "final", "label": "Final (Effective Shifts)" },
+                    { "value": "scheduled", "label": "Scheduled (Before Overrides)" },
+                    { "value": "overrides", "label": "Overrides Only" }
+                ]
+            }
+        }
+    ]
 }

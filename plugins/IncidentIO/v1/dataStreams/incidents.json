@@ -1,7 +1,7 @@
 {
     "name": "incidents",
     "displayName": "Incidents",
-    "description": "All incidents in the organization within the selected timeframe, one row per incident",
+    "description": "Incidents in the organization within the selected timeframe, one row per incident, with severity, status, lead, duration and workload details. Optionally filter by status category, team, and include test incidents",
     "tags": ["Incidents"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
@@ -12,15 +12,23 @@
             {
                 "key": "created_at[date_range]",
                 "value": "{{timeframe.enum === 'none' ? null : (timeframe.start + '~' + timeframe.end)}}"
+            },
+            {
+                "key": "status_category[one_of]",
+                "value": "{{ (typeof statusCategory !== 'undefined' && Array.isArray(statusCategory) && statusCategory.length) ? statusCategory.map(v => (v && typeof v === 'object') ? v.value : v) : null }}"
+            },
+            {
+                "key": "mode[one_of]",
+                "value": "{{ (typeof includeTestIncidents !== 'undefined' && (includeTestIncidents === true || includeTestIncidents === 'true')) ? ['standard', 'retrospective', 'test', 'tutorial'] : null }}"
             }
         ],
-        "pathToData": "incidents",
         "paging": {
             "mode": "token",
             "pageSize": { "realm": "queryArg", "path": "page_size", "value": "100" },
             "in": { "realm": "payload", "path": "pagination_meta.after" },
             "out": { "realm": "queryArg", "path": "after" }
-        }
+        },
+        "postRequestScript": "incidents.js"
     },
     "matches": "none",
     "metadata": [
@@ -32,10 +40,45 @@
         { "name": "incident_status.name", "displayName": "Status", "shape": "string" },
         { "name": "incident_status.category", "displayName": "Status Category", "shape": "string" },
         { "name": "severity.name", "displayName": "Severity", "shape": "string" },
+        {
+            "name": "severity.rank",
+            "displayName": "Severity Rank",
+            "shape": ["number", { "decimalPlaces": 0 }],
+            "visible": false
+        },
         { "name": "incident_type.name", "displayName": "Type", "shape": "string" },
         { "name": "created_at", "displayName": "Created At", "shape": "date" },
         { "name": "updated_at", "displayName": "Updated At", "shape": "date" },
         { "name": "permalink", "displayName": "Permalink", "shape": "url" },
+        { "name": "summary", "displayName": "Summary", "shape": "string" },
+        { "name": "last_activity_at", "displayName": "Last Activity At", "shape": "date" },
+        { "name": "isOpen", "displayName": "Open", "shape": "boolean" },
+        { "name": "lead", "displayName": "Lead", "shape": "string" },
+        { "name": "reporter", "displayName": "Reporter", "shape": "string" },
+        {
+            "name": "teamIds",
+            "displayName": "Team IDs",
+            "shape": ["array", { "itemShape": "string" }],
+            "visible": false
+        },
+        {
+            "name": "timeToResolveMinutes",
+            "displayName": "Time to Resolve (min)",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        },
+        {
+            "name": "durationMinutes",
+            "displayName": "Incident Duration (min)",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        },
+        {
+            "name": "workload_minutes_total",
+            "displayName": "Workload (min)",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        },
+        { "name": "slack_channel_url", "displayName": "Slack Channel", "shape": "url" },
+        { "name": "call_url", "displayName": "Call", "shape": "url" },
+        { "name": "postmortem_document_url", "displayName": "Post-Mortem", "shape": "url" },
         { "pattern": ".*" }
     ],
     "timeframes": [
@@ -53,5 +96,38 @@
         "none"
     ],
     "supportsNoneTimeframe": true,
-    "defaultTimeframe": "none"
+    "defaultTimeframe": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "statusCategory",
+            "label": "Status category",
+            "isMulti": true,
+            "help": "Only include incidents whose status is in one of the selected categories. Leave empty for all categories.",
+            "options": [
+                { "value": "triage", "label": "Triage" },
+                { "value": "live", "label": "Active" },
+                { "value": "learning", "label": "Post-incident" },
+                { "value": "paused", "label": "Paused" },
+                { "value": "closed", "label": "Closed" },
+                { "value": "declined", "label": "Declined" },
+                { "value": "canceled", "label": "Canceled" },
+                { "value": "merged", "label": "Merged" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "team",
+            "label": "Team (optional)",
+            "help": "Only include incidents that involve one of the selected teams.",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Team"] } }
+        },
+        {
+            "type": "toggle",
+            "name": "includeTestIncidents",
+            "label": "Include test and tutorial incidents",
+            "defaultValue": false,
+            "help": "By default incident.io returns only standard and retrospective incidents."
+        }
+    ]
 }
