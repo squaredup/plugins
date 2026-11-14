@@ -1,0 +1,81 @@
+{
+    "name": "backupJobs",
+    "displayName": "Backup Jobs",
+    "description": "Enterprise Workloads backup jobs with status, workload, backup type and duration (optionally filtered to customers or tenants)",
+    "tags": ["Backup"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "/msp/reporting/v2/reports/mspEWBackupActivity",
+        "postBody": {
+            "filters": {
+                "pageSize": 500,
+                "filterBy": [
+                    { "columnName": "lastUpdatedTime", "operator": "GTE", "value": "{{timeframe.start}}" },
+                    { "columnName": "lastUpdatedTime", "operator": "LTE", "value": "{{timeframe.end}}" }
+                ]
+            }
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "none" },
+            "in": { "realm": "payload", "path": "nextPageToken" },
+            "out": { "realm": "body", "path": "pageToken" }
+        },
+        "postRequestScript": "backupJobs.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "placeholder": "Select...",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "dcpUniqueKey", "displayName": "Record ID", "shape": "string", "visible": false },
+        { "name": "jobID", "displayName": "Job ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "customerGlobalId", "displayName": "Customer ID", "shape": "string", "visible": false },
+        {
+            "name": "customer",
+            "displayName": "Customer",
+            "sourceId": "customerGlobalId",
+            "sourceType": "Customer",
+            "objectPropertyPath": "name"
+        },
+        { "name": "backupSet", "displayName": "Backup set", "shape": "string", "role": "label" },
+        { "name": "vm", "displayName": "VM", "shape": "string" },
+        { "name": "workloads", "displayName": "Workload", "shape": "string" },
+        { "name": "backupType", "displayName": "Backup type", "shape": "string" },
+        {
+            "name": "state",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Successful"],
+                        "warning": ["Successful with errors", "Skipped"],
+                        "error": ["Failed", "Window expired", "Cancelled"],
+                        "unknown": ["Queued"]
+                    }
+                }
+            ]
+        },
+        { "name": "status", "displayName": "Druva status", "shape": "string" },
+        { "name": "details", "displayName": "Details", "shape": "string" },
+        { "name": "started", "displayName": "Started", "shape": "date", "role": "timestamp" },
+        { "name": "ended", "displayName": "Ended", "shape": "date" },
+        {
+            "name": "durationMinutes",
+            "displayName": "Duration (minutes)",
+            "shape": ["number", { "decimalPlaces": 1 }]
+        },
+        { "name": "backupPolicy", "displayName": "Policy", "shape": "string" }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days"]
+}

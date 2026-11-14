@@ -1,0 +1,680 @@
+{
+    "name": "Account Usage",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "7813854c-c8a9-427c-8498-cec2972937bf",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Customers",
+                    "description": "MSP customers in this account",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[customers]}}",
+                        "name": "customers",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "count",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelText": "Customers"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1e3d569a-5ba3-4518-aea0-35b2c326dbdd",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tenants",
+                    "description": "Product tenants across all customers",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[tenants]}}",
+                        "name": "tenants",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "count",
+                                        "type": "quantitative"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelText": "Tenants"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f31cc888-3e56-47ae-8fe5-544ed3f8a784",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Customer Status",
+                    "description": "Provisioning status of every MSP customer",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[customers]}}",
+                        "name": "customers",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "customerName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "customerName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "statusName",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 4,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{lookup this \"cloudName\"}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "367788b9-c930-4873-846a-c1fec22963e9",
+                "x": 2,
+                "y": 2,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tenants by Product",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[tenants]}}",
+                        "name": "tenants",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "productName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "productName_uniqueValues",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieSort": "desc",
+                                "pieLegendStyle": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "42e5a079-a83b-42fe-adfb-b27cc3db04d4",
+                "x": 3,
+                "y": 2,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tenants by Edition",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[tenants]}}",
+                        "name": "tenants",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "edition",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "edition_uniqueValues",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieSort": "desc",
+                                "pieLegendStyle": "table"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "94e93a49-19ff-4427-8976-6e8cebb6c608",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tenant Status",
+                    "description": "Status of every product tenant, with its customer",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[tenants]}}",
+                        "name": "tenants",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "customerName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "customerName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "statusName",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 4,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{lookup this \"tenantName\"}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7fefd246-e083-482e-a1ff-777aed0ae48a",
+                "x": 0,
+                "y": 10,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Storage Consumption by Product Module",
+                    "description": "Chargeback consumption reported in TB, bucketed by day",
+                    "timeframe": "last7days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[consumption]}}",
+                        "name": "consumption",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "units",
+                                    "operation": "equals",
+                                    "value": "TB"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "date",
+                                    "byDay"
+                                ],
+                                [
+                                    "productModule",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "data"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date_byDay",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "data_sum",
+                                    "type": "quantitative"
+                                },
+                                "series": {
+                                    "field": "productModule_uniqueValues",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "TB",
+                                "cartesianYAxisRangeMode": "fit",
+                                "cartesianSymbol": "none",
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "da3af9f2-7a84-42a8-876e-3e7ef3ce4c38",
+                "x": 2,
+                "y": 10,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Resource Count by Product Module",
+                    "description": "Chargeback consumption reported as a resource count, bucketed by day",
+                    "timeframe": "last7days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[consumption]}}",
+                        "name": "consumption",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "units",
+                                    "operation": "equals",
+                                    "value": "Count"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "date",
+                                    "byDay"
+                                ],
+                                [
+                                    "productModule",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "data"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "date_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date_byDay",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "data_sum",
+                                    "type": "quantitative"
+                                },
+                                "series": {
+                                    "field": "productModule_uniqueValues",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Resources",
+                                "cartesianYAxisRangeMode": "fit",
+                                "cartesianSymbol": "none",
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "768a4730-9c77-49e3-abc9-996aff18ae6d",
+                "x": 0,
+                "y": 14,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Microsoft 365 Storage Used by Customer",
+                    "description": "",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[m365StorageConsumption]}}",
+                        "name": "m365StorageConsumption",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "customerName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "totalBackupData"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "totalBackupData_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "customerName_uniqueValues",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "totalBackupData_sum",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianHorizontal": true,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c73bd6e3-5b25-48eb-9d57-46745ea061a3",
+                "x": 2,
+                "y": 14,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Enterprise Workloads Storage Used by Customer",
+                    "description": "Estimated cloud storage across all backup sets",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[ewStorageConsumption]}}",
+                        "name": "ewStorageConsumption",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "customer": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "customerName",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "estimatedStorage"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "estimatedStorage_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "customerName_uniqueValues",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "estimatedStorage_sum",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianHorizontal": true,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
