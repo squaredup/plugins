@@ -1,0 +1,158 @@
+{
+    "name": "simpleMetricsQuery",
+    "displayName": "Simple Metrics Query",
+    "description": "Time series data for a metric, built from a guided metric/label/value picker",
+    "tags": [
+        "Metrics"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "prometheus/api/v1/query_range",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{ (aggregation && aggregation !== 'none' ? aggregation + '(' : '') + metric + (label && values && values.length ? '{' + label + '=~\"' + values.map((v) => String(v).split('').map((c) => c === String.fromCharCode(92) ? String.fromCharCode(92, 92, 92, 92) : '.*+?^$(){}|[]'.includes(c) ? String.fromCharCode(92, 92) + c : c === '\"' ? String.fromCharCode(92) + c : c).join('')).join('|') + '\"}' : '') + (aggregation && aggregation !== 'none' ? ')' : '') }}"
+            },
+            {
+                "key": "start",
+                "value": "{{timeframe.unixStart}}"
+            },
+            {
+                "key": "end",
+                "value": "{{timeframe.unixEnd}}"
+            },
+            {
+                "key": "step",
+                "value": "{{step || Math.max(60, Math.ceil((timeframe.unixEnd - timeframe.unixStart) / 1000)) + 's'}}"
+            }
+        ],
+        "postRequestScript": "metricsQuery.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "validation": {
+                "required": true
+            },
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "metricNames",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "label",
+            "label": "Filter by label",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "metricLabels",
+                "dataSourceConfig": {
+                    "metric": {
+                        "fieldName": "metric",
+                        "required": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "values",
+            "label": "Values",
+            "allowCustomValues": false,
+            "isMulti": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "labelValues",
+                "dataSourceConfig": {
+                    "metric": {
+                        "fieldName": "metric",
+                        "required": true
+                    },
+                    "labelName": {
+                        "fieldName": "label",
+                        "required": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "aggregation",
+            "label": "Aggregation",
+            "allowCustomValues": false,
+            "isMulti": false,
+            "defaultValue": "none",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "none",
+                        "label": "None"
+                    },
+                    {
+                        "value": "sum",
+                        "label": "Sum"
+                    },
+                    {
+                        "value": "avg",
+                        "label": "Average"
+                    },
+                    {
+                        "value": "min",
+                        "label": "Minimum"
+                    },
+                    {
+                        "value": "max",
+                        "label": "Maximum"
+                    },
+                    {
+                        "value": "count",
+                        "label": "Count"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "text",
+            "name": "step",
+            "label": "Step (optional)",
+            "placeholder": "e.g. 60s, 5m",
+            "help": "Spacing between data points. Leave blank to scale with the timeframe: about 1,000 points per series, and never less than 60s."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string"
+        },
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": true
+}

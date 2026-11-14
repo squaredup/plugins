@@ -1,0 +1,92 @@
+{
+    "name": "incidents",
+    "displayName": "Incidents",
+    "description": "Alert incidents in the organization, groups of correlated alerts",
+    "tags": ["Alerts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "../v2/{{dataSource.organization}}/alerts/incidents",
+        "getArgs": [
+            { "key": "status", "value": "{{status || null}}" },
+            { "key": "limit", "value": "{{limit || 50}}" },
+            { "key": "offset", "value": "{{offset || 0}}" }
+        ],
+        "postRequestScript": "incidents.js"
+    },
+    "matches": "none",
+    "visibility": { "type": "hidden" },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status filter (optional)",
+            "isMulti": false,
+            "options": [
+                { "value": "open", "label": "Open" },
+                { "value": "acknowledged", "label": "Acknowledged" },
+                { "value": "resolved", "label": "Resolved" }
+            ]
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Limit",
+            "defaultValue": 50
+        },
+        {
+            "type": "number",
+            "name": "offset",
+            "label": "Offset",
+            "defaultValue": 0
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "label" },
+        { "name": "title", "displayName": "Title", "shape": "string" },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["open"],
+                        "warning": ["acknowledged"],
+                        "success": ["resolved"]
+                    }
+                }
+            ]
+        },
+        { "name": "severity", "displayName": "Severity", "shape": "string" },
+        { "name": "alert_count", "displayName": "Alert Count", "shape": "number" },
+        { "name": "assigned_to", "displayName": "Assigned To", "shape": "string" },
+        {
+            "name": "created_at",
+            "displayName": "Created At",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "updated_at",
+            "displayName": "Updated At",
+            "shape": "date"
+        },
+        {
+            "name": "first_alert_at",
+            "displayName": "First Alert At",
+            "shape": "date"
+        },
+        {
+            "name": "last_alert_at",
+            "displayName": "Last Alert At",
+            "shape": "date"
+        },
+        {
+            "name": "resolved_at",
+            "displayName": "Resolved At",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}
