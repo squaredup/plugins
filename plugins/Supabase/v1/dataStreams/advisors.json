@@ -1,0 +1,50 @@
+{
+    "name": "advisors",
+    "displayName": "Advisor findings",
+    "description": "Security and performance advisor findings for a project, with their severity and how to fix them",
+    "tags": ["Advisors"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": { "type": "equals", "value": "Project" }
+    },
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/projects/{{object.rawId}}/advisors/security",
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "none" }
+        },
+        "postRequestScript": "advisors.js"
+    },
+    "metadata": [
+        { "name": "cacheKey", "displayName": "Finding ID", "shape": "string", "visible": false },
+        { "name": "title", "displayName": "Finding", "shape": "string", "role": "label" },
+        {
+            "name": "level",
+            "displayName": "Level",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": ["ERROR"],
+                        "warning": ["WARN"],
+                        "unknown": ["INFO"]
+                    }
+                }
+            ]
+        },
+        { "name": "advisor", "displayName": "Advisor", "shape": "string" },
+        { "name": "categories", "displayName": "Categories", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "entity", "displayName": "Affected object", "shape": "string" },
+        { "name": "entityType", "displayName": "Object type", "shape": "string" },
+        { "name": "detail", "displayName": "Detail", "shape": "string" },
+        { "name": "description", "displayName": "Description", "shape": "string", "visible": false },
+        { "name": "lintName", "displayName": "Rule", "shape": "string" },
+        { "name": "remediation", "displayName": "Remediation", "shape": ["url", { "label": "Remediation" }] },
+        { "name": "observedAt", "displayName": "Observed", "shape": "date" },
+        { "name": "projectRef", "displayName": "Project reference ID", "shape": "string", "visible": false },
+        { "name": "projectName", "displayName": "Project", "shape": "string" },
+        { "sourceId": "projectRef", "sourceType": "Project", "name": "projectName" }
+    ],
+    "timeframes": false
+}

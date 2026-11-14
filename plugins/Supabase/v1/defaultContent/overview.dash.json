@@ -1,0 +1,362 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "74a8abc0-d2cb-4bb5-bd5a-36053a50f26f",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Project Status",
+                    "description": "Current status of every Supabase project the access token can see, with its region. Click a project to open it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[projects]}}",
+                        "name": "projects",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "region",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridMaxBlockHeight": 120,
+                                "statusGridLabelWrap": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "37f5fcc9-4135-421d-a242-ab55a1c5c8a2",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Disk Used",
+                    "description": "Share of each project's database disk in use",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[diskUsage]}}",
+                        "name": "diskUsage",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Projects]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "usedPercent",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "projectName",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 0.7,
+                                        "color": "#22c55e"
+                                    },
+                                    {
+                                        "to": 0.85,
+                                        "color": "#f59e0b"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#ef4444"
+                                    }
+                                ],
+                                "ringGridTrackWidth": 10
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8b298b1a-54c4-47a6-a38b-55cb44fc4260",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Service Health",
+                    "description": "Health of each Supabase service per project. Realtime can briefly report unhealthy on the first check of an idle project",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH d AS (SELECT *, CASE WHEN \"projectName\" IN (SELECT \"projectName\" FROM \"dataset\" GROUP BY 1 HAVING COUNT(DISTINCT \"projectRef\") > 1) THEN \"projectName\" || ' (' || \"projectRef\" || ')' ELSE \"projectName\" END AS \"projectLabel\" FROM \"dataset\") SELECT \"projectLabel\" AS \"project\", MAX(CASE WHEN \"serviceKey\" = 'db' THEN \"status\" END) AS \"db\", MAX(CASE WHEN \"serviceKey\" = 'pooler' THEN \"status\" END) AS \"pooler\", MAX(CASE WHEN \"serviceKey\" = 'auth' THEN \"status\" END) AS \"auth\", MAX(CASE WHEN \"serviceKey\" = 'rest' THEN \"status\" END) AS \"rest\", MAX(CASE WHEN \"serviceKey\" = 'realtime' THEN \"status\" END) AS \"realtime\", MAX(CASE WHEN \"serviceKey\" = 'storage' THEN \"status\" END) AS \"storage\" FROM d GROUP BY \"projectRef\", \"projectLabel\" ORDER BY 1"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Projects]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "project",
+                                    "type": "nominal"
+                                },
+                                "statuses": [
+                                    {
+                                        "field": "db",
+                                        "type": "nominal",
+                                        "title": "Database"
+                                    },
+                                    {
+                                        "field": "pooler",
+                                        "type": "nominal",
+                                        "title": "Pooler"
+                                    },
+                                    {
+                                        "field": "auth",
+                                        "type": "nominal",
+                                        "title": "Auth"
+                                    },
+                                    {
+                                        "field": "rest",
+                                        "type": "nominal",
+                                        "title": "Data API"
+                                    },
+                                    {
+                                        "field": "realtime",
+                                        "type": "nominal",
+                                        "title": "Realtime"
+                                    },
+                                    {
+                                        "field": "storage",
+                                        "type": "nominal",
+                                        "title": "Storage"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "statusGridBlockGap": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1654ca90-3849-4873-85ef-c7d875836e6f",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Latest Backup",
+                    "description": "Status of each project's most recent database backup, with its type and when it was taken",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[backups]}}",
+                        "name": "backups",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH d AS (SELECT *, CASE WHEN \"projectName\" IN (SELECT \"projectName\" FROM \"dataset\" GROUP BY 1 HAVING COUNT(DISTINCT \"projectRef\") > 1) THEN \"projectName\" || ' (' || \"projectRef\" || ')' ELSE \"projectName\" END AS \"projectLabel\" FROM \"dataset\") SELECT \"projectLabel\" AS \"project\", \"status\" AS \"health\", CASE WHEN \"status[Expanded].rawState\" = 'NONE' THEN 'No backups' WHEN \"status[Expanded].rawState\" = 'PITR' THEN 'Point-in-time recovery' ELSE CONCAT_WS(' · ', \"backupType\", REPLACE(SUBSTR(CAST(\"insertedAt\" AS VARCHAR), 1, 16), 'T', ' ') || ' UTC') END AS \"detail\" FROM d QUALIFY ROW_NUMBER() OVER (PARTITION BY \"projectRef\" ORDER BY \"insertedAt\" DESC NULLS LAST) = 1 ORDER BY 1"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Projects]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "project",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "health",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridMaxBlockHeight": 120,
+                                "statusGridLabelWrap": true,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{detail}}{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "88c41877-b162-4320-b49e-f9763a1deb0e",
+                "x": 0,
+                "y": 5,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "API Requests",
+                    "description": "API requests per project over the last 24 hours",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[apiUsage]}}",
+                        "name": "apiUsage",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Projects]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "timeframe": "last24hours",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "requests",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "title": "Requests"
+                                },
+                                "series": {
+                                    "field": "projectName",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b159267c-92ea-42a4-9c77-711a4de06b09",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Advisor Findings",
+                    "description": "Open security and performance advisor findings per project, by level",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[advisors]}}",
+                        "name": "advisors",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "WITH d AS (SELECT *, CASE WHEN \"projectName\" IN (SELECT \"projectName\" FROM \"dataset\" GROUP BY 1 HAVING COUNT(DISTINCT \"projectRef\") > 1) THEN \"projectName\" || ' (' || \"projectRef\" || ')' ELSE \"projectName\" END AS \"projectLabel\" FROM \"dataset\") , f AS (SELECT \"projectLabel\" AS \"project\", \"projectRef\", CASE \"level[Expanded].rawState\" WHEN 'ERROR' THEN 'Error' WHEN 'WARN' THEN 'Warning' ELSE 'Info' END AS \"severity\", CASE \"level[Expanded].rawState\" WHEN 'ERROR' THEN 0 WHEN 'WARN' THEN 1 ELSE 2 END AS \"rk\" FROM d) SELECT \"project\", \"severity\", CAST(COUNT(*) AS DOUBLE) AS \"findings\" FROM f GROUP BY \"projectRef\", \"project\", \"severity\", \"rk\" ORDER BY \"project\", \"rk\""
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Projects]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "project",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "findings",
+                                    "type": "quantitative",
+                                    "title": "Findings"
+                                },
+                                "series": {
+                                    "field": "severity",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianStack": "on",
+                                "mappedColors": {
+                                    "Error": "#ef4444",
+                                    "Warning": "#f59e0b",
+                                    "Info": "#3b82f6"
+                                },
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

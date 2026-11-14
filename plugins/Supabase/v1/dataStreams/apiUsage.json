@@ -1,0 +1,58 @@
+{
+    "name": "apiUsage",
+    "displayName": "API requests",
+    "description": "API request volume over time for a project, broken down by service (Data API, Auth, Storage and Realtime)",
+    "tags": ["Usage"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": { "type": "equals", "value": "Project" }
+    },
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/projects/{{object.rawId}}/analytics/endpoints/usage.api-counts",
+        "getArgs": [
+            {
+                "key": "interval",
+                "value": "{{ ({ last1hour: '1hr', last24hours: '1day', last7days: '7day' })[timeframe.enum] || '1day' }}"
+            }
+        ],
+        "paging": { "mode": "none" },
+        "postRequestScript": "apiUsage.js"
+    },
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "service",
+            "displayName": "Service",
+            "shape": "string"
+        },
+        {
+            "name": "requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "projectRef",
+            "displayName": "Project reference ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "shape": "string"
+        },
+        {
+            "sourceId": "projectRef",
+            "sourceType": "Project",
+            "name": "projectName"
+        }
+    ],
+    "timeframes": ["last1hour", "last24hours", "last7days"]
+}
