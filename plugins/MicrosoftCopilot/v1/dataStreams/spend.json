@@ -1,0 +1,102 @@
+{
+    "name": "spend",
+    "displayName": "Copilot Spend",
+    "description": "Daily Azure Cost Management spend and usage quantity for Copilot and AI services, by service, meter or resource",
+    "tags": [
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "arm{{dataSource.costScope}}/providers/Microsoft.CostManagement/query",
+        "getArgs": [
+            {
+                "key": "api-version",
+                "value": "2023-11-01"
+            }
+        ],
+        "postBody": {
+            "type": "ActualCost",
+            "timeframe": "Custom",
+            "timePeriod": {
+                "from": "{{timeframe.start}}",
+                "to": "{{timeframe.end}}"
+            },
+            "dataset": {
+                "granularity": "Daily",
+                "aggregation": {
+                    "totalCost": {
+                        "name": "Cost",
+                        "function": "Sum"
+                    },
+                    "totalQuantity": {
+                        "name": "UsageQuantity",
+                        "function": "Sum"
+                    }
+                },
+                "grouping": [
+                    {
+                        "type": "Dimension",
+                        "name": "{{groupBy || 'ServiceName'}}"
+                    }
+                ],
+                "filter": "{{scopeOfCosts === 'all' ? undefined : { or: [ { dimensions: { name: 'ResourceType', operator: 'In', values: ['microsoft.powerplatform/accounts'] } }, { dimensions: { name: 'ServiceName', operator: 'In', values: ['Cognitive Services','Azure OpenAI Service','Azure AI Services','Copilot Studio','Microsoft Copilot Studio','Power Platform','Foundry Models','Foundry Tools'] } } ] } }}"
+            }
+        },
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "properties.nextLink"
+            }
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/spend.js"
+        },
+        "postRequestScript": "spend.js"
+    },
+    "matches": "none",
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter"
+    ],
+    "ui": [
+        {
+            "type": "radio",
+            "name": "groupBy",
+            "label": "Group by",
+            "defaultValue": "ServiceName",
+            "options": [
+                { "value": "ServiceName", "label": "Service" },
+                { "value": "MeterCategory", "label": "Meter category" },
+                { "value": "Meter", "label": "Meter" },
+                { "value": "ResourceGroupName", "label": "Resource group" },
+                { "value": "ResourceId", "label": "Resource" },
+                { "value": "ResourceType", "label": "Resource type" }
+            ]
+        },
+        {
+            "type": "radio",
+            "name": "scopeOfCosts",
+            "label": "Scope of costs",
+            "defaultValue": "copilot",
+            "options": [
+                { "value": "copilot", "label": "Copilot and AI services" },
+                { "value": "all", "label": "All services" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "usageDate", "displayName": "Date", "shape": "date", "role": "timestamp" },
+        { "name": "group", "displayName": "Group", "shape": "string", "role": "label" },
+        { "name": "resourceId", "displayName": "Resource ID", "shape": "string" },
+        { "name": "cost", "displayName": "Cost", "shape": ["number", { "decimalPlaces": 2 }], "role": "value" },
+        { "name": "quantity", "displayName": "Usage quantity", "shape": ["number", { "decimalPlaces": 2 }] },
+        { "name": "currency", "displayName": "Currency", "shape": "string" }
+    ]
+}
