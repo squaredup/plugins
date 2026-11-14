@@ -1,0 +1,270 @@
+{
+    "name": "computers",
+    "displayName": "Computers",
+    "description": "Automate agents with online status, last contact, patch and antivirus state (optionally filtered by client, location, computer or status)",
+    "tags": [
+        "Devices",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "computers",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "includeFields",
+                "value": "Id,ComputerName,Client,Location,Type,Status,OperatingSystemName,DomainName,RemoteAgentLastContact,RemoteAgentVersion,IsRebootNeeded,IsMaintenanceModeEnabled,IsVirtualMachine,SystemUptime,LocalIPAddress,SerialNumber,WindowsUpdateDate,AntiVirusDefinitionDate,VirusScanner"
+            },
+            {
+                "key": "condition",
+                "value": "{{ [(typeof client !== 'undefined' && client && client.length ? 'Client.Id in (' + client.flatMap((o) => o.rawId).join(',') + ')' : null), (typeof location !== 'undefined' && location && location.length ? 'Location.Id in (' + location.flatMap((o) => o.rawId).join(',') + ')' : null), (typeof computer !== 'undefined' && computer && computer.length ? 'Id in (' + computer.flatMap((o) => o.rawId).join(',') + ')' : null), (typeof status !== 'undefined' && status ? \"Status = '\" + status + \"'\" : null)].filter(Boolean).join(' and ') || null }}"
+            },
+            {
+                "key": "orderBy",
+                "value": "ComputerName asc"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "."
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "client",
+            "label": "Client(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Client"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "location",
+            "label": "Location(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Location"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "computer",
+            "label": "Computer(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Computer"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status",
+            "options": [
+                {
+                    "value": "Online",
+                    "label": "Online"
+                },
+                {
+                    "value": "Offline",
+                    "label": "Offline"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Id",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "Client.Id",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "Location.Id",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "computerId",
+            "displayName": "Computer ID",
+            "computed": true,
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['Id'] == null ? null : String($['Id']) }}"
+        },
+        {
+            "name": "clientId",
+            "displayName": "Client ID",
+            "computed": true,
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['Client.Id'] == null ? null : String($['Client.Id']) }}"
+        },
+        {
+            "name": "locationId",
+            "displayName": "Location ID",
+            "computed": true,
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['Location.Id'] == null ? null : String($['Location.Id']) }}"
+        },
+        {
+            "name": "ComputerName",
+            "displayName": "Computer",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "computerId",
+            "sourceType": "Computer"
+        },
+        {
+            "name": "Status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Online"
+                        ],
+                        "error": [
+                            "Offline"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "Client.Name",
+            "displayName": "Client",
+            "shape": "string",
+            "sourceId": "clientId",
+            "sourceType": "Client"
+        },
+        {
+            "name": "Location.Name",
+            "displayName": "Location",
+            "shape": "string",
+            "sourceId": "locationId",
+            "sourceType": "Location"
+        },
+        {
+            "name": "OperatingSystemName",
+            "displayName": "Operating system",
+            "shape": "string"
+        },
+        {
+            "name": "RemoteAgentLastContact",
+            "displayName": "Last contact",
+            "shape": "date"
+        },
+        {
+            "name": "daysSinceContact",
+            "displayName": "Days since contact",
+            "computed": true,
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value",
+            "valueExpression": "{{ $['RemoteAgentLastContact'] ? Math.max(0, (Date.now() - Date.parse($['RemoteAgentLastContact'])) / 86400000) : null }}"
+        },
+        {
+            "name": "IsRebootNeeded",
+            "displayName": "Reboot needed",
+            "shape": "boolean"
+        },
+        {
+            "name": "IsMaintenanceModeEnabled",
+            "displayName": "Maintenance mode",
+            "shape": "boolean"
+        },
+        {
+            "name": "WindowsUpdateDate",
+            "displayName": "Last Windows update",
+            "shape": "date"
+        },
+        {
+            "name": "AntiVirusDefinitionDate",
+            "displayName": "Antivirus definitions",
+            "shape": "date"
+        },
+        {
+            "name": "VirusScanner.Name",
+            "displayName": "Antivirus",
+            "shape": "string"
+        },
+        {
+            "name": "RemoteAgentVersion",
+            "displayName": "Agent version",
+            "shape": "string"
+        },
+        {
+            "name": "SystemUptime",
+            "displayName": "Uptime",
+            "shape": "seconds"
+        },
+        {
+            "name": "IsVirtualMachine",
+            "displayName": "Virtual machine",
+            "shape": "boolean"
+        },
+        {
+            "name": "LocalIPAddress",
+            "displayName": "IP address",
+            "shape": "string"
+        },
+        {
+            "name": "DomainName",
+            "displayName": "Domain",
+            "shape": "string"
+        },
+        {
+            "name": "SerialNumber",
+            "displayName": "Serial number",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}
