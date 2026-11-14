@@ -1,0 +1,69 @@
+{
+    "name": "incidentUpdates",
+    "displayName": "Incident Updates",
+    "description": "Timeline of incident updates, one row per update (or per affected component), with status and component transitions",
+    "tags": ["Incidents"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "incidents.json",
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "incidentUpdates.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "toggle",
+            "name": "oneRowPerComponent",
+            "label": "One row per affected component",
+            "defaultValue": false,
+            "help": "Splits an update that affects several components into one row per component. Updates with no affected components stay as a single row."
+        },
+        {
+            "type": "objects",
+            "name": "components",
+            "label": "Components",
+            "help": "Only show updates that touched the selected components. Leave empty to show all updates.",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "Component"
+                }
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "incidentName", "displayName": "Incident", "shape": "string", "role": "label" },
+        { "name": "id", "displayName": "ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "incidentId", "displayName": "Incident ID", "shape": "string", "visible": false },
+        { "name": "impact", "displayName": "Impact", "shape": "string" },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        { "name": "postedAt", "displayName": "Posted", "shape": "date", "role": "timestamp" },
+        { "name": "body", "displayName": "Update", "shape": "string" },
+        { "name": "transitions", "displayName": "Transitions", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "components", "displayName": "Components", "shape": ["array", { "itemShape": "string" }] },
+        {
+            "name": "componentIds",
+            "displayName": "Component IDs",
+            "shape": ["array", { "itemShape": "string" }],
+            "visible": false
+        },
+        { "name": "componentName", "displayName": "Component", "shape": "string" },
+        { "name": "componentId", "displayName": "Component ID", "shape": "string", "visible": false },
+        { "name": "oldStatus", "displayName": "Old Status", "shape": "string" },
+        { "name": "newStatus", "displayName": "New Status", "shape": "string" },
+        { "name": "sequence", "displayName": "Sequence", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "minutesSinceStart", "displayName": "Time Since Start", "shape": "minutes" },
+        { "name": "link", "displayName": "Link", "shape": ["url", { "label": "View Incident" }], "role": "link" }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [["postedAt", "desc"]]
+        }
+    },
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

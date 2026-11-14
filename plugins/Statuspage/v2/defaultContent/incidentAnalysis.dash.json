@@ -1,0 +1,833 @@
+{
+    "name": "Incident Analysis",
+    "schemaVersion": "1.5",
+    "timeframe": "thisYear",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "ff8cf66d-d4aa-4a04-b9b6-20f2d57ed3c4",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 1,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/text",
+                    "title": "About This Data",
+                    "description": "",
+                    "visualisation": {
+                        "config": {
+                            "content": "Incidents open at any point in the dashboard timeframe. Statuspage publishes only the 50 most recent incidents, so on a busy page this history may start later than the selected timeframe.",
+                            "fontSize": 14,
+                            "align": "left",
+                            "autoSize": false
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d3c04eff-196a-42b4-86b2-2614b3aa39a9",
+                "x": 0,
+                "y": 1,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents",
+                    "description": "Incidents open at any point in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "97fb5fd0-b96f-4ad2-8568-e0e07de850ac",
+                "x": 1,
+                "y": 1,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Median Time to Resolve",
+                    "description": "Half of the resolved incidents were resolved faster than this",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT MEDIAN(\"timeToResolveMinutes\") AS \"medianTimeToResolve\" FROM \"incidents\" HAVING COUNT(\"timeToResolveMinutes\") > 0",
+                            "tables": [
+                                {
+                                    "tableName": "incidents",
+                                    "config": {
+                                        "activePluginConfigIds": ["{{configId}}"],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[incidents]}}",
+                                            "name": "incidents"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "medianTimeToResolve",
+                                "displayName": "Median Time to Resolve",
+                                "shape": "minutes"
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No resolved incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "medianTimeToResolve",
+                                        "type": "quantitative",
+                                        "title": "Median Time to Resolve"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cc6514ac-c126-4960-81b9-e71bdf4d2bcc",
+                "x": 2,
+                "y": 1,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "90th Percentile Time to Resolve",
+                    "description": "9 in 10 resolved incidents were resolved faster than this",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT QUANTILE_CONT(\"timeToResolveMinutes\", 0.9) AS \"p90TimeToResolve\" FROM \"incidents\" HAVING COUNT(\"timeToResolveMinutes\") > 0",
+                            "tables": [
+                                {
+                                    "tableName": "incidents",
+                                    "config": {
+                                        "activePluginConfigIds": ["{{configId}}"],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[incidents]}}",
+                                            "name": "incidents"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "p90TimeToResolve",
+                                "displayName": "90th Percentile Time to Resolve",
+                                "shape": "minutes"
+                            }
+                        ]
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No resolved incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "p90TimeToResolve",
+                                        "type": "quantitative",
+                                        "title": "90th Percentile Time to Resolve"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "eec1742e-e7ae-4232-abc6-fe4a3f7a1637",
+                "x": 3,
+                "y": 1,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents With Outages",
+                    "description": "Incidents in which at least one component reached Partial Outage or Major Outage",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "worstComponentStatus",
+                                    "operation": "equals",
+                                    "value": "Partial Outage"
+                                },
+                                {
+                                    "column": "worstComponentStatus",
+                                    "operation": "equals",
+                                    "value": "Major Outage"
+                                }
+                            ]
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No outages in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bdfa3a00-4fe4-4d21-aedd-2e4740c9ae05",
+                "x": 0,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents by Impact",
+                    "description": "Impact as set by the status page, which can understate how severe an incident was",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["impact", "uniqueValues"]],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [["count", "desc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "impact_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Impact"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table",
+                                "pieLabels": "nameAndValue",
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Major": "#f97316",
+                                    "Minor": "#f59e0b",
+                                    "None": "#94a3b8",
+                                    "Maintenance": "#3b82f6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a10c7d30-05f3-473d-9415-f67f7b8318eb",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents by Worst Component Status",
+                    "description": "The worst status any component reached during each incident",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "worstComponentStatus",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [["worstComponentStatus", "uniqueValues"]],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [["count", "desc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No incidents in this timeframe recorded a component status"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "worstComponentStatus_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Worst Component Status"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table",
+                                "pieLabels": "nameAndValue",
+                                "mappedColors": {
+                                    "Operational": "#22c55e",
+                                    "Under Maintenance": "#3b82f6",
+                                    "Degraded Performance": "#f59e0b",
+                                    "Partial Outage": "#ef4444",
+                                    "Major Outage": "#991b1b"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6c09ee68-d68d-4e49-91ab-547a893f2d79",
+                "x": 0,
+                "y": 6,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents per Month",
+                    "description": "Incidents by the month they started, split by impact",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                ["startedAt", "byMonth"],
+                                ["impact", "uniqueValues"]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [["startedAt_byMonth", "asc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "startedAt_byMonth",
+                                    "type": "temporal",
+                                    "title": "Month"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                },
+                                "series": {
+                                    "field": "impact_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Impact"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 3,
+                                "cartesianShowStackedTotals": true,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Critical": "#ef4444",
+                                    "Major": "#f97316",
+                                    "Minor": "#f59e0b",
+                                    "None": "#94a3b8",
+                                    "Maintenance": "#3b82f6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "38a285c4-276b-46eb-91bc-51d2d9336e19",
+                "x": 2,
+                "y": 6,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incidents by Component",
+                    "description": "The 15 components affected by the most incidents",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "oneRowPerComponent": true
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "components",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [["components", "uniqueValues"]],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [["count", "desc"]],
+                            "top": 15
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No incidents in this timeframe named an affected component"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "components_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Component"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Incidents"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "showLabels": true,
+                                "cartesianColorRules": [
+                                    {
+                                        "gte": 0,
+                                        "color": "#6366f1"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "05b852e0-9291-4b31-9625-b5b35254ab63",
+                "x": 0,
+                "y": 9,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Longest Incidents",
+                    "description": "The 10 resolved incidents that took longest to resolve",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "timeToResolveMinutes",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [["timeToResolveMinutes", "desc"]],
+                            "top": 10
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No resolved incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Incident",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "impact",
+                                        "title": "Impact",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Critical": "#ef4444",
+                                                "Major": "#f97316",
+                                                "Minor": "#f59e0b",
+                                                "None": "#94a3b8",
+                                                "Maintenance": "#3b82f6"
+                                            }
+                                        },
+                                        "width": 100
+                                    },
+                                    {
+                                        "field": "timeToResolveMinutes",
+                                        "title": "Time to Resolve",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "startedAt",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "65ee2716-e0e1-4d5c-8ef2-ac2192c1962a",
+                "x": 2,
+                "y": 9,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Time to Resolve by Impact",
+                    "description": "Median and 90th percentile hours to resolve, for resolved incidents of each impact",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"impact\", ROUND(MEDIAN(\"timeToResolveMinutes\") / 60, 1) AS \"Median\", ROUND(QUANTILE_CONT(\"timeToResolveMinutes\", 0.9) / 60, 1) AS \"90th Percentile\" FROM \"incidents\" WHERE \"timeToResolveMinutes\" IS NOT NULL AND \"impact\" IS NOT NULL GROUP BY \"impact\" ORDER BY CASE \"impact\" WHEN 'Critical' THEN 1 WHEN 'Major' THEN 2 WHEN 'Minor' THEN 3 WHEN 'None' THEN 4 ELSE 5 END",
+                            "tables": [
+                                {
+                                    "tableName": "incidents",
+                                    "config": {
+                                        "activePluginConfigIds": ["{{configId}}"],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[incidents]}}",
+                                            "name": "incidents"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No resolved incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "impact",
+                                    "type": "nominal",
+                                    "title": "Impact"
+                                },
+                                "y": [
+                                    {
+                                        "field": "Median",
+                                        "type": "quantitative",
+                                        "title": "Median"
+                                    },
+                                    {
+                                        "field": "90th Percentile",
+                                        "type": "quantitative",
+                                        "title": "90th Percentile"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "legendPosition": "bottom",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Hours",
+                                "mappedColors": {
+                                    "Median": "#3b82f6",
+                                    "90th Percentile": "#a855f7"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cc2e1b52-32cf-493a-b685-25ea902ce9af",
+                "x": 0,
+                "y": 13,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Incident History",
+                    "description": "Every incident open in the timeframe, newest first. Click a row for the latest update and a link to the incident.",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[incidents]}}",
+                        "name": "incidents",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [["startedAt", "desc"]]
+                        }
+                    },
+                    "visualisation": {
+                        "noDataMessage": "No incidents in this timeframe"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "impact",
+                                        "title": "Impact",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Critical": "#ef4444",
+                                                "Major": "#f97316",
+                                                "Minor": "#f59e0b",
+                                                "None": "#94a3b8",
+                                                "Maintenance": "#3b82f6"
+                                            }
+                                        },
+                                        "width": 100
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Incident",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Investigating": "#ef4444",
+                                                "Identified": "#f97316",
+                                                "Monitoring": "#3b82f6",
+                                                "Resolved": "#22c55e",
+                                                "Postmortem": "#64748b"
+                                            }
+                                        },
+                                        "width": 120
+                                    },
+                                    {
+                                        "field": "worstComponentStatus",
+                                        "title": "Worst Component Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Operational": "#22c55e",
+                                                "Under Maintenance": "#3b82f6",
+                                                "Degraded Performance": "#f59e0b",
+                                                "Partial Outage": "#ef4444",
+                                                "Major Outage": "#991b1b"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "components",
+                                        "title": "Components",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "startedAt",
+                                        "title": "Started",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "resolvedAt",
+                                        "title": "Resolved",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "timeToResolveMinutes",
+                                        "title": "Time to Resolve",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "updateCount",
+                                        "title": "Updates",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right",
+                                        "width": 90
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowLinkField": "link",
+                                "detailsPanel": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

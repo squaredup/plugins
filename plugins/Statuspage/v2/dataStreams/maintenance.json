@@ -1,0 +1,149 @@
+{
+    "name": "maintenance",
+    "displayName": "Scheduled Maintenance",
+    "description": "Scheduled maintenance windows on the status page, upcoming, in progress and completed",
+    "tags": ["Maintenance"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "scheduled-maintenances.json",
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "maintenance.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/maintenance.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "phase",
+            "label": "Phase",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "Upcoming",
+                    "label": "Upcoming"
+                },
+                {
+                    "value": "Active",
+                    "label": "Active"
+                },
+                {
+                    "value": "Completed",
+                    "label": "Completed"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "components",
+            "label": "Components",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "Component"
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "state"
+        },
+        {
+            "name": "name",
+            "displayName": "Maintenance",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "phase",
+            "displayName": "Phase",
+            "shape": "string"
+        },
+        {
+            "name": "impact",
+            "displayName": "Impact",
+            "shape": "string"
+        },
+        {
+            "name": "components",
+            "displayName": "Components",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "componentIds",
+            "displayName": "Component IDs",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "scheduledFor",
+            "displayName": "Scheduled Start",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "scheduledUntil",
+            "displayName": "Scheduled End",
+            "shape": "date"
+        },
+        {
+            "name": "durationMinutes",
+            "displayName": "Planned Duration",
+            "shape": "minutes"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "View Maintenance"
+                }
+            ],
+            "role": "link"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [["scheduledFor", "desc"]]
+        }
+    },
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}
