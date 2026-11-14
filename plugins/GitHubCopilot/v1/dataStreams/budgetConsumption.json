@@ -1,0 +1,119 @@
+{
+    "name": "budgetConsumption",
+    "displayName": "Budget Consumption",
+    "description": "Amount spent against each selected budget this billing cycle, with percentage used",
+    "tags": [
+        "Billing",
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'organizations' }}/{{ dataSource.slug.trim() }}/settings/billing/budgets/{{ object.rawId }}",
+        "postRequestScript": "budgetConsumption.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Budget"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "budgetId",
+            "displayName": "Budget ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "budgetName",
+            "displayName": "Budget",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "sourceId": "budgetId",
+            "sourceType": "Budget",
+            "name": "budgetName"
+        },
+        {
+            "name": "budgetAmount",
+            "displayName": "Budget (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "consumedAmount",
+            "displayName": "Spent (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "remainingAmount",
+            "displayName": "Remaining (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "percentUsed",
+            "displayName": "Used (%)",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Under budget"
+                        ],
+                        "warning": [
+                            "Over 80%"
+                        ],
+                        "error": [
+                            "Exhausted"
+                        ],
+                        "unknown": [
+                            "No limit",
+                            "Unavailable"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "preventFurtherUsage",
+            "displayName": "Stops usage at limit",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

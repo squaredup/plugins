@@ -1,0 +1,25 @@
+{
+    "name": "modelPolicies",
+    "displayName": "Model Policies",
+    "description": "Copilot model availability policy for each model (organization accounts only)",
+    "tags": ["AI", "Models"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ dataSource.accountType === 'enterprise' ? '/user' : `/orgs/${dataSource.slug.trim()}/copilot/model-policies` }}",
+        "errorHandling": { "type": "path", "realm": "payload", "path": "message" },
+        "postRequestScript": "modelPolicies.js"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "model", "displayName": "Model ID", "shape": "string" },
+        { "name": "displayName", "displayName": "Model name", "shape": "string", "role": "label" },
+        {
+            "name": "policyState",
+            "displayName": "Policy",
+            "shape": ["state", { "map": { "success": ["Enabled"], "error": ["Disabled"], "warning": ["Default"], "unknown": ["Not configured"] } }]
+        },
+        { "name": "defaultPolicy", "displayName": "Default availability", "shape": "string" }
+    ],
+    "timeframes": false
+}
