@@ -1,0 +1,914 @@
+{
+    "name": "Project",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [
+        "{{variables.[TeamCity Project]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "65d96450-9517-4dd3-9aa6-b0b9babd9f1f",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Project Properties",
+                    "description": "Properties imported from TeamCity",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[TeamCity Projects]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[TeamCity Project]}}"
+                    },
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": [
+                                    "name"
+                                ],
+                                "hiddenColumns": [
+                                    "id",
+                                    "links",
+                                    "type",
+                                    "label",
+                                    "sourceId",
+                                    "sourceType",
+                                    "parentProjectId"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cd88094f-0113-455f-9473-f3f060d3365e",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Builds",
+                    "description": "Builds of this project finished in the timeframe, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "composite",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "becd4650-1cb6-49b7-bed4-c0d5c1f452af",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Success Rate",
+                    "description": "Share of this project's builds in the timeframe that succeeded, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        },
+                        "sql": "SELECT ROUND(CAST(COUNT(*) FILTER (WHERE \"status[Expanded].rawState\" = 'SUCCESS') AS DOUBLE) * 100 / NULLIF(COUNT(*), 0), 1) AS \"successRate\" FROM \"dataset\" WHERE COALESCE(CAST(\"composite\" AS VARCHAR), 'false') <> 'true'"
+                    },
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "gauge",
+                            "encoding": {
+                                "value": {
+                                    "field": "successRate",
+                                    "type": "quantitative",
+                                    "title": "Success Rate"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "gaugeShowLabelText": false,
+                                "labelFormat": "{{{{raw}}}}{{value}}%{{{{/raw}}}}",
+                                "gaugeBands": [
+                                    {
+                                        "to": 0.7,
+                                        "color": "#DE0038"
+                                    },
+                                    {
+                                        "to": 0.9,
+                                        "color": "#E18700"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#259A51"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5eba178a-0da7-4265-af49-a766caffd264",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Failing Configurations",
+                    "description": "Build configurations in this project whose last finished build failed",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[buildConfigurationStatus]}}",
+                        "name": "buildConfigurationStatus",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "status",
+                                    "operation": "equals",
+                                    "value": "error"
+                                }
+                            ]
+                        }
+                    },
+                    "timeframe": "none",
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarRowCount": true,
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "20710ff7-6b52-4067-9f15-17686d464fb6",
+                "x": 1,
+                "y": 2,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Build Configuration Health",
+                    "description": "Status of the last finished build of each build configuration in this project",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[buildConfigurationStatus]}}",
+                        "name": "buildConfigurationStatus",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        }
+                    },
+                    "timeframe": "none",
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "fullName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridPrimaryTemplate": "{{{{raw}}}}{{name}}{{{{/raw}}}}",
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}#{{lastBuildNumber}}{{{{/raw}}}}",
+                                "statusGridColumnsPerRow": 4,
+                                "statusGridLabelWrap": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8238cc65-abb8-4056-b1d2-d57020595397",
+                "x": 0,
+                "y": 4,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Builds per Day",
+                    "description": "Finished builds per day by status, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "composite",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "finishDate",
+                                    "byDay"
+                                ],
+                                [
+                                    "status",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "finishDate_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "finishDate_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Builds"
+                                },
+                                "series": {
+                                    "field": "status_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Status"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "mappedColors": {
+                                    "success": "#259A51",
+                                    "error": "#DE0038",
+                                    "failure": "#DE0038",
+                                    "unknown": "#9CA3AF"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c48b4244-4ba3-4db8-b5cf-2236c4a07b77",
+                "x": 2,
+                "y": 4,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Average Build Duration",
+                    "description": "Mean build duration and time spent queued per day, excluding composite (pipeline head) builds",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "composite",
+                                    "operation": "equals",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "finishDate",
+                                    "byDay"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "duration"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "queueTime"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "finishDate_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "finishDate_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": [
+                                    {
+                                        "field": "duration_mean",
+                                        "type": "quantitative",
+                                        "title": "Build Duration"
+                                    },
+                                    {
+                                        "field": "queueTime_mean",
+                                        "type": "quantitative",
+                                        "title": "Queue Time"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2e043456-417e-400f-b31c-b3cdacc4d2a3",
+                "x": 0,
+                "y": 7,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Build History",
+                    "description": "Outcome of finished builds over the timeframe for each build configuration in this project",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "healthHistory",
+                            "encoding": {
+                                "time": {
+                                    "field": "finishDate",
+                                    "type": "temporal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "label": {
+                                    "field": "buildConfiguration",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridLabelWidth": 320,
+                                "historyUptimeLabel": "success"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "67dee5be-10d9-41a6-b94b-5e8c3464b343",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Builds",
+                    "description": "Builds of this project finished in the timeframe, most recent first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[builds]}}",
+                        "name": "builds",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "finishDate",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "buildConfiguration",
+                                        "title": "Build Configuration",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "number",
+                                        "title": "Build",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "branchName",
+                                        "title": "Branch",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "statusText",
+                                        "title": "Status Text",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "finishDate",
+                                        "title": "Finished",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "duration",
+                                        "title": "Duration",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "agent.name",
+                                        "title": "Agent",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "triggered.user.username",
+                                        "title": "Triggered By",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "finishDate",
+                                    "direction": "desc"
+                                },
+                                "richTableRowHighlight": {
+                                    "field": "status",
+                                    "colors": {
+                                        "error": "rgba(222,0,56,0.12)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "33cc60f2-6a85-4759-8db0-e772fbf2ee96",
+                "x": 0,
+                "y": 13,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Running Builds",
+                    "description": "Builds of this project running now",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[runningBuilds]}}",
+                        "name": "runningBuilds",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        }
+                    },
+                    "timeframe": "none",
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "buildConfigurationName",
+                                        "title": "Build Configuration",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "number",
+                                        "title": "Build",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "branchName",
+                                        "title": "Branch",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "running-info.currentStageText",
+                                        "title": "Current Stage",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "percentageComplete",
+                                        "title": "Progress",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "running-info.elapsedSeconds",
+                                        "title": "Elapsed",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "running-info.probablyHanging",
+                                        "title": "Probably Hanging",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueColor": "#DE0038"
+                                        }
+                                    },
+                                    {
+                                        "field": "agent.name",
+                                        "title": "Agent",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "73701c49-106e-4286-9152-275f8058a6be",
+                "x": 2,
+                "y": 13,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Build Queue",
+                    "description": "Queued builds of this project",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[buildQueue]}}",
+                        "name": "buildQueue",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "project": {
+                                "variable": "{{variables.[TeamCity Project]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[TeamCity Projects]}}"
+                            }
+                        }
+                    },
+                    "timeframe": "none",
+                    "variables": [
+                        "{{variables.[TeamCity Project]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "buildConfigurationName",
+                                        "title": "Build Configuration",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "branchName",
+                                        "title": "Branch",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "queuedDate",
+                                        "title": "Queued",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "waitingSeconds",
+                                        "title": "Waiting",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "waitReason",
+                                        "title": "Wait Reason",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "triggered.user.username",
+                                        "title": "Triggered By",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "webUrl",
+                                        "title": "Link",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "waitingSeconds",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

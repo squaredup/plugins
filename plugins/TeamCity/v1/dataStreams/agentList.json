@@ -1,0 +1,77 @@
+{
+    "name": "agentList",
+    "displayName": "Agent List",
+    "description": "Authorized TeamCity build agents, with their pool, IP address and operating system",
+    "tags": [
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "agents",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "authorized:true,connected:any,enabled:any,count:1000"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,agent(id,name,ip,pool(id,name),environment(osType,osName))"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "pagedList.js",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Agent",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "pool.name",
+            "displayName": "Pool",
+            "shape": "string"
+        },
+        {
+            "name": "pool.id",
+            "displayName": "Pool ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ip",
+            "displayName": "IP Address",
+            "shape": "string"
+        },
+        {
+            "name": "environment.osType",
+            "displayName": "OS Type",
+            "shape": "string"
+        },
+        {
+            "name": "environment.osName",
+            "displayName": "OS",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

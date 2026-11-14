@@ -1,0 +1,91 @@
+{
+    "name": "projects",
+    "displayName": "Projects",
+    "description": "TeamCity projects and subprojects, with their full project path and archived status",
+    "tags": [
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "projects",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "affectedProject:(id:_Root),count:1000"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,project(id,name,parentProjectId,archived,webUrl,ancestorProjects(project(id,name)))"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "pagedList.js",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ancestorProjects.project",
+            "displayName": "Ancestor Projects",
+            "visible": false
+        },
+        {
+            "name": "parentProjectName",
+            "displayName": "Parent Project",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (Array.isArray($['ancestorProjects.project']) ? $['ancestorProjects.project'] : (typeof $['ancestorProjects.project'] === 'string' ? JSON.parse($['ancestorProjects.project']) : [])).filter(p => p.id !== '_Root').map(p => p.name).pop() || '' }}"
+        },
+        {
+            "name": "fullName",
+            "displayName": "Project",
+            "shape": "string",
+            "role": "label",
+            "computed": true,
+            "valueExpression": "{{ [...(Array.isArray($['ancestorProjects.project']) ? $['ancestorProjects.project'] : (typeof $['ancestorProjects.project'] === 'string' ? JSON.parse($['ancestorProjects.project']) : [])).filter(p => p.id !== '_Root').map(p => p.name), $['name']].join(' / ') }}"
+        },
+        {
+            "name": "parentProjectId",
+            "displayName": "Parent Project ID",
+            "shape": "string"
+        },
+        {
+            "name": "archived",
+            "displayName": "Archived",
+            "shape": "boolean"
+        },
+        {
+            "name": "webUrl",
+            "displayName": "URL",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in TeamCity"
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

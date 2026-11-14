@@ -1,0 +1,198 @@
+{
+    "name": "agents",
+    "displayName": "Agents",
+    "description": "Live status of TeamCity build agents, with the build each is running now, its pool and operating system",
+    "tags": [
+        "Agents"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "agents",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "{{ (() => { const ids = (typeof agent !== 'undefined' && Array.isArray(agent) ? agent : []).map(a => Array.isArray(a.rawId) ? a.rawId[0] : a.rawId).filter(Boolean); const idPart = ids.length === 1 ? `id:${ids[0]}` : ids.length > 1 ? `item:(${ids.map(i => `id:${i}`).join('),item:(')})` : ''; return [idPart, `authorized:${String(typeof includeUnauthorized === 'undefined' ? '' : includeUnauthorized) === 'true' ? 'any' : 'true'}`, 'connected:any', 'enabled:any', 'count:500'].filter(Boolean).join(','); })() }}"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,agent(id,name,connected,enabled,authorized,uptodate,ip,lastActivityTime,pool(id,name),environment(osType,osName),build(id,number,buildTypeId,buildType(id,name,projectName)),enabledInfo(comment(text)),authorizedInfo(comment(text)),webUrl)"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "pagedList.js",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "agent",
+            "label": "Agent(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Agent"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "toggle",
+            "name": "includeUnauthorized",
+            "label": "Include unauthorized agents",
+            "defaultValue": false
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Agent",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Agent",
+            "name": "name"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "Disconnected"
+                        ],
+                        "warning": [
+                            "Disabled",
+                            "Outdated",
+                            "Unauthorized"
+                        ],
+                        "success": [
+                            "Healthy"
+                        ]
+                    }
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ $['connected'] === false ? 'Disconnected' : $['authorized'] === false ? 'Unauthorized' : $['enabled'] === false ? 'Disabled' : $['uptodate'] === false ? 'Outdated' : 'Healthy' }}"
+        },
+        {
+            "name": "connected",
+            "displayName": "Connected",
+            "shape": "boolean"
+        },
+        {
+            "name": "enabled",
+            "displayName": "Enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "authorized",
+            "displayName": "Authorized",
+            "shape": "boolean"
+        },
+        {
+            "name": "uptodate",
+            "displayName": "Up to Date",
+            "shape": "boolean"
+        },
+        {
+            "name": "build.number",
+            "displayName": "Current Build",
+            "shape": "string"
+        },
+        {
+            "name": "build.buildType.name",
+            "displayName": "Current Build Configuration",
+            "shape": "string"
+        },
+        {
+            "name": "build.buildTypeId",
+            "displayName": "Current Build Configuration ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "build.buildTypeId",
+            "sourceType": "Build Configuration",
+            "name": "build.buildType.name"
+        },
+        {
+            "name": "build.id",
+            "displayName": "Current Build ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "pool.name",
+            "displayName": "Pool",
+            "shape": "string"
+        },
+        {
+            "name": "pool.id",
+            "displayName": "Pool ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "environment.osName",
+            "displayName": "OS",
+            "shape": "string"
+        },
+        {
+            "name": "environment.osType",
+            "displayName": "OS Type",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ip",
+            "displayName": "IP Address",
+            "shape": "string"
+        },
+        {
+            "name": "lastActivityTime",
+            "displayName": "Last Activity",
+            "shape": "date"
+        },
+        {
+            "name": "enabledInfo.comment.text",
+            "displayName": "Disabled Reason",
+            "shape": "string"
+        },
+        {
+            "name": "authorizedInfo.comment.text",
+            "displayName": "Unauthorized Reason",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "webUrl",
+            "displayName": "URL",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in TeamCity"
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}
