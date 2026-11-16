@@ -1,0 +1,719 @@
+{
+    "name": "Patching",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "145dd23f-c005-4a81-98ed-2ad5ede4cee5",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Windows Update Status",
+                    "description": "Overall Windows update status of devices across the tenant (Unknown until devices report update status)",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[updateStatusSummary]}}",
+                        "name": "updateStatusSummary",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "updateState",
+                                    "type": "nominal",
+                                    "title": "State"
+                                },
+                                "status": {
+                                    "field": "updateState",
+                                    "type": "nominal",
+                                    "title": "State"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridPrimaryTemplate": "Windows Updates",
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{nonCompliantDeviceCount}} not up to date{{{{/raw}}}}"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e1d3b8b3-b1e9-4cac-b54c-7ca08614ae0b",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Device Update Status",
+                    "description": "Devices by Windows update status across the tenant (all zero until devices report update status)",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[updateStatusSummary]}}",
+                        "name": "updateStatusSummary",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "compliantDeviceCount",
+                                        "type": "quantitative",
+                                        "title": "Up To Date",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "nonCompliantDeviceCount",
+                                        "type": "quantitative",
+                                        "title": "Not Up To Date",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "errorDeviceCount",
+                                        "type": "quantitative",
+                                        "title": "Error",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "conflictDeviceCount",
+                                        "type": "quantitative",
+                                        "title": "Conflict",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bb0a6736-b520-4ca4-8f09-013f3d1d2740",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Windows Builds",
+                    "description": "Windows devices grouped by OS build (major.minor.build)",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[managedDevices]}}",
+                        "name": "managedDevices",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "operatingSystems": [
+                                {
+                                    "value": "Windows",
+                                    "label": "Windows"
+                                }
+                            ]
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "osBuild",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "osBuild",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "osBuild_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "OS Build"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Devices"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "cartesianShowHorizontalGridLines": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "553990a2-05c9-474c-9a4e-014a8d948f12",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Windows Patch Levels",
+                    "description": "The 10 most common Windows patch levels (build.revision) across devices",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[managedDevices]}}",
+                        "name": "managedDevices",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "operatingSystems": [
+                                {
+                                    "value": "Windows",
+                                    "label": "Windows"
+                                }
+                            ]
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "osPatchLevel",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "osPatchLevel",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "osPatchLevel_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Patch Level"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Devices"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "cartesianShowHorizontalGridLines": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "6f440d9f-fc03-4e55-be06-a5dd1892eb83",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Update Rings",
+                    "description": "Windows Update for Business rings with their deferrals, deadlines and pause state, paused rings first",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[updateRings]}}",
+                        "name": "updateRings",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "statusRank",
+                                    "asc"
+                                ],
+                                [
+                                    "displayName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "displayName",
+                                        "title": "Ring",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "qualityUpdatesDeferralPeriodInDays",
+                                        "title": "Quality Deferral (Days)",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "featureUpdatesDeferralPeriodInDays",
+                                        "title": "Feature Deferral (Days)",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "deadlineForQualityUpdatesInDays",
+                                        "title": "Quality Deadline (Days)",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "deadlineForFeatureUpdatesInDays",
+                                        "title": "Feature Deadline (Days)",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "deadlineGracePeriodInDays",
+                                        "title": "Grace Period (Days)",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "qualityUpdatesPaused",
+                                        "title": "Quality Paused",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No"
+                                        }
+                                    },
+                                    {
+                                        "field": "featureUpdatesPaused",
+                                        "title": "Feature Paused",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "state",
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.12)",
+                                        "warning": "rgba(245,158,11,0.12)",
+                                        "Quality and feature updates paused": "rgba(245,158,11,0.12)",
+                                        "Quality updates paused": "rgba(245,158,11,0.12)",
+                                        "Feature updates paused": "rgba(245,158,11,0.12)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2d695945-220b-4979-bb67-060c337bb3b2",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Feature Update Profiles",
+                    "description": "Windows feature update profiles with their target version and end of support, ended or ending soon first",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[featureUpdateProfiles]}}",
+                        "name": "featureUpdateProfiles",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "statusRank",
+                                    "asc"
+                                ],
+                                [
+                                    "daysUntilEndOfSupport",
+                                    "asc"
+                                ],
+                                [
+                                    "displayName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "supportState",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "displayName",
+                                        "title": "Profile",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "featureUpdateVersion",
+                                        "title": "Feature Update",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "endOfSupport",
+                                        "title": "End of Support",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "daysUntilEndOfSupport",
+                                        "title": "Days Until End of Support",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "lastModifiedDateTime",
+                                        "title": "Last Modified",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "supportState",
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.12)",
+                                        "warning": "rgba(245,158,11,0.12)",
+                                        "End of support": "rgba(239,68,68,0.12)",
+                                        "Ending soon": "rgba(245,158,11,0.12)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "709cf60c-5b9b-43e7-9f84-d818c85e5531",
+                "x": 0,
+                "y": 13,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Quality Update Profiles",
+                    "description": "Windows quality update profiles, including expedited updates",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[qualityUpdateProfiles]}}",
+                        "name": "qualityUpdateProfiles",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "displayName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "displayName",
+                                        "title": "Profile",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "releaseDateDisplayName",
+                                        "title": "Release",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "deployableContentDisplayName",
+                                        "title": "Deployable Content",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "expeditedUpdateSettings.qualityUpdateRelease",
+                                        "title": "Expedited Release",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "expeditedUpdateSettings.daysUntilForcedReboot",
+                                        "title": "Days Until Forced Reboot",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "lastModifiedDateTime",
+                                        "title": "Last Modified",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2c08efe8-de5a-4e73-b340-213709925fa0",
+                "x": 0,
+                "y": 16,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Driver Update Profiles",
+                    "description": "Windows driver update profiles with their approval type and inventory sync state, failed syncs first",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[driverUpdateProfiles]}}",
+                        "name": "driverUpdateProfiles",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "statusRank",
+                                    "asc"
+                                ],
+                                [
+                                    "displayName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "syncState",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "displayName",
+                                        "title": "Profile",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "approvalType",
+                                        "title": "Approval Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "newUpdates",
+                                        "title": "New Updates",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "deviceReporting",
+                                        "title": "Devices Reporting",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "deploymentDeferralInDays",
+                                        "title": "Deferral (Days)",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "lastSuccessfulSync",
+                                        "title": "Last Successful Sync",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "syncState",
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.12)",
+                                        "warning": "rgba(245,158,11,0.12)",
+                                        "Sync failed": "rgba(239,68,68,0.12)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

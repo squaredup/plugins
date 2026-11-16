@@ -1,0 +1,95 @@
+{
+    "name": "driverUpdateProfiles",
+    "displayName": "Driver Update Profiles",
+    "description": "Windows driver update profiles with their approval type, new driver updates, reporting devices and inventory sync state (beta API)",
+    "tags": ["Patching"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/windowsDriverUpdateProfiles",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "id,displayName,description,approvalType,deviceReporting,newUpdates,deploymentDeferralInDays,inventorySyncStatus,createdDateTime,lastModifiedDateTime"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "expandInnerObjects": true,
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "syncState",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ (() => { const s = $['inventorySyncStatus.driverInventorySyncState']; return s === 'success' ? 'Synced' : s === 'pending' ? 'Pending' : s === 'failure' ? 'Sync failed' : 'Unknown'; })() }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Synced"],
+                        "error": ["Sync failed"],
+                        "unknown": ["Pending", "Unknown"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusRank",
+            "displayName": "Status Rank",
+            "computed": true,
+            "valueExpression": "{{ (() => { const s = $['inventorySyncStatus.driverInventorySyncState']; return s === 'failure' ? 0 : s === 'success' ? 2 : 1; })() }}",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Update Profile"
+        },
+        { "name": "approvalType", "displayName": "Approval Type", "shape": "string" },
+        { "name": "newUpdates", "displayName": "New Updates", "shape": "number" },
+        { "name": "deviceReporting", "displayName": "Devices Reporting", "shape": "number" },
+        { "name": "deploymentDeferralInDays", "displayName": "Deferral (Days)", "shape": "number" },
+        {
+            "name": "lastSuccessfulSync",
+            "displayName": "Last Successful Sync",
+            "shape": "date",
+            "computed": true,
+            "valueExpression": "{{ (() => { const d = $['inventorySyncStatus.lastSuccessfulSyncDateTime']; const t = d === null || d === undefined ? NaN : new Date(d).getTime(); return isNaN(t) || new Date(t).getUTCFullYear() <= 1900 ? null : d; })() }}"
+        },
+        {
+            "name": "profileType",
+            "displayName": "Profile Type",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "Driver update"
+        },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        { "name": "createdDateTime", "displayName": "Created", "shape": "date" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        {
+            "name": "inventorySyncStatus.lastSuccessfulSyncDateTime",
+            "displayName": "Last Successful Sync (Raw)",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "inventorySyncStatus.driverInventorySyncState",
+            "displayName": "Inventory Sync State",
+            "shape": "string",
+            "visible": false
+        },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["statusRank", "asc"], ["displayName", "asc"]] } },
+    "timeframes": false
+}

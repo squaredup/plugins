@@ -1,0 +1,40 @@
+{
+    "name": "updateStatusSummary",
+    "displayName": "Update Status Summary",
+    "description": "Device and user counts by Windows update status across the tenant (beta API)",
+    "tags": ["Patching"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/softwareUpdateStatusSummary",
+        "paging": { "mode": "none" },
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "updateState",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ (() => { const n = (v) => { const x = typeof v === 'number' ? v : Number(v); return isNaN(x) ? 0 : x; }; const err = n($['errorDeviceCount']) + n($['conflictDeviceCount']); const nonCompliant = n($['nonCompliantDeviceCount']); const total = err + nonCompliant + n($['compliantDeviceCount']) + n($['remediatedDeviceCount']) + n($['unknownDeviceCount']) + n($['notApplicableDeviceCount']); return err > 0 ? 'error' : nonCompliant > 0 ? 'warning' : total === 0 ? 'unknown' : 'success'; })() }}",
+            "shape": "state"
+        },
+        { "name": "compliantDeviceCount", "displayName": "Up To Date", "shape": "number" },
+        { "name": "nonCompliantDeviceCount", "displayName": "Not Up To Date", "shape": "number" },
+        { "name": "errorDeviceCount", "displayName": "Error", "shape": "number" },
+        { "name": "conflictDeviceCount", "displayName": "Conflict", "shape": "number" },
+        { "name": "remediatedDeviceCount", "displayName": "Remediated", "shape": "number" },
+        { "name": "unknownDeviceCount", "displayName": "Unknown", "shape": "number" },
+        { "name": "notApplicableDeviceCount", "displayName": "Not Applicable", "shape": "number" },
+        { "name": "compliantUserCount", "displayName": "Up To Date Users", "shape": "number" },
+        { "name": "nonCompliantUserCount", "displayName": "Not Up To Date Users", "shape": "number" },
+        { "name": "errorUserCount", "displayName": "Error Users", "shape": "number" },
+        { "name": "conflictUserCount", "displayName": "Conflict Users", "shape": "number" },
+        { "name": "remediatedUserCount", "displayName": "Remediated Users", "shape": "number" },
+        { "name": "unknownUserCount", "displayName": "Unknown Users", "shape": "number" },
+        { "name": "notApplicableUserCount", "displayName": "Not Applicable Users", "shape": "number" },
+        { "name": "displayName", "displayName": "Name", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": false
+}

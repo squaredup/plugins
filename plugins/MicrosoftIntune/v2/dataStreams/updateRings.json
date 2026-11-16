@@ -1,0 +1,117 @@
+{
+    "name": "updateRings",
+    "displayName": "Update Rings",
+    "description": "Windows Update for Business rings with their deferral, deadline, pause and rollback settings (beta API)",
+    "tags": ["Patching"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/deviceConfigurations",
+        "getArgs": [
+            { "key": "$filter", "value": "isof('microsoft.graph.windowsUpdateForBusinessConfiguration')" },
+            {
+                "key": "$select",
+                "value": "id,displayName,lastModifiedDateTime,version,microsoft.graph.windowsUpdateForBusinessConfiguration/qualityUpdatesDeferralPeriodInDays,microsoft.graph.windowsUpdateForBusinessConfiguration/featureUpdatesDeferralPeriodInDays,microsoft.graph.windowsUpdateForBusinessConfiguration/qualityUpdatesPaused,microsoft.graph.windowsUpdateForBusinessConfiguration/featureUpdatesPaused,microsoft.graph.windowsUpdateForBusinessConfiguration/qualityUpdatesPauseExpiryDateTime,microsoft.graph.windowsUpdateForBusinessConfiguration/featureUpdatesPauseExpiryDateTime,microsoft.graph.windowsUpdateForBusinessConfiguration/qualityUpdatesWillBeRolledBack,microsoft.graph.windowsUpdateForBusinessConfiguration/featureUpdatesWillBeRolledBack,microsoft.graph.windowsUpdateForBusinessConfiguration/qualityUpdatesRollbackStartDateTime,microsoft.graph.windowsUpdateForBusinessConfiguration/featureUpdatesRollbackStartDateTime,microsoft.graph.windowsUpdateForBusinessConfiguration/featureUpdatesRollbackWindowInDays,microsoft.graph.windowsUpdateForBusinessConfiguration/deadlineForQualityUpdatesInDays,microsoft.graph.windowsUpdateForBusinessConfiguration/deadlineForFeatureUpdatesInDays,microsoft.graph.windowsUpdateForBusinessConfiguration/deadlineGracePeriodInDays,microsoft.graph.windowsUpdateForBusinessConfiguration/automaticUpdateMode,microsoft.graph.windowsUpdateForBusinessConfiguration/businessReadyUpdatesOnly,microsoft.graph.windowsUpdateForBusinessConfiguration/driversExcluded,microsoft.graph.windowsUpdateForBusinessConfiguration/microsoftUpdateServiceAllowed,microsoft.graph.windowsUpdateForBusinessConfiguration/allowWindows11Upgrade"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "computed": true,
+            "valueExpression": "{{ (() => { const q = $['qualityUpdatesPaused'] === true; const f = $['featureUpdatesPaused'] === true; if (q && f) { return 'Quality and feature updates paused'; } if (q) { return 'Quality updates paused'; } if (f) { return 'Feature updates paused'; } return 'Active'; })() }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Active"],
+                        "warning": ["Quality and feature updates paused", "Quality updates paused", "Feature updates paused"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusRank",
+            "displayName": "Status Rank",
+            "computed": true,
+            "valueExpression": "{{ ($['qualityUpdatesPaused'] === true || $['featureUpdatesPaused'] === true) ? 0 : 1 }}",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Configuration Profile"
+        },
+        { "name": "qualityUpdatesDeferralPeriodInDays", "displayName": "Quality Deferral (Days)", "shape": "number" },
+        { "name": "featureUpdatesDeferralPeriodInDays", "displayName": "Feature Deferral (Days)", "shape": "number" },
+        { "name": "deadlineForQualityUpdatesInDays", "displayName": "Quality Deadline (Days)", "shape": "number" },
+        { "name": "deadlineForFeatureUpdatesInDays", "displayName": "Feature Deadline (Days)", "shape": "number" },
+        { "name": "deadlineGracePeriodInDays", "displayName": "Grace Period (Days)", "shape": "number" },
+        { "name": "qualityUpdatesPaused", "displayName": "Quality Updates Paused", "shape": "boolean" },
+        {
+            "name": "qualityPauseExpires",
+            "displayName": "Quality Pause Expires",
+            "shape": "date",
+            "computed": true,
+            "valueExpression": "{{ (() => { if ($['qualityUpdatesPaused'] !== true) { return null; } const d = $['qualityUpdatesPauseExpiryDateTime']; const t = d === null || d === undefined ? NaN : new Date(d).getTime(); return isNaN(t) || new Date(t).getUTCFullYear() <= 1900 ? null : d; })() }}"
+        },
+        { "name": "featureUpdatesPaused", "displayName": "Feature Updates Paused", "shape": "boolean" },
+        {
+            "name": "featurePauseExpires",
+            "displayName": "Feature Pause Expires",
+            "shape": "date",
+            "computed": true,
+            "valueExpression": "{{ (() => { if ($['featureUpdatesPaused'] !== true) { return null; } const d = $['featureUpdatesPauseExpiryDateTime']; const t = d === null || d === undefined ? NaN : new Date(d).getTime(); return isNaN(t) || new Date(t).getUTCFullYear() <= 1900 ? null : d; })() }}"
+        },
+        { "name": "qualityUpdatesWillBeRolledBack", "displayName": "Quality Updates Rolled Back", "shape": "boolean" },
+        {
+            "name": "qualityRollbackStart",
+            "displayName": "Quality Rollback Start",
+            "shape": "date",
+            "computed": true,
+            "valueExpression": "{{ (() => { const d = $['qualityUpdatesRollbackStartDateTime']; const t = d === null || d === undefined ? NaN : new Date(d).getTime(); return isNaN(t) || new Date(t).getUTCFullYear() <= 1900 ? null : d; })() }}"
+        },
+        { "name": "featureUpdatesWillBeRolledBack", "displayName": "Feature Updates Rolled Back", "shape": "boolean" },
+        {
+            "name": "featureRollbackStart",
+            "displayName": "Feature Rollback Start",
+            "shape": "date",
+            "computed": true,
+            "valueExpression": "{{ (() => { const d = $['featureUpdatesRollbackStartDateTime']; const t = d === null || d === undefined ? NaN : new Date(d).getTime(); return isNaN(t) || new Date(t).getUTCFullYear() <= 1900 ? null : d; })() }}"
+        },
+        { "name": "featureUpdatesRollbackWindowInDays", "displayName": "Feature Uninstall Window (Days)", "shape": "number" },
+        {
+            "name": "automaticUpdateBehavior",
+            "displayName": "Automatic Update Behavior",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (() => { const m = $['automaticUpdateMode']; if (typeof m !== 'string') { return null; } return ({ userDefined: 'User defined', notifyDownload: 'Notify download', autoInstallAtMaintenanceTime: 'Auto install at maintenance time', autoInstallAndRebootAtMaintenanceTime: 'Auto install and restart at maintenance time', autoInstallAndRebootAtScheduledTime: 'Auto install and restart at a scheduled time', autoInstallAndRebootWithoutEndUserControl: 'Auto install and restart without end-user control', windowsDefault: 'Reset to default' })[m] || m; })() }}"
+        },
+        { "name": "businessReadyUpdatesOnly", "displayName": "Servicing Channel", "shape": "string" },
+        { "name": "driversExcluded", "displayName": "Drivers Excluded", "shape": "boolean" },
+        { "name": "microsoftUpdateServiceAllowed", "displayName": "Microsoft Product Updates", "shape": "boolean" },
+        { "name": "allowWindows11Upgrade", "displayName": "Windows 11 Upgrade Allowed", "shape": "boolean" },
+        { "name": "version", "displayName": "Version", "shape": "number" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "qualityUpdatesPauseExpiryDateTime", "displayName": "Quality Pause Expires (Raw)", "shape": "date", "visible": false },
+        { "name": "featureUpdatesPauseExpiryDateTime", "displayName": "Feature Pause Expires (Raw)", "shape": "date", "visible": false },
+        { "name": "qualityUpdatesRollbackStartDateTime", "displayName": "Quality Rollback Start (Raw)", "shape": "date", "visible": false },
+        { "name": "featureUpdatesRollbackStartDateTime", "displayName": "Feature Rollback Start (Raw)", "shape": "date", "visible": false },
+        { "name": "automaticUpdateMode", "displayName": "Automatic Update Mode (Raw)", "shape": "string", "visible": false },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["statusRank", "asc"], ["displayName", "asc"]] } },
+    "timeframes": false
+}

@@ -1,0 +1,56 @@
+{
+    "name": "qualityUpdateProfiles",
+    "displayName": "Quality Update Profiles",
+    "description": "Windows quality update profiles that expedite a security update, with the release and forced reboot deadline (beta API)",
+    "tags": ["Patching"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceManagement/windowsQualityUpdateProfiles",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "id,displayName,description,releaseDateDisplayName,deployableContentDisplayName,expeditedUpdateSettings,createdDateTime,lastModifiedDateTime"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "expandInnerObjects": true,
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Update Profile"
+        },
+        { "name": "releaseDateDisplayName", "displayName": "Release", "shape": "string" },
+        { "name": "deployableContentDisplayName", "displayName": "Deployable Content", "shape": "string" },
+        { "name": "expeditedUpdateSettings.qualityUpdateRelease", "displayName": "Expedited Release", "shape": "string" },
+        {
+            "name": "expeditedUpdateSettings.daysUntilForcedReboot",
+            "displayName": "Days Until Forced Reboot",
+            "shape": "number"
+        },
+        {
+            "name": "profileType",
+            "displayName": "Profile Type",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "Quality update"
+        },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        { "name": "createdDateTime", "displayName": "Created", "shape": "date" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["displayName", "asc"]] } },
+    "timeframes": false
+}

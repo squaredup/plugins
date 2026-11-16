@@ -36,7 +36,7 @@
             "displayName": "Serial Number",
             "shape": "string",
             "role": "label",
-            "sourceId": "managedDeviceId",
+            "sourceId": "managedDeviceRef",
             "sourceType": "Managed Device"
         },
         { "name": "manufacturer", "displayName": "Manufacturer", "shape": "string" },
@@ -48,34 +48,52 @@
             "shape": "string"
         },
         {
-            "name": "deploymentProfileAssignedDateTime",
+            "name": "profileAssigned",
             "displayName": "Profile Assigned",
             "shape": "date",
-            "valueExpression": "{{ String($['deploymentProfileAssignedDateTime'] || '').startsWith('0001-') ? null : $['deploymentProfileAssignedDateTime'] }}"
+            "computed": true,
+            "valueExpression": "{{ (() => { const v = $['deploymentProfileAssignedDateTime']; if (v === null || v === undefined || v === '' || (typeof v === 'object' && v.__isNone)) { return null; } const t = new Date(v).getTime(); return isNaN(t) || new Date(t).getUTCFullYear() <= 1900 ? null : new Date(t).toISOString(); })() }}"
         },
         {
-            "name": "lastContactedDateTime",
+            "name": "lastContacted",
             "displayName": "Last Contacted",
             "shape": "date",
-            "valueExpression": "{{ String($['lastContactedDateTime'] || '').startsWith('0001-') ? null : $['lastContactedDateTime'] }}"
+            "computed": true,
+            "valueExpression": "{{ (() => { const v = $['lastContactedDateTime']; if (v === null || v === undefined || v === '' || (typeof v === 'object' && v.__isNone)) { return null; } const t = new Date(v).getTime(); return isNaN(t) || new Date(t).getUTCFullYear() <= 1900 ? null : new Date(t).toISOString(); })() }}"
         },
         { "name": "userPrincipalName", "displayName": "User Principal Name", "shape": "string" },
         { "name": "addressableUserName", "displayName": "Addressable User Name", "shape": "string" },
         { "name": "purchaseOrderIdentifier", "displayName": "Purchase Order", "shape": "string" },
         { "name": "displayName", "displayName": "Display Name", "shape": "string" },
         {
-            "name": "managedDeviceId",
+            "name": "managedDeviceRef",
             "displayName": "Managed Device ID",
             "shape": "string",
+            "computed": true,
             "visible": false,
-            "valueExpression": "{{ $['managedDeviceId'] && $['managedDeviceId'] !== '00000000-0000-0000-0000-000000000000' ? $['managedDeviceId'] : null }}"
+            "valueExpression": "{{ (() => { const v = $['managedDeviceId']; const s = typeof v === 'string' ? v.trim() : ''; return s && !/^[0-]+$/.test(s) ? s : null; })() }}"
         },
         {
-            "name": "azureActiveDirectoryDeviceId",
+            "name": "entraDeviceId",
             "displayName": "Entra Device ID",
             "shape": "string",
+            "computed": true,
             "visible": false,
-            "valueExpression": "{{ $['azureActiveDirectoryDeviceId'] && $['azureActiveDirectoryDeviceId'] !== '00000000-0000-0000-0000-000000000000' ? $['azureActiveDirectoryDeviceId'] : null }}"
+            "valueExpression": "{{ (() => { const v = $['azureActiveDirectoryDeviceId']; const s = typeof v === 'string' ? v.trim() : ''; return s && !/^[0-]+$/.test(s) ? s : null; })() }}"
+        },
+        {
+            "name": "deploymentProfileAssignedDateTime",
+            "displayName": "Profile Assigned (Raw)",
+            "shape": "date",
+            "visible": false
+        },
+        { "name": "lastContactedDateTime", "displayName": "Last Contacted (Raw)", "shape": "date", "visible": false },
+        { "name": "managedDeviceId", "displayName": "Managed Device ID (Raw)", "shape": "string", "visible": false },
+        {
+            "name": "azureActiveDirectoryDeviceId",
+            "displayName": "Entra Device ID (Raw)",
+            "shape": "string",
+            "visible": false
         },
         { "name": "id", "displayName": "ID", "shape": "string", "visible": false }
     ],
