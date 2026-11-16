@@ -1,0 +1,429 @@
+{
+    "name": "Apps",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "865f13c8-27b1-4c03-83a7-072a3cee8835",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Device Installs",
+                    "description": "Devices with each app install status, summed across all apps",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[appInstallSummaries]}}",
+                        "name": "appInstallSummaries",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "installedDeviceCount",
+                                        "type": "quantitative",
+                                        "title": "Installed",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "failedDeviceCount",
+                                        "type": "quantitative",
+                                        "title": "Failed",
+                                        "aggregate": "sum"
+                                    },
+                                    {
+                                        "field": "pendingInstallDeviceCount",
+                                        "type": "quantitative",
+                                        "title": "Pending",
+                                        "aggregate": "sum"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2dd98c89-c04a-44d0-84e4-4da855879b43",
+                "x": 0,
+                "y": 2,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Assigned vs Unassigned",
+                    "description": "Apps in Intune by whether they are assigned to any group",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[mobileApps]}}",
+                        "name": "mobileApps",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "assignment",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "assignment_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Assignment"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Apps"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieSort": "desc",
+                                "mappedColors": {
+                                    "Assigned": "#16a34a",
+                                    "Unassigned": "#9ca3af"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b8ebc4da-aea7-4058-a8de-8692ece26dd8",
+                "x": 1,
+                "y": 2,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Apps by App Type",
+                    "description": "Apps in Intune grouped by app type",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[mobileApps]}}",
+                        "name": "mobileApps",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "appType",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "appType_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "App Type"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Apps"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "cartesianShowHorizontalGridLines": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4b3ef6ca-5c08-4687-bcbe-86cddc33d299",
+                "x": 0,
+                "y": 5,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "App Install Status",
+                    "description": "Device install status of every app, failed installs first",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[appInstallSummaries]}}",
+                        "name": "appInstallSummaries",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "statusRank",
+                                    "asc"
+                                ],
+                                [
+                                    "failedDeviceCount",
+                                    "desc"
+                                ],
+                                [
+                                    "appName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "appName",
+                                        "title": "App",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "platform",
+                                        "title": "Platform",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "publisher",
+                                        "title": "Publisher",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "appVersion",
+                                        "title": "App Version",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "installedDeviceCount",
+                                        "title": "Installed",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "failedDeviceCount",
+                                        "title": "Failed",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "pendingInstallDeviceCount",
+                                        "title": "Pending",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "notInstalledDeviceCount",
+                                        "title": "Not Installed",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "notApplicableDeviceCount",
+                                        "title": "Not Applicable",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "failedDevicePercentage",
+                                        "title": "Failed (%)",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "state",
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.12)",
+                                        "warning": "rgba(245,158,11,0.12)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "06eea9a8-85bb-4ff5-b983-515a80865965",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "App List",
+                    "description": "Apps added to Intune with their type, platform, publisher, version and assignment",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[mobileApps]}}",
+                        "name": "mobileApps",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "displayName",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "displayName",
+                                        "title": "App",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "appType",
+                                        "title": "App Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "platform",
+                                        "title": "Platform",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "publisher",
+                                        "title": "Publisher",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "version",
+                                        "title": "Version",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "isAssigned",
+                                        "title": "Assigned",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

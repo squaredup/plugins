@@ -1,0 +1,122 @@
+{
+    "name": "appDeviceStatuses",
+    "displayName": "App Device Statuses",
+    "description": "Install status of the selected app on each device it targets (beta report)",
+    "tags": ["Apps"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "beta/deviceManagement/reports/retrieveDeviceAppInstallationStatusReport",
+        "postBody": {
+            "select": [
+                "DeviceId",
+                "DeviceName",
+                "UserPrincipalName",
+                "Platform",
+                "AppVersion",
+                "InstallState",
+                "HexErrorCode",
+                "AppInstallState",
+                "AppInstallStateDetails",
+                "LastModifiedDateTime"
+            ],
+            "filter": "(ApplicationId eq '{{object.rawId}}')",
+            "orderBy": ["DeviceName"]
+        },
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "body", "path": "top", "value": 1000 },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "Values" },
+                "base": 0
+            },
+            "out": { "realm": "body", "path": "skip" }
+        },
+        "postRequestScript": "appDeviceStatuses.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["App"] } },
+    "metadata": [
+        {
+            "name": "installState",
+            "displayName": "Install State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["installed"],
+                        "warning": ["pendingInstall"],
+                        "error": ["failed", "uninstallFailed"],
+                        "unknown": ["unknown", "notInstalled", "notApplicable"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusRank",
+            "displayName": "Status Rank",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "deviceId",
+            "sourceType": "Managed Device"
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "installStateDetail",
+            "displayName": "Install State Detail",
+            "shape": "string"
+        },
+        {
+            "name": "errorCode",
+            "displayName": "Error Code",
+            "shape": "string"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User Principal Name",
+            "shape": "string"
+        },
+        {
+            "name": "platform",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "appVersion",
+            "displayName": "App Version",
+            "shape": "string"
+        },
+        {
+            "name": "lastModifiedDateTime",
+            "displayName": "Last Modified",
+            "shape": "date"
+        },
+        {
+            "name": "appName",
+            "displayName": "App",
+            "shape": "string",
+            "sourceId": "appId",
+            "sourceType": "App"
+        },
+        {
+            "name": "appId",
+            "displayName": "App ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "defaultShaping": { "sort": { "by": [["statusRank", "asc"], ["deviceName", "asc"]] } },
+    "timeframes": false
+}

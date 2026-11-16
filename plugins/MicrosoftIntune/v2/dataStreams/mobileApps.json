@@ -1,0 +1,77 @@
+{
+    "name": "mobileApps",
+    "displayName": "Apps",
+    "description": "Apps added to Intune with their type, platform, publisher, assignment and version (beta API)",
+    "tags": ["Apps"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/deviceAppManagement/mobileApps",
+        "getArgs": [
+            {
+                "key": "$select",
+                "value": "id,displayName,publisher,isAssigned,publishingState,createdDateTime,lastModifiedDateTime,microsoft.graph.win32LobApp/displayVersion,microsoft.graph.windowsMobileMSI/productVersion,microsoft.graph.windowsAppX/identityVersion,microsoft.graph.windowsUniversalAppX/identityVersion,microsoft.graph.iosLobApp/versionNumber,microsoft.graph.macOSLobApp/versionNumber,microsoft.graph.androidLobApp/versionName,microsoft.graph.macOSDmgApp/primaryBundleVersion,microsoft.graph.macOSPkgApp/primaryBundleVersion"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": { "realm": "payload", "path": "@odata.nextLink" }
+        },
+        "pathToData": "value",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "App"
+        },
+        {
+            "name": "appType",
+            "displayName": "App Type",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ ($['@odata.type'] || '').replace('#microsoft.graph.', '') || null }}"
+        },
+        {
+            "name": "platform",
+            "displayName": "Platform",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (() => { const t = ($['@odata.type'] || '').replace('#microsoft.graph.', '').toLowerCase(); if (!t) { return null; } if (t.startsWith('macos')) { return 'macOS'; } if (t.startsWith('ios') || t.startsWith('managedios')) { return 'iOS'; } if (t.startsWith('android') || t.startsWith('managedandroid')) { return 'Android'; } if (t.startsWith('win') || ['officesuiteapp', 'microsoftstoreforbusinessapp', 'microsoftedgeapp'].includes(t)) { return 'Windows'; } if (t === 'webapp') { return 'Web'; } return 'Other'; })() }}"
+        },
+        { "name": "publisher", "displayName": "Publisher", "shape": "string" },
+        { "name": "isAssigned", "displayName": "Assigned", "shape": "boolean" },
+        {
+            "name": "assignment",
+            "displayName": "Assignment",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ $['isAssigned'] === true ? 'Assigned' : 'Unassigned' }}"
+        },
+        {
+            "name": "version",
+            "displayName": "Version",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ [$['displayVersion'], $['productVersion'], $['identityVersion'], $['versionNumber'], $['versionName'], $['primaryBundleVersion']].find((v) => typeof v === 'string' && v.trim() !== '') || null }}"
+        },
+        { "name": "publishingState", "displayName": "Publishing State", "shape": "string" },
+        { "name": "createdDateTime", "displayName": "Created", "shape": "date" },
+        { "name": "lastModifiedDateTime", "displayName": "Last Modified", "shape": "date" },
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "@odata.type", "displayName": "OData Type", "shape": "string", "visible": false },
+        { "name": "displayVersion", "displayName": "Display Version", "shape": "string", "visible": false },
+        { "name": "productVersion", "displayName": "Product Version", "shape": "string", "visible": false },
+        { "name": "identityVersion", "displayName": "Identity Version", "shape": "string", "visible": false },
+        { "name": "versionNumber", "displayName": "Version Number", "shape": "string", "visible": false },
+        { "name": "versionName", "displayName": "Version Name", "shape": "string", "visible": false },
+        { "name": "primaryBundleVersion", "displayName": "Primary Bundle Version", "shape": "string", "visible": false }
+    ],
+    "defaultShaping": { "sort": { "by": [["displayName", "asc"]] } },
+    "timeframes": false
+}

@@ -1,0 +1,145 @@
+{
+    "name": "appInstallSummaries",
+    "displayName": "App Install Summaries",
+    "description": "Device and user install counts by status for every app in the tenant (beta report)",
+    "tags": ["Apps"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "beta/deviceManagement/reports/getAppsInstallSummaryReport",
+        "postBody": {
+            "select": [
+                "ApplicationId",
+                "DisplayName",
+                "Publisher",
+                "AppPlatform",
+                "AppVersion",
+                "InstalledDeviceCount",
+                "InstalledUserCount",
+                "FailedDeviceCount",
+                "FailedUserCount",
+                "PendingInstallDeviceCount",
+                "PendingInstallUserCount",
+                "NotInstalledDeviceCount",
+                "NotInstalledUserCount",
+                "NotApplicableDeviceCount",
+                "NotApplicableUserCount",
+                "FailedDevicePercentage"
+            ],
+            "orderBy": ["DisplayName"]
+        },
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "body", "path": "top", "value": 1000 },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "Values" },
+                "base": 0
+            },
+            "out": { "realm": "body", "path": "skip" }
+        },
+        "postRequestScript": "appInstallSummaries.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "state"
+        },
+        {
+            "name": "statusRank",
+            "displayName": "Status Rank",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "appName",
+            "displayName": "App",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "appId",
+            "sourceType": "App"
+        },
+        {
+            "name": "appId",
+            "displayName": "App ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "publisher",
+            "displayName": "Publisher",
+            "shape": "string"
+        },
+        {
+            "name": "platform",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "appVersion",
+            "displayName": "App Version",
+            "shape": "string"
+        },
+        {
+            "name": "installedDeviceCount",
+            "displayName": "Installed Devices",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "failedDeviceCount",
+            "displayName": "Failed Devices",
+            "shape": "number"
+        },
+        {
+            "name": "pendingInstallDeviceCount",
+            "displayName": "Pending Devices",
+            "shape": "number"
+        },
+        {
+            "name": "notInstalledDeviceCount",
+            "displayName": "Not Installed Devices",
+            "shape": "number"
+        },
+        {
+            "name": "notApplicableDeviceCount",
+            "displayName": "Not Applicable Devices",
+            "shape": "number"
+        },
+        {
+            "name": "failedDevicePercentage",
+            "displayName": "Failed Devices (%)",
+            "shape": ["percent", { "decimalPlaces": 1 }]
+        },
+        {
+            "name": "installedUserCount",
+            "displayName": "Installed Users",
+            "shape": "number"
+        },
+        {
+            "name": "failedUserCount",
+            "displayName": "Failed Users",
+            "shape": "number"
+        },
+        {
+            "name": "pendingInstallUserCount",
+            "displayName": "Pending Users",
+            "shape": "number"
+        },
+        {
+            "name": "notInstalledUserCount",
+            "displayName": "Not Installed Users",
+            "shape": "number"
+        },
+        {
+            "name": "notApplicableUserCount",
+            "displayName": "Not Applicable Users",
+            "shape": "number"
+        }
+    ],
+    "defaultShaping": { "sort": { "by": [["statusRank", "asc"], ["failedDeviceCount", "desc"], ["appName", "asc"]] } },
+    "timeframes": false
+}
