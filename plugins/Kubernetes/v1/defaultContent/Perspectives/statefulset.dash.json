@@ -39,11 +39,13 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[StatefulSet]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": true
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {},
+                            "style": {
+                                "richTableTranspose": true
                             }
                         }
                     }
@@ -78,15 +80,23 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[StatefulSet]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-blocks",
-                        "config": {
-                            "data-stream-blocks": {
-                                "labelColumn": "name",
-                                "stateColumn": "statefulSetHealth",
-                                "sublabel": "namespace",
-                                "linkColumn": "none",
-                                "columns": 1
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "statefulSetHealth",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{namespace}}{{{{/raw}}}}"
                             }
                         }
                     }
@@ -122,20 +132,45 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[StatefulSet]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": [
-                                    "name",
-                                    "phase",
-                                    "containerHealth"
-                                ],
-                                "hiddenColumns": [
-                                    "uid",
-                                    "namespace",
-                                    "ownerName"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "phase",
+                                        "title": "Phase",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "containerHealth[Expanded].rawState",
+                                        "title": "Health",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "healthy": "#2BB660",
+                                                "pending": "#F59E0B",
+                                                "crashloop": "#DE0038"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "nodeName",
+                                        "title": "Node",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
                                 ]
                             }
                         }

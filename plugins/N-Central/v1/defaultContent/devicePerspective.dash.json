@@ -32,10 +32,14 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[Device]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": { "transpose": true }
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {},
+                            "style": {
+                                "richTableTranspose": true
+                            }
                         }
                     }
                 }
@@ -66,10 +70,14 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[Device]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": { "transpose": true }
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {},
+                            "style": {
+                                "richTableTranspose": true
+                            }
                         }
                     }
                 }
@@ -100,15 +108,23 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[Device]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-blocks",
-                        "config": {
-                            "data-stream-blocks": {
-                                "labelColumn": "moduleName",
-                                "stateColumn": "stateStatus",
-                                "sublabel": "applianceName",
-                                "linkColumn": "none",
-                                "columns": 4
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "moduleName",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "stateStatus",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 4,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{applianceName}}{{{{/raw}}}}"
                             }
                         }
                     }
@@ -148,26 +164,30 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[Device]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-bar-chart",
-                        "config": {
-                            "data-stream-bar-chart": {
-                                "xAxisData": "category_uniqueValues",
-                                "yAxisData": ["count"],
-                                "xAxisGroup": "none",
-                                "xAxisLabel": "Category",
-                                "yAxisLabel": "Items",
-                                "showXAxisLabel": true,
-                                "showYAxisLabel": true,
-                                "showLegend": false,
-                                "legendPosition": "bottom",
-                                "showGrid": true,
-                                "showValue": true,
-                                "showTotals": false,
-                                "displayMode": "actual",
-                                "horizontalLayout": "horizontal",
-                                "grouping": false,
-                                "range": { "type": "auto" }
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "category_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Category"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Count"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianShowXAxisTitle": true,
+                                "cartesianXAxisTitle": "Category",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Items",
+                                "cartesianHorizontal": true,
+                                "showLabels": true
                             }
                         }
                     }
@@ -202,23 +222,86 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[Device]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": [
-                                    "moduleName",
-                                    "stateStatus",
-                                    "lastScanTime",
-                                    "applianceName",
-                                    "transitionTime"
-                                ],
-                                "hiddenColumns": [
-                                    "taskIdent",
-                                    "taskNote",
-                                    "timeToStale",
-                                    "isManagedTask"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "moduleName",
+                                        "title": "Service",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "stateStatus[Expanded].rawState",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Normal": "#2BB660",
+                                                "OK": "#2BB660",
+                                                "Warning": "#F59E0B",
+                                                "Failed": "#DE0038",
+                                                "No Data": "#94A3B8",
+                                                "Misconfigured": "#94A3B8",
+                                                "Stale": "#94A3B8",
+                                                "Disconnected": "#94A3B8"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "lastScanTime",
+                                        "title": "Last Scan",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "applianceName",
+                                        "title": "Probe",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "transitionTime",
+                                        "title": "Status Changed",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "taskId",
+                                        "title": "Task ID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "serviceId",
+                                        "title": "Service ID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "serviceItemId",
+                                        "title": "Service Item ID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "applianceId",
+                                        "title": "Appliance ID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
                                 ]
                             }
                         }
@@ -254,13 +337,27 @@
                         "workspace": "{{workspaceId}}",
                         "variable": "{{variables.[Device]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": ["category", "name"],
-                                "hiddenColumns": ["id"]
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "category",
+                                        "title": "Category",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
