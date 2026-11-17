@@ -41,7 +41,7 @@ npx esbuild schema.ts --bundle --platform=node --format=cjs --outfile=schema.cjs
 | Line graph | `line` | Classic's default fitted y axis and hidden data points carry over. Several y columns become a list. Area shading is kept only when the lines are not split into series. |
 | Bar chart | `bar` | Grouping, stacking, horizontal layout, value labels and simple colour rules carry over. Several y columns become a list. |
 | Scalar | `scalar` | A row count becomes `scalarRowCount`. |
-| Gauge | `gauge` | |
+| Gauge | `gauge` | The value reads the first row of its column, as a classic gauge does whatever reduction it names; a row count stays a count. |
 | Donut | `pie` with a 60% hole and the total in the centre | Slices are ordered largest first (`pieSort: "desc"`), as classic always orders them. "Show values as percentage" becomes `pieLabels: "nameAndPercent"`. |
 
 A tile's custom no-data message is kept, as `visualisation.noDataMessage` beside the `vizSpec`. A column classic leaves on auto (a scalar or gauge value, a donut label or value, a status block label) is left out of the spec, and SmartViz picks it from the data the way classic does. Iframe tiles and tiles that are already SmartViz are left alone.

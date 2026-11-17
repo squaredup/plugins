@@ -358,9 +358,24 @@ export const toScalar = (classicConfig, tileColumns) => {
 };
 
 /** Converts a classic `data-stream-gauge` config to a gauge spec. */
+/**
+ * The value a classic gauge reads: whatever reduction it names over a single column, it shows that column's
+ * first row, and a SmartViz gauge with no aggregate does the same. A row count, or a reduction over several
+ * columns, is left as configured.
+ */
+const toGaugeValue = (value) => {
+    const isSingleColumnReduction =
+        value !== null &&
+        typeof value === 'object' &&
+        REDUCTION_AGGREGATES[value.type] !== 'count' &&
+        value.columns?.length === 1;
+
+    return isSingleColumnReduction ? value.columns[0] : value;
+};
+
 export const toGauge = (classicConfig, tileColumns) => {
     const notes = [];
-    const { channel, isAutomatic, blockedReason } = toValueChannel(classicConfig.value, tileColumns, notes);
+    const { channel, isAutomatic, blockedReason } = toValueChannel(toGaugeValue(classicConfig.value), tileColumns, notes);
 
     if (blockedReason) {
         return { blockedReason };
