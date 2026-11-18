@@ -13,6 +13,7 @@ You will need an incident.io **API key**.
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ----------------- | -------- |
 | **API key** | Authenticates every request via the `Authorization: Bearer` header. | incident.io dashboard → **Settings → API keys**. | Yes |
+| **Catalog types to import** | The catalog types whose entries are imported as **Catalog Entry** objects, so you can filter incidents by them and open a dashboard for each entry. Type each name exactly as shown in incident.io and press Enter. | incident.io dashboard → **Catalog**. | No |
 
 On save, the plugin validates the key by calling the identity endpoint; an invalid or expired key fails setup with an authentication error.
 
@@ -26,12 +27,13 @@ On save, the plugin validates the key by calling the identity endpoint; an inval
 - **Status pages** — public status page incidents and per-component availability.
 - **Workflows** — workflow runs and failures.
 - **Teams and users** — team membership, and each user's role and on-call/response seat access.
+- **Catalog entries** — the entries of the catalog types you choose (for example services or servers), and the incidents that reference them through catalog fields such as *Affected services*.
 
-The out-of-the-box dashboards include an estate-wide **Overview**, an **Alerting and Escalations** dashboard and a **Post-Incident** dashboard, plus a perspective for each of **Schedule**, **Team**, **User**, **Alert Source**, **Status Page** and **Status Page Component**.
+The out-of-the-box dashboards include an estate-wide **Overview**, an **Alerting and Escalations** dashboard and a **Post-Incident** dashboard, plus a perspective for each of **Schedule**, **Team**, **User**, **Alert Source**, **Status Page**, **Status Page Component** and **Catalog Entry**.
 
 ## Data streams
 
-- **Incidents** — incidents created within the timeframe (or all, with timeframe *None*), one row per incident. Optional filters: status category, team, and include test/tutorial incidents.
+- **Incidents** — incidents created within the timeframe (or all, with timeframe *None*), one row per incident. Optional filters: status category, team, catalog entry, and include test/tutorial incidents. The **Catalog Entries** column lists the catalog entries each incident references.
 - **Incident Duration Metrics** — one row per incident per duration metric (the metrics configured in your incident.io organization, such as time to resolve), in minutes and hours. Same optional filters as Incidents.
 - **Alerts** — alerts created within the timeframe (or all, with timeframe *None*), one row per alert. Optional filters: status and alert source.
 - **Escalations** — escalations created within the timeframe, with status, priority and time to acknowledge. Optional status filter.
@@ -43,6 +45,8 @@ The out-of-the-box dashboards include an estate-wide **Overview**, an **Alerting
 - **User Schedules** — the on-call schedules a given user currently appears in.
 - **Status Page Incidents** — incidents published to one status page that had impact within the timeframe.
 - **Component Availability** — availability percentage of a status page component over the timeframe.
+- **Catalog Entries** — the entries of one imported catalog type, with external ID and aliases.
+- **Catalog Types** — the catalog types chosen in the data source settings (used for the import; hidden from the tile editor).
 - **Current User** — identity for the configured API key (used to validate setup; hidden from the tile editor).
 
 ## What gets indexed
@@ -55,6 +59,8 @@ The out-of-the-box dashboards include an estate-wide **Overview**, an **Alerting
 | **Alert Source** | `GET /v2/alert_sources` | A source that sends alerts to incident.io (e.g. Datadog, Grafana, HTTP). Its secret token and ingest URL are never imported. |
 | **Status Page** | `GET /v2/status_pages` | A public or internal status page. |
 | **Status Page Component** | `GET /v2/status_page_structures/{id}` | A component shown on a status page, with its group and sub-page. |
+| **Catalog Type** | `GET /v3/catalog_types` | A catalog type chosen in **Catalog types to import**. |
+| **Catalog Entry** | `GET /v3/catalog_entries` | An entry of a chosen catalog type, named *Type / Entry* (for example *Service / Payments*), with its external ID and aliases. Archived entries are not imported. |
 
 **Incidents, alerts, escalations and follow-ups are not indexed as objects.** They change far faster than the platform's default ~12-hour reindex interval, so they're served live via data streams (always fresh, no reindex lag) and shown as filterable/groupable tiles, rather than as individual drilldown pages.
 
@@ -69,6 +75,10 @@ This plugin reads data from incident.io. To send SquaredUp monitor alerts **to**
 
 A warning or error fires an alert in incident.io, and the alert resolves when the monitor recovers.
 
+## Linking catalog entries to other SquaredUp objects
+
+Catalog entries often carry an ID from another system in their **External ID**, such as a hostname or a ServiceNow `sys_id`. To link an imported catalog entry to the matching object from another data source, add a correlation rule in SquaredUp that matches the entry's `externalId` property to that object's property. Aliases can't be used for this, because the platform stores list properties as text.
+
 ## Known limitations
 
 - **Duration metrics depend on your incident.io configuration** — metric names (e.g. "Time to resolve") are defined per organization, and a metric only has a value once the timestamps it needs are set. The Incidents stream's **Time to Resolve** column is filled only when a metric with "resolve" in its name exists; use **Incident Duration Metrics** for any other metric.
@@ -80,7 +90,9 @@ A warning or error fires an alert in incident.io, and the alert resolves when th
 - **Component availability is limited to 366 days** per query, and the timeframe *None* isn't offered.
 - **Alerts cap page size at 50 records** (escalations and workflow runs too); large volumes are paged automatically but may take longer to query.
 - **Empty streams are normal for unused features** — if you have no alert sources, status pages, escalations or workflows, the related streams and tiles are empty rather than erroring.
-- **Teams requires the `catalog_entries.view` scope** on your API key — without it, team import and the Team object type will be unavailable.
+- **Catalog types are chosen by name** — they aren't listed for you, so type each name exactly as it appears in incident.io. Team catalog types are skipped, because teams are already imported as **Team** objects.
+- **Large catalogs take longer to import** — every live entry of a chosen type is imported. Prefer the catalog types your incidents actually reference.
+- **Teams requires the `catalog_entries.view` scope** on your API key — without it, team and catalog imports, and the Team and Catalog Entry object types, will be unavailable.
 - **Rate limits** — the incident.io API allows up to 1,200 requests/minute per key, with a lower 60/minute limit specifically on listing incidents; very large estates may query more slowly as a result.
 - **No per-incident drilldown page** — incidents aren't indexed as objects, so there's no dedicated page for a single incident's timeline or attachments; use the **Permalink** column to open it in incident.io.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in incident.io.
