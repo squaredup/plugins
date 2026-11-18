@@ -65,18 +65,19 @@ const toRenderer = (column) => {
  * list decides that outright, and without one the stream's own `visible` flags do. `columnOrder` only orders
  * them; the columns it leaves out follow in stream order. Names the data no longer has are dropped. When the
  * stream does not declare its full column list, an uncustomised table is left `isAutomatic` for SmartViz to
- * find its columns in the data, as classic does. A customised one lists the columns it can name, so any the
- * stream doesn't declare, which classic would also show, are left out.
+ * find its columns in the data, as classic does. So is an uncustomised SQL table, whose select list names its
+ * columns but not their shapes. A customised one lists the columns it can name, so any the stream doesn't
+ * declare, which classic would also show, are left out.
  */
 const getShownColumnNames = (classicConfig, tileColumns, notes) => {
-    const { columns, isComplete } = tileColumns;
+    const { columns, isComplete, source } = tileColumns;
     const hasHiddenList = Array.isArray(classicConfig.hiddenColumns);
     const hiddenColumns = new Set(hasHiddenList ? classicConfig.hiddenColumns : []);
     const columnOrder = Array.isArray(classicConfig.columnOrder) ? classicConfig.columnOrder : [];
     const isCustomised =
         hiddenColumns.size > 0 || columnOrder.length > 0 || Object.keys(classicConfig.columnDisplayNames ?? {}).length > 0;
 
-    if (!isComplete && !isCustomised) {
+    if ((!isComplete || source === 'sql') && !isCustomised) {
         return { isAutomatic: true };
     }
 

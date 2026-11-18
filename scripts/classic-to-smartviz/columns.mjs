@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { readSqlColumnNames } from './sqlColumns.mjs';
 
 const NUMERIC_SHAPES = new Set([
     'number',
@@ -178,14 +179,28 @@ const overlayColumns = (streamColumns, tileMetadata) => {
     return [...overlaid, ...added];
 };
 
+/** The columns a SQL tile's query returns, or `undefined` for a tile that reads a data stream. */
+const findSqlColumns = (dataStream) => {
+    const sql = dataStream.id === 'datastream-sql' ? dataStream.dataSourceConfig?.sql : undefined;
+
+    if (typeof sql !== 'string') {
+        return undefined;
+    }
+
+    const { names, isComplete } = readSqlColumnNames(sql);
+
+    return { columns: names.map((name) => ({ ...toColumn({ name }), isObjectName: false })), isComplete };
+};
+
 /**
  * Resolves the columns a tile's data will have: the post-group names when the tile groups, otherwise the
- * stream's declared columns with the tile's own `dataStream.metadata` applied over them. `isComplete` is true
- * only when every column the data can have is known.
+ * stream's declared columns, or a SQL tile's select list, with the tile's own `dataStream.metadata` applied over
+ * them. `isComplete` is true only when every column the data can have is known.
  */
 export const getTileColumns = (tileConfig, streamColumnsByName) => {
     const dataStream = tileConfig.dataStream ?? {};
-    const streamColumns = streamColumnsByName.get(getStreamName(tileConfig));
+    const sqlColumns = findSqlColumns(dataStream);
+    const streamColumns = sqlColumns ?? streamColumnsByName.get(getStreamName(tileConfig));
     const tileMetadata = Array.isArray(dataStream.metadata) ? dataStream.metadata : [];
 
     if (dataStream.group?.by?.length || dataStream.group?.aggregate?.length) {
@@ -196,7 +211,11 @@ export const getTileColumns = (tileConfig, streamColumnsByName) => {
         return { columns: overlayColumns([], tileMetadata), isComplete: false, source: tileMetadata.length ? 'tile metadata' : 'none' };
     }
 
-    return { columns: overlayColumns(streamColumns.columns, tileMetadata), isComplete: streamColumns.isComplete, source: 'stream metadata' };
+    return {
+        columns: overlayColumns(streamColumns.columns, tileMetadata),
+        isComplete: streamColumns.isComplete,
+        source: sqlColumns ? 'sql' : 'stream metadata'
+    };
 };
 
 /** Finds a column by name, or `undefined` when the column was not declared. */

@@ -2,7 +2,7 @@
 
 Converts the classic tiles in a plugin's default dashboards to SmartViz tiles. Each classic `config.visualisation` is replaced with a `config.vizSpec`, in place, so the rest of the file is left untouched and the diff shows only the tiles that changed.
 
-It works from the repository alone. Column names, types and headers come from the classic config, the tile's group and `metadata`, and the stream's declared `metadata`. No data is fetched.
+It works from the repository alone. Column names, types and headers come from the classic config, the tile's group and `metadata`, and the stream's declared `metadata`, or a SQL tile's select list. No data is fetched.
 
 ## Usage
 
@@ -66,7 +66,7 @@ A tile is reported as blocked, and left classic, when converting it would mean g
 - **Status blocks with no state column.** Classic draws them in grey; a SmartViz status grid draws nothing without a status.
 - **A table with more than 50 columns.** A SmartViz table holds at most 50.
 
-A column the classic config names but the tile's data no longer has (for example, after a group was added) is handled the way classic handles it: dropped from a table, or left for SmartViz to pick on a chart. Each case is noted in the report.
+A column the classic config names but the tile's data no longer has (for example, after a group was added, or one a SQL tile's query doesn't return) is handled the way classic handles it: dropped from a table, or left for SmartViz to pick on a chart. Each case is noted in the report. A SQL tile's columns are only checked when every item in its select list has a name the converter can read: a `*` or an unaliased expression leaves the list open.
 
 ## Before you raise the pull request
 
