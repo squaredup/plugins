@@ -29,7 +29,6 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------- |
 | **URL**                            | The base address of your PRTG web interface — for example `https://prtg.example.com` or `https://yourname.my-prtg.com`. Include the sub-path if PRTG sits behind a reverse proxy, but no query string.           | The address bar of your PRTG web interface.                              | Yes      |
 | **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter — PRTG rejects the key in an `Authorization` header.                                    | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
-| **Ignore certificate errors**      | Skips TLS certificate validation. Only enable for an on-premise PRTG server using a self-signed certificate.                                               | —                                                                       | No       |
 
 On save, the plugin calls PRTG's status endpoint to confirm the URL and key. A failure there means the URL
 is unreachable or the key is invalid, expired, or deleted.
