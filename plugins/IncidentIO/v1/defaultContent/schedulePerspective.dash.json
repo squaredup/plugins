@@ -9,18 +9,18 @@
         "version": 1,
         "contents": [
             {
-                "i": "2f589ed0-e52e-4a53-9445-10ba46af5272",
+                "i": "beab07be-77e1-4e7f-85a5-00eadd1e2735",
                 "x": 0,
                 "y": 0,
                 "w": 2,
-                "h": 4,
+                "h": 3,
                 "moved": false,
                 "static": false,
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Current On-Call",
-                    "description": "",
+                    "title": "On-Call Now",
+                    "description": "Who is on call for this schedule right now",
                     "activePluginConfigIds": ["{{configId}}"],
                     "timeframe": "none",
                     "dataStream": {
@@ -40,22 +40,69 @@
                             "data-stream-table": {
                                 "transpose": false,
                                 "columnOrder": ["user.name", "user.email", "start_at", "end_at"],
-                                "hiddenColumns": ["rotation_id", "layer_id", "entry_id", "fingerprint"],
-                                "columnDisplayNames": {
-                                    "user.name": "On-Call User",
-                                    "user.email": "Email",
-                                    "start_at": "Start",
-                                    "end_at": "End"
-                                }
+                                "hiddenColumns": ["rotation_id", "layer_id", "entry_id", "fingerprint"]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    { "field": "user.name", "title": "On Call", "renderer": { "type": "text" } },
+                                    { "field": "user.email", "title": "Email", "renderer": { "type": "text" } },
+                                    { "field": "start_at", "title": "Since", "renderer": { "type": "date" } },
+                                    {
+                                        "field": "end_at",
+                                        "title": "Until",
+                                        "renderer": { "type": "date", "relative": true }
+                                    }
+                                ]
+                            },
+                            "style": { "richTableCellPadding": 6 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "32e7d835-bf3e-4fde-917b-94981e60f44b",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": { "id": "datastream-properties", "name": "properties" },
+                    "scope": {
+                        "scope": "{{scopes.[Schedules]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Schedule]}}"
+                    },
+                    "variables": ["{{variables.[Schedule]}}"],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": true,
+                                "columnOrder": ["name"],
+                                "hiddenColumns": ["id", "links", "link", "type", "sourceId", "sourceType", "label"]
                             }
                         }
                     }
                 }
             },
             {
-                "i": "eb35ef1f-62d5-42b4-9b21-3a211155f5d8",
-                "x": 2,
-                "y": 0,
+                "i": "1e53006e-1c88-4d5f-8aca-ec78ca588068",
+                "x": 0,
+                "y": 3,
                 "w": 2,
                 "h": 4,
                 "moved": false,
@@ -63,8 +110,139 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Recent Shifts",
-                    "description": "",
+                    "title": "Upcoming Shifts",
+                    "description": "Shifts in the next 14 days",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[scheduleShifts]}}",
+                        "name": "scheduleShifts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": { "window": "next14days" },
+                        "sort": { "by": [["start_at", "asc"]] }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Schedules]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Schedule]}}"
+                    },
+                    "variables": ["{{variables.[Schedule]}}"],
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": ["user.name", "start_at", "end_at", "durationHours", "isCurrent"],
+                                "hiddenColumns": ["rotation_id", "layer_id", "entry_id", "fingerprint"]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    { "field": "user.name", "title": "On Call", "renderer": { "type": "text" } },
+                                    { "field": "start_at", "title": "Start", "renderer": { "type": "date" } },
+                                    { "field": "end_at", "title": "End", "renderer": { "type": "date" } },
+                                    {
+                                        "field": "durationHours",
+                                        "title": "Duration",
+                                        "renderer": { "type": "number", "decimals": 1, "suffix": " h" },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "isCurrent",
+                                        "title": "Current",
+                                        "renderer": { "type": "boolean", "trueLabel": "Yes", "falseLabel": "No" }
+                                    }
+                                ]
+                            },
+                            "style": { "richTableCellPadding": 6 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "96a5a97e-caf9-4b79-81f5-81c38e74a61b",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Upcoming On-Call Hours by User",
+                    "description": "Scheduled on-call hours per person in the next 14 days",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[scheduleShifts]}}",
+                        "name": "scheduleShifts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": { "window": "next14days" },
+                        "group": {
+                            "by": [["user.name", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["durationHours"] }]
+                        },
+                        "sort": { "by": [["durationHours_sum", "desc"]] }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Schedules]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Schedule]}}"
+                    },
+                    "variables": ["{{variables.[Schedule]}}"],
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "user.name_uniqueValues",
+                                "yAxisData": ["durationHours_sum"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "horizontal",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "user.name_uniqueValues", "type": "nominal" },
+                                "y": { "field": "durationHours_sum", "type": "quantitative", "title": "Hours" }
+                            },
+                            "style": { "cartesianHorizontal": true, "cartesianBarBorderRadius": 2 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1dd28d71-8b35-4e0b-81b9-74c0a3bfa1e9",
+                "x": 0,
+                "y": 7,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Shift History",
+                    "description": "Shifts that overlap the dashboard timeframe, newest first",
                     "activePluginConfigIds": ["{{configId}}"],
                     "dataStream": {
                         "id": "{{dataStreams.[scheduleShifts]}}",
@@ -83,15 +261,84 @@
                         "config": {
                             "data-stream-table": {
                                 "transpose": false,
-                                "columnOrder": ["user.name", "user.email", "start_at", "end_at"],
-                                "hiddenColumns": ["rotation_id", "layer_id", "entry_id", "fingerprint"],
-                                "columnDisplayNames": {
-                                    "user.name": "On-Call User",
-                                    "user.email": "Email",
-                                    "start_at": "Start",
-                                    "end_at": "End"
-                                }
+                                "columnOrder": ["user.name", "start_at", "end_at", "durationHours"],
+                                "hiddenColumns": ["rotation_id", "layer_id", "entry_id", "fingerprint"]
                             }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    { "field": "user.name", "title": "On Call", "renderer": { "type": "text" } },
+                                    { "field": "start_at", "title": "Start", "renderer": { "type": "date" } },
+                                    { "field": "end_at", "title": "End", "renderer": { "type": "date" } },
+                                    {
+                                        "field": "durationHours",
+                                        "title": "Duration",
+                                        "renderer": { "type": "number", "decimals": 1, "suffix": " h" },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": { "richTableCellPadding": 6 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7c595e29-75b6-4cfa-b085-bfa60ab1adaa",
+                "x": 2,
+                "y": 7,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Hours On Call by User",
+                    "description": "On-call hours per person in shifts that overlap the dashboard timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[scheduleShifts]}}",
+                        "name": "scheduleShifts",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["user.name", "uniqueValues"]],
+                            "aggregate": [{ "type": "sum", "names": ["durationHours"] }]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Schedules]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Schedule]}}"
+                    },
+                    "variables": ["{{variables.[Schedule]}}"],
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "durationHours_sum",
+                                "labelColumn": "user.name_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": { "field": "user.name_uniqueValues", "type": "nominal" },
+                                "value": { "field": "durationHours_sum", "type": "quantitative" }
+                            },
+                            "style": { "pieInnerRadius": 60, "pieDonutCenterValue": "total", "labelFontSize": 16 }
                         }
                     }
                 }

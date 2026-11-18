@@ -1,13 +1,22 @@
 {
     "name": "alerts",
     "displayName": "Alerts",
-    "description": "All alerts ingested by alert sources, one row per alert",
+    "description": "Alerts ingested by alert sources within the selected timeframe, one row per alert, with duration and firing state",
     "tags": ["Alerts"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
         "endpointPath": "v2/alerts",
         "pathToData": "alerts",
+        "postRequestScript": "alerts.js",
+        "getArgs": [
+            {
+                "key": "created_at[date_range]",
+                "value": "{{timeframe.enum === 'none' ? null : (timeframe.start + '~' + timeframe.end)}}"
+            },
+            { "key": "status[one_of]", "value": "{{status || null}}" },
+            { "key": "alert_source[one_of]", "value": "{{alertSource && alertSource.map(o => o.rawId[0])}}" }
+        ],
         "paging": {
             "mode": "token",
             "pageSize": { "realm": "queryArg", "path": "page_size", "value": "50" },
@@ -16,10 +25,29 @@
         }
     },
     "matches": "none",
+    "ui": [
+        {
+            "name": "status",
+            "label": "Status (optional)",
+            "type": "choiceChips",
+            "options": [{ "value": "firing", "label": "Firing" }, { "value": "resolved", "label": "Resolved" }]
+        },
+        {
+            "name": "alertSource",
+            "label": "Alert Source (optional)",
+            "type": "objects",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Alert Source"] } }
+        }
+    ],
     "metadata": [
         { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
         { "name": "title", "displayName": "Title", "shape": "string", "role": "label" },
+        { "name": "description", "displayName": "Description", "shape": "string" },
         { "name": "status", "displayName": "Status", "shape": "string" },
+        { "name": "alertState", "displayName": "Alert State", "shape": "state" },
+        { "name": "isFiring", "displayName": "Is Firing", "shape": "boolean" },
+        { "name": "durationMinutes", "displayName": "Duration (min)", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "alertSourceName", "displayName": "Alert Source", "shape": "string" },
         { "name": "alert_source_id", "displayName": "Alert Source ID", "shape": "string" },
         { "name": "deduplication_key", "displayName": "Deduplication Key", "shape": "string" },
         { "name": "created_at", "displayName": "Created At", "shape": "date" },
@@ -28,5 +56,20 @@
         { "name": "source_url", "displayName": "Source URL", "shape": "url" },
         { "pattern": ".*" }
     ],
-    "timeframes": false
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
 }
