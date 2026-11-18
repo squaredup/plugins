@@ -42,8 +42,8 @@ The out-of-the-box dashboards include an **Overview** and perspectives for each 
 - **New Devices** — devices first added during the timeframe, up to 5,000 rows. Filter by device type, building or customer.
 - **Hardware Lifecycle** — hardware models in use, with device counts, end-of-life and end-of-support dates, and a lifecycle status. Filter by device type, building or customer.
 - **Subnet Utilization** — the 1,000 most utilized IPv4 subnets, with capacity, used and free addresses. Set **Minimum size** to leave out small subnets such as /30 links.
-- **Racks** — racks with location, size, and free and used rack units. Filter by building.
-- **Rooms** — rooms and their building. Filter by building.
+- **Racks** — racks with location, size, and free and used rack units. Filter by one building.
+- **Rooms** — rooms and their building. Filter by one building.
 - **Buildings** — buildings with address and contact.
 - **Customers** — customers with contact details.
 - **Business Applications** — business applications with criticality, type, service level, owners and data sensitivity.
