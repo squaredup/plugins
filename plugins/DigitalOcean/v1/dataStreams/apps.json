@@ -1,0 +1,137 @@
+{
+    "name": "apps",
+    "displayName": "Apps",
+    "description": "App Platform apps with their region, live URL and the phase of the active deployment",
+    "tags": [
+        "Applications",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/apps",
+        "postRequestScript": "apps.js",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "200"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.pages.next"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "activeDeploymentPhase",
+            "displayName": "Active Deployment Phase",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['activeDeploymentPhase'] || 'NONE' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "ACTIVE"
+                        ],
+                        "error": [
+                            "ERROR",
+                            "CANCELED"
+                        ],
+                        "warning": [
+                            "PENDING_BUILD",
+                            "BUILDING",
+                            "PENDING_DEPLOY",
+                            "DEPLOYING"
+                        ],
+                        "unknown": [
+                            "UNKNOWN",
+                            "NONE",
+                            "SUPERSEDED"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "inProgressDeploymentPhase",
+            "displayName": "In-progress Deployment",
+            "shape": "string"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "tier",
+            "displayName": "Tier",
+            "shape": "string"
+        },
+        {
+            "name": "liveUrl",
+            "displayName": "Live URL",
+            "shape": "url"
+        },
+        {
+            "name": "defaultIngress",
+            "displayName": "Default Ingress",
+            "shape": "url",
+            "visible": false
+        },
+        {
+            "name": "activeDeploymentId",
+            "displayName": "Active Deployment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "lastDeploymentAt",
+            "displayName": "Last Deployment",
+            "shape": "date"
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "updatedAt",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "App",
+            "name": "name"
+        }
+    ],
+    "timeframes": false
+}

@@ -8,7 +8,8 @@
 - [Auto-scoping a stream](#auto-scoping-a-stream-via-its-objects-filter)
 - [Shaping in the tile: group, filter, sort](#shaping-in-the-tile-group-filter-sort)
 - [Dashboard rules](#dashboard-rules)
-- [Visualisation types](#visualisation-types): table, line graph, bar chart, scalar, donut, blocks, gauge, text & image tiles
+- [SmartViz charts (`vizSpec`)](#smartviz-charts-vizspec) — fetch live guidance with `squaredup skill visualize`
+- [Text and image tiles](#text-and-image-tiles)
 - [Templating tokens](#templating-tokens)
 
 ---
@@ -104,9 +105,13 @@ Single `.dash.json` files reference as `"type": "dashboard"`. Folders map to sub
                         "variable": "{{variables.[Installation]}}"
                     },
                     "variables": ["{{variables.[Installation]}}"],
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": { "data-stream-table": { "transpose": true } }
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": { "values": [{ "field": "name", "type": "nominal", "aggregate": "count" }] },
+                            "style": { "scalarLabelPosition": "none" }
+                        }
                     }
                 }
             }
@@ -121,7 +126,7 @@ Single `.dash.json` files reference as `"type": "dashboard"`. Folders map to sub
 
 The tile-level `"scope"` block above is for streams that are **natively scoped** through their `matches`. A stream that is unscoped at the definition level (`"matches": "none"`) but exposes an optional `objects` parameter — the consolidation pattern in [data-streams.md](data-streams.md#one-stream-per-shape) — auto-scopes on a perspective a different way: **bind the dashboard variable into the parameter** under `dataStream.dataSourceConfig`.
 
-The key under `dataSourceConfig` is the `name` of the stream's `objects` field. Given a stream with `"ui": [{ "type": "objects", "name": "project", ... }]`, the per-object perspective dashboard binds:
+The key under `dataSourceConfig` is the `name` of the stream's `objects` field. Stream parameters on a tile always go under `dataStream.dataSourceConfig`. The platform silently ignores anything placed under `dataStream.config`, so the tile runs with defaults and looks plausible but wrong. Given a stream with `"ui": [{ "type": "objects", "name": "project", ... }]`, the per-object perspective dashboard binds:
 
 ```json
 "dataStream": {
@@ -151,7 +156,7 @@ A data stream returns **one fixed row shape**. How those rows are grouped, aggre
 
 **`filter` → `group` → `sort`.**
 
-> ⚠️ **`group` renames the columns it outputs, and the pre-group columns do not survive.** `filter` matches the stream's **own (pre-group)** column names — but `sort` and **every `visualisation` field** (`value`, `labelColumn`, `xAxisColumn`, `yAxisColumn`, …) must reference the **post-group** names below. A tile that renders blank after deploy almost always has a viz field still pointing at a pre-group column name.
+> ⚠️ **`group` renames the columns it outputs, and the pre-group columns do not survive.** `filter` matches the stream's **own (pre-group)** column names — but `sort` and **every `field` in the tile's `vizSpec`** must reference the **post-group** names below. A tile that renders blank after deploy almost always has a `field` still pointing at a pre-group column name.
 
 | Shaping you configure                                        | Output column name         |
 | ------------------------------------------------------------ | -------------------------- |
@@ -229,17 +234,17 @@ Applied **after** grouping, so it references **post-group** names:
 
 ### Recipes
 
-Common tiles, with the **exact** column names the visualisation must reference:
+Common tiles, with the **exact** column names the chart's `field`s must use:
 
-| Tile                          | `dataStream` shaping                                                                                                       | visualisation references                                     |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Scalar — count all rows       | `"group":{"by":[],"aggregate":[{"type":"count"}]}`                                                                         | `value: "count"`                                             |
-| Scalar — count a subset       | `"filter":{…}` + `"group":{"by":[],"aggregate":[{"type":"count"}]}`                                                        | `value: "count"`                                             |
-| Scalar — total of a metric    | `"group":{"by":[],"aggregate":[{"type":"sum","names":["cost"]}]}`                                                          | `value: "cost_sum"`                                          |
-| Donut — breakdown by category | `"group":{"by":[["status","uniqueValues"]],"aggregate":[{"type":"count"}]}`                                                | `labelColumn: "status_uniqueValues"`, `valueColumn: "count"` |
-| Bar — top 10 by category      | as above + `"sort":{"by":[["count","desc"]],"top":10}`                                                                     | `xAxisData: "status_uniqueValues"`, `yAxisData: ["count"]`   |
-| Line — metric over time       | `"group":{"by":[["date","byDay"]],"aggregate":[{"type":"sum","names":["cost"]}]}` + `"sort":{"by":[["date_byDay","asc"]]}` | `xAxisColumn: "date_byDay"`, `yAxisColumn: ["cost_sum"]`     |
-| Table — filtered + sorted     | `"filter":{…}` + `"sort":{"by":[["lastSeen","desc"]]}` (no `group`)                                                        | raw stream column names                                      |
+| Tile                          | `dataStream` shaping                                                                                                       | Columns for the chart's `field`s   |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Scalar — count all rows       | `"group":{"by":[],"aggregate":[{"type":"count"}]}`                                                                         | `count`                            |
+| Scalar — count a subset       | `"filter":{…}` + `"group":{"by":[],"aggregate":[{"type":"count"}]}`                                                        | `count`                            |
+| Scalar — total of a metric    | `"group":{"by":[],"aggregate":[{"type":"sum","names":["cost"]}]}`                                                          | `cost_sum`                         |
+| Donut — breakdown by category | `"group":{"by":[["status","uniqueValues"]],"aggregate":[{"type":"count"}]}`                                                | `status_uniqueValues`, `count`     |
+| Bar — top 10 by category      | as above + `"sort":{"by":[["count","desc"]],"top":10}`                                                                     | `status_uniqueValues`, `count`     |
+| Line — metric over time       | `"group":{"by":[["date","byDay"]],"aggregate":[{"type":"sum","names":["cost"]}]}` + `"sort":{"by":[["date_byDay","asc"]]}` | `date_byDay`, `cost_sum`           |
+| Table — filtered + sorted     | `"filter":{…}` + `"sort":{"by":[["lastSeen","desc"]]}` (no `group`)                                                        | the stream's own column names      |
 
 ---
 
@@ -249,6 +254,8 @@ Common tiles, with the **exact** column names the visualisation must reference:
 - **Do not repeat the plugin name in dashboard names.** The name appears beneath the plugin name in the UI — "MyPlugin / Overview" is correct; "MyPlugin / MyPlugin Overview" is redundant.
 - **Give each dashboard a distinct name.** Perspective tabs sit next to each other — identical names are indistinguishable.
 - `"variables"` array supports **only one variable** per dashboard. Design each dashboard around a single object type.
+- **Every variable a tile references must be declared** in the dashboard's `"variables"` array, otherwise the binding resolves to nothing.
+- **Keep request counts low on overview tiles.** A tile over an `httpRequestScopedSingle` stream sends one request per object in scope, so a summary of 50 environments is 50 API calls every time the dashboard loads. (Other scoped streams can send all the objects in one request.) Prefer a single list call, or a property captured at import, for account-wide summaries; keep per-object streams for drilldown dashboards.
 - **A tile's `"timeframe"` is driven by its data stream, not by style.** If the tile's stream is **timeframe-independent** (`"timeframes": false` — a current-state / snapshot stream that ignores any range), set `"timeframe": "none"` on the tile. If the stream **supports timeframes**, **omit** `timeframe` so the tile tracks the dashboard's timeframe — setting `"none"` here pins the tile and stops it following the dashboard. (This is why most summary tiles, built on snapshot streams, carry `"none"`.)
 - All tile IDs (`"i"`) must be **genuinely random UUIDs** — generate with `node ".claude/skills/build-plugin/scripts/gen-uuids.js" [N]`. Never invent patterned UUIDs.
 
@@ -261,169 +268,29 @@ Common tiles, with the **exact** column names the visualisation must reference:
 
 ---
 
-## Visualisation types
+## SmartViz charts (`vizSpec`)
 
-> The types below are **`visualisation.type` values inside a `tile/data-stream` tile** — they sit at `config.visualisation = { "type": "<one below>", "config": { "<type>": { … } } }` (see [Dashboard layout](#dashboard-layout)). Text and image tiles are **not** data-stream visualisations — they are their own tile `_type`; see [Text and image tiles](#text-and-image-tiles) at the end.
->
-> Column references below (`value`, `labelColumn`, `xAxisColumn`, `yAxisColumn`, …) name the stream's own columns. If the tile **groups or aggregates**, reference the **post-group** names instead — see [Shaping in the tile](#shaping-in-the-tile-group-filter-sort).
+SmartViz is the platform's chart engine. A tile opts in with a `vizSpec` — a JSON chart spec — at `config.vizSpec`, a sibling of `dataStream`, `scope` and `timeframe`. The spec format and its rules change with the platform, so **this file deliberately does not document them**. Fetch the current guidance from the platform instead:
 
-### Table
-
-Use `transpose: true` for key-value single-row data:
-
-```json
-{
-    "type": "data-stream-table",
-    "config": {
-        "data-stream-table": {
-            "transpose": false,
-            "columnOrder": ["name", "status", "value"],
-            "hiddenColumns": ["id", "internalKey"],
-            "columnDisplayNames": { "ts": "Timestamp" },
-            "resizedColumns": { "columnWidths": { "name": 250 } }
-        }
-    }
-}
+```sh
+squaredup skill visualize            # the spec format, the rules, and a chart chooser
+squaredup skill visualize --file references/cartesian.md   # one chart type's reference
+squaredup skill visualize --all      # everything in one go
 ```
 
-### Line graph
+This is the same `visualize` skill the SquaredUp MCP server serves, so it is written for an agent editing live tiles. When you apply it to plugin default content:
 
-```json
-{
-    "type": "data-stream-line-graph",
-    "config": {
-        "data-stream-line-graph": {
-            "xAxisColumn": "timestamp",
-            "yAxisColumn": ["value", "baseline"],
-            "seriesColumn": "none",
-            "showLegend": true,
-            "legendPosition": "bottom",
-            "yAxisLabel": "Response time (ms)",
-            "showYAxisLabel": true,
-            "showTrendLine": false
-        }
-    }
-}
-```
+- **Ignore the MCP tool steps.** The skill names tools such as `tile_create`, `tile_update`, `tile_query`, `data_stream_query` and `validate_visualization`. You write the `.dash.json` file directly; there is no tile to create or update.
+- **Take column names from the stream.** Every `field` in the spec is a real column `name` — from the stream's `metadata` in `dataStreams/<name>.json`, or the post-group names when the tile groups (see [Shaping in the tile](#shaping-in-the-tile-group-filter-sort)). Confirm them by running the stream with the ids from your brief: `squaredup test <stream> --plugin-id <id> --datasource-id <id> --json --silent`. For a scoped stream, first get an object id with `squaredup objects <stream> --plugin-id <id> --datasource-id <id> --json --silent`, then add `--object <objectId>` to the test.
+- **Validate it.** `squaredup validate` checks each tile's `vizSpec` against the schema the app renders with, and reports a failure at its path in the `.dash.json` (for example `dashboard.contents[3].config.vizSpec.visualization.chartType`). Fix every one: the app silently ignores a spec that fails the schema, so the tile would not show your chart. Validation cannot check that each `field` is a real column, so get the names right from the stream, using the post-group names when the tile groups.
 
-> **Note:** `legendPosition` is required when `showLegend` is `true`. Valid values are `"top"`, `"bottom"`, `"left"`, and `"right"`.
+If `squaredup skill` is not available, update the CLI with `npm i -g @squaredup/cli`.
 
-### Bar chart
+---
 
-```json
-{
-    "type": "data-stream-bar-chart",
-    "config": {
-        "data-stream-bar-chart": {
-            "xAxisData": "name",
-            "yAxisData": ["count"],
-            "xAxisGroup": "none",
-            "xAxisLabel": "",
-            "yAxisLabel": "",
-            "showXAxisLabel": true,
-            "showYAxisLabel": true,
-            "showLegend": false,
-            "legendPosition": "bottom",
-            "showGrid": true,
-            "horizontalLayout": "vertical",
-            "displayMode": "actual",
-            "showTotals": false,
-            "showValue": false,
-            "grouping": false,
-            "range": { "type": "auto" }
-        }
-    }
-}
-```
+## Text and image tiles
 
-### Scalar
-
-Single value/KPI:
-
-```json
-{
-    "type": "data-stream-scalar",
-    "config": {
-        "data-stream-scalar": {
-            "value": "columnName",
-            "comparisonColumn": "none",
-            "label": "Custom Label"
-        }
-    }
-}
-```
-
-### Donut chart
-
-```json
-{
-    "type": "data-stream-donut-chart",
-    "config": {
-        "data-stream-donut-chart": {
-            "valueColumn": "count",
-            "labelColumn": "category",
-            "hideCenterValue": false,
-            "showValuesAsPercentage": true,
-            "legendPosition": "auto",
-            "legendMode": "table"
-        }
-    }
-}
-```
-
-### Blocks
-
-Health/status grid:
-
-```json
-{
-    "type": "data-stream-blocks",
-    "config": {
-        "data-stream-blocks": {
-            "labelColumn": "name",
-            "stateColumn": "state",
-            "sublabel": "status",
-            "linkColumn": "none",
-            "columns": 4
-        }
-    }
-}
-```
-
-Use `"stateColumn": "none"` when data has no state — blocks render without health colour. To enable drilldowns, set `"linkColumn"` to the column named in the drilldown metadata entry:
-
-```json
-{
-    "labelColumn": "name",
-    "stateColumn": "none",
-    "linkColumn": "name",
-    "columns": 4
-}
-```
-
-### Gauge
-
-```json
-{
-    "type": "data-stream-gauge",
-    "config": {
-        "data-stream-gauge": {
-            "value": { "type": "arr", "columns": ["columnName"] },
-            "label": "Optional label",
-            "minimum": 0,
-            "maximum": 100,
-            "minimumColumn": "minCol",
-            "maximumColumn": "maxCol"
-        }
-    }
-}
-```
-
-`value` options: `{ "type": "arr", "columns": ["col"] }`, `{ "type": "count" }`, `{ "type": "sum", "columns": ["col"] }`, `{ "type": "mean", "columns": ["col"] }`.
-
-### Text and image tiles
-
-These are **not** data-stream visualisations — they're standalone tiles with no `dataStream`, `scope`, or `activePluginConfigIds`. The tile type is set by the **tile's own `_type`** (`tile/text` or `tile/image`), and the content lives under `visualisation.config` — note there is **no `visualisation.type`**, and the inner `config` is **not** keyed by the type name (unlike the data-stream tiles above). Each block below is the tile's `config`; it drops into a grid `contents` item in place of the `tile/data-stream` config shown in [Dashboard layout](#dashboard-layout). Use a text tile for section headings / annotations and an image tile for a logo or static image.
+These are standalone tiles with no `dataStream`, `scope`, `activePluginConfigIds` or `vizSpec`. The tile type is set by the **tile's own `_type`** (`tile/text` or `tile/image`), and the content lives under `visualisation.config` — note there is **no `visualisation.type`**. Each block below is the tile's `config`; it drops into a grid `contents` item in place of the `tile/data-stream` config shown in [Dashboard layout](#dashboard-layout). Use a text tile for section headings / annotations and an image tile for a logo or static image.
 
 **Text tile** — a heading or caption:
 
@@ -443,7 +310,7 @@ These are **not** data-stream visualisations — they're standalone tiles with n
 }
 ```
 
-**Image tile** — a static image by URL:
+**Image tile** — a static image by URL. A plugin can't upload images for its default dashboards, so `src` must be a public URL the image is already hosted at:
 
 ```json
 {
@@ -469,3 +336,11 @@ These are **not** data-stream visualisations — they're standalone tiles with n
 | `{{scopes.[ScopeName]}}`       | A scope by name from `scopes.json` |
 | `{{dataStreams.[streamName]}}` | The data stream's ID               |
 | `{{variables.[VariableName]}}` | The variable defined on a scope    |
+
+**Escape every other `{{…}}` with `{{{{raw}}}}`.** These tokens are substituted when the default content is installed, and any other `{{…}}` in a `.dash.json` is substituted too, normally to nothing. Text that SmartViz itself fills in at render time therefore has to be wrapped so it reaches the tile intact. Typical cases are `labelFormat`, `cartesianTooltipTemplate` and `statusGridSecondaryTemplate`:
+
+```json
+"labelFormat": "{{{{raw}}}}{{value}}{{{{/raw}}}}"
+```
+
+A tile whose label or tooltip comes out blank after install usually has an unwrapped template.

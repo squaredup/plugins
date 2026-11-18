@@ -31,7 +31,7 @@ For **build-mode**, also pass the **build spec** distilled from the Phase 2 plan
 
 - Endpoint path + HTTP method, and scoping → `baseDataSourceName`: single-object → `httpRequestScopedSingle`, multi-object → `httpRequestScoped`, unscoped/global → `httpRequestUnscoped`.
 - Candidate `pathToData` (where the row array lives in the response).
-- Planned columns with `displayName`, `shape`, and any `role` (label/value/timestamp/sourceId…).
+- Planned columns with `displayName`, `shape`, and any `role` (label/value/timestamp/sourceId…). Flag any list-valued field as `["array", { "itemShape": … }]` (see [List columns](data-streams.md#list-columns-array-shape)). Otherwise the sub-agent sees a JSON string in the shaped rows and "fixes" it by joining.
 - Any `ui` parameters, `timeframes` setting, paging mode, and the `matches` selector.
 - The endpoint's **data granularity** (from Phase 1) and, when the stream supports a time range coarser than the default (`timeframes` is an array or `true` at daily/monthly granularity), a **first-test `--timeframe` hint**. `squaredup test` defaults to `last1hour`, which 404s against an endpoint aggregated to daily/monthly (e.g. billing, usage), so tell the sub-agent the timeframe to pass on its first test — e.g. "daily granularity: first test with `--timeframe last7days`". This stops every sub-agent from independently rediscovering the default-timeframe 404. Omit the hint for streams with no time-range control (`timeframes: false`) — there is no timeframe to pass.
 

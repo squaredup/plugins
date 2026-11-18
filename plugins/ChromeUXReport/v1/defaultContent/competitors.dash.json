@@ -1,0 +1,536 @@
+{
+    "name": "Competitors",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 12,
+        "version": 1,
+        "contents": [
+            {
+                "i": "d4e8816d-09d7-4a6e-8bde-26dae70717e2",
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Your Site vs Competitors",
+                    "description": "Loading speed (LCP), responsiveness (INP) and visual stability (CLS) on phone for your site and each competitor, as met or beaten by 3 in 4 visits, with the share of good visits. Empty until you add competitors to the data source.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT site, kind, assessment, lcp, lcpGood, inp, inpGood, cls, clsGood\nFROM (\n  SELECT replace(replace(target, 'https://', ''), 'http://', '') AS site, 'Your site' AS kind, 1 AS kindOrder, * FROM (SELECT target,\n    CASE bool_and(rating = 'success') FILTER (WHERE isCoreWebVital) WHEN true THEN 'Passed' WHEN false THEN 'Failed' ELSE 'No data' END AS assessment,\n    max(CASE WHEN metric = 'LCP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS lcp, max(CASE WHEN metric = 'LCP' THEN CAST(good AS DOUBLE) END) AS lcpGood,\n    max(CASE WHEN metric = 'INP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS inp, max(CASE WHEN metric = 'INP' THEN CAST(good AS DOUBLE) END) AS inpGood,\n    max(CASE WHEN metric = 'CLS' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS cls, max(CASE WHEN metric = 'CLS' THEN CAST(good AS DOUBLE) END) AS clsGood,\n    max(CASE WHEN metric = 'LCP' THEN p75 END) AS lcpSort\n  FROM own GROUP BY target)\n  UNION ALL\n  SELECT replace(replace(target, 'https://', ''), 'http://', '') AS site, 'Competitor' AS kind, 2 AS kindOrder, * FROM (SELECT target,\n    CASE bool_and(rating = 'success') FILTER (WHERE isCoreWebVital) WHEN true THEN 'Passed' WHEN false THEN 'Failed' ELSE 'No data' END AS assessment,\n    max(CASE WHEN metric = 'LCP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS lcp, max(CASE WHEN metric = 'LCP' THEN CAST(good AS DOUBLE) END) AS lcpGood,\n    max(CASE WHEN metric = 'INP' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS inp, max(CASE WHEN metric = 'INP' THEN CAST(good AS DOUBLE) END) AS inpGood,\n    max(CASE WHEN metric = 'CLS' THEN CASE WHEN metric = 'CLS' THEN printf('%.2f', p75) WHEN p75 >= 1000 THEN printf('%.2f s', p75 / 1000) ELSE printf('%d ms', CAST(round(p75) AS BIGINT)) END END) AS cls, max(CASE WHEN metric = 'CLS' THEN CAST(good AS DOUBLE) END) AS clsGood,\n    max(CASE WHEN metric = 'LCP' THEN p75 END) AS lcpSort\n  FROM competitors GROUP BY target)\n)\nORDER BY kindOrder, lcpSort",
+                            "tables": [
+                                {
+                                    "tableName": "own",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "competitors",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitals]}}",
+                                            "name": "coreWebVitals",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Competitors]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "site",
+                                "displayName": "Site",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "kind",
+                                "displayName": "Site type",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "assessment",
+                                "displayName": "Assessment",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcp",
+                                "displayName": "LCP",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "lcpGood",
+                                "displayName": "LCP good",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "inp",
+                                "displayName": "INP",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "inpGood",
+                                "displayName": "INP good",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "cls",
+                                "displayName": "CLS",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "clsGood",
+                                "displayName": "CLS good",
+                                "shape": [
+                                    "percent",
+                                    {
+                                        "decimalPlaces": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "site",
+                                        "title": "Site",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "kind",
+                                        "title": "Site type",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Your site": "#3B82F6",
+                                                "Competitor": "#9CA3AF"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "assessment",
+                                        "title": "Assessment",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Passed": "#0CCE6B",
+                                                "Failed": "#FF4E42"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "lcp",
+                                        "title": "LCP",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "lcpGood",
+                                        "title": "LCP good",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": "%"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "inp",
+                                        "title": "INP",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "inpGood",
+                                        "title": "INP good",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": "%"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "cls",
+                                        "title": "CLS",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "clsGood",
+                                        "title": "CLS good",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1,
+                                            "suffix": "%"
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "082475a6-8e23-4d9c-8ba0-59a12f2f234c",
+                "x": 0,
+                "y": 3,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Who Is Improving",
+                    "description": "Loading speed (LCP) on phone for each site now against four weeks earlier, as met or beaten by 3 in 4 visits. Lower is better, and changes under 2% count as the same.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "WITH ranked AS (\n  SELECT replace(replace(target, 'https://', ''), 'http://', '') AS site, 1 AS labelOrder, metric, periodEnd, p75, max(CAST(periodEnd AS DATE)) OVER (PARTITION BY target, metric) AS latest FROM own WHERE p75 IS NOT NULL AND metric = 'LCP'\n  UNION ALL\n  SELECT replace(replace(target, 'https://', ''), 'http://', '') AS site, 2 AS labelOrder, metric, periodEnd, p75, max(CAST(periodEnd AS DATE)) OVER (PARTITION BY target, metric) AS latest FROM competitors WHERE p75 IS NOT NULL AND metric = 'LCP'\n), paired AS (\n  SELECT site, labelOrder, metric,\n    max(CASE WHEN CAST(periodEnd AS DATE) = latest THEN p75 END) AS now,\n    max(CASE WHEN CAST(periodEnd AS DATE) = latest - INTERVAL 28 DAY THEN p75 END) AS before\n  FROM ranked GROUP BY ALL\n), diffed AS (SELECT *, now - before AS diff FROM paired WHERE now IS NOT NULL AND before IS NOT NULL)\nSELECT site, metric,\n  CASE WHEN metric = 'CLS' THEN printf('%.2f', now)\n       WHEN metric = 'INP' THEN printf('%d ms', CAST(round(now) AS BIGINT))\n       ELSE printf('%.2f s', now / 1000) END AS nowText,\n  CASE WHEN metric = 'CLS' THEN printf('%.2f', before)\n       WHEN metric = 'INP' THEN printf('%d ms', CAST(round(before) AS BIGINT))\n       ELSE printf('%.2f s', before / 1000) END AS beforeText,\n  CASE WHEN metric = 'CLS' THEN printf('%+.2f', diff)\n       WHEN metric = 'INP' THEN printf('%+d ms', CAST(round(diff) AS BIGINT))\n       ELSE printf('%+.2f s', diff / 1000) END AS change,\n  CASE WHEN abs(diff) < 0.02 * nullif(before, 0) OR diff = 0 THEN 'Same' WHEN diff < 0 THEN 'Better' ELSE 'Worse' END AS verdict\nFROM diffed\nORDER BY CASE metric WHEN 'LCP' THEN 1 WHEN 'INP' THEN 2 WHEN 'CLS' THEN 3 WHEN 'FCP' THEN 4 ELSE 5 END, labelOrder, site",
+                            "tables": [
+                                {
+                                    "tableName": "own",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "competitors",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Competitors]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "site",
+                                "displayName": "Site",
+                                "shape": "string",
+                                "role": "label"
+                            },
+                            {
+                                "name": "metric",
+                                "displayName": "Metric",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "nowText",
+                                "displayName": "Now",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "beforeText",
+                                "displayName": "4 weeks ago",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "change",
+                                "displayName": "Change",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "verdict",
+                                "displayName": "Trend",
+                                "shape": "string"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "site",
+                                        "title": "Site",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "nowText",
+                                        "title": "LCP now",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "beforeText",
+                                        "title": "4 weeks ago",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "change",
+                                        "title": "Change",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "verdict",
+                                        "title": "Trend",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Better": "#0CCE6B",
+                                                "Same": "#9CA3AF",
+                                                "Worse": "#FF4E42"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "20aca1c8-4fb2-4e95-becf-7e663d24880f",
+                "x": 6,
+                "y": 3,
+                "w": 6,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "LCP Trend by Site",
+                    "description": "Largest Contentful Paint (LCP, how long the main content takes to appear) on phone for your site and each competitor, as met or beaten by 3 in 4 visits. Each point is the 28 days ending that week.",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT periodEnd, replace(replace(target, 'https://', ''), 'http://', '') AS site, p75 FROM own WHERE metric = 'LCP'\nUNION ALL\nSELECT periodEnd, replace(replace(target, 'https://', ''), 'http://', '') AS site, p75 FROM competitors WHERE metric = 'LCP'\nORDER BY periodEnd, site",
+                            "tables": [
+                                {
+                                    "tableName": "own",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Websites]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "tableName": "competitors",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[coreWebVitalsHistory]}}",
+                                            "name": "coreWebVitalsHistory",
+                                            "pluginConfigId": "{{configId}}",
+                                            "dataSourceConfig": {
+                                                "level": "origin",
+                                                "formFactor": "PHONE"
+                                            }
+                                        },
+                                        "scope": {
+                                            "scope": "{{scopes.[CrUX Competitors]}}",
+                                            "workspace": "{{workspaceId}}"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "periodEnd",
+                                "displayName": "Week ending",
+                                "shape": [
+                                    "date",
+                                    {
+                                        "format": "dd MMM yyyy"
+                                    }
+                                ],
+                                "role": "timestamp"
+                            },
+                            {
+                                "name": "site",
+                                "displayName": "Site",
+                                "shape": "string"
+                            },
+                            {
+                                "name": "p75",
+                                "displayName": "75th percentile",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0
+                                    }
+                                ],
+                                "role": "value"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "periodEnd",
+                                    "type": "temporal",
+                                    "title": "Week ending"
+                                },
+                                "y": {
+                                    "field": "p75",
+                                    "type": "quantitative",
+                                    "title": "75th percentile (ms)"
+                                },
+                                "series": {
+                                    "field": "site",
+                                    "type": "nominal",
+                                    "title": "Site"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianYAxisDecimalPlaces": 0
+                            },
+                            "markLines": [
+                                {
+                                    "value": 2500,
+                                    "label": "Good",
+                                    "color": "#0CCE6B"
+                                },
+                                {
+                                    "value": 4000,
+                                    "label": "Poor",
+                                    "color": "#FF4E42"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

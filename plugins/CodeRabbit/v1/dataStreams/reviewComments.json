@@ -1,0 +1,80 @@
+{
+    "name": "reviewComments",
+    "displayName": "Review comments",
+    "description": "Findings raised by CodeRabbit on merged pull requests, one row per finding",
+    "tags": ["Code Review", "Pull Request"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/metrics/review-comments",
+        "getArgs": [
+            { "key": "start_date", "value": "{{timeframe.start.slice(0,10)}}" },
+            { "key": "end_date", "value": "{{timeframe.end.slice(0,10)}}" },
+            { "key": "repository_ids", "value": "{{repository && repository.length ? repository.map(o => Array.isArray(o.rawId) ? o.rawId[0] : o.rawId).join(',') : null}}" },
+            { "key": "user_ids", "value": "{{user && user.length ? user.map(o => Array.isArray(o.rawId) ? o.rawId[0] : o.rawId).join(',') : null}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "250" },
+            "in": { "realm": "payload", "path": "next_cursor" },
+            "out": { "realm": "queryArg", "path": "cursor" }
+        },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" },
+        "postRequestScript": "reviewComments.js"
+    },
+    "matches": "none",
+    "ui": [
+        { "type": "objects", "name": "repository", "label": "Repository (optional)", "matches": { "sourceType": { "type": "oneOf", "values": ["Repository"] } } },
+        { "type": "objects", "name": "user", "label": "User (optional)", "matches": { "sourceType": { "type": "oneOf", "values": ["User"] } } }
+    ],
+    "metadata": [
+        { "name": "commentUrl", "displayName": "Comment", "shape": ["url", { "label": "View" }], "role": "link" },
+        { "name": "prUrl", "displayName": "Pull request", "shape": ["url", { "label": "#{{column.prNumber}}" }], "role": "link" },
+        {
+            "name": "prNumber",
+            "displayName": "PR number",
+            "shape": ["number", { "thousandsSeparator": false }],
+            "visible": false
+        },
+        { "name": "severityKey", "displayName": "Severity key", "shape": "string", "visible": false },
+        { "name": "categoryKey", "displayName": "Category key", "shape": "string", "visible": false },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "computed": true,
+            "valueExpression": "{{ $['severityKey'] ? $['severityKey'].charAt(0).toUpperCase() + $['severityKey'].slice(1).toLowerCase() : 'Unclassified' }}",
+            "shape": "string"
+        },
+        {
+            "name": "severityRank",
+            "displayName": "Severity rank",
+            "computed": true,
+            "valueExpression": "{{ ({ critical: 1, major: 2, minor: 3, trivial: 4, info: 5 })[String($['severityKey']).toLowerCase()] || 6 }}",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "computed": true,
+            "valueExpression": "{{ $['categoryKey'] ? $['categoryKey'].charAt(0).toUpperCase() + $['categoryKey'].slice(1).toLowerCase().replace(/_/g, ' ') : 'Unclassified' }}",
+            "shape": "string"
+        },
+        { "name": "accepted", "displayName": "Accepted", "shape": "boolean" },
+        {
+            "name": "acceptedCount",
+            "displayName": "Accepted count",
+            "computed": true,
+            "valueExpression": "{{ $['accepted'] === true ? 1 : 0 }}",
+            "shape": "number"
+        },
+        { "name": "merged_at", "displayName": "Merged", "shape": "date", "role": "timestamp" },
+        { "name": "repository_id", "displayName": "Repository ID", "shape": "string", "visible": false },
+        { "name": "author_id", "displayName": "Author ID", "shape": "string", "visible": false },
+        { "name": "repositoryName", "displayName": "Repository", "sourceId": "repository_id", "sourceType": "Repository", "objectPropertyPath": "name" },
+        { "name": "authorName", "displayName": "Author", "sourceId": "author_id", "sourceType": "User", "objectPropertyPath": "name" },
+        { "sourceId": "repository_id", "sourceType": "Repository", "name": "repositoryName" },
+        { "sourceId": "author_id", "sourceType": "User", "name": "authorName" }
+    ],
+    "timeframes": ["last24hours", "last7days", "last30days", "thisMonth", "lastMonth", "thisQuarter", "lastQuarter"]
+}

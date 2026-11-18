@@ -17,7 +17,7 @@
             }
         ],
         "postBody": {
-            "query": "query PowerFeeds($offset: Int = 0) { power_feed_list(pagination: { offset: $offset, limit: 500 }{{ (typeof site !== 'undefined' && site && site.length) ? ', filters: { power_panel: { site: { id: { in_list: [' + site.map(s => Number([].concat(s.rawId)[0])).join(', ') + '] } } } }' : '' }}) { id name description status type supply phase voltage amperage max_utilization available_power mark_connected cable { id } tenant { name } rack { id name } power_panel { id name site { id name } } created last_updated custom_field_data } }"
+            "query": "query PowerFeeds($offset: Int = 0) { power_feed_list(pagination: { offset: $offset, limit: 500 }{{ (typeof site !== 'undefined' && site && site.length) ? ', filters: { power_panel: { site: { id: { in_list: [' + site.map(s => Number([].concat(s.rawId)[0])).join(', ') + '] } } } }' : '' }}) { id name description status type supply phase voltage amperage max_utilization available_power mark_connected cable { id } tenant { name } rack { id name } power_panel { id name site { id name } } created last_updated tags { name slug display } custom_field_data } }"
         },
         "paging": {
             "mode": "offset",
@@ -53,6 +53,19 @@
                         "Site"
                     ]
                 }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
             }
         }
     ],
@@ -191,6 +204,21 @@
             "name": "last_updated",
             "displayName": "Last Updated",
             "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
         },
         {
             "name": "rack.id",

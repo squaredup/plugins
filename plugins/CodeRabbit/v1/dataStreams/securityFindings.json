@@ -1,0 +1,83 @@
+{
+    "name": "securityFindings",
+    "displayName": "Security findings",
+    "description": "AI Deep Scan code findings with severity, CWE and location",
+    "tags": ["Security", "Repository"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/security/scans/code",
+        "pathToData": "data",
+        "getArgs": [
+            { "key": "format", "value": "json" },
+            { "key": "state", "value": "{{state || 'open'}}" },
+            {
+                "key": "repo_id",
+                "value": "{{(typeof repository !== 'undefined' && repository && repository.length === 1) ? [].concat(repository[0].rawId)[0] : null}}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "1000" },
+            "in": { "realm": "payload", "path": "next_cursor" },
+            "out": { "realm": "queryArg", "path": "cursor" }
+        },
+        "errorHandling": { "type": "script", "script": "errorHandling/securityFindings.js" },
+        "postRequestScript": "securityFindings.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "radio",
+            "name": "state",
+            "label": "State",
+            "defaultValue": "open",
+            "options": [
+                { "value": "open", "label": "Open" },
+                { "value": "fixed", "label": "Fixed" },
+                { "value": "dismissed", "label": "Dismissed" },
+                { "value": "all", "label": "All" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "repository",
+            "label": "Repository (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Repository"] } }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "summary",
+            "displayName": "Finding",
+            "computed": true,
+            "valueExpression": "{{ (() => { const s = String($['description'] || '').replace(/\\\\s+/g, ' ').trim().split(/(?<=[.!?])\\\\s/)[0]; return s.length > 140 ? s.slice(0, 137) + '...' : s; })() }}",
+            "shape": "string",
+            "role": "label"
+        },
+        { "name": "id", "displayName": "Finding ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "severity", "displayName": "Severity", "shape": "string", "formatExpression": "{{ $['severity'] ? $['severity'].charAt(0).toUpperCase() + $['severity'].slice(1).toLowerCase() : '' }}" },
+        {
+            "name": "severityRank",
+            "displayName": "Severity rank",
+            "computed": true,
+            "valueExpression": "{{ ({ critical: 5, high: 4, medium: 3, low: 2, info: 1 })[String($['severity']).toLowerCase()] || 0 }}",
+            "shape": "number",
+            "visible": false
+        },
+        { "name": "state", "displayName": "State", "shape": "string", "formatExpression": "{{ $['state'] ? $['state'].charAt(0).toUpperCase() + $['state'].slice(1) : '' }}" },
+        { "name": "cwe", "displayName": "CWE", "shape": "string" },
+        { "name": "repository_name", "displayName": "Repository", "shape": "string" },
+        { "name": "repository_id", "displayName": "Repository ID", "shape": "string", "visible": false },
+        { "sourceId": "repository_id", "sourceType": "Repository", "name": "repository_name" },
+        { "name": "file_path", "displayName": "File", "shape": "string" },
+        { "name": "start_line", "displayName": "Start line", "shape": "number" },
+        { "name": "end_line", "displayName": "End line", "shape": "number" },
+        { "name": "description", "displayName": "Description", "shape": "string", "visible": false },
+        { "name": "organization_name", "displayName": "Organization", "shape": "string" },
+        { "name": "organization_id", "displayName": "Organization ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": ["none"],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

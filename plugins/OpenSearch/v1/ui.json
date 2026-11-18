@@ -1,30 +1,38 @@
 [
     {
-        "type": "text",
+        "type": "url",
         "name": "instanceUrl",
         "label": "Instance URL",
-        "validation": { "required": true },
-        "placeholder": "Enter the OpenSearch URL"
+        "placeholder": "https://opensearch.example.com:9200",
+        "validation": {
+            "required": true,
+            "pattern": {
+                "value": "^https?://[^\\s]+$",
+                "message": "Enter the full URL of the cluster, including http:// or https://"
+            }
+        }
     },
     {
-        "name": "authMode",
         "type": "radio",
+        "name": "authMode",
         "label": "Authentication",
-        "help": "**Basic:** Authenticate with username and password.  \n**Anonymous access:** No authentication required",
         "defaultValue": "basic",
         "validation": {
             "required": true
         },
         "options": [
             {
-                "label": "Basic",
+                "label": "Username and password",
                 "value": "basic"
             },
             {
-                "label": "Anonymous access",
+                "label": "API key (OpenSearch 3.7 and later)",
+                "value": "apiKey"
+            },
+            {
+                "label": "No authentication",
                 "value": "none"
             }
-
         ]
     },
     {
@@ -34,25 +42,105 @@
         },
         "fields": [
             {
+                "type": "markdown",
+                "name": "httpsNoteBasic",
+                "content": "Use an `https://` **Instance URL** with credentials. Over `http://` they are sent unencrypted."
+            },
+            {
                 "type": "text",
                 "name": "basicAuthUsername",
                 "label": "Username",
-                "validation": { "required": true },
-                "placeholder": "Enter a username"
+                "placeholder": "Enter the OpenSearch username",
+                "validation": {
+                    "required": true
+                }
             },
             {
                 "type": "password",
                 "name": "basicAuthPassword",
                 "label": "Password",
-                "validation": { "required": true },
-                "placeholder": "Enter a password"
+                "placeholder": "Enter the OpenSearch password",
+                "validation": {
+                    "required": true
+                }
             }
         ]
     },
     {
-        "type": "checkbox",
-        "name": "ignoreCertificateErrors",
-        "label": "Ignore certificate errors",
-        "help": "Ignore certificate errors when connecting to an OpenSearch instance with a self-signed certificate"
+        "type": "fieldGroup",
+        "visible": {
+            "authMode": "apiKey"
+        },
+        "fields": [
+            {
+                "type": "markdown",
+                "name": "httpsNoteApiKey",
+                "content": "Use an `https://` **Instance URL** with credentials. Over `http://` they are sent unencrypted."
+            },
+            {
+                "type": "password",
+                "name": "apiKey",
+                "label": "API key",
+                "placeholder": "os_xxxxxxxxxxxxxxxxxxxxxxxx",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
+    },
+    {
+        "type": "toggle",
+        "name": "indexOtelServices",
+        "label": "Import OpenTelemetry services",
+        "help": "Imports each service found in OpenTelemetry logs as an object, for service-level log dashboards. See the plugin documentation for supported log layouts."
+    },
+    {
+        "type": "fieldGroup",
+        "visible": {
+            "indexOtelServices": "true"
+        },
+        "fields": [
+            {
+                "type": "text",
+                "name": "otelLogIndexPattern",
+                "label": "Log index pattern",
+                "placeholder": "ss4o_logs-*,otel-logs-*",
+                "defaultValue": "ss4o_logs-*,otel-logs-*",
+                "help": "Accepts comma-separated index names or wildcard patterns. The default covers the OpenTelemetry Collector OpenSearch exporter's standard index name and the common otel-logs naming.",
+                "validation": {
+                    "required": true
+                }
+            },
+            {
+                "type": "text",
+                "name": "otelServiceField",
+                "label": "Service field",
+                "placeholder": "resource.service.name.keyword",
+                "defaultValue": "resource.service.name.keyword",
+                "validation": {
+                    "required": true
+                }
+            },
+            {
+                "type": "text",
+                "name": "otelTimestampField",
+                "label": "Timestamp field",
+                "placeholder": "@timestamp",
+                "defaultValue": "@timestamp",
+                "validation": {
+                    "required": true
+                }
+            },
+            {
+                "type": "text",
+                "name": "otelSeverityField",
+                "label": "Severity number field",
+                "placeholder": "severity.number",
+                "defaultValue": "severity.number",
+                "validation": {
+                    "required": true
+                }
+            }
+        ]
     }
 ]

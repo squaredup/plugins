@@ -1,0 +1,199 @@
+{
+    "name": "devices",
+    "displayName": "Devices",
+    "description": "Host inventory with platform, sensor, network, group membership and policy assignment detail, one row per device",
+    "tags": [
+        "Security",
+        "Hosts"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/devices/combined/devices/v1",
+        "getArgs": [
+            {
+                "key": "sort",
+                "value": "device_id.asc"
+            },
+            {
+                "key": "fields",
+                "value": "device_id,hostname,platform_name,os_version,product_type_desc,agent_version,status,reduced_functionality_mode,first_seen,last_seen,local_ip,external_ip,mac_address,machine_domain,site_name,serial_number,system_manufacturer,system_product_name,groups,tags,device_policies"
+            },
+            {
+                "key": "filter",
+                "value": "{{ (typeof scope === 'undefined' || !scope ? [] : [ [\"device_id\", scope.filter(o => (typeof o.type === 'string' ? o.type : JSON.stringify(o)).indexOf('Host Group') < 0)], [\"groups\", scope.filter(o => (typeof o.type === 'string' ? o.type : JSON.stringify(o)).indexOf('Host Group') >= 0)] ].filter(p => p[1].length).map(p => p[0] + \":[\" + p[1].map(o => \"'\" + String([].concat(o.rawId !== undefined ? o.rawId : (o.sourceId || o.id))[0]).split('~').pop() + \"'\").join(\",\") + \"]\")).join(\",\") || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "meta.pagination.next"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "resources",
+        "expandInnerObjects": true,
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/falconApiError.js"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Host or Host Group (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "CrowdStrike Host",
+                        "CrowdStrike Host Group"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "device_id",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "hostname",
+            "displayName": "Hostname",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "platform_name",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "os_version",
+            "displayName": "OS Version",
+            "shape": "string"
+        },
+        {
+            "name": "product_type_desc",
+            "displayName": "Product Type",
+            "shape": "string"
+        },
+        {
+            "name": "agent_version",
+            "displayName": "Sensor Version",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Containment Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "normal"
+                        ],
+                        "warning": [
+                            "containment_pending",
+                            "lift_containment_pending"
+                        ],
+                        "error": [
+                            "contained"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "reduced_functionality_mode",
+            "displayName": "Reduced Functionality Mode",
+            "shape": "string"
+        },
+        {
+            "name": "first_seen",
+            "displayName": "First Seen",
+            "shape": "date"
+        },
+        {
+            "name": "last_seen",
+            "displayName": "Last Seen",
+            "shape": "date"
+        },
+        {
+            "name": "local_ip",
+            "displayName": "Local IP",
+            "shape": "string"
+        },
+        {
+            "name": "external_ip",
+            "displayName": "External IP",
+            "shape": "string"
+        },
+        {
+            "name": "mac_address",
+            "displayName": "MAC Address",
+            "shape": "string"
+        },
+        {
+            "name": "machine_domain",
+            "displayName": "Domain",
+            "shape": "string"
+        },
+        {
+            "name": "site_name",
+            "displayName": "Site",
+            "shape": "string"
+        },
+        {
+            "name": "serial_number",
+            "displayName": "Serial Number",
+            "shape": "string"
+        },
+        {
+            "name": "system_manufacturer",
+            "displayName": "Manufacturer",
+            "shape": "string"
+        },
+        {
+            "name": "system_product_name",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "groups",
+            "displayName": "Host Group IDs",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tags",
+            "displayName": "Tags",
+            "shape": "string"
+        },
+        {
+            "name": "device_policies.prevention.applied",
+            "displayName": "Prevention Policy Applied",
+            "shape": "boolean"
+        },
+        {
+            "name": "device_policies.sensor_update.applied",
+            "displayName": "Sensor Update Policy Applied",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,234 @@
+{
+    "name": "remoteSessions",
+    "displayName": "Remote Sessions",
+    "description": "Remote terminal, tunnel and remote browser sessions opened to devices, with user, status and duration",
+    "tags": [
+        "Audit",
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/entity/audit",
+        "getArgs": [
+            {
+                "key": "filter[modifiedAfter]",
+                "value": "{{ timeframe.start }}"
+            },
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || []).map((o) => String(o.value).trim()).join(',') || null) }}"
+            },
+            {
+                "key": "filter[category]",
+                "value": "{{ (typeof category !== 'undefined' && category) ? category : null }}"
+            },
+            {
+                "key": "filter[status]",
+                "value": "{{ (typeof status !== 'undefined' && status) ? status : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "remoteSessions.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "category",
+            "label": "Session type",
+            "options": [
+                {
+                    "value": "terminal",
+                    "label": "Terminal"
+                },
+                {
+                    "value": "tunnel",
+                    "label": "Tunnel"
+                },
+                {
+                    "value": "remoteBrowser",
+                    "label": "Remote browser"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "status",
+            "label": "Status",
+            "options": [
+                {
+                    "value": "initiated",
+                    "label": "Initiated"
+                },
+                {
+                    "value": "created",
+                    "label": "Created"
+                },
+                {
+                    "value": "closed",
+                    "label": "Closed"
+                },
+                {
+                    "value": "failed",
+                    "label": "Failed"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Audit ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "dateStarted",
+            "displayName": "Started",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "user",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "category",
+            "displayName": "Session type",
+            "shape": "string",
+            "formatExpression": "{{ ({ terminal: 'Terminal', tunnel: 'Tunnel', remoteBrowser: 'Remote browser' })[$['category']] || $['category'] }}"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "sourceId": "deviceId",
+            "sourceType": "Device"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "closed",
+                            "created"
+                        ],
+                        "warning": [
+                            "initiated"
+                        ],
+                        "error": [
+                            "failed"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": [
+                "seconds",
+                {
+                    "formatDuration": true
+                }
+            ]
+        },
+        {
+            "name": "direction",
+            "displayName": "Direction",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "cause",
+            "displayName": "Cause",
+            "shape": "string"
+        },
+        {
+            "name": "details",
+            "displayName": "Details",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "lastActive",
+            "displayName": "Last active",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true,
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "dateStarted",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "matches": "none"
+}

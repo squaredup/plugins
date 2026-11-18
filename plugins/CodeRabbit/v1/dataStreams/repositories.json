@@ -1,0 +1,32 @@
+{
+    "name": "repositories",
+    "displayName": "Repositories",
+    "description": "Repositories CodeRabbit records for an organization, with installation status",
+    "tags": ["Repository"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/organizations/{{object.codeRabbitId}}/repositories",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "100" },
+            "in": { "realm": "payload", "path": "next_cursor" },
+            "out": { "realm": "queryArg", "path": "cursor" }
+        },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.message" },
+        "postRequestScript": "repositories.js"
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Organization"] } },
+    "metadata": [
+        { "name": "repository_name", "displayName": "Repository", "shape": "string", "role": "label" },
+        { "name": "repository_id", "displayName": "Repository ID", "shape": "string", "role": "id", "visible": false },
+        { "name": "private", "displayName": "Private", "shape": "boolean" },
+        { "name": "is_installed", "displayName": "Installed", "shape": "boolean" },
+        { "name": "group_path", "displayName": "Group path", "shape": "string" },
+        { "name": "organizationName", "displayName": "Organization", "shape": "string" },
+        { "name": "organizationId", "displayName": "Organization ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": ["none"],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

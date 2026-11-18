@@ -13,7 +13,11 @@
         "getArgs": [
             {
                 "key": "fields",
-                "value": "id,display,display_url,status,role,device_type,platform,site,location,rack,position,face,serial,asset_tag,tenant,primary_ip,oob_ip,cluster,parent_device,description,created,last_updated,custom_fields"
+                "value": "id,display,display_url,status,role,device_type,platform,site,location,rack,position,face,serial,asset_tag,tenant,primary_ip,oob_ip,cluster,parent_device,description,created,last_updated,tags,custom_fields"
+            },
+            {
+                "key": "id",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length) ? device.map(o => [].concat(o.rawId)[0]) : null }}"
             },
             {
                 "key": "site_id",
@@ -26,6 +30,10 @@
             {
                 "key": "role",
                 "value": "{{ (typeof role !== 'undefined' && role && role.length) ? [].concat(role).flatMap(r => (r && typeof r === 'object') ? [r.value] : String(r).split(',')).map(r => String(r).trim()).filter(Boolean) : null }}"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
             }
         ],
         "paging": {
@@ -53,6 +61,19 @@
     },
     "matches": "none",
     "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
         {
             "type": "objects",
             "name": "site",
@@ -88,6 +109,19 @@
             "data": {
                 "source": "dataStream",
                 "dataStreamName": "deviceRoles",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
                 "dataSourceConfig": {}
             }
         }
@@ -259,6 +293,21 @@
             "shape": "number",
             "computed": true,
             "valueExpression": "{{ typeof $['last_updated'] === 'string' && $['last_updated'] ? Math.floor((Date.now() - new Date($['last_updated']).getTime()) / 86400000) : null }}"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
         },
         {
             "name": "display_url",

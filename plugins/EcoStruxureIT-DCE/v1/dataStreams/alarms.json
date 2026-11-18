@@ -1,15 +1,16 @@
 {
     "name": "alarms",
     "displayName": "Active Alarms",
-    "description": "Currently active alarms, optionally filtered by device",
+    "description": "Currently active alarms, optionally filtered by device or device group",
     "tags": [
         "Alerts",
-        "Device"
+        "Device",
+        "Device Group"
     ],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
-        "endpointPath": "v1/alarms",
+        "endpointPath": "{{ typeof deviceGroup !== 'undefined' && Array.isArray(deviceGroup) && deviceGroup.length === 1 ? 'v1/deviceGroups/' + encodeURIComponent([].concat(deviceGroup[0].rawId)[0]) + '/alarms' : 'v1/alarms' }}",
         "postRequestScript": "alarms.js",
         "errorHandling": {
             "type": "script",
@@ -30,6 +31,19 @@
                     ]
                 }
             }
+        },
+        {
+            "type": "objects",
+            "name": "deviceGroup",
+            "label": "Device group (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device Group"
+                    ]
+                }
+            }
         }
     ],
     "metadata": [
@@ -38,6 +52,16 @@
             "displayName": "Alarm",
             "shape": "string",
             "role": "label"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "shape": "string"
         },
         {
             "name": "severityText",
@@ -86,13 +110,6 @@
             "objectPropertyPath": "name"
         },
         {
-            "name": "sensorName",
-            "displayName": "Sensor",
-            "sourceId": "sensorGuid",
-            "sourceType": "Sensor",
-            "objectPropertyPath": "name"
-        },
-        {
             "name": "recommendedAction",
             "displayName": "Recommended Action",
             "shape": "string"
@@ -135,6 +152,8 @@
         {
             "name": "deviceGuid",
             "displayName": "Device ID",
+            "sourceId": "deviceGuid",
+            "sourceType": "Device",
             "shape": "string",
             "visible": false
         },

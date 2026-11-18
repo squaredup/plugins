@@ -1,0 +1,171 @@
+{
+    "name": "components",
+    "displayName": "Components",
+    "description": "Hardware components (CPUs, disks, fans, memory, power supplies, controllers and system boards) with their current health",
+    "tags": [
+        "Inventory",
+        "Hardware",
+        "Status"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "inventory/component/info",
+        "getArgs": [
+            {
+                "key": "tenants",
+                "value": "{{ (typeof tenant !== 'undefined' && tenant && tenant.length) ? tenant.flatMap((o) => o.rawId).join(',') : ((dataSource.tenantScope === 'selected' && dataSource.tenantIds || []).map((o) => String(o.value).trim()).join(',') || null) }}"
+            },
+            {
+                "key": "filter[deviceId]",
+                "value": "{{ (typeof device !== 'undefined' && device && device.length === 1 ? device.flatMap((o) => o.rawId)[0] : null) }}"
+            },
+            {
+                "key": "filter[currentStatus]",
+                "value": "{{ (typeof currentStatus !== 'undefined' && currentStatus) ? currentStatus : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "components.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "device",
+            "label": "Device(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Device"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "currentStatus",
+            "label": "Status",
+            "options": [
+                {
+                    "value": "ok",
+                    "label": "OK"
+                },
+                {
+                    "value": "degraded",
+                    "label": "Degraded"
+                },
+                {
+                    "value": "failed",
+                    "label": "Failed"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Component ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "shape": "string",
+            "sourceId": "deviceId",
+            "sourceType": "Device"
+        },
+        {
+            "name": "currentStatus",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "ok"
+                        ],
+                        "warning": [
+                            "degraded"
+                        ],
+                        "error": [
+                            "failed"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "componentType",
+            "displayName": "Type",
+            "shape": "string",
+            "formatExpression": "{{ ({ cpu: 'CPU', powerSupply: 'Power supply', storageController: 'Storage controller', systemBoard: 'System board' })[$['componentType']] || ($['componentType'] || '').replace(/^./, (c) => c.toUpperCase()) }}"
+        },
+        {
+            "name": "lastModified",
+            "displayName": "Last modified",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "deviceId",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "link",
+            "displayName": "Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in Auvik"
+                }
+            ]
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}

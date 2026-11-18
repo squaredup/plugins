@@ -1,0 +1,147 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit configuration. The review rules themselves live in REVIEW.md so
+# that humans, AI coding agents and CodeRabbit all work from one source; keep
+# this file to settings and to pointers into that document.
+language: en-GB
+tone_instructions: >-
+  Be concise and neutral. Lead with the impact on the plugin user. Prefer one
+  comment listing every affected file over one comment per file.
+
+reviews:
+  profile: chill
+  high_level_summary: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false # CODEOWNERS already routes reviews
+  poem: false
+  in_progress_fortune: false
+
+  # Approve once the latest commit is reviewed, its threads are resolved,
+  # pre-merge checks pass and merge risk is low. CodeRabbit also requests
+  # changes while blocking findings are open. It is not a code owner, so it
+  # does not stand in for a CODEOWNERS review.
+  auto_approvals:
+    enabled: true
+    max_merge_risk: low
+    # Authors can't use "@coderabbitai approve" on their own PRs.
+    allow_author_approval: false
+    overrides:
+      # Never approve changes to the reviewer's own rules, CI, or the agent
+      # skills that outside users install.
+      - paths:
+          - ".coderabbit.yaml"
+          - "REVIEW.md"
+          - "AGENTS.md"
+          - "CLAUDE.md"
+          - ".claude/**"
+          - ".github/**"
+        enabled: false
+  merge_risk_instructions: |
+    Higher risk:
+    - Changes to a plugin that already exists on main that remove or rename
+      data streams, source types, object IDs or UI fields, since they break
+      customers' dashboards or force a reimport.
+    - Changes to authentication: preRequest.js, OAuth or token handling,
+      base.config headers and URL patterns.
+    - Import changes (indexDefinitions, import streams, pageSize), which can
+      fail or overload a customer's import.
+    - Anything that sends credentials or tenant data somewhere new.
+    Lower risk:
+    - A new plugin, which affects no existing customer.
+    - Dashboard layout, wording, README and help text changes.
+    - A version bump with a small, contained fix.
+
+  auto_review:
+    enabled: true
+    drafts: true
+    # Plugins often go through many small review rounds; the default of 5
+    # left final commits unreviewed on several PRs.
+    auto_pause_after_reviewed_commits: 15
+
+  path_instructions:
+    - path: "plugins/**"
+      instructions: |
+        Apply REVIEW.md, including the "How to review" and "Platform facts"
+        sections. Before asking for a version bump, check whether
+        plugins/<Name>/v<N>/metadata.json is an added file in this PR. If it
+        is, the plugin is new: it must be <N>.0.0 and needs no bump.
+        .claude/skills/build-plugin/references/ is the authority on platform
+        behaviour (shapes, paging, timeframes, imports, dashboards). Check it
+        before claiming a field, shape or value is unsupported.
+        Do not report Biome's "Illegal return statement" on preRequest.js or
+        on scripts under dataStreams/scripts/: the platform runs each script
+        inside a function, so a top-level return is valid.
+    - path: "plugins/**/dataStreams/**"
+      instructions: |
+        Check scripts, paging, timeframes and capped results against
+        .claude/skills/build-plugin/references/data-streams.md, in particular
+        its warnings on per-page post-request scripts, timeframe bounds and
+        APIs that cap their results.
+    - path: "plugins/**/defaultContent/**"
+      instructions: |
+        Check tiles against .claude/skills/build-plugin/references/oob-content.md
+        (Dashboard rules, dataSourceConfig and Templating tokens) and the
+        SmartViz notes in REVIEW.md's Platform facts. Flag any {{...}} that
+        is not a templating token and not wrapped in {{{{raw}}}}.
+    - path: ".claude/skills/**"
+      instructions: |
+        These are instructions for AI agents, not plugin files. Do not apply
+        plugin rules (versioning, CODEOWNERS, one plugin per PR) here. Flag
+        guidance that is wrong, contradicts REVIEW.md or another reference, or
+        copies an explanation found in another reference. REVIEW.md restates
+        rules as a short reviewer checklist on purpose; do not flag that
+        overlap. AGENTS.md says which file is authoritative for each topic.
+
+  pre_merge_checks:
+    docstrings:
+      mode: "off" # plugins are JSON plus small scripts; coverage is meaningless here
+    description:
+      mode: "off" # replaced by the template check below
+    custom_checks:
+      - name: "PR template"
+        mode: "warning"
+        instructions: |
+          The PR description must follow one of the templates in
+          .github/PULL_REQUEST_TEMPLATE/: "Add a new plugin", "Change to an
+          existing plugin" or "Miscellaneous change". Pass only if the body
+          contains that template's section headings. For "Add a new plugin"
+          the "Test plan" section, and for "Change to an existing plugin" the
+          "Testing" section, must also have real content. "Miscellaneous
+          change" has no testing section, so do not require one. Extra
+          sections the author adds are fine. "Miscellaneous change" is for
+          PRs that do not add or change a plugin: if files under plugins/
+          change, fail it unless the body declares a repository-wide change
+          (for example, removing one kind of file from every plugin); CI's
+          scope check will still fail such a PR, and a maintainer merges past
+          it. Fail if
+          the body is free text, or is still the template picker from
+          .github/pull_request_template.md.
+
+  tools:
+    # Biome stays on (the default) for its script and duplicate-key checks.
+    # Its "Illegal return statement" false positive on scripts is
+    # suppressed by the plugins/** path instruction above.
+    # SkillSpector stays on too: outside users install the skills in
+    # .claude/skills/, so prompt-injection checks are worth some noise.
+    # LanguageTool's grammar suggestions cut across the REVIEW.md wording
+    # rules.
+    languagetool:
+      enabled: false
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "REVIEW.md"
+      - "AGENTS.md"
+      - ".claude/skills/build-plugin/references/*.md"
+  learnings:
+    scope: local
+    # Several learnings saved from single PRs contradicted REVIEW.md. Give
+    # maintainers a week to reject a learning before it applies.
+    approval_delay: 7

@@ -58,6 +58,11 @@ So the rule is **push it down**: if the API can group/filter/sort, let it; other
 
 The `cost` example below does exactly this: its optional `groupBy` `choiceChips` param **is** layer-1 push-down.
 
+**Filter and count in the API when the API caps its results.** Check which kind of cap an endpoint has:
+
+- **A cap on the total result** (e.g. a search that never returns more than 2,000 rows) can't be paged past. A count of the rows that came back, or a filter applied in the tile or a script after the request, silently undercounts: one shipped plugin showed 303 of 601 SLA breaches this way. The filter or count has to be an API parameter.
+- **A cap per page** is recovered by [paging](#pagination), provided the endpoint honours its paging parameters.
+
 ### Anti-pattern: five "Cost by X" streams
 
 A shipped plugin has five cost streams — `costByProject`, `costByService`, `costDailyTimeline`, `projectCosts`, `projectCostTimeline`. All five issue the **identical** request to `/v1/billing/charges` (same `getArgs`), and each `postRequestScript` does the same thing: parse the NDJSON, filter to `ChargeCategory === 'Usage'`, then group-and-sum by a different key (project / service / day) — two of them additionally filtering to a scoped project. They differ **only** by group key and scope, which is the "consolidate" column above.
@@ -254,7 +259,7 @@ result = scoped.map((r) => ({
 
     > ⚠️ Never mention dashboards, tiles, or import — every stream ends up in a dashboard somewhere, so saying so adds no information. This includes rephrasings like "used for import", "used by the X tile", "powers the X dashboard", "for monitoring X".
 
-- `tags` — required; title case (e.g. `"User"`, `"Security"`, `"Analytics"`). Keep to a small, meaningful set, reuse existing tags from other plugins/data streams. Do not use the plugin name as a tag.
+- `tags` — required on most streams; title case (e.g. `"User"`, `"Security"`, `"Analytics"`). Tags group related streams in the tile editor, so choose them across the whole plugin: not one tag shared by every stream, and not many tags that each cover a single stream. Reuse existing tags from other plugins/data streams where it makes sense. Do not use the plugin name as a tag.
 
 ---
 
@@ -387,6 +392,8 @@ Shows an **Apply** button instead of running on every config change. Use for exp
 ## Pagination
 
 The `paging` block in `config` controls how SquaredUp fetches multiple pages.
+
+Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page until the page cap and imports duplicates. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
 
 **No paging:**
 
@@ -528,6 +535,8 @@ none
 
 `none` is only valid when `supportsNoneTimeframe` is set (see below).
 
+**Apply both ends of the range.** A stream that filters by timeframe must pass both the start and the end to the API (or clamp to both in its script). Filtering only on the start, or looping up to now instead of the end, looks right for "last 7 days" but over-returns for closed windows such as `lastMonth` or `lastQuarter`.
+
 JSON-only timeframe properties (not settable via the Save as data stream modal):
 
 ```json
@@ -578,7 +587,7 @@ Always use `displayName` — column names in scripts are often terse API field n
 - **Explicit set only**: list each column; unlisted columns are hidden.
 - **Mix**: list specific columns with shapes/roles, then add the pattern for the rest.
 
-**Type inference**: SquaredUp infers column types from the JS primitive returned. Return the correct primitive type from your script — don't coerce to string. Declared `shape` overrides inference.
+**Type inference**: SquaredUp infers column types from the JS primitive returned. Return the correct primitive type from your script — don't coerce to string. Declared `shape` overrides inference. A list is the exception — it is never inferred; an array is serialised to a JSON string unless the column declares the `array` shape (see [List columns](#list-columns-array-shape)).
 
 ### Shapes
 
@@ -626,7 +635,13 @@ _Special_
 | `"guid"`       | GUID                                                                                        |
 | `"customunit"` | Custom unit label. Options: `prefix`, `separator`                                           |
 
-**Array form** — use when you need formatting options:
+_List_
+
+| Shape     | Notes                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| `"array"` | A list of values. Options: `itemShape` (any shape above). See [List columns](#list-columns-array-shape) |
+
+**With options** — use the `[name, options]` form when you need formatting options:
 
 ```json
 { "name": "price", "shape": ["number", { "decimalPlaces": 2 }] }
@@ -635,6 +650,38 @@ _Special_
 { "name": "health", "shape": ["state", { "map": { "success": ["ok","active"], "error": ["failed","down"], "warning": ["degraded"] } }] }
 { "name": "cost", "shape": ["currency", { "code": "jpy" }] }
 ```
+
+### List columns (`array` shape)
+
+When a field holds several values — tags, topics, IP addresses, environments — and should stay a list, declare the `array` shape:
+
+```json
+{ "name": "topics", "displayName": "Topics", "shape": ["array", { "itemShape": "string" }] }
+{ "name": "ports", "displayName": "Ports", "shape": ["array", { "itemShape": ["number", { "thousandsSeparator": false }] }] }
+{ "name": "seenAt", "displayName": "Seen at", "shape": ["array", { "itemShape": "date" }] }
+```
+
+Without it the platform serialises the array to a JSON string (`"[\"devops\",\"cli\"]"`). Don't work around that by joining to a comma-separated string or adding a display twin of the column: one list column feeds table display, tile filtering, the import and `objectPropertyPath` read-back.
+
+**`itemShape`** takes any shape from the tables above, in either form: a name (`"string"`, `"number"`, `"boolean"`, `"date"`, `"url"`, `"state"`, `"bytes"`, `"seconds"`, `"percent"`, …) or `[name, options]`. Each member is converted to and formatted as that shape. `"shape": "array"` with no `itemShape` infers it from the first non-null member. Declare it anyway, so the column's type doesn't depend on whichever row came first.
+
+**The value** is a real JS array of primitives: the raw API array via `pathToData`, or an array your script builds (split a delimited string here, rather than in the tile). A serialised JSON array string, for example from a `valueExpression`, is parsed back into members too.
+
+| Member                                         | Result                                                                                                 |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `null`                                         | Dropped                                                                                                |
+| An object, alongside primitives                | Dropped                                                                                                |
+| Every member an object (`[{ "name": "a" }]`)   | The whole cell stays a JSON string. Map to primitives in the script first: `tags.map((t) => t.name)`   |
+| Not convertible (`"abc"` with a `number` item) | The whole cell becomes no data, not a shorter list                                                     |
+| Empty list                                     | An empty list, rendered blank                                                                          |
+
+**Downstream behaviour:**
+
+- **Display:** the members are joined with `, `.
+- **Tile filters** test each member. `contains` and `equals` keep a row if any member matches, and a negated filter drops a row if any member matches. Numeric and date comparisons need a `number` or `date` `itemShape`. They are refused on a list of strings, just as on a string column.
+- **Not a scalar:** a list column is never picked as a tile's value column, so scalar, gauge and bar tiles still need a separate numeric column.
+- **Import:** a list column mapped into `objectMapping.properties` is written as a multi-value graph property. See [index-defs.md](index-defs.md).
+- **Read-back:** an `objectPropertyPath` column that reads a list property must declare the `array` shape as well. Without it you get only the first value. See [Object property lookup](#object-property-lookup).
 
 ### Roles
 
@@ -738,13 +785,21 @@ Replace a raw ID column with a human-readable property from a related indexed ob
 // Combine properties
 { "name": "AgentLabel", "sourceId": "AgentID", "sourceType": "my-agent",
   "objectPropertyPath": "name", "valueExpression": "{{ object.name }} ({{ object.company }})" }
+
+// Read back a multi-value property — the array shape returns every value, not just the first
+{ "name": "repoTopics", "displayName": "Repository topics", "sourceId": "repoId", "sourceType": "Repository",
+  "objectPropertyPath": "topics", "shape": ["array", { "itemShape": "string" }] }
 ```
+
+Appending a related object's list property this way lets tiles filter and group a stream's rows by it (e.g. issues filtered by their repository's topics). See [List columns](#list-columns-array-shape).
 
 ---
 
 ## Post-request scripts
 
-Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects. (For a datasource-level script that runs _before_ every request — custom auth flows — see [Pre-request scripts](metadata.md#pre-request-scripts-custom-auth-flows) in metadata.md.)
+Scripts run after the HTTP response is received. Input is `data` (parsed JSON body). Set `result` to an array of row objects.
+
+> ⚠️ **On a paged stream the script runs once per page and sees only that page.** SquaredUp concatenates each page's `result`. Anything that needs the whole result set is wrong once there is a second page: de-duplicating, pairing related records (an alert and the event that clears it), totals, counts or unions. Turning paging on does not fix this, it causes it. Either derive the value from data within each record (one plugin used each alert's own link to its clearing event instead of searching the page for it), push the work to the API, or leave it to the tile's `group`/`aggregate`, which runs on the combined rows. (For a datasource-level script that runs _before_ every request — custom auth flows — see [Pre-request scripts](metadata.md#pre-request-scripts-custom-auth-flows) in metadata.md.)
 
 ### Wiring a script to a stream
 
@@ -818,7 +873,7 @@ Renaming, flattening single-level nesting, value coercion, adding constant colum
 
 ### Available globals
 
-Scripts have access to `data`, `response` (the raw HTTP response — `.status`, `.headers`, `.body`), `context`, and **lodash** (`_`):
+Scripts have access to `data`, `response` (the raw HTTP response — `.status`, `.headers`, `.body`), `context`, `fetch`, and **lodash** (`_`). `fetch` reaches only the base URL's domain unless the plugin lists more hosts in `allowedScriptHosts` — see [Fetching other hosts](metadata.md#fetching-other-hosts).
 
 ```javascript
 // dataStreams/scripts/myStream.js
@@ -878,6 +933,8 @@ context.config; // current stream parameters (values set by the user in the tile
 Return actual JS number primitives for numeric columns — returning `"29.19"` (string) instead of `29.19` (number) causes the column to show as String type.
 
 ### Deduplication pattern
+
+This de-duplicates within one response. On a paged stream it only removes duplicates within each page (see the warning under [Post-request scripts](#post-request-scripts)).
 
 ```javascript
 // dataStreams/scripts/myStream.js

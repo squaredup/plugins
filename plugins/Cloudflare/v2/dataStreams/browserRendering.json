@@ -1,0 +1,95 @@
+{
+    "name": "browserRendering",
+    "displayName": "Browser Rendering",
+    "description": "Browser Rendering session count and duration for an account",
+    "tags": ["Compute", "AI"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){browserRenderingEventsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end},orderBy:[count_DESC]){count avg{avgConcurrentSessions} min{startTime: earliestBrowserStartTime} max{endTime: latestBrowserEndTime} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeHour' : 'date' }} sessionId {{breakdown}}}}}}}",
+            "variables": {
+                "accountTag": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlFlatRows.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Account"]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "breakdown",
+            "label": "Breakdown",
+            "required": true,
+            "defaultValue": "clientLibrary",
+            "options": [
+                { "value": "clientLibrary", "label": "Client Library" },
+                { "value": "recordingMode", "label": "Recording Mode" }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sessionId",
+            "displayName": "Session ID",
+            "shape": "string"
+        },
+        {
+            "name": "breakdown",
+            "displayName": "Breakdown",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "count",
+            "displayName": "Events",
+            "shape": "number"
+        },
+        {
+            "name": "durationMs",
+            "displayName": "Session Duration",
+            "computed": true,
+            "valueExpression": "{{ $['startTime'] && $['endTime'] ? new Date($['endTime']).getTime() - new Date($['startTime']).getTime() : null }}",
+            "shape": "milliseconds",
+            "role": "value"
+        },
+        {
+            "name": "avgConcurrentSessions",
+            "displayName": "Avg Concurrent Sessions",
+            "shape": "number"
+        },
+        {
+            "name": "startTime",
+            "displayName": "Session Start",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "endTime",
+            "displayName": "Session End",
+            "shape": "date",
+            "visible": false
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
+}

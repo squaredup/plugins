@@ -108,6 +108,7 @@ for (const post of posts) {
     }
 }
 
+const portal = String((context.dataSources && context.dataSources[0] && context.dataSources[0].baseUrl) || '').replace(/\/+$/, '');
 const latest = (list) => list.slice().sort((a, b) => (b.when || 0) - (a.when || 0))[0];
 const iso = (d) => (d ? d.toISOString() : undefined);
 
@@ -164,6 +165,9 @@ result = Array.from(byCloud.values()).map((row) => {
         incidentsLast30Days: incidents.filter((p) => p.when && p.when >= thirtyDaysAgo).length,
         lastIncident: iso(lastIncident && lastIncident.when),
         nextMaintenance: iso(nextMaintenance),
-        currentEventLink: driver ? driver.link : undefined
+        // Never left empty: the Blocks visualization's link mapping throws ("e.trim is not a
+        // function") on a row whose link cell is empty, so operational clouds link to their
+        // Cloud Status page instead.
+        currentEventLink: driver && driver.link ? driver.link : `${portal}/${row.cloud}/cloud-status`
     };
 });

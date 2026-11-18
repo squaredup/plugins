@@ -1,0 +1,131 @@
+{
+    "name": "hostsIndex",
+    "displayName": "Hosts (index)",
+    "description": "Lean host list used only to import Host objects",
+    "tags": [
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/devices/combined/devices/v1",
+        "getArgs": [
+            {
+                "key": "sort",
+                "value": "device_id.asc"
+            },
+            {
+                "key": "fields",
+                "value": "device_id,hostname,platform_name,os_version,product_type_desc,agent_version,status,first_seen,last_seen,local_ip,external_ip,site_name,groups"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "meta.pagination.next"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
+        },
+        "pathToData": "resources"
+    },
+    "matches": "none",
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "device_id",
+            "displayName": "Device ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "hostname",
+            "displayName": "Hostname",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "platform_name",
+            "displayName": "Platform",
+            "shape": "string"
+        },
+        {
+            "name": "os_version",
+            "displayName": "OS Version",
+            "shape": "string"
+        },
+        {
+            "name": "product_type_desc",
+            "displayName": "Product Type",
+            "shape": "string"
+        },
+        {
+            "name": "agent_version",
+            "displayName": "Sensor Version",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Containment Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "normal"
+                        ],
+                        "warning": [
+                            "containment_pending",
+                            "lift_containment_pending"
+                        ],
+                        "error": [
+                            "contained"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "first_seen",
+            "displayName": "First Seen",
+            "shape": "date"
+        },
+        {
+            "name": "last_seen",
+            "displayName": "Last Seen",
+            "shape": "date"
+        },
+        {
+            "name": "local_ip",
+            "displayName": "Local IP",
+            "shape": "string"
+        },
+        {
+            "name": "external_ip",
+            "displayName": "External IP",
+            "shape": "string"
+        },
+        {
+            "name": "site_name",
+            "displayName": "Site",
+            "shape": "string"
+        },
+        {
+            "name": "groups",
+            "displayName": "Host Group IDs",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

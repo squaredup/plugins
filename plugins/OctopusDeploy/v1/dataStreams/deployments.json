@@ -1,0 +1,206 @@
+{
+    "name": "deployments",
+    "displayName": "Deployments",
+    "description": "Deployment history with project, environment, tenant, release, outcome and duration, for a space, project, environment or tenant (deployments completed within the timeframe)",
+    "tags": [
+        "Deployments"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "api/{{ object.rawId.startsWith('Spaces-') ? object.rawId : object.spaceId }}/reporting/deployments/xml",
+        "getArgs": [
+            {
+                "key": "fromCompletedTime",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "toCompletedTime",
+                "value": "{{timeframe.end}}"
+            },
+            {
+                "key": "projectId",
+                "value": "{{ object.rawId.startsWith('Projects-') ? object.rawId : null }}"
+            },
+            {
+                "key": "environmentId",
+                "value": "{{ object.rawId.startsWith('Environments-') ? object.rawId : null }}"
+            }
+        ],
+        "postRequestScript": "deployments.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Space",
+                "Project",
+                "Environment",
+                "Tenant"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "environmentName",
+            "displayName": "Environment",
+            "shape": "string"
+        },
+        {
+            "name": "tenantName",
+            "displayName": "Tenant",
+            "shape": "string"
+        },
+        {
+            "name": "channelName",
+            "displayName": "Channel",
+            "shape": "string"
+        },
+        {
+            "name": "releaseVersion",
+            "displayName": "Release",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['state'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Success"
+                        ],
+                        "error": [
+                            "Failed",
+                            "TimedOut"
+                        ],
+                        "warning": [
+                            "Canceled",
+                            "Cancelling"
+                        ],
+                        "unknown": [
+                            "Queued",
+                            "Executing"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "state",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "succeeded",
+            "displayName": "Success Rate",
+            "computed": true,
+            "valueExpression": "{{ $['state'] === 'Success' ? 100 : 0 }}",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "deployedBy",
+            "displayName": "Deployed By",
+            "shape": "string"
+        },
+        {
+            "name": "queueTime",
+            "displayName": "Queued",
+            "shape": "date"
+        },
+        {
+            "name": "startTime",
+            "displayName": "Started",
+            "shape": "date"
+        },
+        {
+            "name": "completedTime",
+            "displayName": "Completed",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "durationSeconds",
+            "displayName": "Duration",
+            "shape": "seconds"
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "environmentId",
+            "displayName": "Environment ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tenantId",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "releaseId",
+            "displayName": "Release ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "deploymentId",
+            "displayName": "Deployment ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "taskId",
+            "displayName": "Task ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "spaceId",
+            "displayName": "Space ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "projectId",
+            "sourceType": "Project",
+            "name": "projectName"
+        },
+        {
+            "sourceId": "environmentId",
+            "sourceType": "Environment",
+            "name": "environmentName"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter"
+    ]
+}

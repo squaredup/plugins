@@ -29,7 +29,8 @@ Read the relevant file rather than inferring conventions from nearby plugins:
 
 | Document | Authoritative for |
 | --- | --- |
-| [`REVIEW.md`](REVIEW.md) | Conventions for every file in a plugin — naming, metadata, `ui.json` fields, data streams, dashboards, docs. **Read it before editing anything under `plugins/`.** It is phrased for reviewers, but the same rules govern authoring. |
+| [`REVIEW.md`](REVIEW.md) | Conventions for every file in a plugin — naming, metadata, `ui.json` fields, data streams, dashboards, docs. **Read it before editing anything under `plugins/`.** It is phrased for reviewers, but the same rules govern authoring. Its *Platform facts* section lists SquaredUp behaviour that is easy to get wrong. |
+| [`.coderabbit.yaml`](.coderabbit.yaml) | CodeRabbit's review settings. The review rules stay in `REVIEW.md`; this file holds only settings and short pointers to it. |
 | [`.claude/skills/deploy-plugin/SKILL.md`](.claude/skills/deploy-plugin/SKILL.md) | CLI commands, `--json` output shapes, and versioning. |
 | [`.claude/skills/build-plugin/references/`](.claude/skills/build-plugin/references/) | Per-file depth: `metadata.md`, `ui.md`, `data-streams.md`, `index-defs.md`, `oob-content.md`, `readme.md`, `testing.md`. |
 | [`.github/PULL_REQUEST_TEMPLATE/`](.github/PULL_REQUEST_TEMPLATE/) | What a pull request must cover. Three templates: new plugin, change to an existing plugin, miscellaneous. |
@@ -43,7 +44,8 @@ Read the relevant file rather than inferring conventions from nearby plugins:
 plugins/<PluginName>/v<major>/    one folder per plugin, per major version
 .claude/skills/                   build-plugin, deploy-plugin, convert-dashboard
 .github/workflows/                validate, deploy and clean up PR plugins
-REVIEW.md                         plugin conventions
+REVIEW.md                         plugin conventions (also CodeRabbit's review rules)
+.coderabbit.yaml                  CodeRabbit settings
 ```
 
 ## Anatomy of a plugin folder
@@ -76,3 +78,12 @@ What each file is, in rough order of how universal it is:
 - **`main-deploy.yaml`** dispatches to `squaredup/plugins-automation` to release on merge.
 
 So validate locally before you push — CI runs the same command and will block the PR on the same errors.
+
+## Responding to CodeRabbit review comments
+
+CodeRabbit reviews every PR against `REVIEW.md`. Its comments include a "Prompt for AI agents" block, but don't apply it unchecked:
+
+- **Verify before applying.** If a finding conflicts with `REVIEW.md`, the build-plugin references, or what you saw in a live deployment, reply with the evidence instead of changing the code. CodeRabbit withdraws findings when shown live results.
+- **Apply the smallest fix.** Don't take on extra hardening the finding didn't ask for.
+- **Don't bump the version per review round.** The rules are in `REVIEW.md` under *Versioning*. A new plugin stays at `<N>.0.0`.
+- **Tell the maintainers when a rule is wrong.** If CodeRabbit repeatedly gets a platform fact wrong, propose an addition to *Platform facts* in `REVIEW.md` rather than relying on a CodeRabbit learning.

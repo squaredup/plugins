@@ -1,0 +1,750 @@
+{
+    "name": "Network",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [
+        "{{variables.[Auvik Network]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "contents": [
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "What kind of network this is, its scope, whether Auvik is scanning it, and which site it belongs to",
+                    "scope": {
+                        "scope": "{{scopes.[Auvik Networks]}}",
+                        "variable": "{{variables.[Auvik Network]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "timeframe": "none",
+                    "title": "Network Profile",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "networkType",
+                                        "renderer": {
+                                            "colors": {
+                                                "routed": "#6366f1",
+                                                "vlan": "#8b5cf6",
+                                                "wifi": "#14b8a6"
+                                            },
+                                            "defaultColor": "#6366f1",
+                                            "type": "badge"
+                                        },
+                                        "title": "Type"
+                                    },
+                                    {
+                                        "field": "scope",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Scope"
+                                    },
+                                    {
+                                        "field": "scanStatus",
+                                        "renderer": {
+                                            "type": "status"
+                                        },
+                                        "title": "Scanning"
+                                    },
+                                    {
+                                        "field": "description",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Description"
+                                    },
+                                    {
+                                        "field": "tenantName",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Site"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "d6dfdaf0-9b07-491b-978d-ff66d4e84a9e",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "network": {
+                                "scope": "{{scopes.[Auvik Networks]}}",
+                                "variable": "{{variables.[Auvik Network]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [
+                                [
+                                    "onlineStatus",
+                                    "uniqueValues"
+                                ],
+                                [
+                                    "onlineStatus[Expanded].rawState",
+                                    "uniqueValues"
+                                ]
+                            ]
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "Devices on this network by online status, with the total in the centre. Green is online, red is offline or unreachable",
+                    "timeframe": "none",
+                    "title": "Device Status",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "onlineStatus[Expanded].rawState_uniqueValues",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 70,
+                                "pieDonutCenterValue": "total",
+                                "pieLabels": "none",
+                                "piePadAngle": 2,
+                                "pieBorderRadius": 4,
+                                "labelFontSize": 16,
+                                "mappedColors": {
+                                    "online": "#22c55e",
+                                    "offline": "#ef4444",
+                                    "unreachable": "#b91c1c",
+                                    "lowerLayerDown": "#ef4444",
+                                    "dormant": "#f59e0b",
+                                    "testing": "#f59e0b",
+                                    "notPresent": "#475569",
+                                    "unknown": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "c6f2c488-71c5-463b-9161-e61b99c26204",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 2,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "entity": {
+                                "scope": "{{scopes.[Auvik Networks]}}",
+                                "variable": "{{variables.[Auvik Network]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "filter": {
+                            "filters": [
+                                {
+                                    "column": "status[Expanded].rawState",
+                                    "operation": "equals",
+                                    "value": "Open"
+                                }
+                            ],
+                            "multiOperation": "and"
+                        },
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "description": "Alerts raised on this network in the last 30 days that are still open",
+                    "timeframe": "last30days",
+                    "title": "Open Alerts",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "name",
+                                        "type": "nominal"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelText": "Open alerts",
+                                "scalarRowCount": true,
+                                "scalarValueColor": "#f59e0b"
+                            }
+                        }
+                    }
+                },
+                "h": 2,
+                "i": "3cd59198-f687-47a8-b16c-15caa1288f5b",
+                "moved": false,
+                "static": false,
+                "w": 1,
+                "x": 3,
+                "y": 0,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "network": {
+                                "scope": "{{scopes.[Auvik Networks]}}",
+                                "variable": "{{variables.[Auvik Network]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "name",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "description": "Every device on this network, coloured by its online status. Click a block to open the device in Auvik",
+                    "timeframe": "none",
+                    "title": "Device Health",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                },
+                                "link": {
+                                    "field": "link",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "onlineStatus",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "labelFontSize": 12,
+                                "secondaryFontSize": 10,
+                                "statusGridBlockGap": 4,
+                                "statusGridColumnsPerRow": 6,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{vendorName}}{{{{/raw}}}}",
+                                "statusGridLabelWrap": true
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "d7064c92-c535-45d2-84b0-2673dd73e6f2",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "network": {
+                                "scope": "{{scopes.[Auvik Networks]}}",
+                                "variable": "{{variables.[Auvik Network]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [
+                                [
+                                    "deviceType",
+                                    "uniqueValues"
+                                ]
+                            ]
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "description": "How many devices of each type Auvik has found on this network",
+                    "timeframe": "none",
+                    "title": "Device Types",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "deviceType_uniqueValues",
+                                    "title": "Device type",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "count",
+                                    "title": "Devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianColorRules": [
+                                    {
+                                        "color": "#8b5cf6",
+                                        "gte": 5
+                                    },
+                                    {
+                                        "color": "#6366f1",
+                                        "gte": 0
+                                    }
+                                ],
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "8854161d-777f-4579-b303-29d73b5bcbc2",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 0,
+                "y": 6,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "network": {
+                                "scope": "{{scopes.[Auvik Networks]}}",
+                                "variable": "{{variables.[Auvik Network]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "group": {
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ],
+                            "by": [
+                                [
+                                    "vendorName",
+                                    "uniqueValues"
+                                ]
+                            ]
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "description": "The hardware vendors behind the devices on this network",
+                    "timeframe": "none",
+                    "title": "Vendors",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "vendorName_uniqueValues",
+                                    "title": "Vendor",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "aggregate": "sum",
+                                    "field": "count",
+                                    "title": "Devices",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianColorRules": [
+                                    {
+                                        "color": "#0ea5e9",
+                                        "gte": 5
+                                    },
+                                    {
+                                        "color": "#14b8a6",
+                                        "gte": 0
+                                    }
+                                ],
+                                "cartesianHorizontal": true,
+                                "cartesianShowHorizontalGridLines": false,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                },
+                "h": 3,
+                "i": "83aff16d-b699-4cf0-979a-4fa101edb2c4",
+                "moved": false,
+                "static": false,
+                "w": 2,
+                "x": 2,
+                "y": 6,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "entity": {
+                                "scope": "{{scopes.[Auvik Networks]}}",
+                                "variable": "{{variables.[Auvik Network]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "detectedOn",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "description": "Alerts raised on this network in the last 30 days, newest first. Click a row to open the alert in Auvik",
+                    "timeframe": "last30days",
+                    "title": "Alerts on This Network",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity[Expanded].rawState",
+                                        "renderer": {
+                                            "colors": {
+                                                "Critical": "#ef4444",
+                                                "Emergency": "#b91c1c",
+                                                "Info": "#2563eb",
+                                                "Warning": "#d97706"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Severity",
+                                        "width": 110
+                                    },
+                                    {
+                                        "field": "name",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Alert"
+                                    },
+                                    {
+                                        "field": "entityName",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Affected"
+                                    },
+                                    {
+                                        "field": "status[Expanded].rawState",
+                                        "renderer": {
+                                            "colors": {
+                                                "Open": "#dc2626",
+                                                "Paused": "#64748b",
+                                                "Resolved": "#16a34a"
+                                            },
+                                            "type": "badge"
+                                        },
+                                        "title": "Status",
+                                        "width": 100
+                                    },
+                                    {
+                                        "field": "detectedOn",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Raised"
+                                    },
+                                    {
+                                        "field": "resolvedOn",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Cleared"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "Open": "rgba(239,68,68,0.08)"
+                                    },
+                                    "field": "status[Expanded].rawState"
+                                },
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "c269c1c0-fa55-43e3-a8a4-5652bb0f3d28",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 9,
+                "z": 0
+            },
+            {
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "dataSourceConfig": {
+                            "network": {
+                                "scope": "{{scopes.[Auvik Networks]}}",
+                                "variable": "{{variables.[Auvik Network]}}",
+                                "workspace": "{{workspaceId}}"
+                            }
+                        },
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "name",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "description": "Make, model, address and software of every device on this network. Click a row to open the device in Auvik",
+                    "timeframe": "none",
+                    "title": "Device Inventory",
+                    "variables": [
+                        "{{variables.[Auvik Network]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "onlineStatus",
+                                        "renderer": {
+                                            "showLabel": false,
+                                            "type": "status"
+                                        },
+                                        "title": "",
+                                        "width": 40
+                                    },
+                                    {
+                                        "field": "name",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Device"
+                                    },
+                                    {
+                                        "field": "deviceType",
+                                        "renderer": {
+                                            "colors": {
+                                                "unknown": "#475569"
+                                            },
+                                            "defaultColor": "#6366f1",
+                                            "type": "badge"
+                                        },
+                                        "title": "Type",
+                                        "width": 140
+                                    },
+                                    {
+                                        "field": "vendorName",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Vendor"
+                                    },
+                                    {
+                                        "field": "makeModel",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Model"
+                                    },
+                                    {
+                                        "field": "ipAddresses",
+                                        "renderer": {
+                                            "separator": ",",
+                                            "type": "tag-list"
+                                        },
+                                        "title": "IP addresses"
+                                    },
+                                    {
+                                        "field": "softwareVersion",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "title": "Software"
+                                    },
+                                    {
+                                        "field": "lastSeenTime",
+                                        "renderer": {
+                                            "relative": true,
+                                            "type": "date"
+                                        },
+                                        "title": "Last seen"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "colors": {
+                                        "error": "rgba(239,68,68,0.08)",
+                                        "warning": "rgba(245,158,11,0.08)"
+                                    },
+                                    "field": "onlineStatus"
+                                },
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                },
+                "h": 4,
+                "i": "c2592483-70e6-46e5-839f-4fdeb0d16db0",
+                "moved": false,
+                "static": false,
+                "w": 4,
+                "x": 0,
+                "y": 13,
+                "z": 0
+            }
+        ],
+        "version": 1
+    }
+}

@@ -1,0 +1,89 @@
+{
+    "name": "metricHistory",
+    "displayName": "Metric History",
+    "description": "Values of one service metric over time",
+    "tags": [
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "{{ ((L, S) => L.length && L.indexOf(S) < 0 ? 'get' : 'post')([].concat(object.serviceNames || []), typeof service === 'undefined' || !service ? 'CPU utilization' : service) }}",
+        "endpointPath": "{{ ((L, S) => L.length && L.indexOf(S) < 0 ? '/version' : '/domain-types/metric/actions/get/invoke')([].concat(object.serviceNames || []), typeof service === 'undefined' || !service ? 'CPU utilization' : service) }}",
+        "headers": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+        ],
+        "postBody": {
+            "time_range": {
+                "start": "{{timeframe.start.split('.')[0] + 'Z'}}",
+                "end": "{{timeframe.end.split('.')[0] + 'Z'}}"
+            },
+            "reduce": "average",
+            "site": "{{ ([].concat(object.hostLabels || []).map(String).find(l => l.indexOf('cmk/site:') === 0) || '').slice('cmk/site:'.length) || undefined }}",
+            "host_name": "{{object.rawId}}",
+            "service_description": "{{ typeof service === 'undefined' || !service ? 'CPU utilization' : service }}",
+            "type": "single_metric",
+            "metric_id": "{{ ((M, W) => M === 'util' && W ? 'util_numcpu_as_max' : M)(typeof metric === 'undefined' || !metric ? 'util' : metric, [].concat(object.hostLabels || []).indexOf('cmk/os_family:windows') >= 0) }}"
+        },
+        "postRequestScript": "metricHistory.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/checkmkError.js"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Host"
+            ]
+        }
+    },
+    "objectLimit": 10,
+    "ui": [
+        {
+            "type": "text",
+            "name": "service",
+            "label": "Service",
+            "defaultValue": "CPU utilization",
+            "placeholder": "CPU utilization",
+            "help": "The service name exactly as Checkmk shows it, e.g. `CPU load`, `Memory` or `Filesystem C:/`."
+        },
+        {
+            "type": "text",
+            "name": "metric",
+            "label": "Metric",
+            "defaultValue": "util",
+            "placeholder": "util",
+            "help": "The Checkmk metric ID, e.g. `util` (CPU utilization; Windows hosts use `util_numcpu_as_max`, which the plugin substitutes automatically), `load1` (CPU load), `mem_used_percent` (Memory) or `fs_used_percent` (Filesystem). Find IDs in Checkmk in the **Service Metrics** entry on the service's details page."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "hostName",
+            "displayName": "Host",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        }
+    ],
+    "timeframes": true
+}

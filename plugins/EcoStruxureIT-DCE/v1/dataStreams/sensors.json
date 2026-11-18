@@ -6,7 +6,7 @@
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
-        "endpointPath": "v1/devices/sensors",
+        "endpointPath": "{{ typeof device !== 'undefined' && Array.isArray(device) && device.length === 1 ? 'v1/devices/' + encodeURIComponent([].concat(device[0].rawId)[0]) + '/sensors' : 'v1/devices/sensors' }}",
         "postRequestScript": "sensors.js",
         "errorHandling": { "type": "script", "script": "errorHandling/dceError.js" }
     },
@@ -55,11 +55,13 @@
         }
     ],
     "metadata": [
-        { "sourceId": "guid", "sourceType": "Sensor", "name": "label", "displayName": "Sensor", "shape": "string", "role": "label" },
+        { "name": "label", "displayName": "Sensor", "shape": "string", "role": "label" },
+        { "name": "category", "displayName": "Category", "shape": "string" },
         { "name": "deviceName", "displayName": "Device", "sourceId": "deviceGuid", "sourceType": "Device", "objectPropertyPath": "name" },
         { "name": "numericValue", "displayName": "Value", "shape": "number", "role": "value" },
         { "name": "units", "displayName": "Units", "shape": "string", "role": "unitLabel" },
         { "name": "value", "displayName": "Reading", "shape": "string" },
+        { "name": "statusText", "displayName": "Status Text", "shape": "string" },
         {
             "name": "severityText",
             "displayName": "Status",
@@ -67,7 +69,7 @@
                 "state",
                 {
                     "map": {
-                        "success": ["Information", "Informational", "Normal", "OK", "None"],
+                        "success": ["Information", "Informational", "Normal", "OK", "Ok", "None"],
                         "warning": ["Warning"],
                         "error": ["Error", "Critical", "Failure"]
                     }
@@ -78,7 +80,7 @@
         { "name": "sensorType", "displayName": "Sensor Type", "shape": "string" },
         { "name": "location", "displayName": "Location", "shape": "string" },
         { "name": "guid", "displayName": "Sensor ID", "shape": "string", "role": "id", "visible": false },
-        { "name": "deviceGuid", "displayName": "Device ID", "shape": "string", "visible": false },
+        { "name": "deviceGuid", "displayName": "Device ID", "sourceId": "deviceGuid", "sourceType": "Device", "shape": "string", "visible": false },
         { "name": "rawValue", "displayName": "Raw Value", "shape": "string", "visible": false }
     ],
     "timeframes": false

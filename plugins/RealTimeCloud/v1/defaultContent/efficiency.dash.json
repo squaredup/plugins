@@ -1,0 +1,505 @@
+{
+    "name": "Efficiency",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "391d4afd-2a95-4785-8e0f-5612a5be2e48",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Data centre efficiency",
+                    "description": "PUE (power usage effectiveness, 1.0 is ideal) and WUE (litres of water per kWh) across regions that disclose them, latest disclosed year",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT ROUND(AVG(\"pue\"), 2) AS \"avgPue\", ROUND(MIN(\"pue\"), 2) AS \"bestPue\", ROUND(AVG(\"wue\"), 2) AS \"avgWue\", ROUND(MIN(\"wue\"), 2) AS \"bestWue\" FROM \"dataset\" WHERE \"isLatest\" = 1"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "avgPue",
+                                        "type": "quantitative",
+                                        "title": "Avg PUE"
+                                    },
+                                    {
+                                        "field": "bestPue",
+                                        "type": "quantitative",
+                                        "title": "Best PUE"
+                                    },
+                                    {
+                                        "field": "avgWue",
+                                        "type": "quantitative",
+                                        "title": "Avg WUE (L/kWh)"
+                                    },
+                                    {
+                                        "field": "bestWue",
+                                        "type": "quantitative",
+                                        "title": "Best WUE (L/kWh)"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a808cf91-59ca-4f75-a8e0-8f341ed10fae",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Avg PUE by provider",
+                    "description": "Mean PUE of regions that disclose it, latest disclosed year. Lower is better.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"provider\", ROUND(AVG(\"pue\"), 3) AS \"avgPue\" FROM \"dataset\" WHERE \"isLatest\" = 1 AND \"pue\" IS NOT NULL GROUP BY \"provider\" ORDER BY \"avgPue\""
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "provider",
+                                    "type": "nominal",
+                                    "title": "Provider"
+                                },
+                                "y": {
+                                    "field": "avgPue",
+                                    "type": "quantitative",
+                                    "title": "Avg PUE"
+                                }
+                            },
+                            "markLines": [
+                                {
+                                    "value": 1.2,
+                                    "label": "1.2",
+                                    "color": "#94A3B8"
+                                }
+                            ],
+                            "style": {
+                                "showLabels": true,
+                                "cartesianBarBorderRadius": 6,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianColorRules": [
+                                    {
+                                        "label": "Amazon Web Services",
+                                        "color": "#8B5CF6"
+                                    },
+                                    {
+                                        "label": "Google Cloud",
+                                        "color": "#38BDF8"
+                                    },
+                                    {
+                                        "label": "Microsoft Azure",
+                                        "color": "#1E3A8A"
+                                    }
+                                ],
+                                "cartesianYAxisMin": 1
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0e5e4560-7cb2-4663-bea5-956adc8fa451",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "10 highest water-use regions",
+                    "description": "WUE in litres of water per kWh, latest disclosed year. Green: 0.5 or less. Amber: up to 1.0. Red: over 1.0. Only AWS publishes regional WUE for its latest year.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"region\" || ' · ' || CASE \"provider\" WHEN 'Amazon Web Services' THEN 'AWS' WHEN 'Google Cloud' THEN 'GCP' WHEN 'Microsoft Azure' THEN 'Azure' ELSE \"provider\" END AS \"regionLabel\", \"wue\" FROM \"dataset\" WHERE \"isLatest\" = 1 AND \"wue\" IS NOT NULL ORDER BY \"wue\" DESC LIMIT 10"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "regionLabel",
+                                    "type": "nominal",
+                                    "title": "Region"
+                                },
+                                "y": {
+                                    "field": "wue",
+                                    "type": "quantitative",
+                                    "title": "WUE (L/kWh)"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianYAxisMin": 0,
+                                "cartesianColorRules": [
+                                    {
+                                        "lte": 0.5,
+                                        "color": "#16A34A"
+                                    },
+                                    {
+                                        "lte": 1.0,
+                                        "color": "#F59E0B"
+                                    },
+                                    {
+                                        "gt": 1.0,
+                                        "color": "#DC2626"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "988dcd35-52fc-4812-a439-96d6e18d465b",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "PUE trend by provider",
+                    "description": "Mean regional PUE per year. Disclosed values, then estimates for years after each provider's latest disclosure.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT CAST(CAST(\"year\" AS INTEGER) AS VARCHAR) AS \"yearLabel\", \"provider\", ROUND(AVG(\"v\"), 3) AS \"avgPue\" FROM (SELECT \"h\".\"year\", \"h\".\"provider\", \"h\".\"pue\" AS \"v\" FROM \"hist\" \"h\" UNION ALL SELECT \"e\".\"year\", \"e\".\"provider\", \"e\".\"pue\" FROM \"est\" \"e\" WHERE \"e\".\"year\" > (SELECT MAX(\"h2\".\"year\") FROM \"hist\" \"h2\" WHERE \"h2\".\"provider\" = \"e\".\"provider\")) \"u\" WHERE \"v\" IS NOT NULL GROUP BY \"year\", \"provider\" ORDER BY \"year\", \"provider\"",
+                            "tables": [
+                                {
+                                    "tableName": "hist",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[regionMetadata]}}",
+                                            "name": "regionMetadata",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "est",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[regionEstimates]}}",
+                                            "name": "regionEstimates",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "yearLabel",
+                                    "type": "nominal",
+                                    "title": "Year"
+                                },
+                                "y": {
+                                    "field": "avgPue",
+                                    "type": "quantitative",
+                                    "title": "Avg PUE"
+                                },
+                                "series": {
+                                    "field": "provider",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "cartesianPointRadius": 4,
+                                "mappedColors": {
+                                    "Amazon Web Services": "#8B5CF6",
+                                    "Google Cloud": "#38BDF8",
+                                    "Microsoft Azure": "#1E3A8A"
+                                },
+                                "cartesianYAxisMin": 1
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bc35fc7d-1cb4-41d4-b8ab-97aa7421f0a4",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "WUE trend by provider",
+                    "description": "Mean regional WUE (L/kWh) per year. Disclosed values, then estimates for years after each provider's latest disclosure.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT CAST(CAST(\"year\" AS INTEGER) AS VARCHAR) AS \"yearLabel\", \"provider\", ROUND(AVG(\"v\"), 2) AS \"avgWue\" FROM (SELECT \"h\".\"year\", \"h\".\"provider\", \"h\".\"wue\" AS \"v\" FROM \"hist\" \"h\" UNION ALL SELECT \"e\".\"year\", \"e\".\"provider\", \"e\".\"wue\" FROM \"est\" \"e\" WHERE \"e\".\"year\" > (SELECT MAX(\"h2\".\"year\") FROM \"hist\" \"h2\" WHERE \"h2\".\"provider\" = \"e\".\"provider\")) \"u\" WHERE \"v\" IS NOT NULL GROUP BY \"year\", \"provider\" ORDER BY \"year\", \"provider\"",
+                            "tables": [
+                                {
+                                    "tableName": "hist",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[regionMetadata]}}",
+                                            "name": "regionMetadata",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "est",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[regionEstimates]}}",
+                                            "name": "regionEstimates",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "yearLabel",
+                                    "type": "nominal",
+                                    "title": "Year"
+                                },
+                                "y": {
+                                    "field": "avgWue",
+                                    "type": "quantitative",
+                                    "title": "Avg WUE (L/kWh)"
+                                },
+                                "series": {
+                                    "field": "provider",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "cartesianPointRadius": 4,
+                                "mappedColors": {
+                                    "Amazon Web Services": "#8B5CF6",
+                                    "Google Cloud": "#38BDF8",
+                                    "Microsoft Azure": "#1E3A8A"
+                                },
+                                "cartesianYAxisMin": 0
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "15aa0701-28b5-448e-ae36-2fa3726cfc79",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Regions by efficiency",
+                    "description": "PUE: green under 1.15, amber under 1.3, red above. WUE (litres per kWh): green 0.5 or less, amber up to 1.0, red above. Latest disclosed year; regions with no PUE or WUE are left out.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"region\", \"provider\", \"location\", CAST(\"year\" AS INTEGER) AS \"year\", \"pue\", \"wue\" FROM \"dataset\" WHERE \"isLatest\" = 1 AND (\"pue\" IS NOT NULL OR \"wue\" IS NOT NULL) ORDER BY \"pue\" ASC NULLS LAST"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "provider",
+                                        "title": "Provider",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Amazon Web Services": "#8B5CF6",
+                                                "Google Cloud": "#38BDF8",
+                                                "Microsoft Azure": "#1E3A8A"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "location",
+                                        "title": "Location",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "year",
+                                        "title": "Year",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "pue",
+                                        "title": "PUE",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "thresholds": [
+                                                {
+                                                    "to": 1.15,
+                                                    "color": "#16A34A"
+                                                },
+                                                {
+                                                    "to": 1.3,
+                                                    "color": "#F59E0B"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#DC2626"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "wue",
+                                        "title": "WUE (L/kWh)",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "thresholds": [
+                                                {
+                                                    "to": 0.5,
+                                                    "color": "#16A34A"
+                                                },
+                                                {
+                                                    "to": 1.0,
+                                                    "color": "#F59E0B"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#DC2626"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "pue",
+                                    "direction": "asc"
+                                },
+                                "richTableCellPadding": 6,
+                                "richTableAltRowColor": "rgba(148,163,184,0.08)"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "name": "energyHistory",
+    "displayName": "Energy History",
+    "description": "Energy imported, exported, generated, diverted and boosted over time for the selected devices",
+    "tags": ["Energy"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ (() => { const start = new Date(timeframe.start); const end = new Date(timeframe.end); const day = (d) => [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()].join('-'); if (end - start <= 86400000) { const from = new Date(Math.floor(start / 60000) * 60000); return 'cgi-jday-' + object.rawId + '-' + day(from) + '-' + from.getUTCHours() + '-' + from.getUTCMinutes() + '-' + Math.floor((end - from) / 60000); } const from = new Date(Math.floor(start / 3600000) * 3600000); return 'cgi-jdayhour-' + object.rawId + '-' + day(from) + '-' + from.getUTCHours() + '-' + Math.ceil((end - from) / 3600000); })() }}",
+        "paging": {"mode": "none"},
+        "postRequestScript": "energyHistory.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Zappi", "Eddi", "Libbi"]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "measure",
+            "label": "Measure",
+            "defaultValue": "energy",
+            "options": [
+                {"value": "energy", "label": "Energy (kWh)"},
+                {"value": "power", "label": "Average power (kW)"}
+            ]
+        }
+    ],
+    "metadata": [
+        {"name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp"},
+        {"name": "deviceName", "displayName": "Device", "shape": "string", "role": "label"},
+        {"name": "deviceKey", "displayName": "Device key", "shape": "string", "visible": false},
+        {"name": "deviceType", "displayName": "Device type", "shape": "string"},
+        {"name": "import", "displayName": "Grid import", "shape": ["number", {"decimalPlaces": 3}]},
+        {"name": "export", "displayName": "Grid export", "shape": ["number", {"decimalPlaces": 3}]},
+        {"name": "generation", "displayName": "Generation", "shape": ["number", {"decimalPlaces": 3}]},
+        {"name": "diverted", "displayName": "Diverted", "shape": ["number", {"decimalPlaces": 3}]},
+        {"name": "boosted", "displayName": "Boosted", "shape": ["number", {"decimalPlaces": 3}]},
+        {"name": "batteryCharge", "displayName": "Battery charge", "shape": ["number", {"decimalPlaces": 3}]},
+        {"name": "batteryDischarge", "displayName": "Battery discharge", "shape": ["number", {"decimalPlaces": 3}]},
+        {"name": "unit", "displayName": "Unit", "shape": "string", "role": "unitLabel"}
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}

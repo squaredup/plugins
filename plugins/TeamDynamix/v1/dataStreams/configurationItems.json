@@ -1,14 +1,16 @@
 {
     "name": "configurationItems",
     "displayName": "Configuration Items",
-    "description": "Configuration items in the CMDB of an asset application, one row per item",
+    "description": "Standalone configuration items in the CMDB of an asset application, one row per item (items that only mirror an asset are left out)",
     "tags": ["Configuration Items", "Inventory"],
     "baseDataSourceName": "httpRequestScopedSingle",
     "config": {
         "httpMethod": "post",
         "endpointPath": "api/{{object.rawId}}/cmdb/search",
         "postBody": {
-            "IsActive": "{{typeof activeState === 'undefined' || activeState === '' || activeState === 'all' ? null : activeState === 'active'}}"
+            "MaxResults": 10000,
+            "ExcludeAssetCopies": true,
+            "IsActive": "{{typeof activeState === 'undefined' || !activeState ? true : activeState === 'all' ? null : activeState === 'active'}}"
         },
         "paging": { "mode": "none" },
         "postRequestScript": "configurationItems.js",
@@ -57,5 +59,7 @@
     "defaultShaping": {
         "sort": { "by": [["name", "asc"]] }
     },
-    "timeframes": false
+    "timeframes": ["none"],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
 }

@@ -1,0 +1,45 @@
+{
+    "name": "environmentalHistory",
+    "displayName": "Environmental History",
+    "description": "Readings over the timeframe from the environmental sensors (temperature, humidity, airflow, leak, door) of the selected devices",
+    "tags": ["Sensor", "Environment"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/devices/{{encodeURIComponent(object.rawId)}}/sensors",
+        "paging": { "mode": "nextUrl", "in": { "realm": "payload", "path": "nextPageUrl" } },
+        "postRequestScript": "sensorHistory.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/dceError.js" }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Device"] }
+    },
+    "metadata": [
+        { "name": "time", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "value", "displayName": "Value", "shape": "number", "role": "value" },
+        { "name": "series", "displayName": "Sensor", "shape": "string", "role": "label" },
+        { "name": "units", "displayName": "Units", "shape": "string", "role": "unitLabel" },
+        { "name": "category", "displayName": "Category", "shape": "string" },
+        { "name": "valueText", "displayName": "Reading", "shape": "string" },
+        {
+            "name": "severityText",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Information", "Informational", "Normal", "OK", "Ok", "None"],
+                        "warning": ["Warning"],
+                        "error": ["Error", "Critical", "Failure"]
+                    }
+                }
+            ]
+        },
+        { "name": "sensorLabel", "displayName": "Sensor Name", "shape": "string" },
+        { "sourceId": "deviceGuid", "sourceType": "Device", "name": "deviceLabel", "displayName": "Device", "shape": "string" },
+        { "name": "kind", "displayName": "Kind", "shape": "string" },
+        { "name": "sensorGuid", "displayName": "Sensor ID", "shape": "string", "visible": false },
+        { "name": "deviceGuid", "displayName": "Device ID", "shape": "string", "visible": false }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days"]
+}

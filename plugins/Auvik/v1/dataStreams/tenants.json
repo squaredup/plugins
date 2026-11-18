@@ -1,0 +1,168 @@
+{
+    "name": "tenants",
+    "displayName": "Tenants",
+    "description": "Auvik sites and multi-sites the user can access, with type, parent and subscription status (status and address require the domain prefix)",
+    "tags": [
+        "Account",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ dataSource.domainPrefix ? 'tenants/detail' : 'tenants' }}",
+        "getArgs": [
+            {
+                "key": "tenantDomainPrefix",
+                "value": "{{ dataSource.domainPrefix ? dataSource.domainPrefix.trim() : null }}"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "page[first]",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.next"
+            }
+        },
+        "postRequestScript": "tenants.js"
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "tenant",
+            "label": "Tenant(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Tenant"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "tenantType",
+            "label": "Tenant type",
+            "options": [
+                {
+                    "value": "client",
+                    "label": "Site"
+                },
+                {
+                    "value": "multiClient",
+                    "label": "Multi-site"
+                },
+                {
+                    "value": "corporateIt",
+                    "label": "Corporate IT"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Tenant ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Tenant"
+        },
+        {
+            "name": "domainPrefix",
+            "displayName": "Domain prefix",
+            "shape": "string"
+        },
+        {
+            "name": "tenantType",
+            "displayName": "Type",
+            "shape": "string",
+            "formatExpression": "{{ ({ client: 'Site', multiClient: 'Multi-site', corporateIt: 'Corporate IT' })[$['tenantType']] || $['tenantType'] }}"
+        },
+        {
+            "name": "parentName",
+            "displayName": "Parent",
+            "shape": "string"
+        },
+        {
+            "name": "parentId",
+            "displayName": "Parent ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Running"
+                        ],
+                        "warning": [
+                            "Trial"
+                        ],
+                        "error": [
+                            "Disabled",
+                            "Stopped"
+                        ],
+                        "unknown": [
+                            "Unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "enabled",
+            "displayName": "Enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "subscribed",
+            "displayName": "Subscribed",
+            "shape": "boolean"
+        },
+        {
+            "name": "running",
+            "displayName": "Running",
+            "shape": "boolean"
+        },
+        {
+            "name": "subscriptionOwner",
+            "displayName": "Subscription owner",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "trialEndDate",
+            "displayName": "Trial ends",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "city",
+            "displayName": "City",
+            "shape": "string"
+        },
+        {
+            "name": "country",
+            "displayName": "Country",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}

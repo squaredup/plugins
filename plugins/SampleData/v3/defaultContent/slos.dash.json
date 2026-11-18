@@ -1,0 +1,519 @@
+{
+    "name": "SLOs & Error Budgets",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "5eb82187-65f1-4e0b-bdb3-f8571e8fa0af",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "SLO Summary",
+                    "description": "",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "availabilityPercent"
+                                    ]
+                                },
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "errorBudgetRemainingPercent"
+                                    ]
+                                },
+                                {
+                                    "type": "min",
+                                    "names": [
+                                        "errorBudgetRemainingPercent"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "availabilityPercent_mean",
+                                "comparisonColumn": "none",
+                                "label": "Average availability (30 days)"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "availabilityPercent_mean",
+                                        "type": "quantitative",
+                                        "title": "Average availability (30 days)"
+                                    },
+                                    {
+                                        "field": "errorBudgetRemainingPercent_mean",
+                                        "type": "quantitative",
+                                        "title": "Average error budget remaining"
+                                    },
+                                    {
+                                        "field": "errorBudgetRemainingPercent_min",
+                                        "type": "quantitative",
+                                        "title": "Lowest error budget remaining"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "aggregation": "min",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 15,
+                        "condition": {
+                            "columns": [
+                                "errorBudgetRemainingPercent_min"
+                            ],
+                            "logic": {
+                                "if": [
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "min"
+                                            },
+                                            10
+                                        ]
+                                    },
+                                    "error",
+                                    {
+                                        "<": [
+                                            {
+                                                "var": "min"
+                                            },
+                                            25
+                                        ]
+                                    },
+                                    "warning",
+                                    "success"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8dfd2b81-50a1-4140-bd57-9c2deef366aa",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Availability vs SLO Target",
+                    "description": "30-day availability of each service; the red marker is its SLO target",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bullet",
+                            "encoding": {
+                                "value": {
+                                    "field": "availabilityPercent",
+                                    "type": "quantitative",
+                                    "title": "Availability (30 days)"
+                                },
+                                "target": {
+                                    "field": "sloTargetPercent",
+                                    "type": "quantitative",
+                                    "title": "SLO target"
+                                },
+                                "label": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 98.9,
+                                "gaugeMax": 100,
+                                "bulletFillColor": "#206bc4",
+                                "gaugeTargetColor": "#d63939",
+                                "bulletLabelWidth": 140,
+                                "bulletTrackHeight": 14
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a9c2db59-1454-406d-b6fd-6f13546bb963",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Error Budget Remaining",
+                    "description": "Share of each service's 30-day error budget still unspent",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "errorBudgetRemainingPercent",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "errorBudgetRemainingPercent",
+                                    "type": "quantitative",
+                                    "title": "Error budget remaining"
+                                },
+                                "label": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                }
+                            },
+                            "style": {
+                                "ringGridColumnsPerRow": 4,
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 0.25,
+                                        "color": "#d63939"
+                                    },
+                                    {
+                                        "to": 0.5,
+                                        "color": "#f59f00"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#2fb344"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "665de496-5ba6-4818-b07f-56149f53c5ee",
+                "x": 0,
+                "y": 7,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Error Rate by Service",
+                    "description": "Error rate of every service; 1% is the alerting threshold",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceMetrics]}}",
+                        "name": "serviceMetrics",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "errorRatePercent"
+                                ],
+                                "seriesColumn": "service",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "errorRatePercent",
+                                    "type": "quantitative",
+                                    "title": "Error rate"
+                                },
+                                "series": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "right",
+                                "cartesianSymbol": "none"
+                            },
+                            "markLines": [
+                                {
+                                    "value": 1,
+                                    "label": "1% alert threshold",
+                                    "color": "#d63939"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "i": "959de73f-6c2b-4b6c-a044-4cb109b81139",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "SLO Status",
+                    "description": "Rows under 50% error budget are amber, under 25% red",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "service",
+                                    "tier",
+                                    "team",
+                                    "sloTargetPercent",
+                                    "availabilityPercent",
+                                    "errorBudgetRemainingPercent",
+                                    "errorRatePercent",
+                                    "state"
+                                ],
+                                "hiddenColumns": [
+                                    "serviceId",
+                                    "region",
+                                    "provider",
+                                    "latitude",
+                                    "longitude",
+                                    "latencyP95Ms",
+                                    "requestsPerMin",
+                                    "hosts"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "service",
+                                        "title": "Service",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "tier",
+                                        "title": "Tier",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Tier 1": "#206bc4",
+                                                "Tier 2": "#4299e1",
+                                                "Tier 3": "#9ba3af"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "team",
+                                        "title": "Team",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "sloTargetPercent",
+                                        "title": "SLO target",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": "%"
+                                        }
+                                    },
+                                    {
+                                        "field": "availabilityPercent",
+                                        "title": "Availability (30 days)",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 3,
+                                            "suffix": "%"
+                                        }
+                                    },
+                                    {
+                                        "field": "errorBudgetRemainingPercent",
+                                        "title": "Error budget remaining",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    },
+                                    {
+                                        "field": "errorRatePercent",
+                                        "title": "Error rate now",
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2,
+                                            "suffix": "%"
+                                        }
+                                    },
+                                    {
+                                        "field": "state",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableRowHighlight": {
+                                    "field": "errorBudgetRemainingPercent",
+                                    "thresholds": [
+                                        {
+                                            "to": 25,
+                                            "color": "rgba(214,57,57,0.15)"
+                                        },
+                                        {
+                                            "to": 50,
+                                            "color": "rgba(245,159,0,0.15)"
+                                        },
+                                        {
+                                            "to": 100,
+                                            "color": "rgba(0,0,0,0)"
+                                        }
+                                    ]
+                                },
+                                "richTableSort": {
+                                    "field": "errorBudgetRemainingPercent",
+                                    "direction": "asc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

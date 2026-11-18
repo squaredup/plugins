@@ -13,7 +13,7 @@
         "getArgs": [
             {
                 "key": "fields",
-                "value": "id,address,display,display_url,family,vrf,tenant,status,role,assigned_object_id,assigned_object,dns_name,description,created,last_updated,custom_fields"
+                "value": "id,address,display,display_url,family,vrf,tenant,status,role,assigned_object_id,assigned_object,dns_name,description,created,last_updated,tags,custom_fields"
             },
             {
                 "key": "assigned",
@@ -38,6 +38,10 @@
             {
                 "key": "virtual_machine_id",
                 "value": "{{ (typeof virtualMachine !== 'undefined' && virtualMachine && virtualMachine.length) ? virtualMachine.map(o => [].concat(o.rawId)[0]) : null }}"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
             }
         ],
         "paging": {
@@ -146,6 +150,19 @@
                     "label": "SLAAC"
                 }
             ]
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
+            }
         }
     ],
     "metadata": [
@@ -257,6 +274,21 @@
             "name": "last_updated",
             "displayName": "Last Updated",
             "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
         },
         {
             "name": "display_url",

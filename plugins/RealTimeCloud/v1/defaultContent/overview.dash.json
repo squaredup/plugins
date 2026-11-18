@@ -1,0 +1,289 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "f0c9ccb9-3ad6-438b-935d-95f2306e30d1",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "At a glance",
+                    "description": "Latest provider-disclosed year for each cloud region (AWS, Google Cloud, Azure)",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COUNT(DISTINCT \"regionId\") AS \"regions\", ROUND(AVG(\"gridCarbonIntensityConsumptionAnnual\"), 0) AS \"avgGridCi\", ROUND(AVG(\"pue\"), 2) AS \"avgPue\", ROUND(AVG(\"providerCfeHourly\") * 100, 0) AS \"avgCfe\" FROM \"dataset\" WHERE \"isLatest\" = 1"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "regions",
+                                        "type": "quantitative",
+                                        "title": "Cloud regions tracked"
+                                    },
+                                    {
+                                        "field": "avgGridCi",
+                                        "type": "quantitative",
+                                        "title": "Avg grid carbon intensity (gCO₂eq/kWh)"
+                                    },
+                                    {
+                                        "field": "avgPue",
+                                        "type": "quantitative",
+                                        "title": "Avg PUE"
+                                    },
+                                    {
+                                        "field": "avgCfe",
+                                        "type": "quantitative",
+                                        "title": "Avg hourly carbon-free energy (%)"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bb6c4180-105c-403c-b89c-5960b2ae9969",
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cloud regions by grid carbon intensity",
+                    "description": "Green: under 100 gCO₂eq/kWh. Amber: 100–400. Red: over 400. Grey: no data. Latest disclosed year.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"region\", \"provider\", \"location\", \"latitude\", \"longitude\", ROUND(\"gridCarbonIntensityConsumptionAnnual\", 0) AS \"gridCi\", CASE WHEN \"gridCarbonIntensityConsumptionAnnual\" IS NULL THEN 'Unknown' WHEN \"gridCarbonIntensityConsumptionAnnual\" < 100 THEN 'Low' WHEN \"gridCarbonIntensityConsumptionAnnual\" < 400 THEN 'Medium' ELSE 'High' END AS \"carbonBand\" FROM \"dataset\" WHERE \"isLatest\" = 1 AND \"latitude\" IS NOT NULL AND \"longitude\" IS NOT NULL"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "geoMap",
+                            "encoding": {
+                                "latitude": {
+                                    "field": "latitude",
+                                    "type": "quantitative"
+                                },
+                                "longitude": {
+                                    "field": "longitude",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "region",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "carbonBand",
+                                    "type": "nominal"
+                                },
+                                "details": [
+                                    {
+                                        "field": "provider",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "location",
+                                        "type": "nominal"
+                                    },
+                                    {
+                                        "field": "gridCi",
+                                        "type": "quantitative"
+                                    },
+                                    {
+                                        "field": "carbonBand",
+                                        "type": "nominal"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "geoMapBase": "world",
+                                "geoMapStatusMap": {
+                                    "Low": "success",
+                                    "Medium": "warning",
+                                    "High": "error",
+                                    "Unknown": "unknown"
+                                },
+                                "geoMapPointSize": 9,
+                                "geoMapZoomControls": true,
+                                "geoMapWheelZoom": false,
+                                "showLabels": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b5196f4a-f578-48ba-acbd-61d3aa4944f1",
+                "x": 0,
+                "y": 6,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Avg grid carbon intensity by provider",
+                    "description": "Mean of regional grid carbon intensity (consumption, annual), gCO₂eq/kWh, latest disclosed year",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"provider\", ROUND(AVG(\"gridCarbonIntensityConsumptionAnnual\"), 0) AS \"avgGridCi\" FROM \"dataset\" WHERE \"isLatest\" = 1 GROUP BY \"provider\" ORDER BY \"avgGridCi\""
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "provider",
+                                    "type": "nominal",
+                                    "title": "Provider"
+                                },
+                                "y": {
+                                    "field": "avgGridCi",
+                                    "type": "quantitative",
+                                    "title": "Avg grid carbon intensity (gCO₂eq/kWh)"
+                                }
+                            },
+                            "style": {
+                                "showLabels": true,
+                                "cartesianBarBorderRadius": 6,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianColorRules": [
+                                    {
+                                        "label": "Amazon Web Services",
+                                        "color": "#8B5CF6"
+                                    },
+                                    {
+                                        "label": "Google Cloud",
+                                        "color": "#38BDF8"
+                                    },
+                                    {
+                                        "label": "Microsoft Azure",
+                                        "color": "#1E3A8A"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c07f525d-ff7a-4e01-a23f-357750e7940c",
+                "x": 2,
+                "y": 6,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Regions by provider",
+                    "description": "Number of cloud regions with disclosed data",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"provider\", COUNT(DISTINCT \"regionId\") AS \"regions\" FROM \"dataset\" WHERE \"isLatest\" = 1 GROUP BY \"provider\" ORDER BY \"regions\" DESC"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "provider",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "regions",
+                                    "type": "quantitative"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieBorderRadius": 6,
+                                "piePadAngle": 2,
+                                "mappedColors": {
+                                    "Amazon Web Services": "#8B5CF6",
+                                    "Google Cloud": "#38BDF8",
+                                    "Microsoft Azure": "#1E3A8A"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "549abda6-fc76-4875-aafe-d3cdfeee5134",
+                "x": 0,
+                "y": 9,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/text",
+                    "title": "",
+                    "description": "",
+                    "visualisation": {
+                        "config": {
+                            "content": "**How these figures are produced**\n\nReal Time Cloud is reference data published by the Green Software Foundation (GSF), not live telemetry. Figures are read live from GSF and updated about once a year.\n\n- **Reported values** are annual figures that cloud providers disclose (such as PUE, WUE and carbon-free energy) together with grid carbon intensity from third parties (Electricity Maps and WattTime). Blank cells mean the provider has not published a value, so some regions have gaps.\n- **Estimates** are GSF’s own projections for the current year, trended from previous years’ reported data. They are not measurements.\n- Azure and Oracle figures follow provider fiscal years, and Azure values are set per continent rather than per region.",
+                            "fontSize": 20,
+                            "align": "left",
+                            "autoSize": false
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

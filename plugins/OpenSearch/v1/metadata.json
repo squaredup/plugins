@@ -1,39 +1,53 @@
 {
     "name": "open-search",
     "displayName": "OpenSearch",
-    "version": "1.0.4",
+    "version": "1.1.0",
     "author": {
         "name": "SquaredUp Labs",
         "type": "labs"
     },
-    "description": "Query OpenSearch databases using DSL.",
+    "description": "Monitor OpenSearch cluster, node and index health, and chart search results and aggregations from your indices.",
     "category": "Database",
-    "type": "cloud",
+    "type": "hybrid",
+    "schemaVersion": "2.1",
+    "importNotSupported": false,
     "restrictedToPlatforms": [],
-    "importNotSupported": true,
-    "schemaVersion": "2.0",
+    "keywords": [
+        "opensearch",
+        "search",
+        "query dsl",
+        "aggregations",
+        "logs",
+        "cluster health",
+        "indices",
+        "amazon opensearch service"
+    ],
+    "objectTypes": ["Node", "Index", "Service"],
     "base": {
         "plugin": "WebAPI",
         "majorVersion": "1",
         "config": {
-            "authMode": "{{authMode}}",
-            "basicAuthUsername": "{{basicAuthUsername}}",
-            "basicAuthPassword": "{{basicAuthPassword}}",
+            "authMode": "{{authMode === 'basic' ? 'basic' : 'none'}}",
+            "basicAuthUsername": "{{authMode === 'basic' ? basicAuthUsername : undefined}}",
+            "basicAuthPassword": "{{authMode === 'basic' ? basicAuthPassword : undefined}}",
             "queryArgs": [],
             "headers": [
                 {
                     "key": "Content-Type",
                     "value": "application/json"
+                },
+                {
+                    "key": "Authorization",
+                    "value": "{{authMode === 'apiKey' ? 'ApiKey ' + apiKey.trim().replace(/^ApiKey +/i, '') : undefined}}"
                 }
             ],
-            "baseUrl": "{{instanceUrl}}",
-            "ignoreCertificateErrors": "{{ignoreCertificateErrors}}"
+            "baseUrl": "{{instanceUrl.trim().replace(/[/]+$/, '')}}"
         }
     },
     "links": [
         {
             "category": "documentation",
-            "url": "https://github.com/squaredup/plugins/blob/main/plugins/OpenSearch/v1/docs/setup.md",
+            "url": "https://github.com/squaredup/plugins/blob/main/plugins/OpenSearch/v1/docs/README.md",
             "label": "Help adding this plugin"
         },
         {

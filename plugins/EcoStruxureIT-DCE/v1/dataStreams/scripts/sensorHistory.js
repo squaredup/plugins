@@ -6,11 +6,76 @@
 // at MAX_ROWS in total. Each sensor gets a share of that budget: numeric readings beyond it
 // are averaged into equal time buckets, and state readings are reduced to their changes (then
 // evenly sampled if there are still too many).
+//
+// Shared by the sensorHistory stream (scoped to Sensor objects) and the Device-scoped
+// environmentalHistory and deviceSensorHistory streams. The Device-scoped ones have no sensor
+// IDs to start from, so they run in two steps using nextUrl paging: the first request lists the
+// device's sensors, and this script picks out the wanted ones (those matching the sensorName and
+// kind parameters, or else the environmental ones) and returns their history URL as the next page.
+// The second request is then an ordinary history request. DCE doesn't page either response (each
+// is one complete array), so the stream's nextPageUrl path never matches anything and this script's
+// pagingContext is the only "next page" there is. Two small calls per device stay well
+// inside DCE's rate limit, unlike importing every sensor, which is too slow and too large on big
+// installations.
 const MAX_ROWS = 20000;
 
 const toIso = (ms) => (typeof ms === "number" && ms > 0 ? new Date(ms).toISOString() : null);
 
-const sensors = (Array.isArray(data) ? data : [])
+// Keep these lists in step with sensors.js.
+const ENVIRONMENTAL_KINDS = new Set([
+    "TEMPERATURE", "DIFF_TEMP", "HUMIDITY", "DEW_POINT", "AIRFLOW", "VOL_AIRFLOW", "VOL_AIRFLOW_SEC",
+    "DOOR", "RA_DOOR", "RMT_DOOR", "MOTION_SENSOR"
+]);
+const ENVIRONMENTAL_LABEL = /temperature|humidity|dew point|air ?flow|leak|fluid|water|smoke|door|motion/i;
+const POWER_KINDS = new Set([
+    "POWER_KVA", "POWER_KWATTS", "K_REACT_POWER", "KVH", "KVA_HOUR", "KWATT_HOUR", "ENERGY_KWH",
+    "CURRENT", "AMP_DETECTOR", "POWER_VA", "POWER_WATTS", "VOLTAGE"
+]);
+const categoryOf = (kind, label, sensorType) => {
+    const k = String(kind || "").toUpperCase();
+    if (ENVIRONMENTAL_KINDS.has(k) || ENVIRONMENTAL_LABEL.test(label || "")) return "Environmental";
+    if (POWER_KINDS.has(k) || String(sensorType || "").startsWith("NUMBER_POWER")) return "Power";
+    return "Other";
+};
+
+// Names and kinds arrive as [{ value }] from a picker, or as plain strings when typed or set by a
+// dashboard. Names are matched whole and ignoring case; they can contain commas ("State, Outlet 1").
+// Kinds suit devices whose sensor names vary by model, such as rack PDUs.
+const pickedValues = (picked) =>
+    new Set(
+        (Array.isArray(picked) ? picked : [picked])
+            .map((n) => (n && typeof n === "object" ? n.value : n))
+            .filter(Boolean)
+            .map((n) => String(n).trim().toLowerCase())
+    );
+const sensorNames = pickedValues((context.config && context.config.sensorName) || []);
+const sensorKinds = pickedValues((context.config && context.config.kind) || []);
+const isWanted = (s) =>
+    sensorNames.size === 0 && sensorKinds.size === 0
+        ? categoryOf(s.kind, s.label, s.sensorType) === "Environmental"
+        : (sensorNames.size === 0 || sensorNames.has(String(s.label || "").trim().toLowerCase())) &&
+          (sensorKinds.size === 0 || sensorKinds.has(String(s.kind || "").toLowerCase()));
+
+// Step one of the Device-scoped streams: the response is a device's sensor list, not history.
+const isDeviceSensorList = /[/]devices[/][^/]+[/]sensors$/.test(url.pathname);
+let historyUrl;
+if (isDeviceSensorList) {
+    const guids = (Array.isArray(data) ? data : [])
+        .filter((s) => s && s.guid && isWanted(s))
+        .map((s) => s.guid);
+    if (guids.length > 0) {
+        const apiBase = url.origin + url.pathname.replace(/[/]v1[/].*$/, "");
+        const query = guids.map((g) => "sensorGuid=" + encodeURIComponent(g)).join("&");
+        // Carry the data source's locale over, so the history's labels and units match step one.
+        const locale = url.searchParams.get("locale");
+        historyUrl =
+            `${apiBase}/v1/sensors/history?${query}` +
+            `&startTime=${Date.parse(context.timeframe.start)}&endTime=${Date.parse(context.timeframe.end)}` +
+            (locale ? `&locale=${encodeURIComponent(locale)}` : "");
+    }
+}
+
+const sensors = (isDeviceSensorList ? [] : Array.isArray(data) ? data : [])
     .filter(Boolean)
     .map((sensor) => ({
         sensor,
@@ -20,12 +85,19 @@ const sensors = (Array.isArray(data) ? data : [])
             .sort((a, b) => a.time - b.time)
     }));
 
+// A relay agent reads the plugin's output in the Windows code page rather than UTF-8, so a
+// degree sign arrives as "Â°". Drop it ("°C" becomes "C") until the agent is fixed.
+const asciiUnits = (text) => (typeof text === "string" ? text.replace(/°\s?/g, "") : text);
+
 const rowFor = (sensor, time, value, valueText, severityText) => ({
     time: toIso(time),
     value,
-    valueText,
+    valueText: asciiUnits(valueText),
     severityText,
-    units: sensor.units,
+    // DCE's own wording for badges; history readings often carry only a numeric severity.
+    statusText: severityText ? (/^(none|ok|normal)$/i.test(severityText) ? "OK" : severityText) : undefined,
+    units: asciiUnits(sensor.units),
+    category: categoryOf(sensor.kind, sensor.sensorLabel, sensor.sensorType),
     kind: sensor.kind,
     sensorGuid: sensor.sensorGuid,
     sensorLabel: sensor.sensorLabel,
@@ -146,3 +218,7 @@ const rowsBySensor = new Map();
     });
 
 result = sensors.flatMap((entry) => rowsBySensor.get(entry));
+
+// The history URL becomes the next page; leaving it undefined ends the stream (a device with no
+// environmental sensors, or the history page itself).
+pagingContext = historyUrl;

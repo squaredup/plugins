@@ -1,0 +1,37 @@
+{
+    "name": "serviceLogVolume",
+    "displayName": "Service Log Volume",
+    "description": "OpenTelemetry log counts over time by service and severity (requires Import OpenTelemetry services)",
+    "tags": ["Logs", "Services"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "{{ (dataSource.indexOtelServices === true || dataSource.indexOtelServices === 'true') && dataSource.otelLogIndexPattern ? dataSource.otelLogIndexPattern.trim() : 'squaredup-otel-disabled-*' }}/_search",
+        "getArgs": [
+            { "key": "allow_no_indices", "value": "true" },
+            { "key": "ignore_unavailable", "value": "true" }
+        ],
+        "postBody": "{{ (() => { const svc = dataSource.otelServiceField || 'resource.service.name.keyword'; const ts = dataSource.otelTimestampField || '@timestamp'; const sev = dataSource.otelSeverityField || 'severity.number'; const names = (typeof service !== 'undefined' && Array.isArray(service)) ? service.map((o) => [].concat(o.rawId)[0]) : []; const tf = typeof timeframe !== 'undefined' ? timeframe : null; const span = (tf && tf.start && tf.enum !== 'none') ? { gte: tf.start, lte: tf.end, format: 'strict_date_optional_time' } : { gte: 'now-24h' }; const filter = [ { range: { [ts]: span } } ]; if (names.length) { filter.push({ terms: { [svc]: names } }); } return { size: 0, track_total_hits: false, query: { bool: { filter: filter } }, aggs: { overTime: { auto_date_histogram: { field: ts, buckets: 60 }, aggs: { services: { terms: { field: svc, size: 100 }, aggs: { severity: { range: { field: sev, ranges: [ { key: 'Unspecified', to: 1 }, { key: 'Trace', from: 1, to: 5 }, { key: 'Debug', from: 5, to: 9 }, { key: 'Info', from: 9, to: 13 }, { key: 'Warn', from: 13, to: 17 }, { key: 'Error', from: 17, to: 21 }, { key: 'Fatal', from: 21 } ] } } } } } } } }; })() }}",
+        "postRequestScript": "serviceLogVolume.js",
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.root_cause.0.reason" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "service",
+            "label": "Service (optional)",
+            "matches": { "sourceType": { "type": "equals", "value": "Service" } }
+        }
+    ],
+    "timeframes": true,
+    "metadata": [
+        { "name": "timestamp", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "service", "displayName": "Service", "shape": "string", "role": "label" },
+        { "sourceId": "service", "sourceType": "Service", "name": "service" },
+        { "name": "serviceEnvironments", "displayName": "Service Environments", "sourceId": "service", "sourceType": "Service", "objectPropertyPath": "environments", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "serviceK8sNamespaces", "displayName": "Service Kubernetes Namespaces", "sourceId": "service", "sourceType": "Service", "objectPropertyPath": "k8sNamespaces", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "severity", "displayName": "Severity", "shape": "string" },
+        { "name": "logs", "displayName": "Logs", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }], "role": "value" }
+    ]
+}

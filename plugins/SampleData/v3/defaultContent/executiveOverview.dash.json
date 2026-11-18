@@ -1,0 +1,656 @@
+{
+    "name": "Executive Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "221cdefc-e365-473d-b278-ce30d7179ad6",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Availability (30 Days)",
+                    "description": "Average 30-day availability across all services",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "mean",
+                                    "names": [
+                                        "availabilityPercent"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "availabilityPercent_mean",
+                                "comparisonColumn": "none",
+                                "label": "Average availability across all services"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "availabilityPercent_mean",
+                                        "type": "quantitative",
+                                        "title": "Average availability across all services"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "kpi": {
+                        "name": "Availability (30 Days)"
+                    }
+                }
+            },
+            {
+                "i": "ca0c0f0a-eab6-40aa-864d-3479cbc130a4",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Open P1/P2 Tickets",
+                    "description": "P1 and P2 tickets that are new or in progress",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "last7days",
+                    "dataStream": {
+                        "id": "{{dataStreams.[tickets]}}",
+                        "name": "tickets",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COUNT(*) AS \"openHighPriority\" FROM \"dataset\" WHERE \"status\" IN ('New', 'In Progress') AND \"priority\" IN ('P1', 'P2')",
+                        "metadata": [
+                            {
+                                "name": "openHighPriority",
+                                "displayName": "Open P1/P2 tickets",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Customers]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "openHighPriority",
+                                "comparisonColumn": "none",
+                                "label": "Open P1 and P2 tickets"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "openHighPriority",
+                                        "type": "quantitative",
+                                        "title": "Open P1 and P2 tickets"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "threshold",
+                        "aggregation": "max",
+                        "groupBy": "__group_by_none__",
+                        "frequency": 60,
+                        "condition": {
+                            "columns": [
+                                "openHighPriority"
+                            ],
+                            "logic": {
+                                "if": [
+                                    {
+                                        ">": [
+                                            {
+                                                "var": "max"
+                                            },
+                                            0
+                                        ]
+                                    },
+                                    "warning",
+                                    "success"
+                                ]
+                            }
+                        }
+                    },
+                    "kpi": {
+                        "name": "Open P1/P2 Tickets"
+                    }
+                }
+            },
+            {
+                "i": "1917c6df-5a2c-48e6-a3ef-295a9921deaa",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Monthly Recurring Revenue",
+                    "description": "Current monthly recurring revenue",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[businessMetrics]}}",
+                        "name": "businessMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "max",
+                                    "names": [
+                                        "mrrUsd"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "mrrUsd_max",
+                                "comparisonColumn": "none",
+                                "label": "MRR"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "mrrUsd_max",
+                                        "type": "quantitative",
+                                        "title": "MRR"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "kpi": {
+                        "name": "Monthly Recurring Revenue"
+                    }
+                }
+            },
+            {
+                "i": "ad0c5979-c127-481d-8fa8-d1fea56e9223",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cloud Spend vs Budget",
+                    "description": "Cloud spend so far this month against the month-to-date budget",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "thisMonth",
+                    "dataStream": {
+                        "id": "{{dataStreams.[cloudCost]}}",
+                        "name": "cloudCost",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "costUsd"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "budgetUsd"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bullet",
+                            "encoding": {
+                                "value": {
+                                    "field": "costUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Spend"
+                                },
+                                "target": {
+                                    "field": "budgetUsd_sum",
+                                    "type": "quantitative",
+                                    "title": "Budget"
+                                }
+                            },
+                            "style": {
+                                "bulletFillColor": "#206bc4",
+                                "gaugeTargetColor": "#d63939"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d4659b98-8360-4b9f-9087-1d469b95b15a",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Service Health",
+                    "description": "Current health of every service, grouped by owning team",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceHealth]}}",
+                        "name": "serviceHealth",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-blocks",
+                        "config": {
+                            "data-stream-blocks": {
+                                "labelColumn": "service",
+                                "stateColumn": "state",
+                                "linkColumn": "none",
+                                "columns": 4
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "State"
+                                },
+                                "group": {
+                                    "field": "team",
+                                    "type": "nominal",
+                                    "title": "Team"
+                                },
+                                "value": {
+                                    "field": "latencyP95Ms",
+                                    "type": "quantitative",
+                                    "title": "Latency p95"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 4
+                            }
+                        }
+                    },
+                    "monitor": {
+                        "_type": "simple",
+                        "tileRollsUp": true,
+                        "monitorType": "state",
+                        "column": "state",
+                        "aggregation": "top",
+                        "condition": {
+                            "columns": [
+                                "state"
+                            ]
+                        },
+                        "frequency": 15
+                    }
+                }
+            },
+            {
+                "i": "601721d8-6915-4627-807e-ae668ba2cec5",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Customer SLAs",
+                    "description": "Customer locations, coloured by SLA state",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[customerSla]}}",
+                        "name": "customerSla",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Customers]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "geoMap",
+                            "encoding": {
+                                "latitude": {
+                                    "field": "latitude",
+                                    "type": "quantitative"
+                                },
+                                "longitude": {
+                                    "field": "longitude",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "customer",
+                                    "type": "nominal",
+                                    "title": "Customer"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "SLA state"
+                                },
+                                "details": [
+                                    {
+                                        "field": "plan",
+                                        "type": "nominal",
+                                        "title": "Plan"
+                                    },
+                                    {
+                                        "field": "city",
+                                        "type": "nominal",
+                                        "title": "City"
+                                    },
+                                    {
+                                        "field": "slaActualPercent",
+                                        "type": "quantitative",
+                                        "title": "SLA (30 days)"
+                                    },
+                                    {
+                                        "field": "openTickets",
+                                        "type": "quantitative",
+                                        "title": "Open tickets"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "geoMapBase": "world",
+                                "geoMapPointSize": 12,
+                                "geoMapZoomControls": true,
+                                "geoMapWheelZoom": false,
+                                "showLabels": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2adc884f-f9b8-48f8-a0bc-743a99cb507a",
+                "x": 0,
+                "y": 6,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Checkout and Payments Latency",
+                    "description": "p95 latency of Checkout API and Payments API; above 500 ms is degraded",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceMetrics]}}",
+                        "name": "serviceMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "or",
+                            "filters": [
+                                {
+                                    "column": "service",
+                                    "operation": "equals",
+                                    "value": "Checkout API"
+                                },
+                                {
+                                    "column": "service",
+                                    "operation": "equals",
+                                    "value": "Payments API"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-line-graph",
+                        "config": {
+                            "data-stream-line-graph": {
+                                "xAxisColumn": "timestamp",
+                                "yAxisColumn": [
+                                    "latencyP95Ms"
+                                ],
+                                "seriesColumn": "service",
+                                "showLegend": true,
+                                "legendPosition": "bottom",
+                                "showTrendLine": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "latencyP95Ms",
+                                    "type": "quantitative",
+                                    "title": "Latency p95"
+                                },
+                                "series": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "bottom",
+                                "cartesianSymbol": "none"
+                            },
+                            "markLines": [
+                                {
+                                    "value": 500,
+                                    "label": "500 ms",
+                                    "color": "#d63939"
+                                }
+                            ],
+                            "markAreas": [
+                                {
+                                    "from": 500,
+                                    "to": "max",
+                                    "label": "Degraded",
+                                    "color": "rgba(214,57,57,0.08)"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "i": "bcba9c20-3600-4bd0-b354-bca15d8dbb9e",
+                "x": 3,
+                "y": 6,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Payments API Health",
+                    "description": "Health of Payments API over the dashboard timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[serviceMetrics]}}",
+                        "name": "serviceMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "service",
+                                    "operation": "equals",
+                                    "value": "Payments API"
+                                }
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Services]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "healthHistory",
+                            "encoding": {
+                                "time": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal",
+                                    "title": "State"
+                                }
+                            },
+                            "style": {
+                                "historySlots": 48,
+                                "historyBarHeight": 40
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

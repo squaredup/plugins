@@ -1,0 +1,116 @@
+{
+    "name": "latestRates",
+    "displayName": "Latest Rates",
+    "description": "Most recent reference exchange rate from a base currency to each target currency, with the change since the previous working day",
+    "tags": [
+        "Rates"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/rates",
+        "getArgs": [
+            {
+                "key": "from",
+                "value": "{{new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10)}}"
+            },
+            {
+                "key": "providers",
+                "value": "ECB"
+            },
+            {
+                "key": "base",
+                "value": "{{(v => (Array.isArray(v) ? (v[0] && (v[0].value || v[0])) : (v && (v.value || v))) || null)(typeof baseCurrency !== 'undefined' ? baseCurrency : null)}}"
+            },
+            {
+                "key": "quotes",
+                "value": "{{(v => (Array.isArray(v) ? (v[0] && (v[0].value || v[0])) : (v && (v.value || v))) || null)(typeof targetCurrency !== 'undefined' ? targetCurrency : null)}}"
+            }
+        ],
+        "postRequestScript": "latestRates.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "baseCurrency",
+            "label": "Base currency",
+            "isClearable": true,
+            "allowCustomValues": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "currencies",
+                "dataSourceConfig": {}
+            },
+            "help": "Defaults to EUR."
+        },
+        {
+            "type": "autocomplete",
+            "name": "targetCurrency",
+            "label": "Target currency",
+            "isClearable": true,
+            "allowCustomValues": false,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "currencies",
+                "dataSourceConfig": {}
+            },
+            "help": "Leave blank for every supported currency."
+        }
+    ],
+    "timeframes": false,
+    "metadata": [
+        {
+            "name": "pair",
+            "displayName": "Pair",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "base",
+            "displayName": "Base currency",
+            "shape": "string"
+        },
+        {
+            "name": "currency",
+            "displayName": "Target currency",
+            "shape": "string"
+        },
+        {
+            "name": "rate",
+            "displayName": "Rate",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 4
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "change",
+            "displayName": "Change",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "previousRate",
+            "displayName": "Previous rate",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 4
+                }
+            ]
+        },
+        {
+            "name": "date",
+            "displayName": "Rate date",
+            "shape": "string"
+        }
+    ]
+}

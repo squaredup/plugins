@@ -13,7 +13,15 @@
         "getArgs": [
             {
                 "key": "fields",
-                "value": "id,display,display_url,status,region,group,tenant,facility,time_zone,description,physical_address,latitude,longitude,device_count,rack_count,prefix_count,vlan_count,circuit_count,virtualmachine_count,created,last_updated,custom_fields"
+                "value": "id,display,display_url,status,region,group,tenant,facility,time_zone,description,physical_address,latitude,longitude,device_count,rack_count,prefix_count,vlan_count,circuit_count,virtualmachine_count,created,last_updated,tags,custom_fields"
+            },
+            {
+                "key": "id",
+                "value": "{{ (typeof site !== 'undefined' && site && site.length) ? site.map(o => [].concat(o.rawId)[0]) : null }}"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
             }
         ],
         "paging": {
@@ -40,6 +48,34 @@
         "expandInnerObjects": true
     },
     "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "site",
+            "label": "Site(s) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
     "metadata": [
         {
             "name": "id",
@@ -144,6 +180,21 @@
             "name": "last_updated",
             "displayName": "Last Updated",
             "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
         },
         {
             "name": "display_url",

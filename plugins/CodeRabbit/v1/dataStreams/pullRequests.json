@@ -1,0 +1,292 @@
+{
+    "name": "pullRequests",
+    "displayName": "Pull requests",
+    "description": "Merged or closed pull requests reviewed by CodeRabbit, with review timings and comment outcomes",
+    "tags": [
+        "Pull Request",
+        "Code Review"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/metrics/reviews",
+        "getArgs": [
+            {
+                "key": "start_date",
+                "value": "{{timeframe.start.slice(0,10)}}"
+            },
+            {
+                "key": "end_date",
+                "value": "{{timeframe.end.slice(0,10)}}"
+            },
+            {
+                "key": "status",
+                "value": "{{status || null}}"
+            },
+            {
+                "key": "repository_ids",
+                "value": "{{repository && repository.length ? repository.map(o => Array.isArray(o.rawId) ? o.rawId[0] : o.rawId).join(',') : null}}"
+            },
+            {
+                "key": "user_ids",
+                "value": "{{user && user.length ? user.map(o => Array.isArray(o.rawId) ? o.rawId[0] : o.rawId).join(',') : null}}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "cursor"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "error.message"
+        },
+        "postRequestScript": "pullRequests.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "radio",
+            "name": "status",
+            "label": "Status",
+            "defaultValue": "merged",
+            "options": [
+                {
+                    "value": "merged",
+                    "label": "Merged"
+                },
+                {
+                    "value": "closed",
+                    "label": "Closed"
+                },
+                {
+                    "value": "all",
+                    "label": "All"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "repository",
+            "label": "Repository (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Repository"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "prUrl",
+            "displayName": "Pull request",
+            "shape": [
+                "url",
+                {
+                    "label": "#{{column.prNumber}}"
+                }
+            ],
+            "role": "link"
+        },
+        {
+            "name": "prNumber",
+            "displayName": "Number",
+            "shape": ["number", { "thousandsSeparator": false }],
+            "visible": false
+        },
+        {
+            "name": "repository_name",
+            "displayName": "Repository",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "organization_name",
+            "displayName": "Organization",
+            "shape": "string"
+        },
+        {
+            "name": "author_username",
+            "displayName": "Author",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "ready_for_review_at",
+            "displayName": "Ready for review",
+            "shape": "date"
+        },
+        {
+            "name": "first_human_review_at",
+            "displayName": "First human review",
+            "shape": "date"
+        },
+        {
+            "name": "last_commit_at",
+            "displayName": "Last commit",
+            "shape": "date"
+        },
+        {
+            "name": "merged_at",
+            "displayName": "Merged",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "hoursToFirstHumanReview",
+            "displayName": "Hours to first human review",
+            "computed": true,
+            "valueExpression": "{{ $['first_human_review_at'] ? Math.max((new Date($['first_human_review_at']) - new Date($['ready_for_review_at'] || $['created_at'])) / 3600000, 0) : null }}",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "hoursToMerge",
+            "displayName": "Hours to merge",
+            "computed": true,
+            "valueExpression": "{{ $['merged_at'] ? Math.max((new Date($['merged_at']) - new Date($['ready_for_review_at'] || $['created_at'])) / 3600000, 0) : null }}",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "hoursToLastCommit",
+            "displayName": "Hours to last commit",
+            "computed": true,
+            "valueExpression": "{{ $['last_commit_at'] ? Math.max((new Date($['last_commit_at']) - new Date($['ready_for_review_at'] || $['created_at'])) / 3600000, 0) : null }}",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "review_iterations",
+            "displayName": "Review iterations",
+            "shape": "number"
+        },
+        {
+            "name": "estimated_complexity",
+            "displayName": "Estimated complexity",
+            "shape": "number"
+        },
+        {
+            "name": "estimated_review_minutes",
+            "displayName": "Estimated review time",
+            "shape": "minutes"
+        },
+        {
+            "name": "commentsPosted",
+            "displayName": "Comments posted",
+            "shape": "number"
+        },
+        {
+            "name": "commentsAccepted",
+            "displayName": "Comments accepted",
+            "shape": "number"
+        },
+        {
+            "name": "acceptanceRate",
+            "displayName": "Acceptance rate",
+            "computed": true,
+            "valueExpression": "{{ $['commentsPosted'] > 0 ? $['commentsAccepted'] / $['commentsPosted'] * 100 : null }}",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "criticalPosted",
+            "displayName": "Critical comments",
+            "shape": "number"
+        },
+        {
+            "name": "majorPosted",
+            "displayName": "Major comments",
+            "shape": "number"
+        },
+        {
+            "name": "securityPosted",
+            "displayName": "Security comments",
+            "shape": "number"
+        },
+        {
+            "name": "repository_id",
+            "displayName": "Repository ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "author_id",
+            "displayName": "Author ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "sourceId": "repository_id",
+            "sourceType": "Repository",
+            "name": "repository_name"
+        },
+        {
+            "sourceId": "author_id",
+            "sourceType": "User",
+            "name": "author_username"
+        }
+    ],
+    "timeframes": [
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter"
+    ]
+}

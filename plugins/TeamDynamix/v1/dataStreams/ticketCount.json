@@ -1,0 +1,90 @@
+{
+    "name": "ticketCount",
+    "displayName": "Ticket Count",
+    "description": "Number of tickets in a ticketing application that match a status, group, SLA and date filter (exact, not limited by Maximum tickets)",
+    "tags": ["Tickets", "Service Management"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "api/{{object.rawId}}/tickets/search/paged",
+        "getArgs": [
+            { "key": "pageSize", "value": "1" },
+            { "key": "pageNumber", "value": "1" }
+        ],
+        "postBody": {
+            "StatusClassIDs": "{{typeof statusClass === 'undefined' || !statusClass || !statusClass.length ? null : [].concat(statusClass).map(Number)}}",
+            "CreatedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Created' ? null : timeframe.start}}",
+            "CreatedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Created' ? null : timeframe.end}}",
+            "ModifiedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Modified' ? null : timeframe.start}}",
+            "ModifiedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Modified' ? null : timeframe.end}}",
+            "ClosedDateFrom": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Closed' ? null : timeframe.start}}",
+            "ClosedDateTo": "{{typeof timeframe === 'undefined' || timeframe.enum === 'none' || ((typeof dateField !== 'undefined' && dateField) || 'Created') !== 'Closed' ? null : timeframe.end}}",
+            "PrimaryResponsibilityGroupIDs": "{{typeof groups !== 'undefined' && Array.isArray(groups) && groups.length ? groups.flatMap((o) => o.rawId).map(Number) : null}}",
+            "SlaViolationStatus": "{{typeof sla !== 'undefined' && sla === 'violated' ? true : null}}"
+        },
+        "paging": { "mode": "none" },
+        "postRequestScript": "ticketCount.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/rateLimit.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["TeamDynamix Ticketing App"] }
+    },
+    "ui": [
+        {
+            "type": "switch",
+            "name": "dateField",
+            "label": "Timeframe applies to",
+            "defaultValue": "Created",
+            "help": "Which ticket date the selected timeframe filters on. Set the timeframe to **None** to ignore dates entirely and return the current backlog.",
+            "options": [
+                { "value": "Created", "label": "Created" },
+                { "value": "Modified", "label": "Last modified" },
+                { "value": "Closed", "label": "Closed" }
+            ],
+            "tileEditorStep": ["Timeframe"]
+        },
+        {
+            "type": "choiceChips",
+            "name": "statusClass",
+            "label": "Status",
+            "isMulti": true,
+            "help": "Leave empty for all tickets. Filtering here is done by TeamDynamix rather than in the browser, so it also keeps large result sets manageable.",
+            "options": [
+                { "value": "1", "label": "New" },
+                { "value": "2", "label": "In Process" },
+                { "value": "5", "label": "On Hold" },
+                { "value": "6", "label": "Requested" },
+                { "value": "3", "label": "Completed" },
+                { "value": "4", "label": "Cancelled" }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "groups",
+            "label": "Group(s)",
+            "help": "Matches the group a ticket is assigned to, not groups that only own one of its tasks.",
+            "matches": {
+                "sourceType": { "type": "oneOf", "values": ["TeamDynamix Group"] }
+            }
+        },
+        {
+            "type": "switch",
+            "name": "sla",
+            "label": "SLA",
+            "defaultValue": "all",
+            "options": [
+                { "value": "all", "label": "All" },
+                { "value": "violated", "label": "Violated only" }
+            ]
+        }
+    ],
+    "metadata": [
+        { "name": "tickets", "displayName": "Tickets", "shape": "number", "role": "value" }
+    ],
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "dashboard"
+}

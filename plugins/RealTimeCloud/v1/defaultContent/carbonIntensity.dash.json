@@ -1,0 +1,399 @@
+{
+    "name": "Carbon Intensity",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "dc1d4f65-5e27-4f62-9998-d60ca24b7999",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Grid carbon intensity summary",
+                    "description": "Grid carbon intensity (consumption, annual) across all regions, latest disclosed year",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT COUNT(*) FILTER (WHERE \"gridCarbonIntensityConsumptionAnnual\" < 100) AS \"lowCarbonRegions\", ROUND(MIN(\"gridCarbonIntensityConsumptionAnnual\"), 0) AS \"minCi\", ROUND(MEDIAN(\"gridCarbonIntensityConsumptionAnnual\"), 0) AS \"medianCi\", ROUND(MAX(\"gridCarbonIntensityConsumptionAnnual\"), 0) AS \"maxCi\" FROM \"dataset\" WHERE \"isLatest\" = 1 AND \"gridCarbonIntensityConsumptionAnnual\" IS NOT NULL"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "lowCarbonRegions",
+                                        "type": "quantitative",
+                                        "title": "Low-carbon regions (<100 g/kWh)"
+                                    },
+                                    {
+                                        "field": "minCi",
+                                        "type": "quantitative",
+                                        "title": "Cleanest region (gCO₂eq/kWh)"
+                                    },
+                                    {
+                                        "field": "medianCi",
+                                        "type": "quantitative",
+                                        "title": "Median region (gCO₂eq/kWh)"
+                                    },
+                                    {
+                                        "field": "maxCi",
+                                        "type": "quantitative",
+                                        "title": "Dirtiest region (gCO₂eq/kWh)"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "80f101ed-8b95-4e8f-b809-57f632dded2d",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "15 cleanest regions",
+                    "description": "Lowest grid carbon intensity (gCO₂eq/kWh), latest disclosed year",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"region\" || ' · ' || CASE \"provider\" WHEN 'Amazon Web Services' THEN 'AWS' WHEN 'Google Cloud' THEN 'GCP' WHEN 'Microsoft Azure' THEN 'Azure' ELSE \"provider\" END AS \"regionLabel\", \"provider\", ROUND(\"gridCarbonIntensityConsumptionAnnual\", 0) AS \"gridCi\" FROM \"dataset\" WHERE \"isLatest\" = 1 AND \"gridCarbonIntensityConsumptionAnnual\" IS NOT NULL ORDER BY \"gridCarbonIntensityConsumptionAnnual\" ASC LIMIT 15"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "regionLabel",
+                                    "type": "nominal",
+                                    "title": "Region"
+                                },
+                                "y": {
+                                    "field": "gridCi",
+                                    "type": "quantitative",
+                                    "title": "Grid carbon intensity (gCO₂eq/kWh)"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianColorRules": [
+                                    {
+                                        "lt": 100,
+                                        "color": "#16A34A"
+                                    },
+                                    {
+                                        "lt": 400,
+                                        "color": "#F59E0B"
+                                    },
+                                    {
+                                        "gte": 400,
+                                        "color": "#DC2626"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8e87b144-fecb-492c-8573-651e4367d281",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "15 highest-carbon regions",
+                    "description": "Highest grid carbon intensity (gCO₂eq/kWh), latest disclosed year",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"region\" || ' · ' || CASE \"provider\" WHEN 'Amazon Web Services' THEN 'AWS' WHEN 'Google Cloud' THEN 'GCP' WHEN 'Microsoft Azure' THEN 'Azure' ELSE \"provider\" END AS \"regionLabel\", \"provider\", ROUND(\"gridCarbonIntensityConsumptionAnnual\", 0) AS \"gridCi\" FROM \"dataset\" WHERE \"isLatest\" = 1 AND \"gridCarbonIntensityConsumptionAnnual\" IS NOT NULL ORDER BY \"gridCarbonIntensityConsumptionAnnual\" DESC LIMIT 15"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "regionLabel",
+                                    "type": "nominal",
+                                    "title": "Region"
+                                },
+                                "y": {
+                                    "field": "gridCi",
+                                    "type": "quantitative",
+                                    "title": "Grid carbon intensity (gCO₂eq/kWh)"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true,
+                                "cartesianBarBorderRadius": 4,
+                                "cartesianShowHorizontalGridLines": false,
+                                "cartesianColorRules": [
+                                    {
+                                        "lt": 100,
+                                        "color": "#16A34A"
+                                    },
+                                    {
+                                        "lt": 400,
+                                        "color": "#F59E0B"
+                                    },
+                                    {
+                                        "gte": 400,
+                                        "color": "#DC2626"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a48f31cf-1679-4bb7-93ac-ea8667afa63a",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Grid carbon intensity trend by provider",
+                    "description": "Mean regional grid carbon intensity per year, from values disclosed by each provider. Years without a disclosure are not shown.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT CAST(CAST(\"year\" AS INTEGER) AS VARCHAR) AS \"yearLabel\", \"provider\", ROUND(AVG(\"gridCarbonIntensityConsumptionAnnual\"), 0) AS \"avgGridCi\" FROM \"hist\" WHERE \"gridCarbonIntensityConsumptionAnnual\" IS NOT NULL GROUP BY \"year\", \"provider\" ORDER BY \"year\", \"provider\"",
+                            "tables": [
+                                {
+                                    "tableName": "hist",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[regionMetadata]}}",
+                                            "name": "regionMetadata",
+                                            "pluginConfigId": "{{configId}}"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "yearLabel",
+                                    "type": "nominal",
+                                    "title": "Year"
+                                },
+                                "y": {
+                                    "field": "avgGridCi",
+                                    "type": "quantitative",
+                                    "title": "Avg grid carbon intensity (gCO₂eq/kWh)"
+                                },
+                                "series": {
+                                    "field": "provider",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianSmooth": true,
+                                "legendPosition": "bottom",
+                                "cartesianPointRadius": 4,
+                                "mappedColors": {
+                                    "Amazon Web Services": "#8B5CF6",
+                                    "Google Cloud": "#38BDF8",
+                                    "Microsoft Azure": "#1E3A8A"
+                                },
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4095a079-1f3c-40dd-8f29-c778c802d7ed",
+                "x": 0,
+                "y": 9,
+                "w": 4,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "All regions – carbon detail",
+                    "description": "Carbon intensity values in gCO₂eq/kWh. Hourly CFE is the share of hourly carbon-free energy reported by the provider. Latest disclosed year.",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[regionMetadata]}}",
+                        "name": "regionMetadata",
+                        "pluginConfigId": "{{configId}}",
+                        "sql": "SELECT \"region\", \"provider\", \"location\", CAST(\"year\" AS INTEGER) AS \"year\", ROUND(\"gridCarbonIntensityConsumptionAnnual\", 0) AS \"gridCi\", ROUND(\"gridCarbonIntensityMarginalAnnual\", 0) AS \"marginalCi\", ROUND(\"providerCarbonIntensityConsumptionHourly\", 0) AS \"providerCi\", ROUND(\"providerCfeHourly\" * 100, 0) AS \"cfePct\" FROM \"dataset\" WHERE \"isLatest\" = 1 ORDER BY \"gridCarbonIntensityConsumptionAnnual\" ASC NULLS LAST"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "provider",
+                                        "title": "Provider",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Amazon Web Services": "#8B5CF6",
+                                                "Google Cloud": "#38BDF8",
+                                                "Microsoft Azure": "#1E3A8A"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "location",
+                                        "title": "Location",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "year",
+                                        "title": "Year",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "gridCi",
+                                        "title": "Grid CI (consumption)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "thresholds": [
+                                                {
+                                                    "to": 100,
+                                                    "color": "#16A34A"
+                                                },
+                                                {
+                                                    "to": 400,
+                                                    "color": "#F59E0B"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#DC2626"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "marginalCi",
+                                        "title": "Grid CI (marginal)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "providerCi",
+                                        "title": "Provider CI (hourly)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "cfePct",
+                                        "title": "Hourly CFE",
+                                        "renderer": {
+                                            "type": "progress",
+                                            "max": 100
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "gridCi",
+                                    "direction": "asc"
+                                },
+                                "richTableCellPadding": 6,
+                                "richTableAltRowColor": "rgba(148,163,184,0.08)"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

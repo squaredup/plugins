@@ -13,11 +13,19 @@
         "getArgs": [
             {
                 "key": "fields",
-                "value": "id,display,display_url,site,location,status,role,tenant,facility_id,serial,asset_tag,u_height,starting_unit,form_factor,device_count,powerfeed_count,description,created,last_updated,custom_fields"
+                "value": "id,display,display_url,site,location,status,role,tenant,facility_id,serial,asset_tag,u_height,starting_unit,form_factor,device_count,powerfeed_count,description,created,last_updated,tags,custom_fields"
+            },
+            {
+                "key": "id",
+                "value": "{{ (typeof rack !== 'undefined' && rack && rack.length) ? rack.map(o => [].concat(o.rawId)[0]) : null }}"
             },
             {
                 "key": "site_id",
                 "value": "{{ (typeof site !== 'undefined' && site && site.length) ? site.map(s => [].concat(s.rawId)[0]) : null }}"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
             }
         ],
         "paging": {
@@ -47,6 +55,19 @@
     "ui": [
         {
             "type": "objects",
+            "name": "rack",
+            "label": "Rack(s) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Rack"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
             "name": "site",
             "label": "Site (optional)",
             "matches": {
@@ -56,6 +77,19 @@
                         "Site"
                     ]
                 }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
             }
         }
     ],
@@ -157,6 +191,21 @@
             "name": "last_updated",
             "displayName": "Last Updated",
             "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
         },
         {
             "name": "display_url",

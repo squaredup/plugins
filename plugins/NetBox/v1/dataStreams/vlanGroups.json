@@ -13,7 +13,11 @@
         "getArgs": [
             {
                 "key": "fields",
-                "value": "id,display,display_url,name,slug,scope_type,scope,tenant,vid_ranges,total_vlan_ids,vlan_count,utilization,description,last_updated,custom_fields"
+                "value": "id,display,display_url,name,slug,scope_type,scope,tenant,vid_ranges,total_vlan_ids,vlan_count,utilization,description,last_updated,tags,custom_fields"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
             }
         ],
         "paging": {
@@ -50,6 +54,21 @@
             ]
         }
     },
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
     "metadata": [
         {
             "name": "id",
@@ -128,6 +147,21 @@
             "name": "last_updated",
             "displayName": "Last Updated",
             "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
         },
         {
             "name": "display_url",

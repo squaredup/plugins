@@ -1,0 +1,155 @@
+{
+    "name": "databases",
+    "displayName": "Databases",
+    "description": "Managed database clusters with their engine, version, status, size and node count",
+    "tags": [
+        "Database",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v2/databases",
+        "postRequestScript": "databases.js",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "200"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "links.pages.next"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "engine",
+            "displayName": "Engine",
+            "shape": "string"
+        },
+        {
+            "name": "version",
+            "displayName": "Version",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "online"
+                        ],
+                        "warning": [
+                            "creating",
+                            "resizing",
+                            "migrating",
+                            "forking"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "size",
+            "displayName": "Size",
+            "shape": "string"
+        },
+        {
+            "name": "numNodes",
+            "displayName": "Nodes",
+            "shape": "number"
+        },
+        {
+            "name": "versionEndOfLife",
+            "displayName": "Version End of Life",
+            "shape": "date"
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "vpcUuid",
+            "displayName": "VPC ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tagList",
+            "displayName": "Tags",
+            "shape": "string"
+        },
+        {
+            "name": "createdAt",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Database",
+            "name": "name"
+        }
+    ],
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "vpc",
+            "label": "VPC (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "VPC"
+                    ]
+                }
+            }
+        }
+    ]
+}

@@ -70,9 +70,7 @@ A **data stream** has its own `ui` array — the **tile-editor parameters** show
 }
 ```
 
-**`ignoreCertificateErrors`** — don't add this. The platform adds an "Ignore certificate errors" toggle to every plugin built on WebAPI, and passes the value to the WebAPI base plugin, so you don't need a ui.json field or a `base.config` mapping.
-
-Declaring a field named `ignoreCertificateErrors`, or setting the key in `base.config`, stops the platform adding its toggle. This only hides the option on the form: a value the user supplies (for example through the API) still overrides `base.config`. So only do it for an API where offering the option makes no sense:
+**`ignoreCertificateErrors`** — don't add this. The platform adds an "Ignore certificate errors" toggle to every plugin built on WebAPI, and passes the value to the WebAPI base plugin, so you don't need a ui.json field or a `base.config` mapping. Declaring a field named `ignoreCertificateErrors`, or setting the key in `base.config`, stops the platform adding its toggle. This only hides the option on the form: a value the user supplies (for example through the API) still overrides `base.config`. So only do it for an API where offering the option makes no sense:
 
 ```json
 "base": {
@@ -161,7 +159,15 @@ The `validation` object accepts [react-hook-form](https://react-hook-form.com/do
 
 ## Selection inputs
 
-Choosing between them: use **`radio`** when each option reads best on its own line or needs a description; **`switch`** for a compact segmented control between 2–3 mutually exclusive modes or views; **`choiceChips`** for tag-like selection, especially multi-select (`isMulti`). For a single on/off, **`checkbox`** is the plain boolean and **`toggle`** is the same semantics with a switch appearance — reach for `toggle` when enabling a feature or revealing an advanced section.
+Use the plainest field that fits:
+
+- **One on/off:** `toggle`, including a toggle that shows an advanced section (`visible: { "x": "true" }`).
+- **Some items from a fixed set** (for example, object types to import): one `checkbox` per item, stacked. To make the set optional, put them in a `fieldGroup` that a master `toggle` shows (for example, "Configure your import").
+- **One of 2–4 short options** (all labels together about 50 characters or less): `switch`. It does not wrap, so all options must fit on one line. Set `defaultValue`, because a click on the selected option clears it.
+- **One of 2–5 options, where a label is long or needs a description:** `radio`.
+- **One of a long or growing list** (regions, API versions): `autocomplete` with `"isMulti": false`.
+- **A list of IDs or names that the user types:** `autocomplete` with `"isMulti": true` and `"allowCustomValues": true`.
+- **`choiceChips`:** tile-editor parameters in a data stream's `ui` only, for example a severity filter.
 
 **`checkbox`** — single boolean:
 
@@ -192,7 +198,7 @@ Choosing between them: use **`radio`** when each option reads best on its own li
 
 **`switch`** — same `options` shape as `radio`, with `"type": "switch"`.
 
-**`choiceChips`** — same `options` shape as `radio`, with `"type": "choiceChips"`; add `"isMulti": true` for multi-select.
+**`choiceChips`** — a data stream's `ui` array only. Same `options` shape as `radio`, with `"type": "choiceChips"`; add `"isMulti": true` for multi-select.
 
 **`autocomplete`** — searchable dropdown; fixed list or data stream–driven; supports `allowCustomValues`, `isMulti`, `isClearable`:
 
@@ -301,12 +307,12 @@ Choosing between them: use **`radio`** when each option reads best on its own li
 { "type": "fieldGroup", "label": "Advanced Options", "fields": [ ...field definitions... ] }
 ```
 
-**`displayAs`** controls how the group renders:
+**`displayAs`** controls how the group renders. In `ui.json`, use `row` or `inlineFields` only for fields that read as one line, such as a host and port. Use `tabs` and `fieldGroupToggle` in a data stream's `ui` array only:
 
-- `"fieldGroupToggle"` — a collapsible/switchable group:
+- `"fieldGroupToggle"` — a switch that shows one child field at a time, for example Path or Script. Each child needs a short `label`:
 
     ```json
-    { "type": "fieldGroup", "name": "advanced", "label": "Advanced Options", "displayAs": "fieldGroupToggle",
+    { "type": "fieldGroup", "name": "source", "label": "Source", "displayAs": "fieldGroupToggle",
       "fields": [ ...field definitions... ] }
     ```
 

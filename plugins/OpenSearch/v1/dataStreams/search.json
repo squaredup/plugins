@@ -1,6 +1,8 @@
 {
     "name": "search",
-    "displayName": "Search",
+    "displayName": "Search Results",
+    "description": "Documents or aggregation results from a Query DSL search of one or more indices",
+    "tags": ["Search"],
     "baseDataSourceName": "httpRequestUnscoped",
     "matches": "none",
     "manualConfigApply": true,
@@ -11,39 +13,54 @@
         "postRequestScript": "search.js",
         "getArgs": [],
         "headers": [],
-        "postBody": "{{query}}"
+        "postBody": "{{ (() => { let body = query; if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { return body; } } const field = typeof timeField === 'string' ? timeField.trim() : ''; const tf = typeof timeframe !== 'undefined' ? timeframe : null; if (!field || !tf || !tf.start || tf.enum === 'none') { return body; } const span = { range: { [field]: { gte: tf.start, lte: tf.end, format: 'strict_date_optional_time' } } }; return Object.assign({}, body, { query: { bool: { must: [ (body && body.query) || { match_all: {} } ], filter: [ span ] } } }); })() }}",
+        "errorHandling": { "type": "path", "realm": "payload", "path": "error.root_cause.0.reason" }
     },
     "ui": [
         {
-          "name": "index",
-          "type": "autocomplete",
-          "label": "Index",
-          "validation": {
-            "required": true
-          },
-          "placeholder": "Select index",
-          "isMulti": false,
-          "allowCustomValues": true,
-          "data": {
-            "source": "dataStream",
-            "dataStreamName": "indices",
-            "dataSourceConfig": {}
-          }
+            "name": "index",
+            "type": "autocomplete",
+            "label": "Index",
+            "validation": {
+                "required": true
+            },
+            "placeholder": "Select an index or pattern",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "indexNames",
+                "dataSourceConfig": {}
+            }
         },
         {
-          "name": "query",
-          "type": "json",
-          "defaultValue": {
-            "size": 100
+            "name": "query",
+            "type": "json",
+            "defaultValue": {
+                "size": 100
             },
-          "label": "Query body",
-          "help": "The Query DSL JSON. See [OpenSearch API docs](https://docs.opensearch.org/latest/api-reference/search-apis/search/#request-body).",
-          "validation": {
-            "required": true
-          }
+            "label": "Query body",
+            "help": "The Query DSL request body. See the [OpenSearch search API](https://docs.opensearch.org/latest/api-reference/search-apis/search/#request-body).",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "name": "timeField",
+            "type": "text",
+            "label": "Time field",
+            "placeholder": "@timestamp",
+            "help": "Filters results to the tile's timeframe using this date field. Leave empty to ignore the timeframe."
         }
     ],
     "supportsNoneTimeframe": true,
     "requiresParameterTimeframe": true,
-    "defaultTimeframe": "none"
+    "defaultTimeframe": "none",
+    "metadata": [
+        { "name": "bucketTime", "displayName": "Time", "shape": "date", "role": "timestamp" },
+        { "name": "_id", "displayName": "Document ID", "shape": "string", "visible": false },
+        { "name": "_index", "displayName": "Index", "shape": "string", "visible": false },
+        { "name": "_score", "displayName": "Score", "shape": "number", "visible": false },
+        { "pattern": ".*" }
+    ]
 }

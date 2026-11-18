@@ -13,11 +13,19 @@
         "getArgs": [
             {
                 "key": "fields",
-                "value": "id,display,display_url,prefix,family,vrf,scope_type,scope,status,role,tenant,vlan,is_pool,mark_utilized,_depth,children,description,created,last_updated,custom_fields"
+                "value": "id,display,display_url,prefix,family,vrf,scope_type,scope,status,role,tenant,vlan,is_pool,mark_utilized,_depth,children,description,created,last_updated,tags,custom_fields"
+            },
+            {
+                "key": "id",
+                "value": "{{ (typeof prefix !== 'undefined' && prefix && prefix.length) ? prefix.map(o => [].concat(o.rawId)[0]) : null }}"
             },
             {
                 "key": "site_id",
                 "value": "{{ (typeof site !== 'undefined' && site && site.length) ? site.map(s => [].concat(s.rawId)[0]) : null }}"
+            },
+            {
+                "key": "tag",
+                "value": "{{ (typeof tag !== 'undefined' && tag && tag.length) ? [].concat(tag).flatMap(t => (t && typeof t === 'object') ? [t.value] : String(t).split(',')).map(t => String(t).trim()).filter(Boolean) : null }}"
             }
         ],
         "paging": {
@@ -47,6 +55,19 @@
     "ui": [
         {
             "type": "objects",
+            "name": "prefix",
+            "label": "Prefix(es) (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Prefix"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
             "name": "site",
             "label": "Site (optional)",
             "matches": {
@@ -56,6 +77,19 @@
                         "Site"
                     ]
                 }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "tag",
+            "label": "Tag(s) (optional)",
+            "help": "Returns only objects that have all the selected tags",
+            "isMulti": true,
+            "allowCustomValues": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "tags",
+                "dataSourceConfig": {}
             }
         }
     ],
@@ -151,6 +185,21 @@
             "name": "last_updated",
             "displayName": "Last Updated",
             "shape": "date"
+        },
+        {
+            "pattern": "^tags[.].*",
+            "visible": false
+        },
+        {
+            "name": "tags.0.display",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ (() => { const out = []; for (let i = 0; i < 100; i++) { const n = $['tags.' + i + '.name']; if (typeof n !== 'string' || !n) break; out.push(n); } return out.length ? JSON.stringify(out) : null; })() }}"
         },
         {
             "name": "display_url",

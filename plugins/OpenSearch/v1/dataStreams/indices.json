@@ -1,26 +1,50 @@
 {
     "name": "indices",
     "displayName": "Indices",
+    "description": "Health, status, shard, document and storage statistics for each index (system indices excluded)",
+    "tags": ["Cluster", "Indices"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
-        "expandInnerObjects": true,
-        "endpointPath": "_cat/indices",
-        "pathToData": "",
-        "getArgs": [],
-        "headers": []
+        "endpointPath": "_cat/indices/{{ (typeof index !== 'undefined' && Array.isArray(index) && index.length) ? index.map((o) => [].concat(o.rawId)[0]).join(',') : '*,-.*' }}",
+        "getArgs": [
+            { "key": "format", "value": "json" },
+            { "key": "bytes", "value": "b" },
+            { "key": "expand_wildcards", "value": "open,closed" },
+            { "key": "ignore_unavailable", "value": "true" },
+            { "key": "s", "value": "index" },
+            {
+                "key": "h",
+                "value": "index,uuid,health,status,pri,rep,docs.count,docs.deleted,store.size,pri.store.size,creation.date.string"
+            }
+        ]
     },
-    "timeframes": false,
     "matches": "none",
-    "visibility": {
-        "type": "hidden"
-    },
-    "metadata": [
+    "ui": [
         {
-        "name": "index",
-        "shape": "string",
-        "displayName": "Index",
-        "role": "value"
+            "type": "objects",
+            "name": "index",
+            "label": "Index (optional)",
+            "matches": { "sourceType": { "type": "equals", "value": "Index" } }
         }
+    ],
+    "timeframes": false,
+    "metadata": [
+        { "name": "index", "displayName": "Index", "shape": "string", "role": "label" },
+        { "sourceId": "index", "sourceType": "Index", "name": "index" },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": ["state", { "map": { "success": ["green"], "warning": ["yellow"], "error": ["red"] } }]
+        },
+        { "name": "status", "displayName": "Status", "shape": ["state", { "map": { "success": ["open"], "unknown": ["close"] } }] },
+        { "name": "docs.count", "displayName": "Documents", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }], "role": "value" },
+        { "name": "docs.deleted", "displayName": "Deleted Documents", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        { "name": "store.size", "displayName": "Size", "shape": "bytes" },
+        { "name": "pri.store.size", "displayName": "Primary Size", "shape": "bytes" },
+        { "name": "pri", "displayName": "Primary Shards", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "rep", "displayName": "Replicas", "shape": ["number", { "decimalPlaces": 0 }] },
+        { "name": "creation.date.string", "displayName": "Created", "shape": "date" },
+        { "name": "uuid", "displayName": "UUID", "shape": "string", "visible": false }
     ]
 }
