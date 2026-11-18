@@ -11,7 +11,7 @@ result = (data.data || [])
         return {
             dcpUniqueKey: r.dcpUniqueKey,
             customerGlobalId: r.customerGlobalId,
-            customer: r.customerName,
+            customerName: r.customerName,
             userName: r.userName,
             userEmail: r.userEmail,
             workloadType: r.workloadType,
