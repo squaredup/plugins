@@ -2,7 +2,10 @@
     "name": "racks",
     "displayName": "Racks",
     "description": "Racks in Device42, with their location, size and free rack units",
-    "tags": ["Data Center", "Capacity"],
+    "tags": [
+        "Data Center",
+        "Capacity"
+    ],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
         "httpMethod": "get",
@@ -16,15 +19,29 @@
         "pathToData": "racks",
         "paging": {
             "mode": "offset",
-            "pageSize": { "realm": "queryArg", "path": "limit", "value": "500" },
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
             "offset": {
                 "mode": "row",
-                "rowCountIn": { "realm": "payloadArraySize", "path": "racks" },
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "racks"
+                },
                 "base": 0
             },
-            "out": { "realm": "queryArg", "path": "offset" }
+            "out": {
+                "realm": "queryArg",
+                "path": "offset"
+            }
         },
-        "errorHandling": { "type": "path", "realm": "payload", "path": "msg" }
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
     },
     "matches": "none",
     "ui": [
@@ -32,34 +49,92 @@
             "type": "objects",
             "name": "building",
             "label": "Building (optional)",
-            "matches": { "sourceType": { "type": "oneOf", "values": ["Building"] } }
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Building"
+                    ]
+                }
+            }
         }
     ],
     "metadata": [
-        { "name": "name", "displayName": "Rack", "shape": "string", "role": "label", "sourceId": "rack_id", "sourceType": "Rack" },
-        { "name": "rack_id", "displayName": "Rack ID", "shape": ["number", { "thousandsSeparator": false }], "role": "id", "visible": false },
-        { "name": "building", "displayName": "Building", "shape": "string" },
-        { "name": "room", "displayName": "Room", "shape": "string" },
-        { "name": "row", "displayName": "Row", "shape": "string" },
-        { "name": "size", "displayName": "Size (U)", "shape": "number" },
-        { "name": "available_u", "displayName": "Free (U)", "shape": "number" },
+        {
+            "name": "name",
+            "displayName": "Rack",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "rack_id",
+            "sourceType": "Rack"
+        },
+        {
+            "name": "rack_id",
+            "displayName": "Rack ID",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false
+                }
+            ],
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "building",
+            "displayName": "Building",
+            "shape": "string"
+        },
+        {
+            "name": "room",
+            "displayName": "Room",
+            "shape": "string"
+        },
+        {
+            "name": "row",
+            "displayName": "Row",
+            "shape": "string"
+        },
+        {
+            "name": "size",
+            "displayName": "Size (U)",
+            "shape": "number"
+        },
+        {
+            "name": "available_u",
+            "displayName": "Free (U)",
+            "shape": "number"
+        },
         {
             "name": "used_u",
             "displayName": "Used (U)",
             "shape": "number",
             "computed": true,
-            "valueExpression": "{{ Number($['size']) > 0 ? Number($['size']) - Number($['available_u'] || 0) : null }}"
+            "valueExpression": "{{ Number($['size']) > 0 ? Math.min(Number($['size']), Math.max(0, Number($['size']) - Number($['available_u'] || 0))) : null }}"
         },
         {
             "name": "utilization",
             "displayName": "Utilization",
-            "shape": ["percent", { "decimalPlaces": 0 }],
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 0
+                }
+            ],
             "role": "value",
             "computed": true,
-            "valueExpression": "{{ Number($['size']) > 0 ? Math.round(((Number($['size']) - Number($['available_u'] || 0)) / Number($['size'])) * 1000) / 10 : null }}"
+            "valueExpression": "{{ Number($['size']) > 0 ? Math.round(Math.min(1, Math.max(0, (Number($['size']) - Number($['available_u'] || 0)) / Number($['size']))) * 1000) / 10 : null }}"
         },
-        { "name": "manufacturer", "displayName": "Manufacturer", "shape": "string" },
-        { "name": "asset_no", "displayName": "Asset Number", "shape": "string" }
+        {
+            "name": "manufacturer",
+            "displayName": "Manufacturer",
+            "shape": "string"
+        },
+        {
+            "name": "asset_no",
+            "displayName": "Asset Number",
+            "shape": "string"
+        }
     ],
     "timeframes": false
 }
