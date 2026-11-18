@@ -566,7 +566,7 @@ The Lambda that runs a stream caps its response at ~6MB. Exceeding it surfaces a
 Remediation:
 
 - **If the endpoint can group, filter, or bucket server-side, push that down** (see [Push grouping, filtering and sorting down to the cheapest layer](#push-grouping-filtering-and-sorting-down-to-the-cheapest-layer)) — pre-aggregated rows are far smaller than raw ones, and this is often the only fix when even a short timeframe overflows.
-- Restrict `timeframes` to the ranges the endpoint can actually return in full (see [Prove each timeframe](#prove-each-timeframe)), and set a conservative `defaultTimeframe` so new tiles don't open on the largest range.
+- Remove a timeframe that fails whether the stream is read live or cached, and set a conservative `defaultTimeframe` that a live tile returns in full, so new tiles don't open on the largest range (see [Prove each timeframe](#prove-each-timeframe)).
 - **Apply the same restriction to every sibling stream on the same endpoint family.** If one stream on an endpoint overflows at `last30days`, its siblings hitting the same (or a heavier) endpoint will too — fixing only the one you happened to test leaves the rest broken.
 
 **A smaller `pageSize` is not a fix.** The cap applies to each page and to the combined result, so a smaller page only helps when a single page is over it. It also means more pages, and a tile has a time budget for paging (below). Below the cap, a smaller page can turn the 500 into incomplete data with no error.
@@ -575,7 +575,7 @@ Remediation:
 
 A tile reads all of a stream's pages within about 12 seconds. When the time runs out, SquaredUp returns the rows read so far with a warning on the tile ("The request timed out. The tile may not display all available data.") rather than an error, and caches that partial result. The number of rows a tile gets therefore depends on the page size and on how fast the API answers: one plugin returned 1,400 rows at a page size of 50 and 2,500 at 100, for a window holding about 10,000.
 
-SmartCache works differently. A cached stream is read by an import that fetches one page per step, so this time budget doesn't apply there; the ~6MB cap still applies to each page. But a SmartCache can only use a timeframe the stream's `timeframes` allows: an unsupported one is replaced with a supported one. So restricting `timeframes` to protect tiles also limits what users can cache. Restrict by default, because most tiles read live, and say in the README's limitations which longer windows are not offered and why.
+SmartCache works differently. A cached stream is read by an import that fetches one page per step, so this time budget doesn't apply there; the ~6MB cap still applies to each page. But a SmartCache can only use a timeframe the stream's `timeframes` allows: an unsupported one is replaced with a supported one. So removing a timeframe because live tiles cut it short also stops users caching it. Keep it instead (below).
 
 #### Prove each timeframe
 
@@ -584,7 +584,9 @@ For each timeframe you offer, test the stream at that timeframe on the largest a
 1. Read the last page in the output's `requests` (see [testing.md](testing.md#requests--the-plugin-diagnostics-raw-api-exchange)). If its response still has a next-page cursor or URL, paging was cut short.
 2. Test again at a second page size and compare `data.metadata.rawRowCount`. The counts must match. A count that changes with the page size means the result was cut short.
 
-Offer only the timeframes that pass both checks. Choose `pageSize` for the per-page cap, not to control the total.
+A timeframe that passes both checks is complete in a live tile. One that fails only because paging is cut short can stay: a live tile shows the rows it read with a warning, and a SmartCache of the stream gets every row. Set `defaultTimeframe` to one that passes, and say in the README which timeframes need SmartCache for complete data. Remove a timeframe only when it fails cached as well as live.
+
+Choose `pageSize` for the per-page cap, not to control the total.
 
 ---
 
