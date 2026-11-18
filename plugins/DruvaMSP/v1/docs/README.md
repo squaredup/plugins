@@ -55,7 +55,7 @@ Every stream except **Customers** has an optional **Customer** picker. Leave it 
 
 ## Known limitations
 
-- **Consumption covers the last 7 days only**: a longer window returns more data than SquaredUp can load in one request, so longer ranges are not offered. Consumption tiles stay on 7 days even when you widen the dashboard timeframe.
+- **Consumption covers up to the last 7 days**: choose the last 24 hours for the latest daily figures or the last 7 days for a trend. A longer window returns more data than SquaredUp can load in one request, so it is not offered. Consumption tiles stay on 7 days even when you widen the dashboard timeframe.
 - **Consumption mixes units**: the **Consumption** column holds both resource counts and terabytes. Filter or group on **Units** before you add values up, or the total is meaningless.
 - **Only endpoint alerts are available**: the Druva MSP API has no general alert or event feed, so alerts from other Druva products do not appear.
 - **Storage is a current snapshot**: the two storage streams show the latest values and ignore the dashboard timeframe. There is no storage history.
