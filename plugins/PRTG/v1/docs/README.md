@@ -102,8 +102,10 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 - **Sensor History is limited to 30 days**, and beyond a week it is averaged hourly. Finer buckets over a
   long range return more rows than the platform's response size limit allows, so when you have not chosen an
   **Averaging interval** the plugin asks PRTG for hourly figures on ranges longer than seven days. Choosing
-  **5 minutes** or **Raw** explicitly on a long range can still exceed the limit and fail the tile. A tile
-  following a dashboard timeframe longer than 30 days shows the most recent 30 days rather than failing.
+  **5 minutes** or **Raw** explicitly on a long range can still exceed the limit and fail the tile. On a
+  timeframe longer than 30 days, a tile shows the last 30 days of it rather than failing: the most recent 30
+  days for a range that runs to now, such as this year, or the final 30 days of one that has ended, such as
+  last quarter.
 - **The log returns at most 5,000 entries per query.** PRTG returns newest first, so on a busy installation
   over a long timeframe the oldest entries in the range are dropped without warning. Unlike the object
   tables, PRTG reports no usable total for the log, so there is no way to detect that truncation happened —
