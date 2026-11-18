@@ -17,6 +17,7 @@ result = (data.data || [])
         backupType: na(r.backupType),
         status: r.status === 'Backup window expired' ? 'Window expired' : na(r.status),
         details: na(r.details),
+        scheduled: na(r.scheduled),
         started: na(r.started),
         ended: na(r.ended),
         durationMinutes: minutes(r),
