@@ -4,7 +4,7 @@ const now = Date.now();
 
 result = (data.data || []).map((r) => {
     const end = r.endTime ? new Date(r.endTime).getTime() : NaN;
-    return { ...r, hoursSinceLastBackup: Number.isFinite(end) ? (now - end) / 3600000 : null };
+    return { ...r, customer: r.customerName, hoursSinceLastBackup: Number.isFinite(end) ? (now - end) / 3600000 : null };
 });
 
 // Druva returns `nextPageToken` as an empty string on the last page rather than

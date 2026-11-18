@@ -3,6 +3,7 @@
 result = (data.data || [])
     .map((r) => ({
         customerGlobalId: r.customerGlobalId,
+        customerName: r.customerName,
         productName: r.productName,
         productModule: r.productModule,
         entityName: r.entityName,

@@ -10,6 +10,7 @@ const minutes = (r) => {
 result = (data.data || [])
     .map((r) => ({
         customerGlobalId: r.customerGlobalId,
+        customer: r.customerName,
         backupSet: na(r.backupSet),
         vm: na(r.vm),
         workloads: na(r.workloads),
