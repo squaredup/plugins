@@ -1,10 +1,3 @@
-// Optional `customer` object picker; empty means no filter. Picked objects expose
-// their properties as single-element arrays.
-const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const picked = (name) => (context.config && context.config[name]) || [];
-
-const customerIds = new Set(picked('customer').map((o) => unwrap(o.rawId)).filter(Boolean));
-
 // The threshold arrives as a number (or a string, or nothing when unset); fall back to 24.
 const rawThreshold = context.config && context.config.staleAfterHours;
 const parsed = rawThreshold === undefined || rawThreshold === null || rawThreshold === '' ? NaN : Number(rawThreshold);
@@ -12,9 +5,6 @@ const staleAfterHours = Number.isFinite(parsed) ? parsed : 24;
 const now = Date.now();
 
 result = (data.data || [])
-    // Deleted users are not an RPO risk.
-    .filter((r) => r.isDeleted !== 'Yes')
-    .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
     .map((r) => {
         // endTime is the last backup attempt (a failed attempt for failed rows), not
         // the last success, which this report does not provide.

@@ -1,9 +1,3 @@
-// Optional `customer` object picker; empty means all customers.
-// The Customer sourceId is the Druva customerGlobalId, so rawId compares directly.
-const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const selected = (context.config && context.config.customer) || [];
-const customerIds = new Set(selected.map((o) => unwrap(o.rawId)).filter(Boolean));
-
 // Druva returns sizes as unit-suffixed strings ("3.16GB", "13.50KB") and "--"
 // when there is no value. Convert to bytes so the columns are sortable/summable.
 const UNITS = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4, PB: 1024 ** 5 };
@@ -24,7 +18,6 @@ const parseReduction = (s) => {
 const tidyTier = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : t);
 
 result = (data.data || [])
-    .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
     .map((r) => {
         const reduction = parseReduction(r.storageSourceReductionFactor);
         return {

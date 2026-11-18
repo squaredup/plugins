@@ -1,13 +1,6 @@
-// Optional `customer` object picker; empty means all customers.
-// The Customer sourceId is the Druva customerGlobalId, so rawId compares directly.
-const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const selected = (context.config && context.config.customer) || [];
-const customerIds = new Set(selected.map((o) => unwrap(o.rawId)).filter(Boolean));
-
 // Only the columns the stream exposes are returned: each page is up to 500
 // rows and a wide timeframe otherwise exceeds the ~6MB response cap.
 result = (data.data || [])
-    .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
     .map((r) => ({
         customerGlobalId: r.customerGlobalId,
         productName: r.productName,

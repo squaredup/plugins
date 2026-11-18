@@ -69,4 +69,3 @@ Every stream except **Customers** has an optional **Customer** picker. Leave it 
 - **Deleted users and devices are left out** of the backup status streams, since they are no longer a backup risk.
 - **Status shows health state**: status columns use SquaredUp's health colours and wording, so a suspended tenant shows as **Error** and a ready customer as **Success**.
 - **Customers refresh every 12 hours**: a new customer appears after the next import. Tenant details are read live.
-- **Read-only**: the plugin never creates, changes or deletes anything in Druva.

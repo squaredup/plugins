@@ -1,7 +1,7 @@
 {
     "name": "m365BackupStatus",
     "displayName": "Microsoft 365 Backup Status",
-    "description": "Last backup status per Microsoft 365 user and workload with RPO risk (excludes deleted users, optionally filtered to customers and tenants)",
+    "description": "Last backup status per Microsoft 365 user and workload with RPO risk (excludes deleted users, optionally filtered to customers)",
     "tags": ["Backup"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
@@ -11,7 +11,9 @@
             "filters": {
                 "pageSize": 500,
                 "filterBy": [
-                    { "fieldName": "lastUpdatedTime", "operator": "GTE", "value": "2000-01-01T00:00:00Z" }
+                    { "fieldName": "lastUpdatedTime", "operator": "GTE", "value": "2000-01-01T00:00:00Z" },
+                    { "fieldName": "isDeleted", "operator": "EQUAL", "value": "No" },
+                    { "fieldName": "customerGlobalId", "operator": "{{ (typeof customer !== 'undefined' && customer && customer.length) ? 'CONTAINS' : 'NOT_CONTAINS' }}", "value": "{{ (typeof customer !== 'undefined' && customer && customer.length) ? customer.map((o) => [].concat(o.rawId)[0]) : [] }}" }
                 ]
             }
         },

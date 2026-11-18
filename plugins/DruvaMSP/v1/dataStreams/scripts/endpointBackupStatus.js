@@ -1,10 +1,4 @@
-// Optional `customer` object picker; empty means no filter.
-// The report's customerGlobalId is the indexed Customer's sourceId (its rawId).
-// Picked objects expose properties as single-element arrays, so unwrap them.
-const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const cfg = context.config || {};
-
-const customerIds = new Set((cfg.customer || []).map((o) => unwrap(o.rawId)).filter(Boolean));
 
 // The threshold arrives as a number (or a string, or nothing when unset); fall back to 24.
 const rawThreshold = cfg.staleAfterHours;
@@ -15,8 +9,6 @@ const now = Date.now();
 const OK_STATUS = 'Backed Up Successfully';
 
 result = (data.data || [])
-    .filter((r) => Number(r.isDeleted) !== 1)
-    .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
     .map((r) => {
         const end = r.endTime ? new Date(r.endTime).getTime() : NaN;
         const hours = Number.isFinite(end) ? (now - end) / 3600000 : null;

@@ -1,7 +1,7 @@
 {
     "name": "endpointBackupStatus",
     "displayName": "Endpoint Backup Status",
-    "description": "Last backup of each endpoint device with an at-risk or protected state based on how long ago it last backed up (optionally filtered to customers or tenants)",
+    "description": "Last backup of each endpoint device with an at-risk or protected state based on how long ago it last backed up (optionally filtered to customers)",
     "tags": ["Backup"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
@@ -9,7 +9,11 @@
         "endpointPath": "/msp/reporting/v2/reports/mspEPLastBackupStatus",
         "postBody": {
             "filters": {
-                "pageSize": 500
+                "pageSize": 500,
+                "filterBy": [
+                    { "fieldName": "isDeleted", "operator": "EQUAL", "value": 0 },
+                    { "fieldName": "customerGlobalId", "operator": "{{ (typeof customer !== 'undefined' && customer && customer.length) ? 'CONTAINS' : 'NOT_CONTAINS' }}", "value": "{{ (typeof customer !== 'undefined' && customer && customer.length) ? customer.map((o) => [].concat(o.rawId)[0]) : [] }}" }
+                ]
             }
         },
         "paging": {

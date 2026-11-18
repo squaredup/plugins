@@ -1,10 +1,3 @@
-// Optional `customer` object picker; empty means no restriction.
-// The Customer sourceId is the Druva customerGlobalId, so rawId compares directly.
-const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const cfg = context.config || {};
-const customers = cfg.customer || [];
-const customerIds = new Set(customers.map((o) => unwrap(o.rawId)).filter(Boolean));
-
 const na = (v) => (v === undefined || v === null || v === '' || v === 'NA' ? null : v);
 
 const minutes = (r) => {
@@ -15,7 +8,6 @@ const minutes = (r) => {
 
 // Only the columns the stream exposes are returned to keep rows small.
 result = (data.data || [])
-    .filter((r) => !customerIds.size || customerIds.has(r.customerGlobalId))
     .map((r) => ({
         customerGlobalId: r.customerGlobalId,
         backupSet: na(r.backupSet),

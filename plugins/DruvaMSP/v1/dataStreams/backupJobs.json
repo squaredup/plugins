@@ -1,7 +1,7 @@
 {
     "name": "backupJobs",
     "displayName": "Backup Jobs",
-    "description": "Enterprise Workloads backup jobs with status, workload, backup type and duration (optionally filtered to customers or tenants)",
+    "description": "Enterprise Workloads backup jobs with status, workload, backup type and duration (optionally filtered to customers)",
     "tags": ["Backup"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
@@ -12,7 +12,8 @@
                 "pageSize": 500,
                 "filterBy": [
                     { "fieldName": "{{ [].concat((typeof dateField !== 'undefined' && dateField) || []).map((f) => (f && f.value) || f)[0] || 'scheduled' }}", "operator": "GTE", "value": "{{timeframe.start}}" },
-                    { "fieldName": "{{ [].concat((typeof dateField !== 'undefined' && dateField) || []).map((f) => (f && f.value) || f)[0] || 'scheduled' }}", "operator": "LTE", "value": "{{timeframe.end}}" }
+                    { "fieldName": "{{ [].concat((typeof dateField !== 'undefined' && dateField) || []).map((f) => (f && f.value) || f)[0] || 'scheduled' }}", "operator": "LTE", "value": "{{timeframe.end}}" },
+                    { "fieldName": "customerGlobalId", "operator": "{{ (typeof customer !== 'undefined' && customer && customer.length) ? 'CONTAINS' : 'NOT_CONTAINS' }}", "value": "{{ (typeof customer !== 'undefined' && customer && customer.length) ? customer.map((o) => [].concat(o.rawId)[0]) : [] }}" }
                 ]
             }
         },
