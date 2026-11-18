@@ -23,7 +23,9 @@ const MAX_RANGE = 30 * 86400000;
 // Same rule as the `avg` getArg in sensorHistory.json.
 const toMs = (v) => (typeof v === 'number' ? (v < 1e12 ? v * 1000 : v) : new Date(v).getTime());
 const tf = (context && context.timeframe) || {};
-const end = toMs(tf.end);
+// thisQuarter and thisYear end in the future; clamp to now so the 30-day cap
+// keeps the most recent readings rather than an empty future window.
+const end = Math.min(toMs(tf.end), Date.now());
 const start = Math.max(toMs(tf.start), end - MAX_RANGE);
 const average = context && context.config ? context.config.average : undefined;
 const avgSeconds = Number(average || (toMs(tf.end) - toMs(tf.start) > 604800000 ? 3600 : 300)) || 0;
