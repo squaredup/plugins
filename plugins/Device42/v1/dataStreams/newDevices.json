@@ -1,0 +1,147 @@
+{
+    "name": "newDevices",
+    "displayName": "New Devices",
+    "description": "Devices first added to Device42 during the timeframe, up to 5,000 rows",
+    "tags": [
+        "Device",
+        "Change"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/services/data/v1.0/query/",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{ (() => { const ids = (sel) => [].concat(sel || []).map((o) => Number([].concat(o.rawId)[0])).filter((n) => Number.isInteger(n)); const where = []; const b = ids(typeof building === 'undefined' ? [] : building); if (b.length) where.push('d.calculated_building_fk in (' + b.join(',') + ')'); const c = ids(typeof customer === 'undefined' ? [] : customer); if (c.length) where.push('d.customer_fk in (' + c.join(',') + ')'); const r = ids(typeof rack === 'undefined' ? [] : rack); if (r.length) where.push('d.calculated_rack_fk in (' + r.join(',') + ')'); const t = [].concat(typeof deviceType === 'undefined' ? [] : deviceType).map((x) => (x && x.value) || x)[0] || ''; if (['physical', 'virtual', 'cluster', 'blade', 'other', 'unknown'].includes(t)) where.push(\"d.type = '\" + t + \"'\"); where.push(\"d.first_added >= '\" + new Date(timeframe.start).toISOString() + \"'\"); where.push(\"d.first_added < '\" + new Date(timeframe.end).toISOString() + \"'\"); return 'select d.device_pk as device_id, d.name, d.type, d.os_name as os, b.name as building, c.name as customer, d.first_added' + ' from view_device_v2 d left join view_hardware_v2 h on h.hardware_pk = d.hardware_fk left join view_vendor_v1 v on v.vendor_pk = h.vendor_fk left join view_customer_v1 c on c.customer_pk = d.customer_fk left join view_building_v1 b on b.building_pk = d.calculated_building_fk left join view_room_v1 r on r.room_pk = d.calculated_room_fk left join view_rack_v1 k on k.rack_pk = d.calculated_rack_fk where ' + where.join(' and ') + ' order by d.first_added desc limit 5000'; })() }}"
+            },
+            {
+                "key": "output_type",
+                "value": "json"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "deviceType",
+            "label": "Device type (optional)",
+            "options": [
+                {
+                    "value": "physical",
+                    "label": "Physical"
+                },
+                {
+                    "value": "virtual",
+                    "label": "Virtual"
+                },
+                {
+                    "value": "cluster",
+                    "label": "Cluster"
+                },
+                {
+                    "value": "blade",
+                    "label": "Blade"
+                },
+                {
+                    "value": "other",
+                    "label": "Other"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "building",
+            "label": "Building (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Building"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Customer"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Device",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "device_id",
+            "sourceType": "Device"
+        },
+        {
+            "name": "device_id",
+            "displayName": "Device ID",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false
+                }
+            ],
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "os",
+            "displayName": "Operating System",
+            "shape": "string"
+        },
+        {
+            "name": "building",
+            "displayName": "Building",
+            "shape": "string"
+        },
+        {
+            "name": "customer",
+            "displayName": "Customer",
+            "shape": "string"
+        },
+        {
+            "name": "first_added",
+            "displayName": "First Added",
+            "shape": "date",
+            "role": "timestamp"
+        }
+    ],
+    "timeframes": [
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear"
+    ]
+}

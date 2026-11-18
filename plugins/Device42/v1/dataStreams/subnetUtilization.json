@@ -1,0 +1,118 @@
+{
+    "name": "subnetUtilization",
+    "displayName": "Subnet Utilization",
+    "description": "The 1,000 most utilized IPv4 subnets in Device42, optionally above a minimum size, with how many of their addresses are in use",
+    "tags": [
+        "IPAM",
+        "Capacity"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/services/data/v1.0/query/",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{ (() => { const min = Number([].concat(typeof minimumSize === 'undefined' ? [] : minimumSize)[0]); return 'select subnet_id, name, cidr, category, service_level, customer, capacity, used_ips,' + ' greatest(capacity - used_ips, 0) as free_ips,' + ' case when capacity > 0 then least(round(100.0 * used_ips / capacity, 1), 100) end as utilization' + \" from (select s.subnet_pk as subnet_id, coalesce(nullif(s.name, ''), host(s.network) || '/' || s.mask_bits) as name,\" + \" host(s.network) || '/' || s.mask_bits as cidr, s.category_name as category, s.service_level, c.name as customer,\" + ' (power(2, 32 - s.mask_bits) - case when s.mask_bits < 31 then 2 else 0 end)::bigint as capacity,' + ' coalesce(u.used, 0) as used_ips' + ' from view_subnet_v1 s' + ' left join (select subnet_fk, count(*) as used from view_ipaddress_v1 where available = false group by subnet_fk) u on u.subnet_fk = s.subnet_pk' + ' left join view_customer_v1 c on c.customer_pk = s.customer_fk' + ' where family(s.network) = 4 and s.mask_bits between 8 and 32) x' + (Number.isFinite(min) && min > 0 ? ' where capacity >= ' + Math.floor(min) : '') + ' order by utilization desc nulls last, used_ips desc limit 1000'; })() }}"
+            },
+            {
+                "key": "output_type",
+                "value": "json"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "number",
+            "name": "minimumSize",
+            "label": "Minimum size (addresses)",
+            "help": "Leaves out subnets with fewer usable addresses, such as /30 point-to-point links. For example, 30 keeps /27 and larger."
+        }
+    ],
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Subnet",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "subnet_id",
+            "displayName": "Subnet ID",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false
+                }
+            ],
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "cidr",
+            "displayName": "CIDR",
+            "shape": "string"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "service_level",
+            "displayName": "Service Level",
+            "shape": "string"
+        },
+        {
+            "name": "customer",
+            "displayName": "Customer",
+            "shape": "string"
+        },
+        {
+            "name": "capacity",
+            "displayName": "Capacity",
+            "shape": "number"
+        },
+        {
+            "name": "used_ips",
+            "displayName": "Used",
+            "shape": "number"
+        },
+        {
+            "name": "free_ips",
+            "displayName": "Free",
+            "shape": "number"
+        },
+        {
+            "name": "utilization",
+            "displayName": "Utilization",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "utilization",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": false
+}

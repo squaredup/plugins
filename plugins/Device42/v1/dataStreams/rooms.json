@@ -1,0 +1,46 @@
+{
+    "name": "rooms",
+    "displayName": "Rooms",
+    "description": "Rooms in Device42 and the building each one is in",
+    "tags": ["Data Center", "Inventory"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/api/1.0/rooms/",
+        "getArgs": [
+            {
+                "key": "building_id",
+                "value": "{{[].concat(building || []).map((o) => [].concat(o.rawId)[0]).filter(Boolean)[0] || null}}"
+            }
+        ],
+        "pathToData": "rooms",
+        "paging": {
+            "mode": "offset",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "500" },
+            "offset": {
+                "mode": "row",
+                "rowCountIn": { "realm": "payloadArraySize", "path": "rooms" },
+                "base": 0
+            },
+            "out": { "realm": "queryArg", "path": "offset" }
+        },
+        "errorHandling": { "type": "path", "realm": "payload", "path": "msg" }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "building",
+            "label": "Building (optional)",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Building"] } }
+        }
+    ],
+    "metadata": [
+        { "name": "name", "displayName": "Room", "shape": "string", "role": "label", "sourceId": "room_id", "sourceType": "Room" },
+        { "name": "room_id", "displayName": "Room ID", "shape": ["number", { "thousandsSeparator": false }], "role": "id", "visible": false },
+        { "name": "building", "displayName": "Building", "shape": "string" },
+        { "name": "building_id", "displayName": "Building ID", "shape": ["number", { "thousandsSeparator": false }], "visible": false },
+        { "name": "notes", "displayName": "Notes", "shape": "string" }
+    ],
+    "timeframes": false
+}
