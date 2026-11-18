@@ -1,4 +1,4 @@
-Monitor the customers and product tenants you manage in the [Druva Managed Services Center](https://www.druva.com/partners/msp) (MSC) in SquaredUp: backup activity and protection risk, tenant status and licensing, consumption, backup storage and endpoint alerts, via the [Druva MSP API](https://developer.druva.com/docs/getting-started-with-druva-msp-api-1).
+Monitor the customers and product tenants you manage in the [Druva Managed Services Center](https://www.druva.com/partners/msp) (MSC) in SquaredUp: backup activity and last backup status, tenant status and licensing, consumption, backup storage and endpoint alerts, via the [Druva MSP API](https://developer.druva.com/docs/getting-started-with-druva-msp-api-1).
 
 > ⚠️ This plugin uses the **MSP** API, so it needs credentials created in the Managed Services Center. API credentials created inside a single customer's Druva Cloud Platform console will not work.
 
@@ -25,7 +25,7 @@ On save, the plugin requests an access token and lists your first MSP customer. 
 ## What this plugin monitors
 
 - **Backup jobs**: every Enterprise Workloads backup job, with its outcome (successful, failed, skipped, window expired), timing and the backup set and VM it covered.
-- **Backup risk**: the last backup of every Microsoft 365 user and endpoint device, flagged **At risk** when it failed, never ran, or is older than the threshold you set.
+- **Last backup status**: the last backup of every Microsoft 365 user and endpoint device, with Druva's own status and how many hours ago it ran.
 - **Customers and tenants**: every customer you manage and each product tenant they hold, with its type (sandbox, evaluation or commercial), provisioning status, edition, licence expiry and quota.
 - **Consumption**: daily consumption units per customer, product module and service plan, for chargeback.
 - **Backup storage**: Microsoft 365 storage and resource counts per workload, and Enterprise Workloads storage per backup set.
@@ -36,8 +36,8 @@ The out-of-the-box dashboards are **Backup Health** and **Account Usage** across
 ## Data streams
 
 - **Backup Jobs**: Enterprise Workloads backup jobs with status, start and end times, duration, backup set, VM, workload and policy.
-- **Microsoft 365 Backup Status**: the last backup of each Microsoft 365 user per workload, with its status, age and an at-risk state.
-- **Endpoint Backup Status**: the last backup of each endpoint device, with its status, age, connectivity and an at-risk state.
+- **Microsoft 365 Backup Status**: the last backup of each Microsoft 365 user per workload, with its status and age.
+- **Endpoint Backup Status**: the last backup of each endpoint device, with its status, age and connectivity.
 - **Customers**: your MSP customers with account details, provisioning status and cloud. Account-wide.
 - **Tenants**: product tenants with type, status, edition, licence expiry and quota.
 - **Consumption**: daily consumption units per customer, product module, entity and service plan.
@@ -45,7 +45,7 @@ The out-of-the-box dashboards are **Backup Health** and **Account Usage** across
 - **Microsoft 365 Storage Consumption**: backup storage, resource count and enabled resources per customer and workload.
 - **Storage Consumption by Backup Set**: source size, changes, estimated cloud storage, storage tier and reduction factor per Enterprise Workloads backup set.
 
-Every stream except **Customers** has an optional **Customer** picker. Leave it empty to see all customers, or pick one or more to narrow the results. The two backup status streams also have a **Stale after (hours)** threshold, 24 by default, beyond which a last backup counts as at risk. On **Endpoint Alerts** and **Backup Jobs**, the tile's Timeframe step lets you choose which date the timeframe applies to; Endpoint Alerts also accepts a **None** timeframe to show all alerts regardless of date.
+Every stream except **Customers** has an optional **Customer** picker. Leave it empty to see all customers, or pick one or more to narrow the results. The two backup status streams return Druva's status as it is, with no risk rating of their own: decide what counts as an issue with tile filters or monitoring on the status and **Hours since last backup** columns. The **with Backup Issues** tiles on the Backup Health dashboards count a last backup that did not fully succeed, or is more than 24 hours old; edit the tile filter to change that rule. On **Endpoint Alerts** and **Backup Jobs**, the tile's Timeframe step lets you choose which date the timeframe applies to; Endpoint Alerts also accepts a **None** timeframe to show all alerts regardless of date.
 
 ## What gets indexed
 

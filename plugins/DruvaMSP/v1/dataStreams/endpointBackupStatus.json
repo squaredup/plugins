@@ -1,7 +1,7 @@
 {
     "name": "endpointBackupStatus",
     "displayName": "Endpoint Backup Status",
-    "description": "Last backup of each endpoint device with an at-risk or protected state based on how long ago it last backed up (optionally filtered to customers)",
+    "description": "Last backup of each endpoint device with its Druva status and hours since it last backed up (excludes deleted devices, optionally filtered to customers)",
     "tags": ["Backup"],
     "baseDataSourceName": "httpRequestUnscoped",
     "config": {
@@ -32,13 +32,6 @@
             "label": "Customer (optional)",
             "placeholder": "Select...",
             "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
-        },
-        {
-            "type": "number",
-            "name": "staleAfterHours",
-            "label": "Stale after (hours)",
-            "defaultValue": 24,
-            "validation": { "min": 0 }
         }
     ],
     "metadata": [
@@ -54,11 +47,19 @@
         { "name": "device", "displayName": "Device", "shape": "string", "role": "label" },
         { "name": "userName", "displayName": "User", "shape": "string" },
         {
-            "name": "atRisk",
-            "displayName": "Risk",
-            "shape": ["state", { "map": { "error": ["At risk"], "success": ["Protected"] } }]
+            "name": "status",
+            "displayName": "Last backup status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["Backed Up Successfully"],
+                        "warning": ["Backed Up With Errors"],
+                        "error": ["Backup Failed", "Never Backed Up"]
+                    }
+                }
+            ]
         },
-        { "name": "status", "displayName": "Last backup status", "shape": "string" },
         { "name": "endTime", "displayName": "Last backup", "shape": "date", "role": "timestamp" },
         {
             "name": "hoursSinceLastBackup",

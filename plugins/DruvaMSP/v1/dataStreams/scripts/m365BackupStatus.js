@@ -1,7 +1,5 @@
-// The threshold arrives as a number (or a string, or nothing when unset); fall back to 24.
-const rawThreshold = context.config && context.config.staleAfterHours;
-const parsed = rawThreshold === undefined || rawThreshold === null || rawThreshold === '' ? NaN : Number(rawThreshold);
-const staleAfterHours = Number.isFinite(parsed) ? parsed : 24;
+// Druva's own status is returned unchanged; how to classify it is left to tile
+// filters and monitoring in SquaredUp. The script only adds the attempt's age.
 const now = Date.now();
 
 result = (data.data || [])
@@ -10,13 +8,6 @@ result = (data.data || [])
         // the last success, which this report does not provide.
         const end = r.endTime ? Date.parse(r.endTime) : NaN;
         const hours = Number.isNaN(end) ? null : Math.max(0, (now - end) / 3600000);
-        const failed = r.lastBackupStatus === 'Backup Failed' || r.lastBackupStatus === 'Never Backed Up';
-        let atRisk = 'Protected';
-        if (failed || (hours !== null && hours > staleAfterHours)) {
-            atRisk = 'At risk';
-        } else if (r.lastBackupStatus === 'Backed Up With Errors') {
-            atRisk = 'Warning';
-        }
         return {
             dcpUniqueKey: r.dcpUniqueKey,
             customerGlobalId: r.customerGlobalId,
@@ -24,7 +15,6 @@ result = (data.data || [])
             userName: r.userName,
             userEmail: r.userEmail,
             workloadType: r.workloadType,
-            atRisk,
             lastBackupStatus: r.lastBackupStatus,
             endTime: r.endTime || null,
             hoursSinceLastBackup: hours,
