@@ -45,7 +45,7 @@ The out-of-the-box dashboards are **Backup Health** and **Account Usage** across
 - **Microsoft 365 Storage Consumption**: backup storage, resource count and enabled resources per customer and workload.
 - **Storage Consumption by Backup Set**: source size, changes, estimated cloud storage, storage tier and reduction factor per Enterprise Workloads backup set.
 
-Every stream except **Customers** has an optional **Customer** picker. Leave it empty to see all customers, or pick one or more to narrow the results. The two backup status streams also have a **Stale after (hours)** threshold, 24 by default, beyond which a last backup counts as at risk.
+Every stream except **Customers** has an optional **Customer** picker. Leave it empty to see all customers, or pick one or more to narrow the results. The two backup status streams also have a **Stale after (hours)** threshold, 24 by default, beyond which a last backup counts as at risk. On **Endpoint Alerts** and **Backup Jobs**, the tile's Timeframe step lets you choose which date the timeframe applies to; Endpoint Alerts also accepts a **None** timeframe to show all alerts regardless of date.
 
 ## What gets indexed
 
@@ -57,7 +57,7 @@ Every stream except **Customers** has an optional **Customer** picker. Leave it 
 
 - **Consumption covers the last 7 days only**: a longer window returns more data than SquaredUp can load in one request, so longer ranges are not offered. Consumption tiles stay on 7 days even when you widen the dashboard timeframe.
 - **Consumption mixes units**: the **Consumption** column holds both resource counts and terabytes. Filter or group on **Units** before you add values up, or the total is meaningless.
-- **Only endpoint alerts are available**: the Druva MSP API has no general alert or event feed, so alerts from other Druva products do not appear. The timeframe filters on when an alert was last updated.
+- **Only endpoint alerts are available**: the Druva MSP API has no general alert or event feed, so alerts from other Druva products do not appear.
 - **Storage is a current snapshot**: the two storage streams show the latest values and ignore the dashboard timeframe. There is no storage history.
 - **Report figures can lag**: Druva refreshes its reporting data periodically, so backup, consumption, storage and alert figures can be an hour or two behind.
 - **Some report rows have no matching customer**: Druva reports can include customers that are not in your current customer list. They appear in all-customer views but never on a **Customer** perspective.

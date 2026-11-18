@@ -11,8 +11,16 @@
             "filters": {
                 "pageSize": 500,
                 "filterBy": [
-                    { "columnName": "lastUpdatedTime", "operator": "GTE", "value": "{{timeframe.start}}" },
-                    { "columnName": "lastUpdatedTime", "operator": "LTE", "value": "{{timeframe.end}}" }
+                    {
+                        "fieldName": "{{ (typeof timeframe === 'undefined' || timeframe.enum === 'none') ? 'lastUpdatedTime' : ((typeof dateField !== 'undefined' && dateField) || 'lastOccurrence') }}",
+                        "operator": "GTE",
+                        "value": "{{ (typeof timeframe === 'undefined' || timeframe.enum === 'none') ? '2000-01-01T00:00:00Z' : timeframe.start }}"
+                    },
+                    {
+                        "fieldName": "{{ (typeof timeframe === 'undefined' || timeframe.enum === 'none') ? 'lastUpdatedTime' : ((typeof dateField !== 'undefined' && dateField) || 'lastOccurrence') }}",
+                        "operator": "LTE",
+                        "value": "{{ (typeof timeframe === 'undefined' || timeframe.enum === 'none') ? '2100-01-01T00:00:00Z' : timeframe.end }}"
+                    }
                 ]
             }
         },
@@ -32,6 +40,18 @@
             "label": "Customer (optional)",
             "placeholder": "Select...",
             "matches": { "sourceType": { "type": "oneOf", "values": ["Customer"] } }
+        },
+        {
+            "type": "switch",
+            "name": "dateField",
+            "label": "Timeframe applies to",
+            "defaultValue": "lastOccurrence",
+            "help": "Which alert date the selected timeframe filters on. Set the timeframe to **None** to ignore dates and return all alerts.",
+            "options": [
+                { "value": "lastOccurrence", "label": "Last occurrence" },
+                { "value": "firstOccurrence", "label": "First occurrence" }
+            ],
+            "tileEditorStep": ["Timeframe"]
         }
     ],
     "metadata": [
@@ -72,5 +92,6 @@
         { "name": "firstOccurrence", "displayName": "First occurrence", "shape": "date" },
         { "name": "lastOccurrence", "displayName": "Last occurrence", "shape": "date", "role": "timestamp" }
     ],
-    "timeframes": true
+    "timeframes": true,
+    "supportsNoneTimeframe": true
 }
