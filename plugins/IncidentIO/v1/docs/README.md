@@ -79,6 +79,10 @@ A warning or error fires an alert in incident.io, and the alert resolves when th
 
 Catalog entries often carry an ID from another system in their **External ID**, such as a hostname or a ServiceNow `sys_id`. To link an imported catalog entry to the matching object from another data source, add a correlation rule in SquaredUp that matches the entry's `externalId` property to that object's property. Aliases can't be used for this, because the platform stores list properties as text.
 
+## Working with one catalog type
+
+Every imported entry has the object type **Catalog Entry**, whatever its catalog type. The catalog type is in each entry's `catalogTypeName` property (for example *Service*). To work with one type, such as only services, create a collection in your workspace that matches objects of type **Catalog Entry** where `catalogTypeName` is *Service*, and use it as a tile's scope or in the **Catalog entry** filter.
+
 ## Known limitations
 
 - **Duration metrics depend on your incident.io configuration** — metric names (e.g. "Time to resolve") are defined per organization, and a metric only has a value once the timestamps it needs are set. The Incidents stream's **Time to Resolve** column is filled only when a metric with "resolve" in its name exists; use **Incident Duration Metrics** for any other metric.
