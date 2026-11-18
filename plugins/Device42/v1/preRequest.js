@@ -86,22 +86,37 @@ const getToken = async () => {
         return undefined;
     }
 
-    // `expires` is the server's ISO timestamp. Refresh a minute early, and fall
-    // back to five minutes if it is missing or already past (clock skew).
+    // `expires` is the server's ISO timestamp. Reuse the token until a minute
+    // before it when the lifetime allows, otherwise until halfway there, and
+    // never past it. Only an unknown expiry falls back to five minutes.
     const expiresAt = Date.parse(payload.expires);
-    const expiryTime =
-        Number.isFinite(expiresAt) && expiresAt - 60000 > now ? expiresAt - 60000 : now + 300000;
+    const remaining = expiresAt - now;
+    let expiryTime;
+    if (!Number.isFinite(expiresAt)) {
+        expiryTime = now + 300000;
+    } else if (remaining > 120000) {
+        expiryTime = expiresAt - 60000;
+    } else {
+        expiryTime = now + Math.max(0, remaining) / 2;
+    }
 
     return { token: payload.token, expiryTime };
 };
 
-if (typeof state?.token !== "string" || (state?.expiryTime ?? 0) <= now) {
+// A cached token is reused only before its deadline. A token fetched for this
+// request is always sent, even if its deadline has already passed (for
+// example a clock ahead of Device42's): it won't be reused, so the next
+// request fetches another.
+let token = typeof state?.token === "string" && (state?.expiryTime ?? 0) > now ? state.token : undefined;
+
+if (!token) {
     const fresh = await getToken();
     if (fresh) {
         state = { ...state, ...fresh };
+        token = fresh.token;
     }
 }
 
-if (typeof state?.token === "string" && (state?.expiryTime ?? 0) > now) {
-    headers["Authorization"] = `Bearer ${state.token}`;
+if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
 }
