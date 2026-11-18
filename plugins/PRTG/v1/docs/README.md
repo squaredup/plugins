@@ -62,7 +62,7 @@ for each **Probe**, **Group**, **Device** and **Sensor**.
 - **Devices in Probe or Group** — device detail restricted to everything beneath one probe or group. Per-object.
 - **Sensor Channels** — the current, minimum and maximum reading for each channel of one sensor. Per-object.
 - **Sensor History** — historic channel readings for one sensor, one row per channel per interval, over the selected timeframe. Per-object.
-- **Log** — PRTG log entries over the selected timeframe. Account-wide.
+- **Log Entries** — PRTG log entries over the selected timeframe. Account-wide.
 
 ## What gets indexed
 
@@ -91,10 +91,10 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 - **Log counts on past windows can include extra entries against the cap.** PRTG reads date ranges in the
   time zone of the account the key belongs to, and Paessler
   [document no per-request override](https://helpdesk.paessler.com/en/support/solutions/articles/76000073098-output-of-api-table-json-content-messages-contains-datetime-is-it-in-gmt-utc-filter-dstart).
-  So that you never have to tell the plugin that zone, **Log** and **Sensor History** widen each request
+  So that you never have to tell the plugin that zone, **Log Entries** and **Sensor History** widen each request
   to cover every possible offset (12 hours before, 14 hours after), then trim the results to the exact
   timeframe using the UTC timestamps PRTG includes on every row. Times are always correct. The one side
-  effect: **Log** asks PRTG for at most 5,000 entries, and on a timeframe that ends in the past, up to 14
+  effect: **Log Entries** asks PRTG for at most 5,000 entries, and on a timeframe that ends in the past, up to 14
   hours of newer entries count towards that limit before they are trimmed away.
 - **Very large installations may still hit a response size limit.** Probes, groups, devices and sensors are
   fetched page by page, 500 rows per request, so there is no per-request ceiling on how many objects can be
@@ -168,7 +168,7 @@ Checked against the published
 | Installation-wide sensor counts, version and edition | `getstatus.htm?id=0` — one request | `GET /sensor-status-summary` and `GET /version` are stable and cover most of it, and the experimental `/license` covers the edition — but that is three requests instead of one, and the new-message count and new-alarm count have no equivalent. |
 
 Object indexing and channel readings are therefore not the obstacle — API v2 handles both, and handles them
-better. Two things are. The **Log** data stream has no endpoint to build on at all. And **Sensor History**
+better. Two things are. The **Log Entries** data stream has no endpoint to build on at all. And **Sensor History**
 could only follow a dashboard timeframe by building on an endpoint Paessler have already marked for removal,
 and would lose the averaging interval that keeps a long range inside the response size limit.
 
