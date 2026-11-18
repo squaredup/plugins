@@ -1,0 +1,61 @@
+{
+    "name": "spendLimits",
+    "displayName": "Spend Limits",
+    "description": "Monthly hard spend limit for each selected project and whether it is being enforced",
+    "tags": ["Cost", "Billing", "Projects"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1/organization/projects/{{object.rawId}}/spend_limit",
+        "getArgs": [],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "spendLimits.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/spendLimits.js"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Project"] }
+    },
+    "metadata": [
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "project",
+            "displayName": "Project",
+            "sourceId": "projectId",
+            "sourceType": "Project",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "limit",
+            "displayName": "Spend limit",
+            "shape": ["currency", { "code": "{{column.currency}}", "decimalPlaces": 2, "thousandsSeparator": true }],
+            "role": "value"
+        },
+        {
+            "name": "currency",
+            "displayName": "Currency",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "interval",
+            "displayName": "Interval",
+            "shape": "string"
+        },
+        {
+            "name": "enforcement",
+            "displayName": "Enforcement",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

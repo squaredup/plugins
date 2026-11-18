@@ -1,0 +1,104 @@
+{
+    "name": "workerCronRuns",
+    "displayName": "Worker Cron Trigger Runs",
+    "description": "Each scheduled (cron trigger) run of a Worker script with its schedule, outcome and CPU time",
+    "tags": [
+        "Compute"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$scriptName:string!){viewer{accounts(filter:{accountTag:$accountTag}){workersInvocationsScheduled(limit:1000,filter:{scriptName:$scriptName,datetime_geq:$start,datetime_leq:$end},orderBy:[datetime_DESC]){datetime scheduledDatetime cron status cpuTimeUs}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "scriptName": "{{object.name}}",
+                "start": "{{ new Date((timeframe.unixStart + 60) * 1000).toISOString() }}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Worker"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "scheduledDatetime",
+            "displayName": "Scheduled for",
+            "shape": "date"
+        },
+        {
+            "name": "cron",
+            "displayName": "Schedule",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "statusState",
+            "displayName": "Outcome",
+            "computed": true,
+            "valueExpression": "{{ $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "error": [
+                            "error",
+                            "exceededCpu",
+                            "exceededMemory",
+                            "exceededResources",
+                            "scriptThrewException",
+                            "internalError",
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "cpuTimeUs",
+            "displayName": "CPU time (µs)",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "cpuTime",
+            "displayName": "CPU Time",
+            "computed": true,
+            "valueExpression": "{{ $['cpuTimeUs'] === undefined || $['cpuTimeUs'] === null ? null : $['cpuTimeUs'] / 1000 }}",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ]
+}

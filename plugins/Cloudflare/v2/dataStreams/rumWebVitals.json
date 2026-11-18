@@ -1,0 +1,91 @@
+{
+    "name": "rumWebVitals",
+    "displayName": "Core Web Vitals",
+    "description": "P75 Core Web Vitals (LCP, INP/FID, CLS) and RUM sample counts for a zone's hostnames",
+    "tags": ["Zone", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$start:Time!,$end:Time!,$zoneName:string!,$subdomains:string!){viewer{accounts(filter:{accountTag:$accountTag}){rumWebVitalsEventsAdaptiveGroups(limit:5000,filter:{datetime_geq:$start,datetime_leq:$end,OR:[{requestHost:$zoneName},{requestHost_like:$subdomains}]},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}} quantiles{largestContentfulPaintP75 interactionToNextPaintP75 firstInputDelayP75 cumulativeLayoutShiftP75}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}",
+                "zoneName": "{{object.name}}",
+                "subdomains": "{{'%.' + object.name}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "quantiles.largestContentfulPaintP75",
+            "visible": false
+        },
+        {
+            "name": "largestContentfulPaintP75",
+            "displayName": "Largest Contentful Paint (P75)",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.largestContentfulPaintP75']) < 0 ? null : Number($['quantiles.largestContentfulPaintP75']) }}",
+            "shape": "milliseconds",
+            "role": "value"
+        },
+        {
+            "name": "quantiles.interactionToNextPaintP75",
+            "visible": false
+        },
+        {
+            "name": "quantiles.firstInputDelayP75",
+            "visible": false
+        },
+        {
+            "name": "interactionToNextPaintP75",
+            "displayName": "Interaction to Next Paint (P75)",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.interactionToNextPaintP75']) >= 0 ? Number($['quantiles.interactionToNextPaintP75']) : (Number($['quantiles.firstInputDelayP75']) >= 0 ? Number($['quantiles.firstInputDelayP75']) : null) }}",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "quantiles.cumulativeLayoutShiftP75",
+            "visible": false
+        },
+        {
+            "name": "cumulativeLayoutShiftP75",
+            "displayName": "Cumulative Layout Shift (P75)",
+            "computed": true,
+            "valueExpression": "{{ Number($['quantiles.cumulativeLayoutShiftP75']) < 0 ? null : Number($['quantiles.cumulativeLayoutShiftP75']) }}",
+            "shape": ["number", { "decimalPlaces": 3 }]
+        },
+        {
+            "name": "count",
+            "displayName": "Samples",
+            "shape": "number"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter"
+    ]
+}

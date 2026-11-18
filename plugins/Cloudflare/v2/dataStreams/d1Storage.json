@@ -1,0 +1,48 @@
+{
+    "name": "d1Storage",
+    "displayName": "D1 Storage",
+    "description": "Stored size of a D1 database",
+    "tags": ["Database"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$databaseId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){d1StorageAdaptiveGroups(limit:10000,filter:{databaseId:$databaseId,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 619200 ? 'datetimeHour' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeSixHours' : 'date' }}_ASC]){max{databaseSizeBytes}dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 619200 ? 'datetimeHour' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeSixHours' : 'date' }}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "databaseId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare D1 Database"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "max.databaseSizeBytes",
+            "displayName": "Database Size",
+            "shape": "bytes",
+            "role": "value"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth", "lastMonth"]
+}

@@ -1,0 +1,55 @@
+{
+    "name": "zoneStatus",
+    "displayName": "Zone Status",
+    "description": "Current status of a zone as a health state (paused zones show as warning)",
+    "tags": ["Zone", "Availability"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "zones/{{object.rawId}}",
+        "pathToData": "result",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare Zone"] }
+    },
+    "metadata": [
+        { "name": "id", "displayName": "Zone ID", "shape": "string", "visible": false },
+        {
+            "name": "name",
+            "displayName": "Zone",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "id",
+            "sourceType": "Cloudflare Zone"
+        },
+        { "name": "status", "displayName": "Cloudflare Status", "shape": "string", "visible": false },
+        { "name": "paused", "displayName": "Paused", "shape": "boolean" },
+        {
+            "name": "state",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['paused'] === true || $['paused'] === 'true' ? 'paused' : $['status'] }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["active"],
+                        "warning": ["pending", "initializing", "read only", "paused"],
+                        "error": ["moved", "deactivated", "deleted"]
+                    }
+                }
+            ]
+        },
+        { "name": "plan.name", "displayName": "Plan", "shape": "string" },
+        { "name": "type", "displayName": "Zone Type", "shape": "string" },
+        { "name": "modified_on", "displayName": "Last Modified", "shape": "date" }
+    ],
+    "timeframes": false
+}

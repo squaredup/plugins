@@ -69,7 +69,7 @@ Before writing a single file, understand and explore the API. **Use `AskUserQues
     - **Time-range control** — does the endpoint accept a queryable time range at all (a `from`/`to`, `start`/`end`, or `period` parameter), or only return a fixed snapshot / current values?
     - **Data granularity** — when the endpoint _does_ accept a range, the finest interval it aggregates at: **per-event/raw**, **hourly**, **daily**, or **monthly**. Read it off the API docs (aggregation windows, `granularity`/`interval` params, the minimum queryable range).
 5. **Understand pagination** — Cursor/next-token, or offset/limit? Separate concern from response transformation.
-6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth, JWT Bearer (signed-JWT auth)? Determine from the docs. If the flow is custom — a token-exchange step or per-request signing no standard mode covers — plan a **pre-request script** ([metadata.md](references/metadata.md#pre-request-scripts-custom-auth-flows)).
+6. **Note the auth pattern** — API key in header, Bearer token, OAuth2, Basic auth, JWT Bearer (signed-JWT auth)? Determine from the docs. If the flow is custom — a token-exchange step or per-request signing no standard mode covers — plan a **pre-request script** ([metadata.md](references/metadata.md#pre-request-scripts-custom-auth-flows)). Note the token endpoint's host: if it is on a different domain from the base URL, the script can only reach it once it is listed in `allowedScriptHosts` ([Fetching other hosts](references/metadata.md#fetching-other-hosts)).
 
 ---
 

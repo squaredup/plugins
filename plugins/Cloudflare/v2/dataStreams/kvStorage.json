@@ -1,0 +1,49 @@
+{
+    "name": "kvStorage",
+    "displayName": "KV Storage",
+    "description": "Stored key count and byte size for a Workers KV namespace",
+    "tags": ["Storage"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$namespaceId:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){kvStorageAdaptiveGroups(filter:{namespaceId:$namespaceId,datetime_geq:$start,datetime_leq:$end},limit:10000,orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_DESC]){max{keyCount byteCount}dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 46800 ? 'datetimeFiveMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 90000 ? 'datetimeFifteenMinutes' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "namespaceId": "{{object.rawId}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Cloudflare KV Namespace"] }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "max.keyCount",
+            "displayName": "Keys",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "max.byteCount",
+            "displayName": "Size",
+            "shape": "bytes"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth", "lastMonth"]
+}

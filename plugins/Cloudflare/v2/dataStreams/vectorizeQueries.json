@@ -1,0 +1,53 @@
+{
+    "name": "vectorizeQueries",
+    "displayName": "Vectorize Queries",
+    "description": "Query count and query latency for a Vectorize index",
+    "tags": ["Database", "Analytics"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($accountTag:string!,$indexName:string,$start:Time!,$end:Time!){viewer{accounts(filter:{accountTag:$accountTag}){vectorizeV2QueriesAdaptiveGroups(limit:10000,filter:{indexName:$indexName,datetime_geq:$start,datetime_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}_ASC]){count avg{requestDurationMs} dimensions{date: {{ (timeframe.unixEnd - timeframe.unixStart) <= 5400 ? 'datetimeMinute' : (timeframe.unixEnd - timeframe.unixStart) <= 2764800 ? 'datetimeHour' : 'date' }}}}}}}",
+            "variables": {
+                "accountTag": "{{object.accountId}}",
+                "indexName": "{{object.name}}",
+                "start": "{{timeframe.start}}",
+                "end": "{{timeframe.end}}"
+            }
+        },
+        "postRequestScript": "graphqlRows.js",
+        "paging": { "mode": "none" },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": ["Cloudflare Vectorize Index"]
+        }
+    },
+    "metadata": [
+        {
+            "name": "dimensions.date",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "count",
+            "displayName": "Queries",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "avg.requestDurationMs",
+            "displayName": "Avg Query Latency",
+            "shape": "milliseconds"
+        }
+    ],
+    "timeframes": ["last1hour", "last12hours", "last24hours", "last7days", "last30days", "thisMonth"]
+}

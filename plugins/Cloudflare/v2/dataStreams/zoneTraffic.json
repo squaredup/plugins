@@ -1,0 +1,118 @@
+{
+    "name": "zoneTraffic",
+    "displayName": "Zone Traffic",
+    "description": "HTTP request, cache and bandwidth totals for a zone (hourly up to 2 days, daily beyond)",
+    "tags": [
+        "Zone",
+        "Analytics"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "graphql",
+        "postBody": {
+            "query": "query($zoneTag:string!,$start:{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'Time!' : 'Date!' }},$end:{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'Time!' : 'Date!' }}){viewer{zones(filter:{zoneTag:$zoneTag}){rows: {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'httpRequests1hGroups' : 'httpRequests1dGroups' }}(limit:10000,filter:{ {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}_geq:$start, {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}_leq:$end},orderBy:[{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}_ASC]){dimensions{datetime: {{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? 'datetime' : 'date' }}}sum{requests cachedRequests bytes cachedBytes threats pageViews encryptedRequests}uniq{uniques}}}}}",
+            "variables": {
+                "zoneTag": "{{object.rawId}}",
+                "start": "{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? timeframe.start : timeframe.start.split('T')[0] }}",
+                "end": "{{ (timeframe.unixEnd - timeframe.unixStart) <= 172800 ? timeframe.end : new Date((timeframe.unixEnd - 1) * 1000).toISOString().split('T')[0] }}"
+            }
+        },
+        "postRequestScript": "zoneTraffic.js",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "errors.0.message"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Cloudflare Zone"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "zoneTag",
+            "displayName": "Zone Tag",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "zoneName",
+            "displayName": "Zone",
+            "shape": "string",
+            "role": "label",
+            "sourceId": "zoneTag",
+            "sourceType": "Cloudflare Zone"
+        },
+        {
+            "name": "dimensions.datetime",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "sum.requests",
+            "displayName": "Requests",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "sum.cachedRequests",
+            "displayName": "Cached Requests",
+            "shape": "number"
+        },
+        {
+            "name": "sum.bytes",
+            "displayName": "Bytes",
+            "shape": "bytes"
+        },
+        {
+            "name": "sum.cachedBytes",
+            "displayName": "Cached Bytes",
+            "shape": "bytes"
+        },
+        {
+            "name": "sum.threats",
+            "displayName": "Threats",
+            "shape": "number"
+        },
+        {
+            "name": "sum.pageViews",
+            "displayName": "Page Views",
+            "shape": "number"
+        },
+        {
+            "name": "sum.encryptedRequests",
+            "displayName": "Encrypted Requests",
+            "shape": "number"
+        },
+        {
+            "name": "uniq.uniques",
+            "displayName": "Unique Visitors",
+            "shape": "number"
+        },
+        {
+            "name": "cacheHitRatio",
+            "displayName": "Cache Hit Ratio",
+            "computed": true,
+            "valueExpression": "{{ Number($['sum.requests']) > 0 ? Math.round(10000 * Number($['sum.cachedRequests']) / Number($['sum.requests'])) / 100 : 0 }}",
+            "shape": ["percent", { "decimalPlaces": 2 }]
+        }
+    ],
+    "timeframes": [
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear"
+    ]
+}
