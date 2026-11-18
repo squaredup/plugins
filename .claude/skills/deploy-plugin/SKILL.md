@@ -42,7 +42,9 @@ squaredup --debug               # verbose output
 squaredup --silent              # suppress output
 ```
 
-Always validate before deploying. The validator catches: missing required fields, unknown keys, invalid matches syntax, broken dashboard references.
+Always validate before deploying. The validator catches: missing required fields, invalid matches syntax, broken dashboard references, and unknown keys in most of a plugin's files.
+
+**A clean validate doesn't prove a key is supported.** Fields in a data stream's `ui` array accept keys the platform doesn't know: a made-up key passes and is then ignored. Before relying on a field property, find it in the published schema (see [`.vscode/settings.json`](../../../.vscode/settings.json)), the [ui.md reference](../build-plugin/references/ui.md), or a shipped plugin, then check that it has an effect in a deployed tile.
 
 ---
 
