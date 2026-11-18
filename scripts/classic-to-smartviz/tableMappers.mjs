@@ -199,13 +199,25 @@ export const toStatusGrid = (classicConfig, tileColumns, tileConfig = {}) => {
         return { blockedReason: 'shows blocks with no state column, which a SmartViz status grid cannot draw' };
     }
 
-    const linkField = resolveColumn(
-        tileColumns,
-        classicConfig.linkColumn,
-        (column) => column.role === 'link' || column.shapeName === 'url',
-        'link',
-        notes
-    );
+    const isUrlColumn = (column) => column.role === 'link' || column.shapeName === 'url';
+    const configuredLinkField = resolveColumn(tileColumns, classicConfig.linkColumn, isUrlColumn, 'link', notes);
+    const configuredLinkColumn = configuredLinkField && findColumn(tileColumns.columns, configuredLinkField);
+
+    /**
+     * A SmartViz link opens the column's text as a URL. Classic links a block to the object behind a column that
+     * isn't a URL, which SmartViz does without a link, so a column declared as an object name or a non-URL shape is
+     * dropped. One with no declared shape is kept, as the platform may infer a URL from its values.
+     */
+    const isKnownNotUrl =
+        configuredLinkColumn &&
+        !isUrlColumn(configuredLinkColumn) &&
+        (configuredLinkColumn.isObjectName || configuredLinkColumn.shapeName !== undefined);
+    const linkField = isKnownNotUrl ? undefined : configuredLinkField;
+
+    if (configuredLinkField && !linkField) {
+        notes.push(`link column ${configuredLinkField} is not a URL, so blocks link to their object as classic does`);
+    }
+
     const groupField = resolveColumn(tileColumns, classicConfig.groupBy, () => false, 'group', notes);
     const orderField = resolveColumn(tileColumns, classicConfig.orderBy, () => false, 'order', notes);
     const sublabelField = resolveColumn(tileColumns, classicConfig.sublabel, () => false, 'sublabel', notes);

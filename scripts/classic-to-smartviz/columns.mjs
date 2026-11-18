@@ -71,7 +71,12 @@ const toExpandedColumns = (entry) =>
 const toColumnSet = (metadata) => {
     const named = metadata.filter((entry) => typeof entry.name === 'string');
     const firstEntries = named.filter((entry, index) => named.findIndex((other) => other.name === entry.name) === index);
-    const columns = [...firstEntries.map(toColumn), ...firstEntries.flatMap(toExpandedColumns)];
+    /** A later entry for the same name can link the column to an object, so any entry with a `sourceId` counts. */
+    const objectNames = new Set(named.filter((entry) => typeof entry.sourceId === 'string').map((entry) => entry.name));
+    const columns = [
+        ...firstEntries.map((entry) => ({ ...toColumn(entry), isObjectName: objectNames.has(entry.name) })),
+        ...firstEntries.flatMap(toExpandedColumns)
+    ];
 
     return { columns, isComplete: !metadata.some((entry) => entry.pattern !== undefined) };
 };
