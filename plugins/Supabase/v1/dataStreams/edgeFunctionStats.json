@@ -1,0 +1,102 @@
+{
+    "name": "edgeFunctionStats",
+    "displayName": "Edge Function stats",
+    "description": "Invocations, errors and execution time over time for the selected Edge Functions",
+    "tags": [
+        "Edge Functions"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "Edge Function"
+        }
+    },
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/projects/{{ [].concat(object.projectRef)[0] }}/analytics/endpoints/functions.combined-stats",
+        "getArgs": [
+            {
+                "key": "function_id",
+                "value": "{{object.rawId}}"
+            },
+            {
+                "key": "interval",
+                "value": "{{timeframe.enum === 'last1hour' ? '1hr' : '1day'}}"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "edgeFunctionStats.js"
+    },
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "invocations",
+            "displayName": "Invocations",
+            "shape": "number"
+        },
+        {
+            "name": "successes",
+            "displayName": "Successful (2xx)",
+            "shape": "number"
+        },
+        {
+            "name": "redirects",
+            "displayName": "Redirects (3xx)",
+            "shape": "number"
+        },
+        {
+            "name": "clientErrors",
+            "displayName": "Client errors (4xx)",
+            "shape": "number"
+        },
+        {
+            "name": "serverErrors",
+            "displayName": "Server errors (5xx)",
+            "shape": "number"
+        },
+        {
+            "name": "avgExecutionTime",
+            "displayName": "Average execution time",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "maxExecutionTime",
+            "displayName": "Max execution time",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "functionName",
+            "displayName": "Function",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "functionId",
+            "displayName": "Function ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "shape": "string"
+        },
+        {
+            "sourceId": "functionId",
+            "sourceType": "Edge Function",
+            "name": "functionName"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last24hours"
+    ]
+}
