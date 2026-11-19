@@ -1,6 +1,7 @@
 import { findColumn, getColumnTitle, isKnownColumn } from './columns.mjs';
 
 const MAX_TABLE_COLUMNS = 50;
+const MAX_HIDDEN_COLUMNS = 100;
 
 const isSet = (value) => value !== undefined && value !== null && value !== '' && value !== 'auto' && value !== 'none';
 
@@ -65,9 +66,10 @@ const toRenderer = (column) => {
  * list decides that outright, and without one the stream's own `visible` flags do. `columnOrder` only orders
  * them; the columns it leaves out follow in stream order. Names the data no longer has are dropped. When the
  * stream does not declare its full column list, an uncustomised table is left `isAutomatic` for SmartViz to
- * find its columns in the data, as classic does. So is an uncustomised SQL table, whose select list names its
- * columns but not their shapes. A customised one lists the columns it can name, so any the stream doesn't
- * declare, which classic would also show, are left out.
+ * find its columns in the data, as classic does, and so is one that hides columns, with `hiddenNames` to hide.
+ * So is an uncustomised SQL table, whose select list names its columns but not their shapes. Any other
+ * customised table lists the columns it can name, so any the stream doesn't declare, which classic would also
+ * show, are left out.
  */
 const getShownColumnNames = (classicConfig, tileColumns, notes) => {
     const { columns, isComplete, source } = tileColumns;
@@ -79,6 +81,42 @@ const getShownColumnNames = (classicConfig, tileColumns, notes) => {
 
     if ((!isComplete || source === 'sql') && !isCustomised) {
         return { isAutomatic: true };
+    }
+
+    /**
+     * Classic shows every column but the hidden ones, and an open column list can hold columns no name here
+     * reaches, so the table stays automatic and hides classic's list. Not when classic's column order shows a
+     * column the stream hides, which an automatic table leaves out.
+     */
+    const streamHiddenInOrder = columnOrder.filter((name) => {
+        const column = findColumn(columns, name);
+
+        return column && !column.isVisible && !hiddenColumns.has(name);
+    });
+
+    /** A column the stream already hides needs no entry. */
+    const namesToHide = [...hiddenColumns].filter((name) => findColumn(columns, name)?.isVisible !== false);
+
+    if (!isComplete && hiddenColumns.size > 0 && streamHiddenInOrder.length === 0 && namesToHide.length <= MAX_HIDDEN_COLUMNS) {
+        const declaredOrder = columnOrder.filter((name) => !hiddenColumns.has(name) && findColumn(columns, name));
+        const streamOrder = columns.map((column) => column.name).filter((name) => declaredOrder.includes(name));
+        const hasOwnOrder = declaredOrder.join('\n') !== streamOrder.join('\n');
+        const hasUndeclaredOrder = columnOrder.some((name) => !hiddenColumns.has(name) && !findColumn(columns, name));
+        const renamedNames = Object.entries(classicConfig.columnDisplayNames ?? {})
+            .filter(([name, title]) => title && !hiddenColumns.has(name))
+            .map(([name]) => name);
+
+        if (hasOwnOrder) {
+            notes.push("columns follow the data's order, not classic's column order");
+        } else if (hasUndeclaredOrder) {
+            notes.push("columns the stream doesn't declare follow the data's order, which may differ from classic's");
+        }
+
+        if (renamedNames.length > 0) {
+            notes.push(`headers classic renames keep their own names: ${renamedNames.join(', ')}`);
+        }
+
+        return { isAutomatic: true, hiddenNames: namesToHide };
     }
 
     /**
@@ -120,7 +158,7 @@ const getRowLinkField = (classicConfig) => {
 /** Converts a classic `data-stream-table` config to a richTable spec. */
 export const toRichTable = (classicConfig, tileColumns) => {
     const notes = [];
-    const { names, isAutomatic, blockedReason } = getShownColumnNames(classicConfig, tileColumns, notes);
+    const { names, isAutomatic, hiddenNames = [], blockedReason } = getShownColumnNames(classicConfig, tileColumns, notes);
 
     if (blockedReason) {
         return { blockedReason };
@@ -129,12 +167,15 @@ export const toRichTable = (classicConfig, tileColumns) => {
     const rowLinkField = getRowLinkField(classicConfig);
     const style = {
         ...(classicConfig.transpose === true && { richTableTranspose: true }),
-        ...(rowLinkField && isKnownColumn(tileColumns, rowLinkField) && { richTableRowLinkField: rowLinkField })
+        ...(rowLinkField && isKnownColumn(tileColumns, rowLinkField) && { richTableRowLinkField: rowLinkField }),
+        ...(hiddenNames.length > 0 && { richTableHiddenColumns: hiddenNames })
     };
     const withStyle = (encoding) => ({ chartType: 'richTable', encoding, ...(Object.keys(style).length > 0 && { style }) });
 
     if (isAutomatic) {
-        return { spec: withStyle({}), notes: [...notes, 'shows every column the data has, as classic does'] };
+        const shownNote = hiddenNames.length > 0 ? 'shows every column the data has but the ones classic hides' : 'shows every column the data has, as classic does';
+
+        return { spec: withStyle({}), notes: [...notes, shownNote] };
     }
 
     if (names.length === 0) {
@@ -203,9 +244,18 @@ export const toStatusGrid = (classicConfig, tileColumns, tileConfig = {}) => {
             ? undefined
             : resolveColumn(tileColumns, classicConfig.stateColumn, (column) => column.shapeName === 'state', 'state', notes);
 
-    /** Classic draws blocks with no state in grey; a SmartViz status grid draws nothing without a status. */
+    /**
+     * Classic draws blocks with no state in grey, and so does a status grid with no status, unless the data has a
+     * state column it can take.
+     */
     if (!statusField) {
-        return { blockedReason: 'shows blocks with no state column, which a SmartViz status grid cannot draw' };
+        const stateColumn = tileColumns.columns.find((column) => column.isVisible && column.shapeName === 'state');
+
+        notes.push(
+            stateColumn
+                ? `blocks are coloured by ${stateColumn.name}, which SmartViz finds for a grid with no status; classic draws them grey`
+                : 'blocks have no state, so they are grey, as classic draws them'
+        );
     }
 
     const isUrlColumn = (column) => column.role === 'link' || column.shapeName === 'url';
@@ -247,7 +297,7 @@ export const toStatusGrid = (classicConfig, tileColumns, tileConfig = {}) => {
             chartType: 'statusGrid',
             encoding: {
                 ...(labelField && { label: toNominalChannel(labelField) }),
-                status: toNominalChannel(statusField),
+                ...(statusField && { status: toNominalChannel(statusField) }),
                 ...(groupField && { group: toNominalChannel(groupField) }),
                 ...(linkField && { link: toNominalChannel(linkField) })
             },
