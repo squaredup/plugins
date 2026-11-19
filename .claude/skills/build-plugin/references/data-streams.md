@@ -405,9 +405,9 @@ Shows an **Apply** button instead of running on every config change. Use for exp
 
 The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 
-Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page: a tile repeats rows until the [paging time budget](#paging-time-budget-12s) runs out, an object import fails when pages repeat, and a SmartCache import has no check for a repeated cursor. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
+Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page: a tile repeats rows until the [paging time budget](#paging-time-budget-12s) runs out, an object import fails when pages repeat, and a cache sync fails when the cursor repeats. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
 
-**Check what the last page returns.** Paging stops when `in` finds no value. An API that marks the last page with an empty string (`"nextPageToken": ""`) or a placeholder instead of leaving the field out keeps paging going, and the same failures follow. Set the cursor yourself in a post-request script to fix it (see [Setting the paging cursor from a script](#setting-the-paging-cursor-from-a-script)).
+**Check what the last page returns.** Paging stops when `in` finds no value or an empty string. An API that still returns a cursor on its last page, and marks the end some other way (`"hasMore": false`, or a placeholder such as `"null"`), keeps paging going, and the failures above follow. Set the cursor yourself in a post-request script to fix it (see [Setting the paging cursor from a script](#setting-the-paging-cursor-from-a-script)).
 
 **No paging:**
 
@@ -566,7 +566,7 @@ The Lambda that runs a stream caps its response at ~6MB. Exceeding it surfaces a
 Remediation:
 
 - **If the endpoint can group, filter, or bucket server-side, push that down** (see [Push grouping, filtering and sorting down to the cheapest layer](#push-grouping-filtering-and-sorting-down-to-the-cheapest-layer)) — pre-aggregated rows are far smaller than raw ones, and this is often the only fix when even a short timeframe overflows.
-- Remove a timeframe that fails whether the stream is read live or cached, and set a conservative `defaultTimeframe` that a live tile returns in full, so new tiles don't open on the largest range (see [Prove each timeframe](#prove-each-timeframe)).
+- Remove a timeframe that fails whether the stream is read live or from a cache (see [Prove each timeframe](#prove-each-timeframe)). `defaultTimeframe` can't steer new tiles to a shorter range (it only takes `"none"` or `"dashboard"`, see [timeframes](#timeframes)), so any tile can select a range you keep.
 - **Apply the same restriction to every sibling stream on the same endpoint family.** If one stream on an endpoint overflows at `last30days`, its siblings hitting the same (or a heavier) endpoint will too — fixing only the one you happened to test leaves the rest broken.
 
 **A smaller `pageSize` is not a fix.** The cap applies to each page and to the combined result, so a smaller page only helps when a single page is over it. It also means more pages, and a tile has a time budget for paging (below). Below the cap, a smaller page can turn the 500 into incomplete data with no error.
@@ -575,7 +575,7 @@ Remediation:
 
 A tile reads all of a stream's pages within about 12 seconds. When the time runs out, SquaredUp returns the rows read so far with a warning on the tile ("The request timed out. The tile may not display all available data.") rather than an error, and caches that partial result. The number of rows a tile gets therefore depends on the page size and on how fast the API answers: one plugin returned 1,400 rows at a page size of 50 and 2,500 at 100, for a window holding about 10,000.
 
-SmartCache works differently. A cached stream is read by an import that fetches one page per step, so this time budget doesn't apply there; the ~6MB cap still applies to each page. But a SmartCache can only use a timeframe the stream's `timeframes` allows: an unsupported one is replaced with a supported one. So removing a timeframe because live tiles cut it short also stops users caching it. Keep it instead (below).
+A cache works differently. Users can cache a stream (Settings > Cache), and the cache syncs it by reading one page per step, so this time budget doesn't apply. The ~6MB cap still applies to each page: a page over it fails the sync, and the cache keeps its last complete data. But a cache can only use a timeframe the stream's `timeframes` allows (an unsupported one is replaced with a supported one), so removing a timeframe because live tiles cut it short also stops users caching it. Keep it instead (below).
 
 #### Prove each timeframe
 
@@ -584,7 +584,7 @@ For each timeframe you offer, test the stream at that timeframe on the largest a
 1. Read the last page in the output's `requests` (see [testing.md](testing.md#requests--the-plugin-diagnostics-raw-api-exchange)). If its response still has a next-page cursor or URL, paging was cut short.
 2. Test again at a second page size and compare `data.metadata.rawRowCount`. The counts must match. A count that changes with the page size means the result was cut short.
 
-A timeframe that passes both checks is complete in a live tile. One that fails only because paging is cut short can stay: a live tile shows the rows it read with a warning, and a SmartCache of the stream gets every row. Set `defaultTimeframe` to one that passes, and say in the README which timeframes need SmartCache for complete data. Remove a timeframe only when it fails cached as well as live.
+A timeframe that passes both checks is complete in a live tile. One that fails only because paging is cut short can stay: a live tile shows the rows it read with a warning, and a cache of the stream gets every row. List those timeframes in the README's limitations and say they are only complete when the stream is cached. Remove a timeframe only when it fails cached as well as live.
 
 Choose `pageSize` for the per-page cap, not to control the total.
 
@@ -916,13 +916,14 @@ _.orderBy(items, ["name"], ["asc"]);
 
 ### Setting the paging cursor from a script
 
-A script can also set `pagingContext`. It replaces the cursor that `paging.in` read from the response, and `undefined` ends paging. Use it when the API's own last-page signal doesn't end paging, such as an empty string:
+A script can also set `pagingContext`. It replaces the cursor that `paging.in` read from the response, and `undefined` ends paging. Use it when the API marks its last page some other way than leaving the cursor out:
 
 ```javascript
-// The API returns "nextPageToken": "" on the last page.
-// Turn the empty string into undefined so paging stops.
-pagingContext = data.nextPageToken || undefined;
+// The API returns a cursor on every page and "hasMore": false on the last one.
+pagingContext = data.hasMore ? context.outputPagingContext : undefined;
 ```
+
+Read the cursors from `context`: `context.outputPagingContext` is the one `paging.in` read from this response, and `context.pagingContext` is the one this page was requested with. Don't read the `pagingContext` variable itself. Until the script sets it, it holds a placeholder, not a cursor.
 
 The same approach works for a cursor that isn't in the response at all, such as the last row's id (NinjaOne's `devices.js`). Keep `paging` declared in the stream so the cursor is sent through `out`.
 
