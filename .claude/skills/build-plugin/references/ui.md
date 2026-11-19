@@ -362,7 +362,7 @@ The selected objects then drive the stream at runtime:
 
     ```json
     "postBody": {
-        "customerIds": "{{ (typeof customer !== 'undefined' && customer && customer.length) ? customer.map((o) => [].concat(o.rawId)[0]) : [] }}"
+        "projectIds": "{{ (typeof project !== 'undefined' && project && project.length) ? project.map((o) => [].concat(o.rawId)[0]) : [] }}"
     }
     ```
 
