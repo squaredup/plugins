@@ -32,7 +32,7 @@
             "out": { "realm": "body", "path": "skip" }
         },
         "postRequestScript": "deviceConfigurationStates.js",
-        "errorHandling": { "type": "script", "script": "errorHandling/microsoftGraphApi.js" }
+        "errorHandling": { "type": "script", "script": "// Errors from streams that call Microsoft Graph. The common failures are permission and licence\n// gaps rather than faults, so name what is missing instead of passing on the raw Graph error.\nconst error = (data && data.error) || {};\nlet apiMessage = typeof error.message === 'string' ? error.message : '';\n// Intune's service backends wrap their reason in a JSON string; keep only its Message.\nif (apiMessage.trim().startsWith('{')) {\n    try {\n        apiMessage = String(JSON.parse(apiMessage).Message || '').split(' - Operation ID')[0];\n    } catch (e) {\n        apiMessage = '';\n    }\n}\n\nif (response.status === 401) {\n    result =\n        'Microsoft Graph rejected the credentials (HTTP 401). Check the tenant ID, client ID and client secret, ' +\n        'and that the secret has not expired.';\n} else if (response.status === 403) {\n    // Graph does not always name the missing role, so always list the read-only permissions.\n    result =\n        'Microsoft Graph refused access to this data (HTTP 403). Grant the missing application permission ' +\n        'with admin consent in Microsoft Entra ID, and check the tenant has an Intune licence.' +\n        (apiMessage ? ' ' + apiMessage : '') +\n        ' Read-only permissions are enough: devices need DeviceManagementManagedDevices.Read.All, ' +\n        'compliance policies and configuration profiles DeviceManagementConfiguration.Read.All, Autopilot, enrollment ' +\n        'and Apple push certificate or enrollment token data DeviceManagementServiceConfig.Read.All, Apple VPP tokens ' +\n        'DeviceManagementApps.Read.All, and users User.Read.All.';\n} else if (response.status === 429) {\n    result =\n        'Microsoft Graph is limiting requests for this data (HTTP 429). Try again in a few minutes.' +\n        (apiMessage ? ' ' + apiMessage : '');\n} else {\n    result = apiMessage || 'Microsoft Graph returned HTTP ' + response.status;\n}" }
     },
     "matches": { "sourceType": { "type": "oneOf", "values": ["Managed Device"] } },
     "metadata": [
@@ -88,7 +88,7 @@
         {
             "name": "statusCode",
             "displayName": "Status Code",
-            "shape": ["number", { "thousandsSeparator": false }],
+            "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": false }],
             "visible": false
         },
         {
