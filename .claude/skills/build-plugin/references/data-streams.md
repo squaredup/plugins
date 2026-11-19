@@ -401,7 +401,7 @@ The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 
 Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page: a tile repeats rows until the [paging time budget](#paging-time-budget-12s) runs out, an object import fails when pages repeat, and a cache sync fails when the cursor repeats. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
 
-**Check what the last page returns.** Paging stops when `in` finds no value or an empty string. An API that still returns a cursor on its last page, and marks the end some other way (`"hasMore": false`, or a placeholder such as `"null"`), keeps paging going, and the failures above follow. Set the cursor yourself in a post-request script to fix it (see [Setting the paging cursor from a script](#setting-the-paging-cursor-from-a-script)).
+**Check what the last page returns.** Paging stops when the cursor `in` reads is missing, empty, `null`, `false` or `0`. An API that still returns a cursor on its last page and marks the end some other way (`"hasMore": false`) keeps paging, and the failures above follow. Set the cursor yourself in a post-request script to fix it (see [Setting the paging cursor from a script](#setting-the-paging-cursor-from-a-script)).
 
 **No paging:**
 
