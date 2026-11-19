@@ -1,0 +1,53 @@
+{
+    "name": "logsSearch",
+    "displayName": "Logs Search",
+    "description": "Log records matching a SQL query against a log stream",
+    "tags": ["Search"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "_search",
+        "getArgs": [{ "key": "type", "value": "logs" }],
+        "postBody": {
+            "query": {
+                "sql": "{{sql || 'SELECT * FROM \"' + object.name + '\"'}}",
+                "start_time": "{{timeframe.unixStart * 1000000}}",
+                "end_time": "{{timeframe.unixEnd * 1000000}}",
+                "from": 0,
+                "size": "{{size || 100}}"
+            },
+            "search_type": "ui"
+        },
+        "postRequestScript": "search.js"
+    },
+    "matches": {
+        "sourceType": { "type": "oneOf", "values": ["Stream"] },
+        "stream_type": { "type": "equals", "value": "logs" }
+    },
+    "ui": [
+        {
+            "type": "textarea",
+            "name": "sql",
+            "label": "SQL Query",
+            "help": "{{object.name}} is replaced with the selected stream's name when the query runs, e.g. SELECT * FROM \"{{object.name}}\" WHERE level = 'error'. Leave blank to return the latest records from the selected stream.",
+            "placeholder": "SELECT * FROM \"{{object.name}}\"",
+            "defaultValue": "SELECT * FROM \"{{object.name}}\""
+        },
+        {
+            "type": "number",
+            "name": "size",
+            "label": "Max rows",
+            "defaultValue": 100
+        }
+    ],
+    "metadata": [
+        {
+            "name": "recordTime",
+            "displayName": "Timestamp",
+            "role": "timestamp",
+            "shape": "date"
+        },
+        { "pattern": ".*" }
+    ],
+    "timeframes": true
+}

@@ -1,15 +1,22 @@
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
-const related = (list) => (list || []).map((r) => r.data ?? r).filter(Boolean);
+
+// Rootly returns an incident's linked catalog items as IDs under `relationships`, with the records themselves in `included`.
+const included = new Map((data.included || []).map((r) => [`${r.type}:${r.id}`, r]));
+const related = (incident, key) =>
+    (incident.relationships?.[key]?.data || []).map((r) => ({
+        id: r.id,
+        name: included.get(`${r.type}:${r.id}`)?.attributes?.name
+    }));
 
 // Filtered here by ID rather than with Rootly's filter[services] etc., which aren't documented as taking IDs.
 const selectedIds = new Set((context.config.catalogItems || []).map((o) => unwrap(o.rawId)));
 
 result = data.data
     .map((i) => {
-        const services = related(i.attributes.services);
-        const teams = related(i.attributes.groups);
-        const functionalities = related(i.attributes.functionalities);
-        const environments = related(i.attributes.environments);
+        const services = related(i, 'services');
+        const teams = related(i, 'groups');
+        const functionalities = related(i, 'functionalities');
+        const environments = related(i, 'environments');
         return {
             linkedIds: [...services, ...teams, ...functionalities, ...environments].map((r) => r.id),
             row: {
@@ -21,10 +28,10 @@ result = data.data
                 slug: i.attributes.severity?.data?.attributes?.name,
                 severity: i.attributes.severity?.data?.attributes?.severity,
                 description: i.attributes.severity?.data?.attributes?.description,
-                services: services.map((r) => r.attributes?.name),
-                teams: teams.map((r) => r.attributes?.name),
-                functionalities: functionalities.map((r) => r.attributes?.name),
-                environments: environments.map((r) => r.attributes?.name),
+                services: services.map((r) => r.name),
+                teams: teams.map((r) => r.name),
+                functionalities: functionalities.map((r) => r.name),
+                environments: environments.map((r) => r.name),
                 started_at: i.attributes.started_at,
                 detected_at: i.attributes.detected_at,
                 acknowledged_at: i.attributes.acknowledged_at,

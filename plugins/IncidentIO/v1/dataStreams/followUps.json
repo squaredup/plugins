@@ -1,0 +1,80 @@
+{
+    "name": "followUps",
+    "displayName": "Follow-Ups",
+    "description": "Incident follow-ups created within the selected timeframe, one row per follow-up, with status, assignee and age",
+    "tags": ["Incidents"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v3/follow_ups",
+        "pathToData": "follow_ups",
+        "postRequestScript": "followUps.js",
+        "getArgs": [
+            {
+                "key": "created_at[date_range]",
+                "value": "{{timeframe.enum === 'none' ? null : (timeframe.start + '~' + timeframe.end)}}"
+            },
+            { "key": "assignee_team_id", "value": "{{team && team.length === 1 && team[0].rawId && [].concat(team[0].rawId)[0] || null}}" },
+            { "key": "incident_mode", "value": "{{testIncidentsOnly ? 'test' : null}}" }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "250" },
+            "in": { "realm": "payload", "path": "pagination_meta.after" },
+            "out": { "realm": "queryArg", "path": "after" }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "name": "team",
+            "label": "Assignee Team (optional)",
+            "type": "objects",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["Team"] } }
+        },
+        {
+            "name": "user",
+            "label": "Assignee (optional)",
+            "type": "objects",
+            "matches": { "sourceType": { "type": "oneOf", "values": ["User"] } }
+        },
+        {
+            "name": "testIncidentsOnly",
+            "label": "Test incidents only",
+            "type": "toggle",
+            "help": "Returns follow-ups from test incidents instead of standard and retrospective incidents."
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "title", "displayName": "Title", "shape": "string", "role": "label" },
+        { "name": "status", "displayName": "Status", "shape": "string" },
+        { "name": "statusState", "displayName": "Status State", "shape": "state" },
+        { "name": "priority", "displayName": "Priority", "shape": "string" },
+        { "name": "category", "displayName": "Category", "shape": "string" },
+        { "name": "assignee", "displayName": "Assignee", "shape": "string" },
+        { "name": "assigneeTeam", "displayName": "Assignee Team", "shape": "string" },
+        { "name": "incidentId", "displayName": "Incident ID", "shape": "string", "visible": false },
+        { "name": "labels", "displayName": "Labels", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "created_at", "displayName": "Created At", "shape": "date", "role": "timestamp" },
+        { "name": "completed_at", "displayName": "Completed At", "shape": "date" },
+        { "name": "updated_at", "displayName": "Updated At", "shape": "date" },
+        { "name": "ageDays", "displayName": "Age (days)", "shape": ["number", { "decimalPlaces": 1 }] }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "thisQuarter",
+        "thisYear",
+        "lastMonth",
+        "lastQuarter",
+        "lastYear",
+        "none"
+    ],
+    "supportsNoneTimeframe": true,
+    "defaultTimeframe": "none"
+}

@@ -1,0 +1,32 @@
+{
+    "name": "catalogEntries",
+    "displayName": "Catalog Entries",
+    "description": "The entries of a catalog type, one row per entry, with external ID and aliases. Archived entries are left out",
+    "tags": ["Catalog"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v3/catalog_entries",
+        "getArgs": [{ "key": "catalog_type_id", "value": "{{object.rawId}}" }],
+        "postRequestScript": "catalogEntries.js",
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "page_size", "value": "250" },
+            "in": { "realm": "payload", "path": "pagination_meta.after" },
+            "out": { "realm": "queryArg", "path": "after" }
+        }
+    },
+    "matches": { "sourceType": { "type": "oneOf", "values": ["Catalog Type"] } },
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string", "visible": false },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "qualifiedName", "displayName": "Qualified Name", "shape": "string", "visible": false },
+        { "name": "catalogTypeId", "displayName": "Catalog Type ID", "shape": "string", "visible": false },
+        { "name": "catalogTypeName", "displayName": "Catalog Type", "shape": "string" },
+        { "name": "externalId", "displayName": "External ID", "shape": "string" },
+        { "name": "aliases", "displayName": "Aliases", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "updated_at", "displayName": "Updated At", "shape": "date" },
+        { "sourceId": "id", "sourceType": "Catalog Entry", "name": "name" }
+    ],
+    "timeframes": false
+}

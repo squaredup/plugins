@@ -1,0 +1,897 @@
+{
+    "name": "Alerting and Escalations",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "d2b9b19a-4afd-45e6-be4f-45bc475a6e08",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Alerts",
+                    "description": "Alerts created in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": { "value": "count", "comparisonColumn": "none", "label": "Alerts" }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": { "values": [{ "field": "count", "type": "quantitative", "title": "Alerts" }] },
+                            "style": { "scalarLabelPosition": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9ddb17a0-5169-40f1-bc32-905d5b5e8161",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Firing Alerts",
+                    "description": "Alerts currently firing, regardless of when they started",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": { "status": "firing" },
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "count",
+                                "comparisonColumn": "none",
+                                "label": "Firing Alerts"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [{ "field": "count", "type": "quantitative", "title": "Firing Alerts" }]
+                            },
+                            "style": { "scalarLabelPosition": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5cb21b5e-0ec6-4ed4-8556-e88e2e5daa83",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Avg Alert Duration",
+                    "description": "Average minutes from creation to resolution (or now, if still firing)",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "durationMinutes", "operation": "notempty" }]
+                        },
+                        "group": { "by": [], "aggregate": [{ "type": "mean", "names": ["durationMinutes"] }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "durationMinutes_mean",
+                                "comparisonColumn": "none",
+                                "label": "minutes"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    { "field": "durationMinutes_mean", "type": "quantitative", "title": "minutes" }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4284ef3c-d177-48bf-b3ed-2e8ab9d397d2",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Time to Acknowledge",
+                    "description": "Minutes from an escalation being created to being acknowledged",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[escalations]}}",
+                        "name": "escalations",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "timeToAckMinutes", "operation": "notempty" }]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                { "type": "mean", "names": ["timeToAckMinutes"] },
+                                { "type": "median", "names": ["timeToAckMinutes"] }
+                            ]
+                        }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "timeToAckMinutes_mean",
+                                "comparisonColumn": "none",
+                                "label": "Avg minutes"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    { "field": "timeToAckMinutes_mean", "type": "quantitative", "title": "Avg (min)" },
+                                    {
+                                        "field": "timeToAckMinutes_median",
+                                        "type": "quantitative",
+                                        "title": "Median (min)"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c0f9f6da-be3c-4eda-81d6-12ad3f85685f",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Alerts Over Time",
+                    "description": "Alerts created per day, firing vs resolved",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["created_at", "byDay"], ["status", "uniqueValues"]],
+                            "aggregate": [{ "type": "count" }]
+                        },
+                        "sort": { "by": [["created_at_byDay", "asc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "created_at_byDay",
+                                "yAxisData": ["count"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "created_at_byDay", "type": "temporal", "title": "Day" },
+                                "y": { "field": "count", "type": "quantitative", "title": "Alerts" },
+                                "series": { "field": "status_uniqueValues", "type": "nominal" }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2,
+                                "mappedColors": { "firing": "#ef4444", "resolved": "#22c55e" }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "984f0874-08a7-4d22-8a08-215fbe5760bf",
+                "x": 2,
+                "y": 2,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Escalations by Status",
+                    "description": "Escalations created in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[escalations]}}",
+                        "name": "escalations",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [["status", "uniqueValues"]], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-donut-chart",
+                        "config": {
+                            "data-stream-donut-chart": {
+                                "valueColumn": "count",
+                                "labelColumn": "status_uniqueValues",
+                                "hideCenterValue": false,
+                                "showValuesAsPercentage": false,
+                                "legendPosition": "auto",
+                                "legendMode": "table"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": { "field": "status_uniqueValues", "type": "nominal" },
+                                "value": { "field": "count", "type": "quantitative" }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "mappedColors": {
+                                    "triggered": "#ef4444",
+                                    "pending": "#f97316",
+                                    "acked": "#f59e0b",
+                                    "resolved": "#22c55e",
+                                    "cancelled": "#94a3b8",
+                                    "expired": "#94a3b8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fd420b5a-dddd-4828-940c-6c1d5228bd68",
+                "x": 3,
+                "y": 2,
+                "w": 1,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Escalations by Priority",
+                    "description": "Escalations created in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[escalations]}}",
+                        "name": "escalations",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [["priority", "uniqueValues"]], "aggregate": [{ "type": "count" }] },
+                        "sort": { "by": [["count", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "priority_uniqueValues",
+                                "yAxisData": ["count"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "priority_uniqueValues", "type": "nominal" },
+                                "y": { "field": "count", "type": "quantitative", "title": "Escalations" }
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 2,
+                                "mappedColors": {
+                                    "Urgent": "#ef4444",
+                                    "High": "#f97316",
+                                    "Medium": "#f59e0b",
+                                    "Low": "#3b82f6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4c38958e-e546-4f7d-a4d9-fecdfa2dc675",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Alerts",
+                    "description": "Alerts created in the timeframe, newest first",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": { "by": [["created_at", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "alertState",
+                                    "title",
+                                    "status",
+                                    "created_at",
+                                    "resolved_at",
+                                    "durationMinutes",
+                                    "source_url"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "alertState",
+                                        "title": "State",
+                                        "renderer": { "type": "status", "showLabel": false },
+                                        "width": 60
+                                    },
+                                    { "field": "title", "title": "Alert", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": { "firing": "#ef4444", "resolved": "#22c55e" }
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": { "type": "date", "relative": true }
+                                    },
+                                    { "field": "resolved_at", "title": "Resolved", "renderer": { "type": "date" } },
+                                    {
+                                        "field": "durationMinutes",
+                                        "title": "Duration",
+                                        "renderer": { "type": "number", "decimals": 0, "suffix": " min" },
+                                        "align": "right"
+                                    },
+                                    { "field": "source_url", "title": "Source", "renderer": { "type": "link" } }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "field": "status",
+                                    "colors": { "firing": "rgba(239,68,68,0.10)" }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9a33a33d-0e1f-4823-9c74-cf1ffd12b600",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Escalations",
+                    "description": "Escalations created in the timeframe, newest first",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[escalations]}}",
+                        "name": "escalations",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": { "by": [["created_at", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "statusState",
+                                    "title",
+                                    "status",
+                                    "priority",
+                                    "created_at",
+                                    "acknowledgedBy",
+                                    "timeToAckMinutes",
+                                    "relatedIncidents"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "statusState",
+                                        "title": "State",
+                                        "renderer": { "type": "status", "showLabel": false },
+                                        "width": 60
+                                    },
+                                    { "field": "title", "title": "Escalation", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "triggered": "#ef4444",
+                                                "pending": "#f97316",
+                                                "acked": "#f59e0b",
+                                                "resolved": "#22c55e",
+                                                "cancelled": "#94a3b8",
+                                                "expired": "#94a3b8"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "priority",
+                                        "title": "Priority",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Urgent": "#ef4444",
+                                                "High": "#f97316",
+                                                "Medium": "#f59e0b",
+                                                "Low": "#3b82f6"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": { "type": "date", "relative": true }
+                                    },
+                                    {
+                                        "field": "acknowledgedBy",
+                                        "title": "Acknowledged By",
+                                        "renderer": { "type": "text" }
+                                    },
+                                    {
+                                        "field": "timeToAckMinutes",
+                                        "title": "Time to Ack",
+                                        "renderer": { "type": "number", "decimals": 1, "suffix": " min" },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "relatedIncidents",
+                                        "title": "Incidents",
+                                        "renderer": { "type": "text" }
+                                    }
+                                ]
+                            },
+                            "style": { "richTableCellPadding": 6 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "12a66d93-03ac-4407-b890-4f7c674bc0dd",
+                "x": 0,
+                "y": 14,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Escalation Paths",
+                    "description": "Escalation paths, their levels and who is on call now",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[escalationPaths]}}",
+                        "name": "escalationPaths",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": { "by": [["name", "asc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "name",
+                                    "currentResponders",
+                                    "responderCount",
+                                    "levelCount",
+                                    "kind",
+                                    "workingHours"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    { "field": "name", "title": "Escalation Path", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "currentResponders",
+                                        "title": "On Call Now",
+                                        "renderer": { "type": "text" }
+                                    },
+                                    {
+                                        "field": "responderCount",
+                                        "title": "Responders",
+                                        "renderer": { "type": "number", "decimals": 0 },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "levelCount",
+                                        "title": "Levels",
+                                        "renderer": { "type": "number", "decimals": 0 },
+                                        "align": "right"
+                                    },
+                                    { "field": "kind", "title": "Kind", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "workingHours",
+                                        "title": "Working Hours",
+                                        "renderer": { "type": "text" }
+                                    }
+                                ]
+                            },
+                            "style": { "richTableCellPadding": 6 }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "205570fd-8482-4cbb-94c6-b8ecb2c14cff",
+                "x": 0,
+                "y": 17,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Workflow Runs",
+                    "description": "Workflow runs started in the timeframe",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[workflowRuns]}}",
+                        "name": "workflowRuns",
+                        "pluginConfigId": "{{configId}}",
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "count",
+                                "comparisonColumn": "none",
+                                "label": "Workflow Runs"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [{ "field": "count", "type": "quantitative", "title": "Workflow Runs" }]
+                            },
+                            "style": { "scalarLabelPosition": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8e76d15b-78f2-4ed8-af24-599349ac4f49",
+                "x": 0,
+                "y": 19,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Failed Workflow Runs",
+                    "description": "Workflow runs in the timeframe that ended in an error",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[workflowRuns]}}",
+                        "name": "workflowRuns",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "runState", "operation": "equals", "value": "error" }]
+                        },
+                        "group": { "by": [], "aggregate": [{ "type": "count" }] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-scalar",
+                        "config": {
+                            "data-stream-scalar": {
+                                "value": "count",
+                                "comparisonColumn": "none",
+                                "label": "Failed Workflow Runs"
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    { "field": "count", "type": "quantitative", "title": "Failed Workflow Runs" }
+                                ]
+                            },
+                            "style": { "scalarLabelPosition": "none" }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "175083bb-9a21-4e6b-aaa1-90b30bd4f51d",
+                "x": 1,
+                "y": 17,
+                "w": 3,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Workflow Runs Over Time",
+                    "description": "Workflow runs per day, by outcome",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[workflowRuns]}}",
+                        "name": "workflowRuns",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [["createdAt", "byDay"], ["runState", "uniqueValues"]],
+                            "aggregate": [{ "type": "count" }]
+                        },
+                        "sort": { "by": [["createdAt_byDay", "asc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-bar-chart",
+                        "config": {
+                            "data-stream-bar-chart": {
+                                "xAxisData": "createdAt_byDay",
+                                "yAxisData": ["count"],
+                                "xAxisGroup": "none",
+                                "xAxisLabel": "",
+                                "yAxisLabel": "",
+                                "showXAxisLabel": true,
+                                "showYAxisLabel": true,
+                                "showLegend": false,
+                                "legendPosition": "bottom",
+                                "showGrid": true,
+                                "horizontalLayout": "vertical",
+                                "displayMode": "actual",
+                                "showTotals": false,
+                                "showValue": false,
+                                "grouping": false,
+                                "range": { "type": "auto" }
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": { "field": "createdAt_byDay", "type": "temporal", "title": "Day" },
+                                "y": { "field": "count", "type": "quantitative", "title": "Runs" },
+                                "series": { "field": "runState_uniqueValues", "type": "nominal" }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2,
+                                "mappedColors": {
+                                    "success": "#22c55e",
+                                    "warning": "#f59e0b",
+                                    "error": "#ef4444",
+                                    "unknown": "#94a3b8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4e074ee2-e72e-4f48-8352-347c48fdaa97",
+                "x": 0,
+                "y": 21,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Workflow Failures",
+                    "description": "Workflow runs that ended in an error, newest first",
+                    "activePluginConfigIds": ["{{configId}}"],
+                    "dataStream": {
+                        "id": "{{dataStreams.[workflowRuns]}}",
+                        "name": "workflowRuns",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [{ "column": "runState", "operation": "equals", "value": "error" }]
+                        },
+                        "sort": { "by": [["createdAt", "desc"]] }
+                    },
+                    "visualisation": {
+                        "type": "data-stream-table",
+                        "config": {
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "workflowName",
+                                    "incidentReference",
+                                    "createdAt",
+                                    "failedStepCount",
+                                    "stepCount",
+                                    "error"
+                                ]
+                            }
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "runState",
+                                        "title": "State",
+                                        "renderer": { "type": "status", "showLabel": false },
+                                        "width": 60
+                                    },
+                                    { "field": "workflowName", "title": "Workflow", "renderer": { "type": "text" } },
+                                    {
+                                        "field": "incidentReference",
+                                        "title": "Incident",
+                                        "renderer": { "type": "text" },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "createdAt",
+                                        "title": "Run",
+                                        "renderer": { "type": "date", "relative": true }
+                                    },
+                                    {
+                                        "field": "failedStepCount",
+                                        "title": "Failed Steps",
+                                        "renderer": { "type": "number", "decimals": 0 },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "stepCount",
+                                        "title": "Steps",
+                                        "renderer": { "type": "number", "decimals": 0 },
+                                        "align": "right"
+                                    },
+                                    { "field": "error", "title": "Error", "renderer": { "type": "text" } }
+                                ]
+                            },
+                            "style": { "richTableCellPadding": 6, "richTableWrapText": true }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
