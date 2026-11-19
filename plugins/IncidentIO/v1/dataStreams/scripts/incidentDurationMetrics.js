@@ -7,6 +7,18 @@ const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const selectedTeams = new Set(
     ((context.config && context.config.team) || []).map((o) => unwrap(o.rawId)).filter(Boolean),
 );
+// Optional `catalogEntry` object picker: matches incidents whose catalog-backed custom
+// fields (e.g. Affected services) reference one of the selected entries.
+const selectedEntries = new Set(
+    ((context.config && context.config.catalogEntry) || []).map((o) => unwrap(o.rawId)).filter(Boolean),
+);
+const matchesEntries = (incident) =>
+    selectedEntries.size === 0 ||
+    (incident.custom_field_entries || []).some((field) =>
+        (field.values || []).some(
+            (value) => value.value_catalog_entry && selectedEntries.has(value.value_catalog_entry.id),
+        ),
+    );
 const includeIncomplete =
     context.config &&
     (context.config.includeIncomplete === true || context.config.includeIncomplete === "true");
@@ -17,6 +29,7 @@ const rows = [];
         (incident) =>
             selectedTeams.size === 0 || (incident.team_ids || []).some((id) => selectedTeams.has(id)),
     )
+    .filter(matchesEntries)
     .forEach((incident) => {
         (incident.duration_metrics || []).forEach((metric) => {
             const complete = metric.status === "success";
