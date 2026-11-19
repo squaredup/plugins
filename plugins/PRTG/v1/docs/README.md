@@ -21,7 +21,7 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
    are unnecessary.
 6. Click **OK**, then copy the generated key immediately, because PRTG will not show it again. If you lose it,
    delete the key and create a new one.
-7. Paste the key into the **API key** field, and your PRTG address into **URL**.
+7. Enter your PRTG address in **URL**, and paste the key into the **API key** field.
 
 ## Configuration fields
 
