@@ -1,0 +1,96 @@
+{
+    "name": "projects",
+    "displayName": "Projects",
+    "description": "All projects the access token can see, with their current status, region and Postgres version",
+    "tags": ["Projects"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/v1/projects",
+        "expandInnerObjects": true,
+        "paging": { "mode": "none" }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "ref",
+            "displayName": "Reference ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["ACTIVE_HEALTHY"],
+                        "warning": [
+                            "COMING_UP",
+                            "GOING_DOWN",
+                            "RESTORING",
+                            "UPGRADING",
+                            "PAUSING",
+                            "RESTARTING",
+                            "RESIZING",
+                            "PROMOTING"
+                        ],
+                        "error": [
+                            "ACTIVE_UNHEALTHY",
+                            "INIT_FAILED",
+                            "RESTORE_FAILED",
+                            "PAUSE_FAILED"
+                        ],
+                        "unmonitored": ["INACTIVE", "REMOVED"],
+                        "unknown": ["UNKNOWN"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "organization_slug",
+            "displayName": "Organization",
+            "shape": "string"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "database.version",
+            "displayName": "Postgres version",
+            "shape": "string"
+        },
+        {
+            "name": "database.host",
+            "displayName": "Database host",
+            "shape": "string"
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "dashboardUrl",
+            "displayName": "Dashboard",
+            "computed": true,
+            "valueExpression": "{{ `https://supabase.com/dashboard/project/${$['ref']}` }}",
+            "shape": ["url", { "label": "Open in Supabase" }]
+        },
+        {
+            "sourceId": "ref",
+            "sourceType": "Project",
+            "name": "name"
+        }
+    ],
+    "timeframes": false
+}
