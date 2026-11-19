@@ -143,8 +143,13 @@ Token refresh is handled automatically for all OAuth2 flows.
 "oauth2ClientSecretLocationDuringAuth": "body",    // "query" (default), "body", or "header"
 "oauth2SendTokenInParameters": true,               // send access token as query param instead of Bearer header
 "oauth2TokenExtraArgs": [{ "key": "k", "value": "v" }],
-"oauth2TokenExtraHeaders": [{ "key": "k", "value": "v" }]
+"oauth2TokenExtraHeaders": [{ "key": "k", "value": "v" }],
+"oauth2TokenResponseField": "token",               // token response field holding the token, if not access_token; dot paths work ("data.token")
+"oauth2ExpiresInResponseField": "lifetime",        // field holding seconds until expiry, if not expires_in
+"oauth2ExpiresAtResponseField": "expires"          // field holding an absolute expiry time (ISO date or epoch); use instead of the seconds field
 ```
+
+Set the expiry field only when the token response has one. Without a readable expiry, the token is renewed when a request gets a 401.
 
 OAuth URLs and scopes support `{{fieldName}}` expressions — useful when the auth URL includes a tenant ID from the user's config:
 
