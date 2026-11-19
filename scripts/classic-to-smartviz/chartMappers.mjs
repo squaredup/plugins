@@ -254,8 +254,34 @@ const toBarStackStyle = (classicConfig, hasSeveralBars) => {
 };
 
 /** Converts a classic `data-stream-bar-chart` config to a bar spec. */
-export const toBarChart = (classicConfig, tileColumns) => {
+/**
+ * A bar chart saved before dashboard schema 1.2, as classic reads it once its one-time upgrade has run. The
+ * platform flags such a chart `requiresLegacyColumnMigration`; a file still at schema 1.1 shows it by the
+ * `xAxisColumn` and `yAxisColumn` keys instead. The upgrade plots `yAxisColumn`, or else the first numeric
+ * column, preferring one with the value role, against `xAxisColumn`, and groups nothing.
+ */
+const toCurrentBarConfig = (classicConfig, { columns }, notes) => {
+    const isLegacy =
+        classicConfig.requiresLegacyColumnMigration === true || 'xAxisColumn' in classicConfig || 'yAxisColumn' in classicConfig;
+
+    if (!isLegacy) {
+        return classicConfig;
+    }
+
+    const numericColumns = columns.filter((column) => findFieldType(columns, column.name) === 'quantitative');
+    const valueColumn = numericColumns.find((column) => column.role === 'value') ?? numericColumns[0];
+    const yAxisData = classicConfig.yAxisColumn || valueColumn?.name || classicConfig.yAxisData;
+
+    if (!classicConfig.yAxisColumn && valueColumn && valueColumn.name !== classicConfig.yAxisData) {
+        notes.push(`y is ${valueColumn.name}, the column classic's upgrade of this older bar chart picks`);
+    }
+
+    return { ...classicConfig, xAxisData: classicConfig.xAxisColumn || classicConfig.xAxisData, xAxisGroup: 'none', yAxisData };
+};
+
+export const toBarChart = (savedConfig, tileColumns) => {
     const notes = [];
+    const classicConfig = toCurrentBarConfig(savedConfig, tileColumns, notes);
     const x = toXChannel(tileColumns, classicConfig.xAxisData, 'bar', notes);
     const { y, blockedReason } = toYEncoding(tileColumns, classicConfig.yAxisData, x?.field, notes);
 
