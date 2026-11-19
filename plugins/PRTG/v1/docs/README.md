@@ -72,8 +72,8 @@ for each **Probe**, **Group**, **Device** and **Sensor**.
 | **Device**       | `GET /api/table.json?content=devices`                  | A monitored host, identified by its address.                    |
 | **Sensor**       | `GET /api/table.json?content=sensors`                  | A single check running against a device.                        |
 
-**Relationships:** every object stores its PRTG parent's id as a `parentId` property, and sensors also store
-`deviceId`, `deviceName`, `groupName` and `probeName`. The **Sensors** stream links its Device column
+**Relationships:** groups, devices and sensors store their PRTG parent's id as a `parentId` property, and
+sensors also store `deviceId`, `deviceName`, `groupName` and `probeName`. The **Sensors** stream links its Device column
 straight to the **Device** object, so you can click through from a sensor to the device it runs on. See
 the first limitation below for why these are properties rather than graph relationships.
 
@@ -108,8 +108,9 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
   last quarter.
 - **The log returns at most 5,000 entries per query.** PRTG returns newest first, so on a busy installation
   over a long timeframe the oldest entries in the range are dropped without warning. Unlike the object
-  tables, PRTG reports no usable total for the log, so there is no way to detect that truncation happened —
-  shorten the dashboard timeframe to see further back.
+  tables, PRTG reports no usable total for the log, so there is no way to detect that truncation happened.
+  To see older entries, move the end of the dashboard timeframe earlier, and shorten the range if the newest
+  entries still fill the limit.
 - **PRTG tags are a single string.** They are indexed as a `prtgTags` property holding PRTG's
   comma-separated list, not as native SquaredUp tags.
 - **Location is only reported where it is set, and never on sensors.** PRTG's API returns a `location` for a
