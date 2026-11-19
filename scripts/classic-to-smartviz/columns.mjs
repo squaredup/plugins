@@ -73,10 +73,70 @@ export const toInferredTitle = (name) => {
         .join(' ');
 };
 
+/** The shapes the platform registers (`@squaredup/data-streams` shape definitions); it ignores any other name. */
+const PLATFORM_SHAPES = new Set([
+    'array',
+    'awsjsonlogevent',
+    'azurevmid',
+    'bitspersecondbinary',
+    'bitspersecondmetric',
+    'boolean',
+    'bytes',
+    'bytespersecondbinary',
+    'bytesperseconddecimal',
+    'currency',
+    'customunit',
+    'date',
+    'eur',
+    'exabytes',
+    'gbp',
+    'gibibitspersecond',
+    'gigabitspersecond',
+    'gigabytes',
+    'gigabytespersecond',
+    'gigabytespersecondbinary',
+    'guid',
+    'json',
+    'kibibitspersecond',
+    'kilobitspersecond',
+    'kilobytes',
+    'kilobytespersecond',
+    'kilobytespersecondbinary',
+    'mebibitspersecond',
+    'megabitspersecond',
+    'megabytes',
+    'megabytespersecond',
+    'megabytespersecondbinary',
+    'milliseconds',
+    'minutes',
+    'none',
+    'nullish',
+    'number',
+    'number.0',
+    'number.2',
+    'percent',
+    'petabytes',
+    'seconds',
+    'state',
+    'string',
+    'tebibitspersecond',
+    'terabitspersecond',
+    'terabytes',
+    'terabytespersecond',
+    'terabytespersecondbinary',
+    'unknown',
+    'url',
+    'usd',
+    'yottabytes',
+    'zettabytes'
+]);
+
+/** A column's declared shape, or none when the platform doesn't know the name, as it then reads the values as they come. */
 const toShape = (metadataEntry) => {
     const [name, config] = Array.isArray(metadataEntry.shape) ? metadataEntry.shape : [metadataEntry.shape, undefined];
+    const shapeName = typeof name === 'string' ? name.toLowerCase() : undefined;
 
-    return { shapeName: typeof name === 'string' && name !== '' ? name : undefined, shapeConfig: config };
+    return PLATFORM_SHAPES.has(shapeName) ? { shapeName, shapeConfig: config } : { shapeName: undefined, shapeConfig: undefined };
 };
 
 const toColumn = (metadataEntry) => ({
