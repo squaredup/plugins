@@ -367,16 +367,10 @@ In OOB dashboard tiles, set the stream parameter in the tile's `dataStream` conf
 
 > ⚠️ **`postBody` must be a JSON object, not a string, if [`paging`](#pagination) uses `realm: "body"`.** The server writes the page-size/cursor/offset value into the body with a path-based `set` that only runs against an object — against a string `postBody` it silently does nothing, and the request goes out without the paging value, with no error.
 
-> ⚠️ **A `pageSize` sent with `realm: "body"` arrives as a string** (`"pageSize": "100"`), and an API that checks types rejects it. Leave the page size out of `paging` (`"pageSize": { "realm": "none" }`) and write it as a number in `postBody` yourself. The cursor can still go in the body through `out`:
+> ⚠️ **`pageSize.value` is sent exactly as written.** The examples on this page write it as a string (`"value": "100"`), which suits a query argument or header. In the body, an API that checks types rejects `"100"`, so write a number:
 >
 > ```json
-> "postBody": { "filters": { "pageSize": 500 } },
-> "paging": {
->     "mode": "token",
->     "pageSize": { "realm": "none" },
->     "in": { "realm": "payload", "path": "nextPageToken" },
->     "out": { "realm": "body", "path": "pageToken" }
-> }
+> "pageSize": { "realm": "body", "path": "filters.pageSize", "value": 500 }
 > ```
 
 ---
@@ -575,7 +569,7 @@ Remediation:
 
 A tile reads all of a stream's pages within about 12 seconds. When the time runs out, SquaredUp returns the rows read so far with a warning on the tile ("The request timed out. The tile may not display all available data.") rather than an error, and caches that partial result. The number of rows a tile gets therefore depends on the page size and on how fast the API answers: one plugin returned 1,400 rows at a page size of 50 and 2,500 at 100, for a window holding about 10,000.
 
-A cache works differently. Users can cache a stream (Settings > Cache), and the cache syncs it by reading one page per step, so this time budget doesn't apply. The ~6MB cap still applies to each page: a page over it fails the sync, and the cache keeps its last complete data. But a cache can only use a timeframe the stream's `timeframes` allows (an unsupported one is replaced with a supported one), so removing a timeframe because live tiles cut it short also stops users caching it. Keep it instead (below).
+A cache works differently. Users can cache a stream (Settings > Cache), and the cache syncs it by reading one page per step, so this time budget doesn't apply. The ~6MB cap still applies to each page. But a cache can only use a timeframe the stream's `timeframes` allows (an unsupported one is replaced with a supported one), so removing a timeframe because live tiles cut it short also stops users caching it. Keep it instead (below).
 
 #### Prove each timeframe
 
