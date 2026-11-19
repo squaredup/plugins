@@ -81,11 +81,19 @@ const getShownColumnNames = (classicConfig, tileColumns, notes) => {
         return { isAutomatic: true };
     }
 
-    /** A column the stream doesn't declare is only known from `columnOrder`, and shows unless hidden. */
+    /**
+     * A column the stream doesn't declare is only known from `columnOrder`, and shows unless hidden. Classic's
+     * editor saves every column it shows into `columnOrder`, so a column the stream hides that isn't there was
+     * added or hidden after the tile was saved: it stays hidden, as the editor would have hidden it.
+     */
     const isShown = (name) => {
         const column = findColumn(columns, name);
 
-        return hasHiddenList ? !hiddenColumns.has(name) : column ? column.isVisible : !isComplete;
+        if (!hasHiddenList) {
+            return column ? column.isVisible : !isComplete;
+        }
+
+        return !hiddenColumns.has(name) && (!column || column.isVisible || columnOrder.includes(name));
     };
     const shownNames = columns.filter((column) => isShown(column.name)).map((column) => column.name);
     const orderedNames = columnOrder.filter((name) => isShown(name) && (!isComplete || findColumn(columns, name)));

@@ -1,24 +1,56 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { inferDisplayNames } from './displayNames.mjs';
 import { readSqlColumnNames } from './sqlColumns.mjs';
 
+/** Shapes whose values are numbers: the platform's number shapes, plus older names some streams still declare. */
 const NUMERIC_SHAPES = new Set([
-    'number',
-    'integer',
-    'decimal',
-    'percent',
-    'currency',
+    'bitspersecondbinary',
+    'bitspersecondmetric',
     'bytes',
-    'kilobytes',
-    'megabytes',
-    'gigabytes',
-    'terabytes',
-    'milliseconds',
-    'seconds',
-    'minutes',
-    'hours',
+    'bytespersecondbinary',
+    'bytesperseconddecimal',
+    'currency',
+    'customunit',
     'days',
-    'duration'
+    'decimal',
+    'duration',
+    'eur',
+    'exabytes',
+    'gbp',
+    'gibibitspersecond',
+    'gigabitspersecond',
+    'gigabytes',
+    'gigabytespersecond',
+    'gigabytespersecondbinary',
+    'hours',
+    'integer',
+    'kibibitspersecond',
+    'kilobitspersecond',
+    'kilobytes',
+    'kilobytespersecond',
+    'kilobytespersecondbinary',
+    'mebibitspersecond',
+    'megabitspersecond',
+    'megabytes',
+    'megabytespersecond',
+    'megabytespersecondbinary',
+    'milliseconds',
+    'minutes',
+    'number',
+    'number.0',
+    'number.2',
+    'percent',
+    'petabytes',
+    'seconds',
+    'tebibitspersecond',
+    'terabitspersecond',
+    'terabytes',
+    'terabytespersecond',
+    'terabytespersecondbinary',
+    'usd',
+    'yottabytes',
+    'zettabytes'
 ]);
 
 const TIME_LIKE_NAME = /time|date|timestamp|created|updated|started|ended|^ts$|_at$|At$|day|hour|month|week/u;
@@ -221,9 +253,19 @@ export const getTileColumns = (tileConfig, streamColumnsByName) => {
 /** Finds a column by name, or `undefined` when the column was not declared. */
 export const findColumn = (columns, name) => columns.find((column) => column.name === name);
 
+/**
+ * The name the platform infers for a column with no display name. It infers over every column in the data at once,
+ * so two columns that would read the same get more of their path ("Site / Id" and "Rack / Id").
+ */
+const getInferredTitle = (columns, name) => {
+    const names = columns.some((column) => column.name === name) ? columns.map((column) => column.name) : [...columns.map((column) => column.name), name];
+
+    return inferDisplayNames(names)[names.indexOf(name)];
+};
+
 /** The header a column shows: an explicit override, its declared display name, or the platform's inferred name. */
 export const getColumnTitle = (columns, name, overrides = {}) =>
-    overrides[name] || findColumn(columns, name)?.displayName || toInferredTitle(name);
+    overrides[name] || findColumn(columns, name)?.displayName || getInferredTitle(columns, name);
 
 /**
  * The SmartViz field type of a declared column, or `undefined` when the column or its shape is unknown.

@@ -22,6 +22,9 @@ const toChannel = ({ columns }, field, fallbackType, extra = {}) => ({
     ...extra
 });
 
+/** A y channel plots a measure, so it's quantitative whatever shape the column declares. */
+const toMeasureChannel = (tileColumns, field) => ({ ...toChannel(tileColumns, field, 'quantitative'), type: 'quantitative' });
+
 /** A configured column the tile still has, or `undefined` (with a note) when it is unset or gone. */
 const findConfiguredColumn = (tileColumns, configured, label, notes) => {
     if (!isSet(configured)) {
@@ -77,7 +80,7 @@ const toYEncoding = (tileColumns, configured, xField, notes) => {
         .filter(Boolean);
 
     if (fields.length <= 1) {
-        return fields.length === 1 ? { y: toChannel(tileColumns, fields[0], 'quantitative') } : {};
+        return fields.length === 1 ? { y: toMeasureChannel(tileColumns, fields[0]) } : {};
     }
 
     const { columns, isComplete } = tileColumns;
@@ -87,7 +90,7 @@ const toYEncoding = (tileColumns, configured, xField, notes) => {
     const isEveryNumericColumn =
         isComplete && plottedByDefault.length === fields.length && fields.every((name) => plottedByDefault.includes(name));
 
-    return isEveryNumericColumn ? {} : { y: fields.map((field) => toChannel(tileColumns, field, 'quantitative')) };
+    return isEveryNumericColumn ? {} : { y: fields.map((field) => toMeasureChannel(tileColumns, field)) };
 };
 
 /**
