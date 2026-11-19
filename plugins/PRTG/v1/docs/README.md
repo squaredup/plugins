@@ -1,8 +1,8 @@
-Monitor your [PRTG Network Monitor](https://www.paessler.com/prtg) installation in SquaredUp — probes, groups,
-devices and sensors, with current status, channel readings, historic sensor data and the PRTG log — via the
-[PRTG HTTP API](https://www.paessler.com/manuals/prtg/http_api).
+Monitor your [PRTG Network Monitor](https://www.paessler.com/prtg) installation in SquaredUp through the
+[PRTG HTTP API](https://www.paessler.com/manuals/prtg/http_api). The plugin covers probes, groups, devices and
+sensors, with current status, channel readings, historic sensor data and the PRTG log.
 
-> ⚠️ **This plugin uses the PRTG API v1** — `/api/table.json`, `/api/historicdata.csv` and
+> ⚠️ **This plugin uses the PRTG API v1**: `/api/table.json`, `/api/historicdata.csv` and
 > `/api/getstatus.htm`. It works against PRTG Network Monitor, PRTG Enterprise Monitor and PRTG Hosted
 > Monitor, and you do **not** need to enable the new UI or API v2. Any version supporting API keys is
 > expected to work; this plugin was built and tested against PRTG 26.3.122.1665.
@@ -15,11 +15,11 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 1. Sign in to your PRTG web interface as a user allowed to create API keys.
 2. Go to **Setup → Account Settings → [API Keys](https://www.paessler.com/manuals/prtg/api_keys)**.
 3. Hover over the **Add** button and choose **Add API Key**.
-4. Set the token type to **Scripting** — the **Desktop** type is reserved for PRTG MultiBoard, and only one
+4. Set the token type to **Scripting**. The **Desktop** type is reserved for PRTG MultiBoard, and only one
    is allowed per account.
 5. Give the key **Read access**. The plugin only ever reads, so `Acknowledge`, `Write` and `Full` access
    are unnecessary.
-6. Click **OK**, then copy the generated key immediately — PRTG will not show it again. If you lose it,
+6. Click **OK**, then copy the generated key immediately, because PRTG will not show it again. If you lose it,
    delete the key and create a new one.
 7. Paste the key into the **API key** field, and your PRTG address into **URL**.
 
@@ -27,24 +27,24 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 
 | Field                              | What it is                                                                                                                                                | Where to find it                                                        | Required |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------- |
-| **URL**                            | The base address of your PRTG web interface — for example `https://prtg.example.com` or `https://yourname.my-prtg.com`. Include the sub-path if PRTG sits behind a reverse proxy, but no query string.           | The address bar of your PRTG web interface.                              | Yes      |
-| **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter — PRTG rejects the key in an `Authorization` header.                                    | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
+| **URL**                            | The base address of your PRTG web interface, for example `https://prtg.example.com` or `https://yourname.my-prtg.com`. Include the sub-path if PRTG sits behind a reverse proxy, but no query string.           | The address bar of your PRTG web interface.                              | Yes      |
+| **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter, because PRTG rejects the key in an `Authorization` header.                                    | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
 
 On save, the plugin calls PRTG's status endpoint to confirm the URL and key. A failure there means the URL
 is unreachable or is not a PRTG server, or the key is invalid, expired, or deleted.
 
 ## What this plugin monitors
 
-- **Estate health at a glance** — how many sensors are up, warning, down, paused, unusual or unknown across
+- **Estate health at a glance**: how many sensors are up, warning, down, paused, unusual or unknown across
   the whole installation, plus your PRTG version and edition.
-- **The PRTG hierarchy** — probes, groups, devices and sensors are all indexed, so you can search for them,
+- **The PRTG hierarchy**: probes, groups, devices and sensors are all indexed, so you can search for them,
   scope dashboards to them, and use them as dashboard variables.
-- **Device and sensor state** — per-device sensor counts by state and host address; per-sensor status, last
+- **Device and sensor state**: per-device sensor counts by state and host address; per-sensor status, last
   reading, status message, uptime and downtime percentage, scanning interval and priority.
-- **Sensor detail over time** — the current, minimum and maximum reading of every channel on a sensor, and
+- **Sensor detail over time**: the current, minimum and maximum reading of every channel on a sensor, and
   historic readings for any timeframe.
-- **The PRTG log** — what PRTG recorded, against which object, over the dashboard's timeframe.
-- **Sites** — where a **Location** is set in PRTG, devices and their sensor counts are broken down by it, so
+- **The PRTG log**: what PRTG recorded, against which object, over the dashboard's timeframe.
+- **Sites**: where a **Location** is set in PRTG, devices and their sensor counts are broken down by it, so
   you can compare sites side by side.
 
 The out-of-the-box dashboards include an estate-wide **Overview**, a **Sites** breakdown, and a perspective
@@ -52,16 +52,16 @@ for each **Probe**, **Group**, **Device** and **Sensor**.
 
 ## Data streams
 
-- **System Status** — installation-wide sensor counts by state, plus PRTG version, edition and server time. Account-wide.
-- **Probes** — every probe with its status and connection state. Account-wide.
-- **Groups** — every group with its status and sensor counts by state. Account-wide.
-- **Devices** — every device with its status, host address and sensor counts by state. Account-wide.
-- **Sensors** — every sensor with its status, last reading, uptime and scanning interval. Account-wide.
-- **Sensors in Probe, Group or Device** — the same sensor detail, restricted to everything beneath one probe, group or device. Per-object.
-- **Devices in Probe or Group** — device detail restricted to everything beneath one probe or group. Per-object.
-- **Sensor Channels** — the current, minimum and maximum reading for each channel of one sensor. Per-object.
-- **Sensor History** — historic channel readings for one sensor, one row per channel per interval, over the selected timeframe. Per-object.
-- **Log Entries** — PRTG log entries over the selected timeframe. Account-wide.
+- **System Status**: installation-wide sensor counts by state, plus PRTG version, edition and server time. Account-wide.
+- **Probes**: every probe with its status and connection state. Account-wide.
+- **Groups**: every group with its status and sensor counts by state. Account-wide.
+- **Devices**: every device with its status, host address and sensor counts by state. Account-wide.
+- **Sensors**: every sensor with its status, last reading, uptime and scanning interval. Account-wide.
+- **Sensors in Probe, Group or Device**: the same sensor detail, restricted to everything beneath one probe, group or device. Per-object.
+- **Devices in Probe or Group**: device detail restricted to everything beneath one probe or group. Per-object.
+- **Sensor Channels**: the current, minimum and maximum reading for each channel of one sensor. Per-object.
+- **Sensor History**: historic channel readings for one sensor, one row per channel per interval, over the selected timeframe. Per-object.
+- **Log Entries**: PRTG log entries over the selected timeframe. Account-wide.
 
 ## What gets indexed
 
@@ -72,8 +72,8 @@ for each **Probe**, **Group**, **Device** and **Sensor**.
 | **Device**       | `GET /api/table.json?content=devices`                  | A monitored host, identified by its address.                    |
 | **Sensor**       | `GET /api/table.json?content=sensors`                  | A single check running against a device.                        |
 
-**Names:** PRTG names repeat freely — every device can have a "Ping" sensor, and every probe has a "Probe
-Device" — so groups, devices and sensors are indexed as `<parent> / <name> (<PRTG ID>)`, for example
+**Names:** PRTG names repeat freely (every device can have a "Ping" sensor, and every probe has a "Probe
+Device"), so groups, devices and sensors are indexed as `<parent> / <name> (<PRTG ID>)`, for example
 `server01 / Ping (2004)`. The parent is the probe for a group, the group for a device and the device for a
 sensor. Probes keep their plain name. Data stream tables still show the plain name.
 
@@ -83,7 +83,7 @@ straight to the **Device** object, so you can click through from a sensor to the
 the first limitation below for why these are properties rather than graph relationships.
 
 **Sites:** PRTG has no "site" object. Probes, groups and devices each store a `location` property holding
-PRTG's **Location** field, which is the closest thing — a remote probe usually maps to one site, and groups
+PRTG's **Location** field, which is the closest thing: a remote probe usually maps to one site, and groups
 are the usual way to organise by site. The **Sites** dashboard groups devices by `location`.
 
 ## Known limitations
@@ -119,11 +119,11 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 - **PRTG tags are a single string.** They are indexed as a `prtgTags` property holding PRTG's
   comma-separated list, not as native SquaredUp tags.
 - **Location is only reported where it is set, and never on sensors.** PRTG's API returns a `location` for a
-  probe, group or device only when one is set on that object directly — it is not inherited down the tree in
+  probe, group or device only when one is set on that object directly. It is not inherited down the tree in
   the API response, and sensors never carry one at all. The **Sites** dashboard therefore aggregates
   *devices* (and PRTG's per-device sensor counts) by location, and shows nothing until you set **Location**
   on your devices in PRTG.
-- **No map visualisation.** SquaredUp has no map tile type, and PRTG's API exposes no usable coordinates —
+- **No map visualisation.** SquaredUp has no map tile type, and PRTG's API exposes no usable coordinates:
   `lat`/`lon` are not valid columns and the `lonlat` property reads `0,0` unless PRTG has geocoded the
   location. Sites are therefore shown as charts and tables, not on a map.
 - **Sensor status in the graph is not indexed.** Because objects are re-imported only every 12 hours by
@@ -133,7 +133,7 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
   gap rather than plotting zero. Choosing **Raw** on **Sensor History** is only practical over short
   timeframes.
 - **The API key travels in the query string.** PRTG's manual documents `Authorization: Bearer` for API keys,
-  but PRTG rejects it in practice — `Bearer`, `X-Api-Key` and `Authorization: apitoken` all answer
+  but PRTG rejects it in practice: `Bearer`, `X-Api-Key` and `Authorization: apitoken` all answer
   `401 Unsupported authorization scheme` on 26.3.122.1665, leaving the `apitoken` query parameter as the only
   scheme that works. Always use HTTPS.
 - **Read-only.** The plugin never creates, modifies, acknowledges, pauses or deletes anything in PRTG, and a
@@ -156,8 +156,8 @@ installation it stays off until an administrator enables it under **Setup → Ac
 which needs ports 1615, 1616 and 23580 free on the PRTG server. It is only on by default for installations
 created since PRTG 25.2.106.
 
-A low-code plugin has a single base URL and a single authentication configuration, so building on API v2 —
-even for part of the data — would make all of that a prerequisite for using the plugin at all, and would end
+A low-code plugin has a single base URL and a single authentication configuration, so building on API v2,
+even for part of the data, would make all of that a prerequisite for using the plugin at all, and would end
 Hosted Monitor support outright. This is the binding constraint, and it is not about what the API can do but
 about who would be able to use it.
 
@@ -168,14 +168,14 @@ Checked against the published
 
 | What the plugin needs | API v1 | API v2 |
 | --------------------- | ------ | ------ |
-| List every probe, group, device and sensor, for indexing | `table.json?content=…` — one request per type | `GET /experimental/objects` returns all four from one paged endpoint, channels included. 3,000 is the per-request page size rather than a ceiling, and responses carry RFC 5988 `Link` headers for the next page. **Better than API v1.** |
-| Everything beneath one probe, group or device | `table.json?content=sensors&id=…` — PRTG walks the subtree | The same endpoint's `filter` supports `parentid`, plus `children`, `descendants` and `ancestors` prefixes. Equivalent. |
-| Channel readings for one sensor | `table.json?content=channels&id=…` | `GET /sensors/{id}/data` — **stable, and better than API v1.** |
-| Historic readings over an arbitrary window | `historicdata.csv?sdate=&edate=&avg=` — any range, and a choice of raw, 5-minute, hourly or daily buckets | The supported `GET /experimental/timeseries/{id}/{type}` offers four fixed windows only: `live` (4 hours), `short` (2 days), `medium` (60 days), `long` (365 days). Arbitrary `from`/`to` exist only on `GET /experimental/timeseries/{id}`, which Paessler have deprecated and say will be removed. Neither form has an averaging control. |
+| List every probe, group, device and sensor, for indexing | `table.json?content=…`, one request per type | `GET /experimental/objects` returns all four from one paged endpoint, channels included. 3,000 is the per-request page size rather than a ceiling, and responses carry RFC 5988 `Link` headers for the next page. **Better than API v1.** |
+| Everything beneath one probe, group or device | `table.json?content=sensors&id=…`, and PRTG walks the subtree | The same endpoint's `filter` supports `parentid`, plus `children`, `descendants` and `ancestors` prefixes. Equivalent. |
+| Channel readings for one sensor | `table.json?content=channels&id=…` | `GET /sensors/{id}/data`: **stable, and better than API v1.** |
+| Historic readings over an arbitrary window | `historicdata.csv?sdate=&edate=&avg=`: any range, and a choice of raw, 5-minute, hourly or daily buckets | The supported `GET /experimental/timeseries/{id}/{type}` offers four fixed windows only: `live` (4 hours), `short` (2 days), `medium` (60 days), `long` (365 days). Arbitrary `from`/`to` exist only on `GET /experimental/timeseries/{id}`, which Paessler have deprecated and say will be removed. Neither form has an averaging control. |
 | PRTG log entries over a timeframe | `table.json?content=messages&filter_dstart=&filter_dend=` | **Nothing.** The specification contains no log, message or event endpoint at any maturity level. |
-| Installation-wide sensor counts, version and edition | `getstatus.htm?id=0` — one request | `GET /sensor-status-summary` and `GET /version` are stable and cover most of it, and the experimental `/license` covers the edition — but that is three requests instead of one, and the new-message count and new-alarm count have no equivalent. |
+| Installation-wide sensor counts, version and edition | `getstatus.htm?id=0`, one request | `GET /sensor-status-summary` and `GET /version` are stable and cover most of it, and the experimental `/license` covers the edition, but that is three requests instead of one, and the new-message count and new-alarm count have no equivalent. |
 
-Object indexing and channel readings are therefore not the obstacle — API v2 handles both, and handles them
+Object indexing and channel readings are therefore not the obstacle: API v2 handles both, and handles them
 better. Two things are. The **Log Entries** data stream has no endpoint to build on at all. And **Sensor History**
 could only follow a dashboard timeframe by building on an endpoint Paessler have already marked for removal,
 and would lose the averaging interval that keeps a long range inside the response size limit.
@@ -186,13 +186,13 @@ Paessler define an experimental endpoint as one that "might change between relea
 moved: the plain `/objects`, `/probes`, `/groups`, `/devices`, `/sensors` and `/channels` endpoints are all
 deprecated in favour of `/experimental/…` ones, and `/experimental/timeseries/{id}` is deprecated in favour
 of `/experimental/timeseries/{id}/{type}`. The specification carries 26 deprecated operations, every one of
-them stamped with the same release — PRTG 24.3.100, where the API was substantially reworked. Every object
+them stamped with the same release: PRTG 24.3.100, where the API was substantially reworked. Every object
 list this plugin indexes would sit on an endpoint Paessler reserve the right to change.
 
 API v1 carries the lower churn risk today. It is not deprecated, it has no announced end of life, and
 Paessler's own API v2 reference still says that if you cannot achieve your objective with API v2 you can use
 API v1 instead. Paessler have said they plan to deactivate the classic web interface and API v1 once the new
-UI and API v2 are stable and feature complete, and to give advance notice of that period — so this is a
+UI and API v2 are stable and feature complete, and to give advance notice of that period, so this is a
 question of when rather than whether. No date has been given, and Paessler still describe API v2 as not yet
 feature complete.
 
