@@ -171,11 +171,10 @@ const records = response.body
 
 // Optional `project` object-picker parameter (stream `ui` name "project").
 // Selected objects arrive at context.config.project as an ARRAY (multi-select),
-// each rawId a single-element array. Empty/absent → account-wide, no filter.
-const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
+// each property (rawId included) a single-element array. Empty/absent → account-wide, no filter.
 const selected = (context.config && context.config.project) || [];
 const projectIds = new Set(
-    selected.map((o) => unwrap(o.rawId)).filter(Boolean),
+    selected.map((o) => [].concat(o.rawId)[0]).filter(Boolean),
 );
 const scoped = projectIds.size
     ? records.filter((r) => r.Tags && projectIds.has(r.Tags.ProjectId))
@@ -901,18 +900,20 @@ context.config; // current stream parameters (values set by the user in the tile
 >
 > A **consolidated** stream (`matches: "none"` + an optional `objects` param — see [One stream per shape](#one-stream-per-shape)) reads `context.config.<name>`, **not** `context.objects` (which is empty for it). Confusing the two means the filter silently never matches and the stream returns account-wide rows even when an object is selected.
 >
-> ⚠️ **Properties you added via `objectMapping.properties` arrive on `context.objects[N]` as arrays.** The graph stores user-defined indexed properties as multi-valued, and the script context preserves that shape — so a scalar like `url` shows up as `["https://..."]`. Templates (`{{object.url}}`) auto-unwrap single-element arrays; the script context does not. Unwrap before comparing:
+> ⚠️ **A property with more than one value stays an array.** On a `schemaVersion` `2.1` plugin, properties you added via `objectMapping.properties` arrive as plain values when an object holds one value (`url` is `"https://..."`), and as arrays when it holds several (a list column imported with the [`array` shape](#list-columns-array-shape)). So a list property can be a string on one object and an array on another, depending on how many values each has. Normalise list properties before using array methods:
 >
 > ```javascript
-> const prop = (p) => (Array.isArray(p) ? p[0] : p);
+> const asList = (p) => (p === undefined || p === null ? [] : [].concat(p));
 > result = (data || []).filter((row) =>
->     (row.relatedUrls || []).includes(prop(context.objects[0]?.url)),
+>     asList(context.objects[0]?.topics).includes(row.topic),
 > );
 > ```
 >
-> Common failure mode: `(arr || []).includes(scalar)` silently returns nothing because the script is comparing array-to-string.
+> Common failure mode: `.includes()` on a property that turned out to be a single value is a string substring match, so the filter silently matches the wrong rows.
 >
-> **Always-scalar fields** — these come from the entity envelope, not the indexed property bag, and don't need unwrapping.
+> ⚠️ **On a plugin still on `schemaVersion` `2.0`, `context.objects` isn't unwrapped at all.** Every property, `rawId` and `name` included, is a single-element array, and the table below doesn't apply. When adding a stream to one of those, unwrap each property with `[].concat(p)[0]`.
+>
+> **Always-scalar fields** — these come from the entity envelope, not the indexed property bag, and are always plain values.
 >
 > | Field on `context.objects[N]` | Type     | What it is                                                                                                                       |
 > | ----------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -926,7 +927,7 @@ context.config; // current stream parameters (values set by the user in the tile
 > | `configId`                    | `string` | Plugin config instance id                                                                                                        |
 > | `workspaceId`                 | `string` | Workspace id (absent on workspace nodes themselves)                                                                              |
 >
-> Everything else — anything you added via `objectMapping.properties` in `indexDefinitions/` — needs the defensive unwrap above.
+> Everything else — anything you added via `objectMapping.properties` in `indexDefinitions/` — is a plain value or an array depending on how many values it holds (see above).
 
 ### Type primitives
 
