@@ -1,0 +1,69 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "description": "Alert rules defined in the organization, with their current state and last evaluation outcome",
+    "tags": ["Alerts"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "../v2/{{dataSource.organization}}/alerts",
+        "getArgs": [{ "key": "folder", "value": "{{folder || null}}" }],
+        "postRequestScript": "alerts.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "text",
+            "name": "folder",
+            "label": "Folder (optional)"
+        }
+    ],
+    "metadata": [
+        { "name": "id", "displayName": "ID", "shape": "string" },
+        { "name": "name", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "description", "displayName": "Description", "shape": "string" },
+        {
+            "name": "level",
+            "displayName": "Level",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["ok"],
+                        "warning": ["warning"],
+                        "error": ["critical", "error", "firing"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "lastOutcome",
+            "displayName": "Last Outcome",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["normal"],
+                        "error": ["error", "firing", "triggered"]
+                    }
+                }
+            ]
+        },
+        { "name": "enabled", "displayName": "Enabled", "shape": "boolean" },
+        { "name": "priority", "displayName": "Priority", "shape": "number" },
+        { "name": "alertType", "displayName": "Alert Type", "shape": "string" },
+        { "name": "isRealTime", "displayName": "Real Time", "shape": "boolean" },
+        { "name": "streamName", "displayName": "Stream", "shape": "string" },
+        { "name": "streamType", "displayName": "Stream Type", "shape": "string" },
+        { "name": "conditionType", "displayName": "Condition Type", "shape": "string" },
+        { "name": "folderName", "displayName": "Folder", "shape": "string" },
+        { "name": "owner", "displayName": "Owner", "shape": "string" },
+        { "name": "tags", "displayName": "Tags", "shape": ["array", { "itemShape": "string" }] },
+        { "name": "levelSince", "displayName": "Level Since", "shape": "date" },
+        { "name": "lastOutcomeAt", "displayName": "Last Evaluated", "shape": "date", "role": "timestamp" },
+        { "name": "lastOutcomeSince", "displayName": "Last Outcome Since", "shape": "date" },
+        { "name": "lastTriggeredAt", "displayName": "Last Triggered", "shape": "date" },
+        { "name": "lastSatisfiedAt", "displayName": "Last Satisfied", "shape": "date" }
+    ],
+    "timeframes": false
+}
