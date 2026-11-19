@@ -1,0 +1,85 @@
+{
+    "name": "reservedAddresses",
+    "displayName": "Reserved Addresses",
+    "description": "Reserved TCP addresses with their region and description",
+    "tags": [
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "reserved_addrs",
+        "getArgs": [
+            {
+                "key": "filter",
+                "value": "{{ (typeof address !== 'undefined' && address && address.length ? 'obj.id in [' + address.flatMap((o) => o.rawId).map((i) => '\"' + i + '\"').join(',') + ']' : null) }}"
+            }
+        ],
+        "pathToData": "reserved_addrs",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_page_uri"
+            }
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "address",
+            "label": "Reserved address(es)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Reserved Address"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Address ID",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "addr",
+            "displayName": "Address",
+            "role": "label"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Reserved Address",
+            "name": "addr"
+        },
+        {
+            "name": "description",
+            "displayName": "Description"
+        },
+        {
+            "name": "region",
+            "displayName": "Region"
+        },
+        {
+            "name": "created_at",
+            "displayName": "Created",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}
