@@ -1,6 +1,7 @@
 // Newest-first Resend email lists with no date or domain filter: keep rows inside the
 // timeframe, stop paging once a page reaches rows older than its start, and optionally
-// keep only emails sent from or to a selected domain.
+// keep only emails on a selected domain: sent emails by their from address, received
+// emails by their to addresses.
 const rows = (data && data.data) || [];
 const start = new Date(context.timeframe.start).getTime();
 const end = new Date(context.timeframe.end).getTime();
@@ -12,12 +13,14 @@ const wanted = new Set(
 );
 // Addresses look like "Name <user@example.com>" or "user@example.com"
 const domainOf = (address) => String(address || '').split('@').pop().replace('>', '').trim().toLowerCase();
-const matchesDomain = (row) => !wanted.size || [row.from].concat(row.to || []).some((a) => wanted.has(domainOf(a)));
+// Only received emails list their attachments
+const isReceived = (row) => Array.isArray(row.attachments);
+const matchesDomain = (row) =>
+    !wanted.size || (isReceived(row) ? [].concat(row.to || []) : [row.from]).some((a) => wanted.has(domainOf(a)));
 
 result = rows
     .filter((row) => createdAt(row) >= start && createdAt(row) <= end && matchesDomain(row))
-    // Only received emails list their attachments
-    .map((row) => (Array.isArray(row.attachments) ? { ...row, attachment_count: row.attachments.length } : row));
+    .map((row) => (isReceived(row) ? { ...row, attachment_count: row.attachments.length } : row));
 
 // Every timeframe offered ends now, so time since its end is time spent paging. Stop
 // early on busy accounts, returning the newest emails rather than timing out.

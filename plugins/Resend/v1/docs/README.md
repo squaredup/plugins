@@ -1,7 +1,5 @@
 Monitor your [Resend](https://resend.com) team in SquaredUp — email delivery and engagement, sending domain health, broadcasts, automations, webhook delivery, suppressions and API activity — via the [Resend API](https://resend.com/docs/api-reference/introduction).
 
-> ⚠️ This plugin is read-only — it never sends email or changes anything in Resend.
-
 ## Setup
 
 You will need a Resend **API key** with **Full access**.
@@ -33,7 +31,7 @@ The out-of-the-box dashboards include an account-wide **Overview** plus a perspe
 
 ## Data streams
 
-- **Email Metrics** — sending, delivery and engagement counts and rates, by hourly/daily/weekly/monthly period or as totals, optionally filtered to or broken down by domain or broadcast; account-wide.
+- **Email Metrics** — sending, delivery and engagement counts and rates, by hourly/daily/weekly/monthly period or as totals, optionally filtered to or broken down by domain or broadcast; account-wide. With the timeframe set to **None**, metrics filtered to a broadcast cover everything since it was sent, and unfiltered metrics cover Resend's default of the past week.
 - **Sent Emails** — emails sent by the team with their latest delivery status, optionally filtered by domain; account-wide.
 - **Received Emails** — inbound emails received on receiving-enabled domains, optionally filtered by domain; account-wide.
 - **API Logs** — API requests made with the team's keys, with response status and outcome; account-wide.
