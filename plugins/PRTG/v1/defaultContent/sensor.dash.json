@@ -22,7 +22,7 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Sensor Details",
-                    "description": "",
+                    "description": "Properties of this sensor as imported from PRTG",
                     "timeframe": "none",
                     "activePluginConfigIds": [
                         "{{configId}}"
@@ -39,11 +39,14 @@
                     "variables": [
                         "{{variables.[Sensor]}}"
                     ],
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": true
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {},
+                            "style": {
+                                "richTableTranspose": true,
+                                "richTableCellPadding": 6
                             }
                         }
                     }
@@ -61,7 +64,7 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Channels",
-                    "description": "",
+                    "description": "The sensor's channels with their latest, minimum and maximum readings",
                     "timeframe": "none",
                     "activePluginConfigIds": [
                         "{{configId}}"
@@ -79,22 +82,46 @@
                     "variables": [
                         "{{variables.[Sensor]}}"
                     ],
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "transpose": false,
-                                "columnOrder": [
-                                    "name",
-                                    "lastValueFormatted",
-                                    "lastvalue_raw",
-                                    "minimum_raw",
-                                    "maximum_raw"
-                                ],
-                                "hiddenColumns": [
-                                    "objid",
-                                    "lastvalue"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Channel",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lastValueFormatted",
+                                        "title": "Last Value",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "minimum_raw",
+                                        "title": "Minimum",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "maximum_raw",
+                                        "title": "Maximum",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    }
                                 ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
                             }
                         }
                     }
@@ -112,7 +139,7 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Channel History",
-                    "description": "",
+                    "description": "Readings for each channel over the dashboard timeframe. Gaps are periods with no data",
                     "activePluginConfigIds": [
                         "{{configId}}"
                     ],
@@ -137,20 +164,29 @@
                     "variables": [
                         "{{variables.[Sensor]}}"
                     ],
-                    "visualisation": {
-                        "type": "data-stream-line-graph",
-                        "config": {
-                            "data-stream-line-graph": {
-                                "xAxisColumn": "timestamp",
-                                "yAxisColumn": [
-                                    "value"
-                                ],
-                                "seriesColumn": "channel",
-                                "showLegend": true,
-                                "legendPosition": "bottom",
-                                "yAxisLabel": "",
-                                "showYAxisLabel": false,
-                                "showTrendLine": false
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "value",
+                                    "type": "quantitative",
+                                    "title": "Value"
+                                },
+                                "series": {
+                                    "field": "channel",
+                                    "type": "nominal",
+                                    "title": "Channel"
+                                }
+                            },
+                            "style": {
+                                "cartesianConnectNulls": false,
+                                "legendPosition": "bottom"
                             }
                         }
                     }
