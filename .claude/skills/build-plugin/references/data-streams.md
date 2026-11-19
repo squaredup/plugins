@@ -171,7 +171,7 @@ const records = response.body
 
 // Optional `project` object-picker parameter (stream `ui` name "project").
 // Selected objects arrive at context.config.project as an ARRAY (multi-select),
-// each property (rawId included) a single-element array. Empty/absent → account-wide, no filter.
+// each rawId a single-element array. Empty/absent → account-wide, no filter.
 const unwrap = (v) => (Array.isArray(v) ? v[0] : v);
 const selected = (context.config && context.config.project) || [];
 const projectIds = new Set(
