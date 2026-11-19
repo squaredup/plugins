@@ -31,7 +31,7 @@ You will need the **URL** of your PRTG server and a PRTG **API key**.
 | **API key**                        | Authenticates every request. Sent as the `apitoken` query parameter — PRTG rejects the key in an `Authorization` header.                                    | PRTG → **Setup → Account Settings → API Keys**.                          | Yes      |
 
 On save, the plugin calls PRTG's status endpoint to confirm the URL and key. A failure there means the URL
-is unreachable or the key is invalid, expired, or deleted.
+is unreachable or is not a PRTG server, or the key is invalid, expired, or deleted.
 
 ## What this plugin monitors
 
