@@ -1,0 +1,547 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "10446ece-2e09-46a4-8557-104d33b6c192",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sensors",
+                    "description": "Every sensor in PRTG by its current state",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[systemStatus]}}",
+                        "name": "systemStatus",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "totalSensors",
+                                        "type": "quantitative",
+                                        "title": "Sensors"
+                                    },
+                                    {
+                                        "field": "upSensors",
+                                        "type": "quantitative",
+                                        "title": "Up"
+                                    },
+                                    {
+                                        "field": "warningSensors",
+                                        "type": "quantitative",
+                                        "title": "Warning"
+                                    },
+                                    {
+                                        "field": "downSensors",
+                                        "type": "quantitative",
+                                        "title": "Down"
+                                    },
+                                    {
+                                        "field": "downAcknowledgedSensors",
+                                        "type": "quantitative",
+                                        "title": "Down (Acknowledged)"
+                                    },
+                                    {
+                                        "field": "pausedSensors",
+                                        "type": "quantitative",
+                                        "title": "Paused"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a2dd7f2b-6ae1-44c1-ba24-b9c5e438bac1",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sensors by Status",
+                    "description": "Share of sensors in each state",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensors]}}",
+                        "name": "sensors",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "statusText",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "statusText_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Status"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Sensors"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "pieLegendStyle": "table",
+                                "mappedColors": {
+                                    "Up": "#22c55e",
+                                    "Warning": "#f5a524",
+                                    "Unusual": "#8b5cf6",
+                                    "Down": "#e5484d",
+                                    "Down (Partial)": "#e5484d",
+                                    "Down (Acknowledged)": "#b91c1c",
+                                    "Paused": "#94a3b8",
+                                    "Unknown": "#cbd5e1",
+                                    "No Probe": "#94a3b8",
+                                    "Not Licensed": "#94a3b8",
+                                    "None": "#cbd5e1",
+                                    "Scanning": "#3b82f6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "40eda2eb-edf2-49da-882d-c6ded2718dbd",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sensors Needing Attention",
+                    "description": "Sensors that are not Up or Paused, highest priority first",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensors]}}",
+                        "name": "sensors",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "statusText",
+                                    "operation": "notequals",
+                                    "value": "Up"
+                                },
+                                {
+                                    "column": "statusText",
+                                    "operation": "notequals",
+                                    "value": "Paused"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "priority_raw",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status",
+                                        "title": "",
+                                        "renderer": {
+                                            "type": "status",
+                                            "showLabel": false
+                                        },
+                                        "width": 30
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Sensor",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "device",
+                                        "title": "Device",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "type",
+                                        "title": "Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lastvalue",
+                                        "title": "Last Value",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "message_raw",
+                                        "title": "Message",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c5bcf1af-e267-49eb-bad3-74a01357a5da",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Devices",
+                    "description": "Devices with the most sensors first, and how many of them are Down or in Warning",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[devices]}}",
+                        "name": "devices",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "totalsens_raw",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "status",
+                                        "title": "",
+                                        "renderer": {
+                                            "type": "status",
+                                            "showLabel": false
+                                        },
+                                        "width": 30
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Device",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "host",
+                                        "title": "Host",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "group",
+                                        "title": "Group",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "totalsens_raw",
+                                        "title": "Sensors",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "downsens_raw",
+                                        "title": "Down",
+                                        "renderer": {
+                                            "type": "number",
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#94a3b8"
+                                                },
+                                                {
+                                                    "to": 1000000,
+                                                    "color": "#e5484d"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "warnsens_raw",
+                                        "title": "Warning",
+                                        "renderer": {
+                                            "type": "number",
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#94a3b8"
+                                                },
+                                                {
+                                                    "to": 1000000,
+                                                    "color": "#f5a524"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3df87dd0-1393-464d-b1ba-ec4d57d8163b",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sensors per Device",
+                    "description": "The 10 devices with the most sensors",
+                    "timeframe": "none",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensors]}}",
+                        "name": "sensors",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "deviceLabel",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "deviceLabel_uniqueValues",
+                                    "type": "nominal"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Sensors"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 3,
+                                "showLabels": true,
+                                "colors": [
+                                    "#3b82f6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1ed6f225-3d35-4b94-be18-7571d1517df0",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Log Entries",
+                    "description": "The PRTG log for the dashboard timeframe, newest first. Click a row for the full entry",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[logs]}}",
+                        "name": "logs",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "time",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "time",
+                                        "title": "Time",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        },
+                                        "width": 120
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Event",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Down*": "#e5484d",
+                                                "Up": "#22c55e",
+                                                "Warning*": "#f5a524",
+                                                "Unusual": "#8b5cf6",
+                                                "Paused*": "#94a3b8",
+                                                "Resum*": "#3b82f6",
+                                                "Acknowledged": "#b91c1c"
+                                            }
+                                        },
+                                        "width": 150
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Object",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "parent",
+                                        "title": "Parent",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "message_raw",
+                                        "title": "Message",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "detailsPanel": true,
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
