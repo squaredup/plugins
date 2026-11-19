@@ -72,6 +72,11 @@ for each **Probe**, **Group**, **Device** and **Sensor**.
 | **Device**       | `GET /api/table.json?content=devices`                  | A monitored host, identified by its address.                    |
 | **Sensor**       | `GET /api/table.json?content=sensors`                  | A single check running against a device.                        |
 
+**Names:** PRTG names repeat freely — every device can have a "Ping" sensor, and every probe has a "Probe
+Device" — so groups, devices and sensors are indexed as `<parent> / <name> (<PRTG ID>)`, for example
+`server01 / Ping (2004)`. The parent is the probe for a group, the group for a device and the device for a
+sensor. Probes keep their plain name. Data stream tables still show the plain name.
+
 **Relationships:** groups, devices and sensors store their PRTG parent's id as a `parentId` property, and
 sensors also store `deviceId`, `deviceName`, `groupName` and `probeName`. The **Sensors** stream links its Device column
 straight to the **Device** object, so you can click through from a sensor to the device it runs on. See
