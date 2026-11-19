@@ -123,8 +123,9 @@ are the usual way to organise by site. The **Sites** dashboard groups devices by
 - **Sensor status in the graph is not indexed.** Because objects are re-imported only every 12 hours by
   default, indexing a sensor's status would show stale health. Use the **Sensors** stream for current status.
 - **Historic data granularity is PRTG's.** PRTG aggregates history into buckets and returns a `coverage`
-  percentage per bucket; intervals PRTG has no data for are omitted rather than plotted as zero. Choosing
-  **Raw** on **Sensor History** is only practical over short timeframes.
+  percentage per bucket; intervals PRTG has no data for are returned with an empty value, so charts show a
+  gap rather than plotting zero. Choosing **Raw** on **Sensor History** is only practical over short
+  timeframes.
 - **The API key travels in the query string.** PRTG's manual documents `Authorization: Bearer` for API keys,
   but PRTG rejects it in practice — `Bearer`, `X-Api-Key` and `Authorization: apitoken` all answer
   `401 Unsupported authorization scheme` on 26.3.122.1665, leaving the `apitoken` query parameter as the only

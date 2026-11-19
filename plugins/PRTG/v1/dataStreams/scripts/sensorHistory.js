@@ -110,9 +110,12 @@ for (const cells of table.slice(1)) {
 
     for (const channel of channels) {
         const cell = cells[rawIndex[channel]];
-        // Intervals with no coverage come back empty — drop them so they leave
-        // a genuine gap in the chart rather than plotting as zero.
-        if (cell === undefined || cell === '') continue;
+        // Intervals with no coverage come back empty — emit them as null so the
+        // chart breaks the line there rather than joining across or plotting zero.
+        if (cell === undefined || cell === '') {
+            out.push({ timestamp, channel, value: null, coverage });
+            continue;
+        }
         const value = Number(cell);
         if (isNaN(value)) continue;
         out.push({ timestamp, channel, value, coverage });
