@@ -13,7 +13,7 @@ You will need an incident.io **API key**.
 | Field | What it is | Where to find it | Required |
 | ----- | ---------- | ----------------- | -------- |
 | **API key** | Authenticates every request via the `Authorization: Bearer` header. | incident.io dashboard → **Settings → API keys**. | Yes |
-| **Catalog types to import** | The catalog types whose entries are imported as **Catalog Entry** objects, so you can filter incidents by them and open a dashboard for each entry. Type each name exactly as shown in incident.io and press Enter. | incident.io dashboard → **Catalog**. | No |
+| **Catalog types to index** | The catalog types whose entries are indexed as **Catalog Entry** objects, so you can filter incidents by them and open a dashboard for each entry. Pick them from the list, or type each name exactly as shown in incident.io and press Enter. | incident.io dashboard → **Catalog**. | No |
 
 On save, the plugin validates the key by calling the identity endpoint; an invalid or expired key fails setup with an authentication error.
 
@@ -59,7 +59,7 @@ The out-of-the-box dashboards include an estate-wide **Overview**, an **Alerting
 | **Alert Source** | `GET /v2/alert_sources` | A source that sends alerts to incident.io (e.g. Datadog, Grafana, HTTP). Its secret token and ingest URL are never imported. |
 | **Status Page** | `GET /v2/status_pages` | A public or internal status page. |
 | **Status Page Component** | `GET /v2/status_page_structures/{id}` | A component shown on a status page, with its group and sub-page. |
-| **Catalog Type** | `GET /v3/catalog_types` | A catalog type chosen in **Catalog types to import**. |
+| **Catalog Type** | `GET /v3/catalog_types` | A catalog type chosen in **Catalog types to index**. |
 | **Catalog Entry** | `GET /v3/catalog_entries` | An entry of a chosen catalog type, named *Type / Entry* (for example *Service / Payments*), with its external ID and aliases. Archived entries are not imported. |
 
 **Incidents, alerts, escalations and follow-ups are not indexed as objects.** They change far faster than the platform's default ~12-hour reindex interval, so they're served live via data streams (always fresh, no reindex lag) and shown as filterable/groupable tiles, rather than as individual drilldown pages.
@@ -94,7 +94,7 @@ Every imported entry has the object type **Catalog Entry**, whatever its catalog
 - **Component availability is limited to 366 days** per query, and the timeframe *None* isn't offered.
 - **Alerts cap page size at 50 records** (escalations and workflow runs too); large volumes are paged automatically but may take longer to query.
 - **Empty streams are normal for unused features** — if you have no alert sources, status pages, escalations or workflows, the related streams and tiles are empty rather than erroring.
-- **Catalog types are chosen by name** — they aren't listed for you, so type each name exactly as it appears in incident.io. Team catalog types are skipped, because teams are already imported as **Team** objects.
+- **Catalog types are listed once the data source is saved** — the list is read with the saved API key, so when you first add the data source, type each name exactly as it appears in incident.io, or save and reopen the settings to pick from the list. Team catalog types aren't listed, because teams are already imported as **Team** objects.
 - **Large catalogs take longer to import** — every live entry of a chosen type is imported. Prefer the catalog types your incidents actually reference.
 - **Teams requires the `catalog_entries.view` scope** on your API key — without it, team and catalog imports, and the Team and Catalog Entry object types, will be unavailable.
 - **Rate limits** — the incident.io API allows up to 1,200 requests/minute per key, with a lower 60/minute limit specifically on listing incidents; very large estates may query more slowly as a result.
