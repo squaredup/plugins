@@ -575,10 +575,12 @@ A cache works differently. Users can cache a stream (Settings > Cache), and the 
 
 For each timeframe you offer, test the stream at that timeframe on the largest account you have:
 
-1. Read the last page in the output's `requests` (see [testing.md](testing.md#requests--the-plugin-diagnostics-raw-api-exchange)). If it still says there's another page (a next-page cursor or URL, or the API's own marker such as `"hasMore": true`), paging was cut short.
+1. Read the last page in the output's `requests` (see [testing.md](testing.md#requests--the-plugin-diagnostics-raw-api-exchange)). If it still says there's another page (a next-page cursor or URL, or the API's own marker such as `"hasMore": true`), paging was cut short. If a script works out the cursor from the rows instead (NinjaOne's `devices.js`), the response has no marker, so check whether the last page came back full.
 2. Test again at a second page size and compare `data.metadata.rawRowCount`. The counts must match. A count that changes with the page size means the result was cut short.
 
-A timeframe that passes both checks wasn't cut short in a live tile. The checks can't see an API that caps its total result and stops returning a cursor (see [Filter and count in the API](#push-grouping-filtering-and-sorting-down-to-the-cheapest-layer)), so compare against a count from the API or its documented limit too. One that fails only because paging is cut short can stay: a live tile shows the rows it read with a warning, and a cache of the stream gets every row. List those timeframes in the README's limitations and say they are only complete when the stream is cached. Remove a timeframe only when it fails cached as well as live.
+Passing both checks isn't proof on its own. They can't see an API that caps its total result and stops returning a cursor (see [Filter and count in the API](#push-grouping-filtering-and-sorting-down-to-the-cheapest-layer)), so compare against a count from the API or its documented limit too.
+
+A timeframe that fails only because paging is cut short can stay: a live tile shows the rows it read with a warning, and a cache of the stream gets every row. List those timeframes in the README's limitations and say they are only complete when the stream is cached. Remove a timeframe only when it fails cached as well as live.
 
 Choose `pageSize` for the per-page cap, not to control the total.
 
