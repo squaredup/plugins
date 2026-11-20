@@ -356,6 +356,16 @@ Use the plainest field that fits:
 
 The selected objects then drive the stream at runtime:
 
-- The selected objects arrive in the stream's [post-request script](data-streams.md#post-request-scripts) at **`context.config.<name>`** — the field's own `name`, so the example above is `context.config.project`. This is **not** `context.objects` (that is the `matches`/`--object` scope path and is empty for a consolidated stream — see [the context object](data-streams.md#the-context-object)). The value is an **array** (the picker is multi-select, and a bound dashboard variable can resolve to several objects), and each object's `rawId` is itself a single-element array. Build a Set of unwrapped `rawId`s and filter rows by membership — don't index `[0]`. Treat **empty/absent** as "no filter" so the stream still serves the account-wide case.
+- The selected objects arrive in the stream's [post-request script](data-streams.md#post-request-scripts) at **`context.config.<name>`** — the field's own `name`, so the example above is `context.config.project`. This is **not** `context.objects` (that is the `matches`/`--object` scope path and is empty for a consolidated stream — see [the context object](data-streams.md#the-context-object)). The value is an **array** (the picker is multi-select, and a bound dashboard variable can resolve to several objects), and each object's indexed properties, `rawId` included, are single-element arrays. Build a Set of unwrapped `rawId`s and filter rows by membership — don't index `[0]`. Treat **empty/absent** as "no filter" so the stream still serves the account-wide case.
+- **Filter on more than the id when the API reports less finely than the object.** Every property you indexed is on the picked object, so a stream can match rows on several of them. For example, if an object is one product for one customer but the API reports rows per customer with a product name, match on both `customerId` and `productName`. Unwrap each property with `[].concat(o.customerId)[0]`, which works whether or not the value is an array.
+- **Or push the filter to the API.** The field's value is also available to expressions in `config` under its `name`, so the API can filter instead of the script. An empty selection must still return everything:
+
+    ```json
+    "postBody": {
+        "projectIds": "{{ (typeof project !== 'undefined' && project && project.length) ? project.map((o) => [].concat(o.rawId)[0]) : [] }}"
+    }
+    ```
+
+    What an empty list means depends on the API. Check that an empty selection returns all rows, not none. Druva MSP, for example, sends a `NOT_CONTAINS []` filter when nothing is selected.
 - **Required vs optional.** `required: true` forces a selection — use only for a stream that is _always_ per-object. Leave it **optional** when one stream should serve both account-wide (nothing selected) and per-object (something selected) use — the recommended shape for a consolidated stream.
 - **Auto-scope on drilldown.** A dashboard binds its variable into this field via `dataStream.dataSourceConfig.<name>` so the stream scopes to the perspective object automatically — see [oob-content.md](oob-content.md#auto-scoping-a-stream-via-its-objects-filter). This, plus an optional filter, is what lets a single stream replace separate account and per-object streams (see [data-streams.md](data-streams.md#one-stream-per-shape)).
