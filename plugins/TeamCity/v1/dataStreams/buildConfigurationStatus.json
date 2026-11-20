@@ -1,0 +1,162 @@
+{
+    "name": "buildConfigurationStatus",
+    "displayName": "Build Configuration Status",
+    "description": "Current health of each build configuration (the status of its last finished build)",
+    "tags": [
+        "Builds"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "buildTypes",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "{{ (() => { const ids = v => (v || []).map(o => Array.isArray(o.rawId) ? o.rawId[0] : o.rawId); const p = ids(project), b = ids(buildConfiguration); return ['count:500', p.length && `affectedProject:(${p.length === 1 ? `id:${p[0]}` : p.map(x => `item:(id:${x})`).join(',')})`, b.length && (b.length === 1 ? `id:${b[0]}` : b.map(x => `item:(id:${x})`).join(','))].filter(Boolean).join(','); })() }}"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,buildType(id,name,projectName,paused,webUrl,builds($locator(state:finished,count:1),build(id,number,status,statusText,branchName,finishDate,webUrl)))"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "buildConfigurationStatus.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "buildConfiguration",
+            "label": "Build configuration(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Build Configuration"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "fullName",
+            "displayName": "Build Configuration",
+            "shape": "string",
+            "role": "label",
+            "computed": true,
+            "valueExpression": "{{ $['projectName'] ? `${$['projectName']} / ${$['name']}` : $['name'] }}"
+        },
+        {
+            "sourceId": "id",
+            "sourceType": "Build Configuration",
+            "name": "fullName"
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "shape": "string"
+        },
+        {
+            "name": "paused",
+            "displayName": "Paused",
+            "shape": "boolean"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "SUCCESS"
+                        ],
+                        "error": [
+                            "FAILURE"
+                        ],
+                        "unknown": [
+                            "UNKNOWN"
+                        ],
+                        "unmonitored": [
+                            "NONE"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "statusText",
+            "displayName": "Status Text",
+            "shape": "string"
+        },
+        {
+            "name": "lastBuildNumber",
+            "displayName": "Last Build",
+            "shape": "string"
+        },
+        {
+            "name": "lastBuildBranch",
+            "displayName": "Branch",
+            "shape": "string"
+        },
+        {
+            "name": "lastBuildFinished",
+            "displayName": "Last Build Finished",
+            "shape": "date"
+        },
+        {
+            "name": "lastBuildUrl",
+            "displayName": "Last Build URL",
+            "shape": [
+                "url",
+                {
+                    "label": "Open build"
+                }
+            ]
+        },
+        {
+            "name": "webUrl",
+            "displayName": "URL",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in TeamCity"
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,115 @@
+{
+    "name": "testOccurrences",
+    "displayName": "Test Results",
+    "description": "Tests run by the latest finished build of a build configuration, with their status",
+    "tags": [
+        "Builds"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "testOccurrences",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "{{ `build:(buildType:(id:${object.rawId}),state:finished,count:1)${String(failedOnly) === 'true' ? ',status:FAILURE' : ''},count:1000` }}"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,testOccurrence(id,name,status,duration,newFailure,muted,ignored,currentlyInvestigated,build(id,number))"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "pagedList.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Build Configuration"
+            ]
+        }
+    },
+    "objectLimit": 1,
+    "ui": [
+        {
+            "type": "toggle",
+            "name": "failedOnly",
+            "label": "Failed tests only",
+            "defaultValue": false,
+            "help": "Show only tests with a failed status"
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "name",
+            "displayName": "Test",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": ["SUCCESS"],
+                        "error": ["FAILURE"],
+                        "unknown": ["UNKNOWN"]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "duration",
+            "displayName": "Duration",
+            "shape": "milliseconds"
+        },
+        {
+            "name": "newFailure",
+            "displayName": "New Failure",
+            "shape": "boolean"
+        },
+        {
+            "name": "muted",
+            "displayName": "Muted",
+            "shape": "boolean"
+        },
+        {
+            "name": "ignored",
+            "displayName": "Ignored",
+            "shape": "boolean"
+        },
+        {
+            "name": "currentlyInvestigated",
+            "displayName": "Investigated",
+            "shape": "boolean"
+        },
+        {
+            "name": "build.number",
+            "displayName": "Build Number",
+            "shape": "string"
+        },
+        {
+            "name": "build.id",
+            "displayName": "Build ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

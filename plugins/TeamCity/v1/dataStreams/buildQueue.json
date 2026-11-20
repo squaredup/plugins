@@ -1,0 +1,147 @@
+{
+    "name": "buildQueue",
+    "displayName": "Build Queue",
+    "description": "Builds waiting in the queue, with the reason they are waiting",
+    "tags": [
+        "Builds"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "buildQueue",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "count:500"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,build(id,buildTypeId,buildType(name,projectName,project(id,ancestorProjects(project(id)))),branchName,queuedDate,waitReason,state,webUrl,triggered(type,user(username)),startEstimate,agent(id,name))"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "buildQueue.js",
+        "expandInnerObjects": true
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "project",
+            "label": "Project(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Project"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "buildConfiguration",
+            "label": "Build Configuration(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Build Configuration"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "buildTypeId",
+            "displayName": "Build Configuration ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "buildType.name",
+            "displayName": "Build Configuration Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "buildType.projectName",
+            "displayName": "Project",
+            "shape": "string"
+        },
+        {
+            "name": "buildConfigurationName",
+            "displayName": "Build Configuration",
+            "shape": "string",
+            "role": "label",
+            "computed": true,
+            "valueExpression": "{{ $['buildType.projectName'] ? `${$['buildType.projectName']} / ${$['buildType.name']}` : $['buildType.name'] }}"
+        },
+        {
+            "sourceId": "buildTypeId",
+            "sourceType": "Build Configuration",
+            "name": "buildConfigurationName"
+        },
+        {
+            "name": "branchName",
+            "displayName": "Branch",
+            "shape": "string"
+        },
+        {
+            "name": "queuedDate",
+            "displayName": "Queued",
+            "shape": "date"
+        },
+        {
+            "name": "waitingSeconds",
+            "displayName": "Waiting",
+            "shape": "seconds",
+            "computed": true,
+            "valueExpression": "{{ $['queuedDate'] ? Math.max(0, Math.round((Date.now() - new Date($['queuedDate']).getTime()) / 1000)) : null }}"
+        },
+        {
+            "name": "waitReason",
+            "displayName": "Wait Reason",
+            "shape": "string"
+        },
+        {
+            "name": "triggered.user.username",
+            "displayName": "Triggered By",
+            "shape": "string"
+        },
+        {
+            "name": "triggered.type",
+            "displayName": "Trigger Type",
+            "shape": "string"
+        },
+        {
+            "name": "startEstimate",
+            "displayName": "Start Estimate",
+            "shape": "date"
+        },
+        {
+            "name": "webUrl",
+            "displayName": "URL",
+            "shape": [
+                "url",
+                {
+                    "label": "Open in TeamCity"
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

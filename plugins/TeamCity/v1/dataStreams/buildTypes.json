@@ -1,0 +1,78 @@
+{
+    "name": "buildTypes",
+    "displayName": "Build Configurations",
+    "description": "TeamCity build configurations, with their project and paused status",
+    "tags": [
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "buildTypes",
+        "getArgs": [
+            {
+                "key": "locator",
+                "value": "count:1000"
+            },
+            {
+                "key": "fields",
+                "value": "nextHref,buildType(id,name,projectId,projectName,paused,webUrl)"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextHref"
+            }
+        },
+        "postRequestScript": "pagedList.js"
+    },
+    "matches": "none",
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "fullName",
+            "displayName": "Build Configuration",
+            "shape": "string",
+            "role": "label",
+            "computed": true,
+            "valueExpression": "{{ $['projectName'] ? `${$['projectName']} / ${$['name']}` : $['name'] }}"
+        },
+        {
+            "name": "projectId",
+            "displayName": "Project ID",
+            "shape": "string"
+        },
+        {
+            "name": "projectName",
+            "displayName": "Project",
+            "shape": "string"
+        },
+        {
+            "name": "paused",
+            "displayName": "Paused",
+            "shape": "boolean"
+        },
+        {
+            "name": "webUrl",
+            "displayName": "URL",
+            "shape": ["url", { "label": "Open in TeamCity" }]
+        }
+    ],
+    "timeframes": false
+}
