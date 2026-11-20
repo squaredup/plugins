@@ -1,0 +1,113 @@
+{
+    "name": "userSeat",
+    "displayName": "User Seat",
+    "description": "Copilot seat details for each selected user, with plan, assigning team and last activity (enterprises need an enterprise owner token)",
+    "tags": [
+        "Licensing",
+        "User"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'orgs' }}/{{ dataSource.slug.trim() }}/members/{{ object.name }}/copilot",
+        "postRequestScript": "userSeat.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "User"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "assignee.id",
+            "visible": false
+        },
+        {
+            "name": "assignee.login",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "assignee.name",
+            "displayName": "Name",
+            "shape": "string"
+        },
+        {
+            "name": "plan_type",
+            "displayName": "Plan",
+            "shape": "string",
+            "formatExpression": "{{ ({ business: 'Business', enterprise: 'Enterprise', access: 'Copilot access', unknown: 'Unknown' })[$['plan_type']] || $['plan_type'] }}"
+        },
+        {
+            "name": "organization.login",
+            "displayName": "Organization",
+            "shape": "string"
+        },
+        {
+            "name": "assigning_team.name",
+            "displayName": "Assigning team",
+            "shape": "string"
+        },
+        {
+            "name": "created_at",
+            "displayName": "Assigned",
+            "shape": "date"
+        },
+        {
+            "name": "last_activity_at",
+            "displayName": "Last activity",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "last_activity_editor",
+            "displayName": "Last editor",
+            "shape": "string"
+        },
+        {
+            "name": "last_authenticated_at",
+            "displayName": "Last authenticated",
+            "shape": "date"
+        },
+        {
+            "name": "pending_cancellation_date",
+            "displayName": "Pending cancellation",
+            "shape": "date"
+        },
+        {
+            "name": "daysSinceActivity",
+            "displayName": "Days since activity",
+            "computed": true,
+            "valueExpression": "{{ $['last_activity_at'] ? Math.floor((Date.now() - Date.parse($['last_activity_at'])) / 86400000) : null }}",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "activity",
+            "displayName": "Activity",
+            "computed": true,
+            "valueExpression": "{{ !$['last_activity_at'] ? 'No recorded activity' : (Date.now() - Date.parse($['last_activity_at'])) / 86400000 <= 30 ? 'Active' : 'Inactive' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Active"
+                        ],
+                        "warning": [
+                            "Inactive"
+                        ],
+                        "unknown": [
+                            "No recorded activity"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

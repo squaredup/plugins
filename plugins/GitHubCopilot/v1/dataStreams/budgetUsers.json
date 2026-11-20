@@ -1,0 +1,139 @@
+{
+    "name": "budgetUsers",
+    "displayName": "Budget Users",
+    "description": "Per-user spend against the selected universal per-user budget (enterprise accounts only)",
+    "tags": [
+        "Billing",
+        "Cost",
+        "User"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ dataSource.accountType === 'enterprise' && ['multi_user_customer', 'multi_user_cost_center'].includes(String(object.budgetScope)) ? `/enterprises/${dataSource.slug.trim()}/settings/billing/budgets/${object.rawId}/user-states` : '/user' }}",
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "message"
+        },
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "user_states"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "budgetUsers.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Budget"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "login",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "consumedAmount",
+            "displayName": "Spent (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "targetAmount",
+            "displayName": "Target (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "remainingAmount",
+            "displayName": "Remaining (USD)",
+            "computed": true,
+            "valueExpression": "{{ $['targetAmount'] == null || $['consumedAmount'] == null ? null : Math.max($['targetAmount'] - $['consumedAmount'], 0) }}",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "percentUsed",
+            "displayName": "Used (%)",
+            "computed": true,
+            "valueExpression": "{{ $['targetAmount'] ? ($['consumedAmount'] / $['targetAmount']) * 100 : null }}",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "computed": true,
+            "valueExpression": "{{ $['targetAmount'] == null || $['consumedAmount'] == null ? 'No target' : $['targetAmount'] === 0 ? ($['consumedAmount'] > 0 ? 'Exhausted' : 'Under target') : $['consumedAmount'] / $['targetAmount'] >= 1 ? 'Exhausted' : $['consumedAmount'] / $['targetAmount'] >= 0.8 ? 'Over 80%' : 'Under target' }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "Under target"
+                        ],
+                        "warning": [
+                            "Over 80%"
+                        ],
+                        "error": [
+                            "Exhausted"
+                        ],
+                        "unknown": [
+                            "No target"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "hasOverride",
+            "displayName": "Has override",
+            "shape": "boolean"
+        }
+    ],
+    "timeframes": false
+}

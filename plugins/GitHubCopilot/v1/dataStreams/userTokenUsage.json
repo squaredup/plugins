@@ -1,0 +1,124 @@
+{
+    "name": "userTokenUsage",
+    "displayName": "User Token Usage",
+    "description": "Model requests and prompt/output tokens per user, client and model over the latest 28-day report",
+    "tags": [
+        "Usage",
+        "AI",
+        "User",
+        "Models"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'orgs' }}/{{ dataSource.slug.trim() }}/copilot/metrics/reports/users-28-day/latest",
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "download_links.0"
+            }
+        },
+        "postRequestScript": "userTokenUsage.js"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "user",
+            "label": "User (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "userId",
+            "displayName": "User ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "login",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "day",
+            "displayName": "Day",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "sourceId": "userId",
+            "sourceType": "User",
+            "name": "login"
+        },
+        {
+            "name": "client",
+            "displayName": "Client",
+            "shape": "string",
+            "formatExpression": "{{ ({ vscode: 'VS Code', visualstudio: 'Visual Studio', jetbrains: 'JetBrains', eclipse: 'Eclipse', xcode: 'Xcode', zed: 'Zed', copilot_cli: 'Copilot CLI', github_app: 'Copilot app', copilot_sdk: 'Copilot SDK', cloud_agent: 'Cloud agent', code_review: 'Code review', github_web: 'GitHub.com', github_mobile: 'GitHub Mobile', github_desktop: 'GitHub Desktop', agentic_workflows: 'Agentic workflows', claude_code: 'Claude Code', codex: 'Codex', opencode: 'OpenCode', slack: 'Slack', azure_devops: 'Azure DevOps', other: 'Other' })[$['client']] || $['client'] }}"
+        },
+        {
+            "name": "model",
+            "displayName": "Model",
+            "shape": "string"
+        },
+        {
+            "name": "selectionMode",
+            "displayName": "Model selection",
+            "shape": "string",
+            "formatExpression": "{{ ({ user_selected: 'User selected', product_selected: 'Product selected', auto: 'Auto', other: 'Other', unknown: 'Unknown' })[$['selectionMode']] || $['selectionMode'] }}"
+        },
+        {
+            "name": "requests",
+            "displayName": "Model requests",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "promptTokens",
+            "displayName": "Prompt tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "outputTokens",
+            "displayName": "Output tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "totalTokens",
+            "displayName": "Total tokens",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": true
+                }
+            ],
+            "role": "value"
+        }
+    ],
+    "timeframes": false
+}

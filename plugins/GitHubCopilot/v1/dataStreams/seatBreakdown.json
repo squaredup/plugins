@@ -1,0 +1,59 @@
+{
+    "name": "seatBreakdown",
+    "displayName": "Seat Breakdown",
+    "description": "Copilot seat totals, active and inactive counts, plan and feature policy settings (organization accounts only)",
+    "tags": ["Licensing", "User"],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "{{ dataSource.accountType === 'enterprise' ? '/user' : `/orgs/${dataSource.slug.trim()}/copilot/billing` }}",
+        "errorHandling": { "type": "path", "realm": "payload", "path": "message" },
+        "postRequestScript": "seatBreakdown.js"
+    },
+    "matches": "none",
+    "metadata": [
+        { "name": "totalSeats", "displayName": "Total seats", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }], "role": "value" },
+        { "name": "activeThisCycle", "displayName": "Active this cycle", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        { "name": "inactiveThisCycle", "displayName": "Inactive this cycle", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        { "name": "addedThisCycle", "displayName": "Added this cycle", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        { "name": "pendingInvitation", "displayName": "Pending invitations", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        { "name": "pendingCancellation", "displayName": "Pending cancellations", "shape": ["number", { "decimalPlaces": 0, "thousandsSeparator": true }] },
+        {
+            "name": "planType",
+            "displayName": "Plan",
+            "shape": "string",
+            "formatExpression": "{{ ({ business: 'Business', enterprise: 'Enterprise', access: 'Access' })[$['planType']] || $['planType'] }}"
+        },
+        {
+            "name": "seatManagement",
+            "displayName": "Seat management",
+            "shape": "string",
+            "formatExpression": "{{ ({ assign_all: 'All members', assign_selected: 'Selected members', disabled: 'Disabled', unconfigured: 'Not configured' })[$['seatManagement']] || $['seatManagement'] }}"
+        },
+        {
+            "name": "ideChat",
+            "displayName": "Chat in IDE",
+            "shape": "string",
+            "formatExpression": "{{ ({ enabled: 'Enabled', disabled: 'Disabled', unconfigured: 'Not configured' })[$['ideChat']] || $['ideChat'] }}"
+        },
+        {
+            "name": "platformChat",
+            "displayName": "Chat on GitHub.com",
+            "shape": "string",
+            "formatExpression": "{{ ({ enabled: 'Enabled', disabled: 'Disabled', unconfigured: 'Not configured' })[$['platformChat']] || $['platformChat'] }}"
+        },
+        {
+            "name": "cli",
+            "displayName": "Copilot CLI",
+            "shape": "string",
+            "formatExpression": "{{ ({ enabled: 'Enabled', disabled: 'Disabled', unconfigured: 'Not configured' })[$['cli']] || $['cli'] }}"
+        },
+        {
+            "name": "publicCodeSuggestions",
+            "displayName": "Suggestions matching public code",
+            "shape": "string",
+            "formatExpression": "{{ ({ allow: 'Allowed', block: 'Blocked', unconfigured: 'Not configured' })[$['publicCodeSuggestions']] || $['publicCodeSuggestions'] }}"
+        }
+    ],
+    "timeframes": false
+}

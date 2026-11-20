@@ -1,0 +1,119 @@
+{
+    "name": "budgets",
+    "displayName": "Budgets",
+    "description": "Copilot and AI credit billing budgets with their limit, scope and alerting settings",
+    "tags": [
+        "Billing",
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/{{ dataSource.accountType === 'enterprise' ? 'enterprises' : 'organizations' }}/{{ dataSource.slug.trim() }}/settings/billing/budgets",
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "per_page",
+                "value": "100"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "budgets"
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "budgets.js"
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "budgetId",
+            "displayName": "Budget ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "budgetName",
+            "displayName": "Budget",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "sourceId": "budgetId",
+            "sourceType": "Budget",
+            "name": "budgetName"
+        },
+        {
+            "name": "budgetScope",
+            "displayName": "Scope",
+            "shape": "string",
+            "formatExpression": "{{ ({ enterprise: 'Enterprise', organization: 'Organization', repository: 'Repository', cost_center: 'Cost center', user: 'User', multi_user_customer: 'All users', multi_user_cost_center: 'All users in cost center' })[$['budgetScope']] || $['budgetScope'] }}"
+        },
+        {
+            "name": "budgetEntity",
+            "displayName": "Applies to",
+            "shape": "string"
+        },
+        {
+            "name": "budgetType",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "skus",
+            "displayName": "Products / SKUs",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "budgetAmount",
+            "displayName": "Budget (USD)",
+            "shape": [
+                "currency",
+                {
+                    "code": "usd",
+                    "decimalPlaces": 2,
+                    "thousandsSeparator": true
+                }
+            ]
+        },
+        {
+            "name": "preventFurtherUsage",
+            "displayName": "Stops usage at limit",
+            "shape": "boolean"
+        },
+        {
+            "name": "willAlert",
+            "displayName": "Alerts enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "alertRecipients",
+            "displayName": "Alert recipients",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "expiresAt",
+            "displayName": "Expires",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}
