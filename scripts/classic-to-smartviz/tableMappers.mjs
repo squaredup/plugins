@@ -66,10 +66,10 @@ const toRenderer = (column) => {
  * list decides that outright, and without one the stream's own `visible` flags do. `columnOrder` only orders
  * them; the columns it leaves out follow in stream order. Names the data no longer has are dropped. When the
  * stream does not declare its full column list, an uncustomised table is left `isAutomatic` for SmartViz to
- * find its columns in the data, as classic does, and so is one that hides columns, with `hiddenNames` to hide.
- * So is an uncustomised SQL table, whose select list names its columns but not their shapes. Any other
- * customised table lists the columns it can name, so any the stream doesn't declare, which classic would also
- * show, are left out.
+ * find its columns in the data, as classic does. So is an uncustomised SQL table, whose select list names its
+ * columns but not their shapes, and a table that hides columns the data has beyond the stream's list, or shows
+ * none the stream declares, with `hiddenNames` to hide. Any other customised table lists the columns it can
+ * name, so any the stream doesn't declare, which classic shows after them, are left out.
  */
 const getShownColumnNames = (classicConfig, tileColumns, notes) => {
     const { columns, isComplete, source } = tileColumns;
@@ -81,42 +81,6 @@ const getShownColumnNames = (classicConfig, tileColumns, notes) => {
 
     if ((!isComplete || source === 'sql') && !isCustomised) {
         return { isAutomatic: true };
-    }
-
-    /**
-     * Classic shows every column but the hidden ones, and an open column list can hold columns no name here
-     * reaches, so the table stays automatic and hides classic's list. Not when classic's column order shows a
-     * column the stream hides, which an automatic table leaves out.
-     */
-    const streamHiddenInOrder = columnOrder.filter((name) => {
-        const column = findColumn(columns, name);
-
-        return column && !column.isVisible && !hiddenColumns.has(name);
-    });
-
-    /** A column the stream already hides needs no entry. */
-    const namesToHide = [...hiddenColumns].filter((name) => findColumn(columns, name)?.isVisible !== false);
-
-    if (!isComplete && hiddenColumns.size > 0 && streamHiddenInOrder.length === 0 && namesToHide.length <= MAX_HIDDEN_COLUMNS) {
-        const declaredOrder = columnOrder.filter((name) => !hiddenColumns.has(name) && findColumn(columns, name));
-        const streamOrder = columns.map((column) => column.name).filter((name) => declaredOrder.includes(name));
-        const hasOwnOrder = declaredOrder.join('\n') !== streamOrder.join('\n');
-        const hasUndeclaredOrder = columnOrder.some((name) => !hiddenColumns.has(name) && !findColumn(columns, name));
-        const renamedNames = Object.entries(classicConfig.columnDisplayNames ?? {})
-            .filter(([name, title]) => title && !hiddenColumns.has(name))
-            .map(([name]) => name);
-
-        if (hasOwnOrder) {
-            notes.push("columns follow the data's order, not classic's column order");
-        } else if (hasUndeclaredOrder) {
-            notes.push("columns the stream doesn't declare follow the data's order, which may differ from classic's");
-        }
-
-        if (renamedNames.length > 0) {
-            notes.push(`headers classic renames keep their own names: ${renamedNames.join(', ')}`);
-        }
-
-        return { isAutomatic: true, hiddenNames: namesToHide };
     }
 
     /**
@@ -135,6 +99,38 @@ const getShownColumnNames = (classicConfig, tileColumns, notes) => {
     };
     const shownNames = columns.filter((column) => isShown(column.name)).map((column) => column.name);
     const orderedNames = columnOrder.filter((name) => isShown(name) && (!isComplete || findColumn(columns, name)));
+    const names = [...orderedNames, ...shownNames.filter((name) => !orderedNames.includes(name))];
+
+    /** A column the stream already hides needs no entry. */
+    const namesToHide = [...hiddenColumns].filter((name) => findColumn(columns, name)?.isVisible !== false);
+
+    /**
+     * A table that hides a column the stream doesn't declare was saved against data holding more columns than
+     * the stream names, and classic shows the rest of them, as it does the columns a stream's shown pattern adds;
+     * one that shows no declared column shows only those. Each stays automatic and hides classic's list, as
+     * listing would leave those columns out. Otherwise the data holds only declared columns, and listing them
+     * keeps classic's order.
+     */
+    const isDeclared = (name) => Boolean(findColumn(columns, name)) || name.includes('[Expanded]');
+    const hasUndeclaredColumns =
+        tileColumns.hasExtraColumns || [...hiddenColumns].some((name) => !isDeclared(name)) || !names.some(isDeclared);
+
+    if (!isComplete && hasUndeclaredColumns && hiddenColumns.size > 0 && namesToHide.length <= MAX_HIDDEN_COLUMNS) {
+        const renamedNames = Object.entries(classicConfig.columnDisplayNames ?? {})
+            .filter(([name, title]) => title && !hiddenColumns.has(name))
+            .map(([name]) => name);
+
+        if (columnOrder.some((name) => !hiddenColumns.has(name))) {
+            notes.push("columns follow the data's order, which may differ from classic's");
+        }
+
+        if (renamedNames.length > 0) {
+            notes.push(`headers classic renames keep their own names: ${renamedNames.join(', ')}`);
+        }
+
+        return { isAutomatic: true, hiddenNames: namesToHide };
+    }
+
     const staleNames = isComplete ? columnOrder.filter((name) => !hiddenColumns.has(name) && !findColumn(columns, name)) : [];
 
     if (staleNames.length > 0) {
@@ -145,7 +141,7 @@ const getShownColumnNames = (classicConfig, tileColumns, notes) => {
         notes.push('the stream does not declare every column, so columns classic shows beyond these are not listed');
     }
 
-    return { names: [...orderedNames, ...shownNames.filter((name) => !orderedNames.includes(name))] };
+    return { names };
 };
 
 const getRowLinkField = (classicConfig) => {

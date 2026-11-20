@@ -171,7 +171,10 @@ const toColumnSet = (metadata) => {
         ...firstEntries.flatMap(toExpandedColumns)
     ];
 
-    return { columns, isComplete: !metadata.some((entry) => entry.pattern !== undefined) };
+    /** A shown pattern narrower than the catch-all `.*` names a family of columns the data is meant to add. */
+    const hasExtraColumns = metadata.some((entry) => entry.pattern !== undefined && entry.pattern !== '.*' && entry.visible !== false);
+
+    return { columns, isComplete: !metadata.some((entry) => entry.pattern !== undefined), hasExtraColumns };
 };
 
 const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -306,6 +309,7 @@ export const getTileColumns = (tileConfig, streamColumnsByName) => {
     return {
         columns: overlayColumns(streamColumns.columns, tileMetadata),
         isComplete: streamColumns.isComplete,
+        hasExtraColumns: Boolean(streamColumns.hasExtraColumns),
         source: sqlColumns ? 'sql' : 'stream metadata'
     };
 };
