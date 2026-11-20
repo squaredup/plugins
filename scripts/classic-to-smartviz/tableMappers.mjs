@@ -115,17 +115,12 @@ const getShownColumnNames = (classicConfig, tileColumns, notes) => {
     const hasUndeclaredColumns =
         tileColumns.hasExtraColumns || [...hiddenColumns].some((name) => !isDeclared(name)) || !names.some(isDeclared);
 
-    if (!isComplete && hasUndeclaredColumns && hiddenColumns.size > 0 && namesToHide.length <= MAX_HIDDEN_COLUMNS) {
-        const renamedNames = Object.entries(classicConfig.columnDisplayNames ?? {})
-            .filter(([name, title]) => title && !hiddenColumns.has(name))
-            .map(([name]) => name);
+    /** A table that renames a column it shows was curated to those columns, and an automatic one can't rename. */
+    const hasRenamedColumn = names.some((name) => Boolean(classicConfig.columnDisplayNames?.[name]));
 
+    if (!isComplete && hasUndeclaredColumns && !hasRenamedColumn && hiddenColumns.size > 0 && namesToHide.length <= MAX_HIDDEN_COLUMNS) {
         if (columnOrder.some((name) => !hiddenColumns.has(name))) {
             notes.push("columns follow the data's order, which may differ from classic's");
-        }
-
-        if (renamedNames.length > 0) {
-            notes.push(`headers classic renames keep their own names: ${renamedNames.join(', ')}`);
         }
 
         return { isAutomatic: true, hiddenNames: namesToHide };
