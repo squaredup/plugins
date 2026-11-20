@@ -38,15 +38,27 @@
                     "description": "Most recent deployment for this project",
                     "activePluginConfigIds": ["{{configId}}"],
                     "title": "Latest Deployment State",
-                    "visualisation": {
-                        "type": "data-stream-blocks",
-                        "config": {
-                            "data-stream-blocks": {
-                                "stateColumn": "state",
-                                "linkColumn": "inspectorUrl",
-                                "sublabel": "target",
-                                "columns": 1,
-                                "labelColumn": "name"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal"
+                                },
+                                "link": {
+                                    "field": "inspectorUrl",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{target}}{{{{/raw}}}}"
                             }
                         }
                     }
@@ -94,15 +106,16 @@
                     "description": "Deployments in an error state for this project",
                     "activePluginConfigIds": ["{{configId}}"],
                     "title": "Failed Deployments",
-                    "visualisation": {
-                        "type": "data-stream-scalar",
-                        "config": {
-                            "data-stream-scalar": {
-                                "value": {
-                                    "type": "count"
-                                },
-                                "comparisonColumn": "none",
-                                "label": "Failed"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": []
+                            },
+                            "style": {
+                                "scalarLabelText": "Failed",
+                                "scalarRowCount": true
                             }
                         }
                     }
@@ -149,31 +162,64 @@
                     "description": "Deployments per day for this project",
                     "activePluginConfigIds": ["{{configId}}"],
                     "title": "Deployment Volume",
-                    "visualisation": {
-                        "type": "data-stream-bar-chart",
-                        "config": {
-                            "data-stream-bar-chart": {
-                                "xAxisGroup": "state_uniqueValues",
-                                "showLegend": false,
-                                "range": {
-                                    "type": "auto"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "created_byDay",
+                                    "type": "temporal",
+                                    "title": "Created"
                                 },
-                                "showGrid": true,
-                                "grouping": false,
-                                "xAxisData": "created_byDay",
-                                "displayMode": "actual",
-                                "yAxisLabel": "Deployments",
-                                "horizontalLayout": "vertical",
-                                "yAxisData": ["count"],
-                                "showYAxisLabel": true,
-                                "legendPosition": "bottom",
-                                "showXAxisLabel": false,
-                                "showValue": false,
-                                "xAxisLabel": "",
-                                "color": {
-                                    "type": "default"
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Count"
                                 },
-                                "showTotals": true
+                                "series": {
+                                    "field": "state_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "State"
+                                }
+                            },
+                            "style": {
+                                "legendPosition": "none",
+                                "cartesianShowYAxisTitle": true,
+                                "cartesianYAxisTitle": "Deployments",
+                                "cartesianStack": "on",
+                                "cartesianShowStackedTotals": true,
+                                "mappedColors": {
+                                    "critical": "#DE0038",
+                                    "error": "#DE0038",
+                                    "failed": "#DE0038",
+                                    "failure": "#DE0038",
+                                    "down": "#DE0038",
+                                    "offline": "#DE0038",
+                                    "unhealthy": "#DE0038",
+                                    "high": "#DE0038",
+                                    "warning": "#F59E0B",
+                                    "warn": "#F59E0B",
+                                    "medium": "#F59E0B",
+                                    "moderate": "#F59E0B",
+                                    "degraded": "#F59E0B",
+                                    "partial": "#F59E0B",
+                                    "ok": "#2BB660",
+                                    "healthy": "#2BB660",
+                                    "success": "#2BB660",
+                                    "succeeded": "#2BB660",
+                                    "passed": "#2BB660",
+                                    "up": "#2BB660",
+                                    "online": "#2BB660",
+                                    "resolved": "#2BB660",
+                                    "low": "#3B82F6",
+                                    "info": "#3B82F6",
+                                    "informational": "#3B82F6",
+                                    "unknown": "#94A3B8",
+                                    "unmonitored": "#94A3B8",
+                                    "not monitored": "#94A3B8",
+                                    "paused": "#94A3B8"
+                                }
                             }
                         }
                     }
@@ -209,20 +255,92 @@
                     "description": "Deployments for this project",
                     "activePluginConfigIds": ["{{configId}}"],
                     "title": "Deployment History",
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "columnOrder": [
-                                    "created",
-                                    "name",
-                                    "state",
-                                    "target",
-                                    "creator",
-                                    "inspectorUrl"
-                                ],
-                                "hiddenColumns": ["uid", "projectId"],
-                                "transpose": false
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "created",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "state[Expanded].rawState",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "READY": "#2BB660",
+                                                "ERROR": "#DE0038",
+                                                "CANCELED": "#DE0038",
+                                                "BUILDING": "#F59E0B",
+                                                "QUEUED": "#F59E0B",
+                                                "INITIALIZING": "#F59E0B",
+                                                "DELETED": "#94A3B8"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "target",
+                                        "title": "Target",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "creator",
+                                        "title": "Creator",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "inspectorUrl",
+                                        "title": "Inspector URL",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    },
+                                    {
+                                        "field": "url",
+                                        "title": "URL",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    },
+                                    {
+                                        "field": "ready",
+                                        "title": "Ready",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "buildingAt",
+                                        "title": "Building At",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "createdAt",
+                                        "title": "Created At",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
@@ -254,20 +372,66 @@
                     "description": "",
                     "activePluginConfigIds": ["{{configId}}"],
                     "title": "Project Info",
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "columnOrder": [
-                                    "name",
-                                    "framework",
-                                    "nodeVersion",
-                                    "link.repo",
-                                    "link.type",
-                                    "createdAt",
-                                    "updatedAt"
-                                ],
-                                "transpose": true
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "framework",
+                                        "title": "Framework",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "nodeVersion",
+                                        "title": "Node Version",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "link.repo",
+                                        "title": "Git Repo",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "link.type",
+                                        "title": "Git Provider",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "createdAt",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "updatedAt",
+                                        "title": "Updated",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true
                             }
                         }
                     }
@@ -296,12 +460,28 @@
                         "workspace": "{{workspaceId}}",
                         "scope": "{{scopes.[Vercel Projects]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-donut-chart",
-                        "config": {
-                            "data-stream-donut-chart": {
-                                "valueColumn": "count",
-                                "labelColumn": "action"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "action",
+                                    "type": "nominal",
+                                    "title": "Action"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "title": "Count"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieSort": "desc"
                             }
                         }
                     },
@@ -332,18 +512,54 @@
                         "workspace": "{{workspaceId}}",
                         "scope": "{{scopes.[Vercel Projects]}}"
                     },
-                    "visualisation": {
-                        "type": "data-stream-table",
-                        "config": {
-                            "data-stream-table": {
-                                "hiddenColumns": ["isActive", "action_type"],
-                                "columnOrder": [
-                                    "action",
-                                    "count",
-                                    "host",
-                                    "startTime",
-                                    "endTime",
-                                    "public_ip"
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "action",
+                                        "title": "Action",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "count",
+                                        "title": "Count",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "host",
+                                        "title": "Host",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "startTime",
+                                        "title": "Time",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "endTime",
+                                        "title": "End Time",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "public_ip",
+                                        "title": "Public IP",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
                                 ]
                             }
                         }
