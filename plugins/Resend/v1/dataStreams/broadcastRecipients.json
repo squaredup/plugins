@@ -1,0 +1,134 @@
+{
+    "name": "broadcastRecipients",
+    "displayName": "Broadcast Recipients",
+    "description": "Recipients of a broadcast who triggered the chosen event",
+    "tags": [
+        "Email",
+        "Broadcasts"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "broadcasts/{{object.rawId}}/recipients",
+        "getArgs": [
+            {
+                "key": "type",
+                "value": "{{ event }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "next_cursor"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "after"
+            }
+        },
+        "postRequestScript": "broadcastRecipients.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Broadcast"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "event",
+            "label": "Event",
+            "defaultValue": "delivered",
+            "validation": {
+                "required": true
+            },
+            "options": [
+                {
+                    "value": "sent",
+                    "label": "Sent"
+                },
+                {
+                    "value": "delivered",
+                    "label": "Delivered"
+                },
+                {
+                    "value": "opened",
+                    "label": "Opened"
+                },
+                {
+                    "value": "clicked",
+                    "label": "Clicked"
+                },
+                {
+                    "value": "bounced",
+                    "label": "Bounced"
+                },
+                {
+                    "value": "complained",
+                    "label": "Complained"
+                },
+                {
+                    "value": "unsubscribed",
+                    "label": "Unsubscribed"
+                },
+                {
+                    "value": "suppressed",
+                    "label": "Suppressed"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "contact_id",
+            "displayName": "Contact ID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "email",
+            "displayName": "Email",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "count",
+            "displayName": "Count",
+            "shape": "number"
+        },
+        {
+            "name": "bounce_type",
+            "displayName": "Bounce Type",
+            "shape": "string"
+        },
+        {
+            "name": "clicked_links",
+            "displayName": "Clicked Links",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "url"
+                }
+            ]
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}

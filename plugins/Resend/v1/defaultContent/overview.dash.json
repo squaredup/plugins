@@ -1,0 +1,876 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "100a5567-7128-461a-9f23-2e293c0e5804",
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sending",
+                    "description": "Emails sent, delivered, bounced and marked as spam across all domains",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "granularity": "total"
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "sent",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Sent"
+                                    },
+                                    {
+                                        "field": "delivered",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Delivered"
+                                    },
+                                    {
+                                        "field": "bounced",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Bounced"
+                                    },
+                                    {
+                                        "field": "complained",
+                                        "type": "quantitative",
+                                        "aggregate": "sum",
+                                        "title": "Complained"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7f35a943-2bf7-4e31-968f-dfb14127064a",
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Engagement",
+                    "description": "Delivery, open and click rates across all domains",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "granularity": "total"
+                        },
+                        "sql": "SELECT \"metric\", \"rate\" FROM (SELECT 1 AS \"ord\", 'Delivered' AS \"metric\", CAST(COALESCE(\"delivery_rate\", 0) AS DOUBLE) AS \"rate\" FROM \"dataset\" UNION ALL SELECT 2, 'Opened', CAST(COALESCE(\"open_rate\", 0) AS DOUBLE) FROM \"dataset\" UNION ALL SELECT 3, 'Clicked', CAST(COALESCE(\"click_rate\", 0) AS DOUBLE) FROM \"dataset\") ORDER BY \"ord\""
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "rate",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "metric",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridTrackWidth": 10,
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 1,
+                                        "color": "#6366f1"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ce90174d-7b54-47ab-8313-429f54056429",
+                "x": 0,
+                "y": 2,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Email Volume",
+                    "description": "Emails sent, delivered and bounced per day",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "granularity": "daily"
+                        },
+                        "sql": "SELECT \"period\", \"metric\", \"emails\" FROM (SELECT \"period\", 1 AS \"ord\", 'Sent' AS \"metric\", CAST(COALESCE(\"sent\", 0) AS DOUBLE) AS \"emails\" FROM \"dataset\" UNION ALL SELECT \"period\", 2, 'Delivered', CAST(COALESCE(\"delivered\", 0) AS DOUBLE) FROM \"dataset\" UNION ALL SELECT \"period\", 3, 'Bounced', CAST(COALESCE(\"bounced\", 0) AS DOUBLE) FROM \"dataset\") ORDER BY \"period\", \"ord\""
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "period",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "emails",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "title": "Emails"
+                                },
+                                "series": {
+                                    "field": "metric",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianSymbol": "none",
+                                "cartesianLineWidth": 2,
+                                "cartesianShowVerticalGridLines": false,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Sent": "#6366f1",
+                                    "Delivered": "#22c55e",
+                                    "Bounced": "#ef4444"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "063cdb95-1ef0-4db6-9755-d23e0ea23389",
+                "x": 3,
+                "y": 2,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Engagement Funnel",
+                    "description": "How many sent emails were delivered, opened and clicked",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "granularity": "total"
+                        },
+                        "sql": "SELECT \"stage\", \"emails\" FROM (SELECT 1 AS \"ord\", 'Sent' AS \"stage\", CAST(COALESCE(\"sent\", 0) AS DOUBLE) AS \"emails\" FROM \"dataset\" UNION ALL SELECT 2, 'Delivered', CAST(COALESCE(\"delivered\", 0) AS DOUBLE) FROM \"dataset\" UNION ALL SELECT 3, 'Opened', CAST(COALESCE(\"unique_opened\", 0) AS DOUBLE) FROM \"dataset\" UNION ALL SELECT 4, 'Clicked', CAST(COALESCE(\"unique_clicked\", 0) AS DOUBLE) FROM \"dataset\") ORDER BY \"ord\""
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "funnel",
+                            "encoding": {
+                                "label": {
+                                    "field": "stage",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "emails",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "funnelSort": "none",
+                                "colors": [
+                                    "#6366f1",
+                                    "#8b5cf6",
+                                    "#14b8a6",
+                                    "#22c55e"
+                                ],
+                                "labelFormat": "{{{{raw}}}}{{name}} · {{value}}{{{{/raw}}}}",
+                                "funnelLabelPosition": "inside",
+                                "labelColor": "#ffffff"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b6ad77ae-bbb4-45e2-b38d-3f57b6641c96",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Domain Health",
+                    "description": "Verification status of each domain. Click one to open it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[domains]}}",
+                        "name": "domains",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "name",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{region}}{{{{/raw}}}}",
+                                "statusGridLabelWrap": true,
+                                "statusGridBlockGap": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f176d7af-6e8e-4d19-baf9-77be9279fa84",
+                "x": 2,
+                "y": 5,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Webhook Health",
+                    "description": "Whether each webhook endpoint is enabled. Click one to open it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[webhooks]}}",
+                        "name": "webhooks",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "endpoint",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "endpoint",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridLabelWrap": true,
+                                "statusGridBlockGap": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "cb40ec72-0af3-41bc-8f02-c0930b73baf8",
+                "x": 3,
+                "y": 5,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Automations",
+                    "description": "Whether each automation is enabled. Click one to open it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[automations]}}",
+                        "name": "automations",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "name",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "name",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 2,
+                                "statusGridLabelWrap": true,
+                                "statusGridBlockGap": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "06707398-ae33-4c4a-95cf-7f6db771a706",
+                "x": 0,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sending by Domain",
+                    "description": "Emails sent per day from each domain. Click one to open it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[emailMetrics]}}",
+                        "name": "emailMetrics",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "granularity": "daily",
+                            "breakdown": "domain"
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "sparkline",
+                            "encoding": {
+                                "time": {
+                                    "field": "period",
+                                    "type": "temporal"
+                                },
+                                "value": {
+                                    "field": "sent",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "domain_name",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "sparklineValue": "sum",
+                                "sparklineSortBy": "value",
+                                "sparklineSortDirection": "desc",
+                                "sparklineLimit": 8,
+                                "cartesianSmooth": true,
+                                "sparklineColor": "#6366f1"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b63c42c6-3a16-4d8d-9399-7b62629314ce",
+                "x": 2,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "API Traffic",
+                    "description": "API requests per day by outcome",
+                    "timeframe": "last7days",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT STRFTIME(DATE_TRUNC('day', \"created_at\"), '%Y-%m-%dT%H:%M:%SZ') AS \"day\", CASE \"outcome\" WHEN 'success' THEN 'Success' WHEN 'warning' THEN 'Client error' ELSE 'Rate limited or server error' END AS \"outcome\", CAST(COUNT(*) AS DOUBLE) AS \"requests\" FROM \"logs\" GROUP BY ALL ORDER BY \"day\"",
+                            "tables": [
+                                {
+                                    "tableName": "logs",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[apiLogs]}}",
+                                            "name": "apiLogs"
+                                        },
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "last7days"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "requests",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "title": "Requests"
+                                },
+                                "series": {
+                                    "field": "outcome",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 3,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Success": "#22c55e",
+                                    "Client error": "#f59e0b",
+                                    "Rate limited or server error": "#ef4444"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dabd695a-85c6-46c1-ae07-021e7b82e48c",
+                "x": 0,
+                "y": 11,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent API Errors",
+                    "description": "API requests that did not succeed, newest first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[apiLogs]}}",
+                        "name": "apiLogs",
+                        "pluginConfigId": "{{configId}}",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "outcome",
+                                    "operation": "notequals",
+                                    "value": "success"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "response_status",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "thresholds": [
+                                                {
+                                                    "to": 428,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 429,
+                                                    "color": "#ef4444"
+                                                },
+                                                {
+                                                    "to": 499,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 1000,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "When",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "method",
+                                        "title": "Method",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "defaultColor": "#64748b"
+                                        },
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "endpoint",
+                                        "title": "Endpoint",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c41ed89e-f123-47ec-b078-e7d70f1fdc5d",
+                "x": 2,
+                "y": 11,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Suppressions by Origin",
+                    "description": "Addresses Resend will not send to, by what caused the suppression",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT CASE \"origin[Expanded].rawState\" WHEN 'bounce' THEN 'Bounce' WHEN 'complaint' THEN 'Complaint' ELSE 'Manual' END AS \"origin\", CAST(COUNT(*) AS DOUBLE) AS \"addresses\" FROM \"suppressions\" GROUP BY ALL",
+                            "tables": [
+                                {
+                                    "tableName": "suppressions",
+                                    "config": {
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[suppressions]}}",
+                                            "name": "suppressions"
+                                        },
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "origin",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "addresses",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "mappedColors": {
+                                    "Bounce": "#f59e0b",
+                                    "Complaint": "#ef4444",
+                                    "Manual": "#64748b"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "fd1b87c5-9667-4470-9dd0-61a5dfeb3449",
+                "x": 3,
+                "y": 11,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "API Keys",
+                    "description": "API keys and how long since each was last used",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[apiKeys]}}",
+                        "name": "apiKeys",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "last_used_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Key",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "last_used_at",
+                                        "title": "Last used",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowHighlight": {
+                                    "field": "days_since_used",
+                                    "thresholds": [
+                                        {
+                                            "to": 30,
+                                            "color": "rgba(0,0,0,0)"
+                                        },
+                                        {
+                                            "to": 90,
+                                            "color": "rgba(245,158,11,0.12)"
+                                        },
+                                        {
+                                            "to": 100000,
+                                            "color": "rgba(239,68,68,0.14)"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e807bb60-464c-42e4-8690-799a28885ea2",
+                "x": 0,
+                "y": 14,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Broadcasts",
+                    "description": "Broadcasts on the team, newest first. Click one to open it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[broadcasts]}}",
+                        "name": "broadcasts",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "created_at",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Broadcast",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "status[Expanded].rawState",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "sent": "#16a34a",
+                                                "draft": "#64748b",
+                                                "scheduled": "#3b82f6",
+                                                "queued": "#3b82f6",
+                                                "sending": "#3b82f6",
+                                                "canceled": "#d97706",
+                                                "cancelled": "#d97706",
+                                                "failed": "#dc2626"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "segment",
+                                        "title": "Segment",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "sent_at",
+                                        "title": "Sent",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "scheduled_at",
+                                        "title": "Scheduled",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    },
+                                    {
+                                        "field": "created_at",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
