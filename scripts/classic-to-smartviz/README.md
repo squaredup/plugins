@@ -57,7 +57,7 @@ On top of the like-for-like conversion, these rules improve a tile where the rep
 | `recencyDates` | Shows a date as "3 hours ago", with the exact time in the tooltip | A table date column named like last seen, updated, modified, checked, heartbeat, sync, refreshed or polled |
 | `statusColours` | Colours status words: critical / error / failed / down → red, warning / medium / degraded → amber, ok / healthy / success / up → green, low / info → blue, unknown → grey. Other values keep the palette | A donut, or a bar or line chart split by a column named like status, state, health, result, severity, priority, outcome, level or condition, with no colours of its own |
 | `percentBars` | Shows a bar filled to the value out of 100, in a neutral colour | A table column with the percent shape, unless its name suggests a signed value (difference, change, delta, growth, trend, result) |
-| `percentAxis` | Fixes the y axis to 0–100%: the `percentage` range, or 0 to 1 for a zero-to-one percentage, which a line plots as the fraction | A line chart whose y column has the percent shape and no range of its own |
+| `percentAxis` | Fixes the y axis to 0–100% with the `percentage` range, which runs 0 to 1 for a zero-to-one percentage | A line chart whose y columns all have the percent shape, all zero-to-one or none, and no range of its own |
 | `percentGauge` | Runs the gauge from 0 to 100 | A gauge of a percent-shaped column with no range of its own |
 | `booleanLabels` | Shows "Yes" / "No" in the table's own text colour, so neither value reads as good or bad | A table column with the boolean shape |
 

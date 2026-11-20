@@ -124,8 +124,8 @@ export const ENHANCEMENT_RULES = {
     },
 
     /**
-     * A line chart of a percentage gets a fixed 0–100% axis, unless the tile set its own range. A line plots a
-     * zero-to-one percentage as the fraction and only its labels as a percentage, so its axis runs from 0 to 1.
+     * A line chart of a percentage gets the 0–100% axis, unless the tile set its own range. The axis follows the
+     * first y column, running 0 to 1 when it holds zero-to-one fractions, so every y column must hold the same kind.
      */
     percentAxis: (spec, context) => {
         const { chartType, encoding, style = {} } = spec;
@@ -133,16 +133,13 @@ export const ENHANCEMENT_RULES = {
 
         const yChannels = [encoding.y ?? []].flat();
         const isPercent = yChannels.length > 0 && yChannels.every((channel) => getShapeName(context, channel.field) === 'percent');
+        const zeroToOneFlags = new Set(yChannels.map((channel) => getShapeConfig(context, channel.field)?.asZeroToOne === true));
 
-        if (chartType !== 'line' || hasOwnRange || !isPercent) {
+        if (chartType !== 'line' || hasOwnRange || !isPercent || zeroToOneFlags.size > 1) {
             return { spec };
         }
 
-        const isZeroToOne = yChannels.every((channel) => getShapeConfig(context, channel.field)?.asZeroToOne === true);
-        const { cartesianYAxisRangeMode, ...otherStyle } = style;
-        const range = isZeroToOne ? { cartesianYAxisMin: 0, cartesianYAxisMax: 1 } : { cartesianYAxisRangeMode: 'percentage' };
-
-        return { spec: { ...spec, style: { ...otherStyle, ...range } }, note: 'y axis fixed to 0–100%' };
+        return { spec: withStyle(spec, { cartesianYAxisRangeMode: 'percentage' }), note: 'y axis fixed to 0–100%' };
     },
 
     /** A gauge of a percentage with no range of its own runs from 0 to 100. */
