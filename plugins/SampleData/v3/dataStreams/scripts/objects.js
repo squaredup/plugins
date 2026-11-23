@@ -172,5 +172,6 @@ const customers = model.customers.map((c) => ({
     city: c.city,
     country: c.country,
     slaTarget: c.slaTarget,
+    uses: (c.services || []).map((id) => services[id].name),
 }));
 result = [...services_, ...hosts, ...pipelines, ...customers];
