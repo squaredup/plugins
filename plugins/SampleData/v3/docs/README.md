@@ -27,7 +27,7 @@ The data tells one story. A release to **Payments API** went out about two and a
 
 The incident moves with the clock, so it is always recent. Historical data stays the same between refreshes.
 
-The out-of-the-box dashboards are **Executive Overview**, **Service Health (NOC)**, **SLOs & Error Budgets**, **DevOps · DORA**, **Cloud Cost · FinOps**, **Service Desk**, **Customers & SLAs** and **Business Metrics**. There is also a perspective for each **Service**, **Host**, **Pipeline** and **Customer**.
+The out-of-the-box dashboards are **Executive Overview**, **Service Health (NOC)**, **SLOs & Error Budgets**, **DevOps · DORA**, **Cloud Cost · FinOps**, **Service Desk**, **Customers & SLAs** and **Business Metrics**. There is also a perspective for each **Service**, **Host**, **Pipeline**, **Customer**, **Team** and **Region**.
 
 ## Data streams
 
