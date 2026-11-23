@@ -1,54 +1,40 @@
 // dataStreams/scripts/prepatchCounts.js
 //
-// Count each page of the pre-patch report so tiles can total the whole
-// estate from imported rows, for the same reason as deviceCounts.js. Only
-// per-device and per-operation counts are used because they add up across
-// pages; the report's own severity counts are over distinct software
-// versions within one response and do not.
-//
-// One operation is one entry in a device's `patches` list (device x package
-// version), matching how Automox defines the report's `total`.
-const rows = (data && data.prepatch && data.prepatch.devices) || [];
-const offset = Number(context.pagingContext ?? 0);
-const range = `devices ${offset + 1}-${offset + rows.length}`;
+// Counts one page of the pre-patch report into a few rows that dashboard
+// tiles sum, for the same reason as deviceCounts.js. Severities count
+// operations (one device x one patch) because the report's own severity
+// counts are per response and don't add up across pages.
+const devices = (data && data.prepatch && data.prepatch.devices) || [];
+const offset = context.pagingContext ?? 0;
 
-const SEVERITIES = ["Critical", "High", "Medium", "Low", "None", "Unknown"];
-const severityLabel = (value) => {
-    const match = SEVERITIES.find((s) => s.toLowerCase() === String(value ?? "").toLowerCase());
-    return match || "Unknown";
-};
-
-const asList = (patches) => (Array.isArray(patches) ? patches : patches ? [patches] : []);
-
-const bySeverity = Object.fromEntries(SEVERITIES.map((s) => [s, 0]));
-let devices = 0;
+// Every severity is always written so a filtered tile shows 0, not no data.
+const bySeverity = { Critical: 0, High: 0, Medium: 0, Low: 0, None: 0, Unknown: 0 };
+let devicesWithPatches = 0;
 let operations = 0;
 
-for (const device of rows) {
-    const patches = asList(device.patches);
-    if (patches.length === 0) {
-        continue;
-    }
-    devices += 1;
+for (const d of devices) {
+    const patches = d.patches || [];
+    if (patches.length > 0) devicesWithPatches += 1;
     operations += patches.length;
-    for (const patch of patches) {
-        bySeverity[severityLabel(patch.severity)] += 1;
+    for (const p of patches) {
+        const s = p.severity ? p.severity[0].toUpperCase() + p.severity.slice(1).toLowerCase() : "Unknown";
+        bySeverity[s in bySeverity ? s : "Unknown"] += 1;
     }
 }
 
-const row = (kind, label, value) => ({
-    countId: `prepatch:${kind}:${label}:${offset}`,
-    countName: `${label} (${range})`,
-    countKind: kind,
-    countLabel: label,
-    countValue: value,
-});
+const counts = [
+    ["devices", "Devices with Pending Patches", devicesWithPatches],
+    ["operations", "Pending Patch Operations", operations],
+    ...Object.entries(bySeverity).map(([s, n]) => ["severity", s, n]),
+];
 
 result =
-    rows.length === 0
+    devices.length === 0
         ? []
-        : [
-              row("devices", "Devices with Pending Patches", devices),
-              row("operations", "Pending Patch Operations", operations),
-              ...SEVERITIES.map((s) => row("severity", s, bySeverity[s])),
-          ];
+        : counts.map(([kind, label, value]) => ({
+              countId: `prepatch:${kind}:${label}:${offset}`,
+              countName: `${label} (rows from ${offset + 1})`,
+              countKind: kind,
+              countLabel: label,
+              countValue: value,
+          }));
