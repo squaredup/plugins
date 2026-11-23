@@ -145,12 +145,12 @@ const availability30d = (s) => {
 
 const rows = [];
 const today = Math.floor(NOW / DAY);
-// One release train per week, 4.11 is this week, so the incident's 4.12.0 is the newest version
+// One release train per week, 4.11 is this week, so the incident's 4.12.0 is the newest
+// version. Every 40 trains roll over into the previous major, so no component goes negative
 const versionFor = (day, n) => {
-    const daysBack = today - day;
-    const train = 11 - Math.floor(daysBack / 7);
-    const patch = (6 - (daysBack % 7)) * 7 + n;
-    return train >= 0 ? `4.${train}.${patch}` : `3.${40 + train}.${patch}`;
+    const train = 11 - Math.floor((today - day) / 7);
+    const patch = (6 - ((today - day) % 7)) * 7 + n;
+    return `${4 + Math.floor(train / 40)}.${((train % 40) + 40) % 40}.${patch}`;
 };
 for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
     const s = services[p.service];
