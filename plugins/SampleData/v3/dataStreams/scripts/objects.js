@@ -143,6 +143,7 @@ const services_ = model.services.map((s) => ({
     region: regions[s.region].name,
     provider: s.provider,
     sloTarget: s.sloTarget,
+    calls: model.dependencies.filter((d) => d.from === s.id).map((d) => services[d.to].name),
 }));
 const hosts = model.hosts.map((h) => ({
     id: h.id,
