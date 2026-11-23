@@ -1,0 +1,194 @@
+{
+    "name": "costAndUsage",
+    "displayName": "Cost and Usage",
+    "description": "Cost or usage for the tenancy, grouped by service, compartment, region, SKU or resource",
+    "tags": [
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "usageapi/home/20200107/usage",
+        "postBody": {
+            "tenantId": "{{dataSource.tenancyOcid.trim()}}",
+            "granularity": "{{ (()=>{const t=typeof timeframe!=='undefined'&&timeframe&&timeframe.unixStart&&timeframe.unixEnd?timeframe:null;const e0=t?+t.unixEnd:Math.floor(Date.now()/1000);const s0=t?+t.unixStart:e0-604800;const D=86400;const ds=Math.floor(s0/D)*D;const de=Math.ceil(e0/D)*D;const daily=(de-ds)/D<=90;const a=new Date(s0*1000);const b=new Date(e0*1000);const ms=Date.UTC(a.getUTCFullYear(),a.getUTCMonth(),1);const mb=Date.UTC(b.getUTCFullYear(),b.getUTCMonth(),1);const me=(b.getTime()===mb)?mb:Date.UTC(b.getUTCFullYear(),b.getUTCMonth()+1,1);return daily?'DAILY':'MONTHLY';})() }}",
+            "timeUsageStarted": "{{ (()=>{const t=typeof timeframe!=='undefined'&&timeframe&&timeframe.unixStart&&timeframe.unixEnd?timeframe:null;const e0=t?+t.unixEnd:Math.floor(Date.now()/1000);const s0=t?+t.unixStart:e0-604800;const D=86400;const ds=Math.floor(s0/D)*D;const de=Math.ceil(e0/D)*D;const daily=(de-ds)/D<=90;const a=new Date(s0*1000);const b=new Date(e0*1000);const ms=Date.UTC(a.getUTCFullYear(),a.getUTCMonth(),1);const mb=Date.UTC(b.getUTCFullYear(),b.getUTCMonth(),1);const me=(b.getTime()===mb)?mb:Date.UTC(b.getUTCFullYear(),b.getUTCMonth()+1,1);return new Date((daily?ds:ms/1000)*1000).toISOString();})() }}",
+            "timeUsageEnded": "{{ (()=>{const t=typeof timeframe!=='undefined'&&timeframe&&timeframe.unixStart&&timeframe.unixEnd?timeframe:null;const e0=t?+t.unixEnd:Math.floor(Date.now()/1000);const s0=t?+t.unixStart:e0-604800;const D=86400;const ds=Math.floor(s0/D)*D;const de=Math.ceil(e0/D)*D;const daily=(de-ds)/D<=90;const a=new Date(s0*1000);const b=new Date(e0*1000);const ms=Date.UTC(a.getUTCFullYear(),a.getUTCMonth(),1);const mb=Date.UTC(b.getUTCFullYear(),b.getUTCMonth(),1);const me=(b.getTime()===mb)?mb:Date.UTC(b.getUTCFullYear(),b.getUTCMonth()+1,1);return new Date((daily?de:me/1000)*1000).toISOString();})() }}",
+            "queryType": "{{queryType || 'COST'}}",
+            "isAggregateByTime": false,
+            "compartmentDepth": "{{ [].concat(groupBy || []).map((g) => g && g.value || g).includes('compartmentName') ? 6 : null }}",
+            "groupBy": "{{ (() => { const g = [].concat(groupBy || []).map((x) => x && x.value || x).filter(Boolean); const d = (g.length ? g : ['service']).slice(0, 4); return d.concat(['currency', 'unit'].filter((x) => !d.includes(x))).slice(0, 4); })() }}",
+            "filter": "{{ (() => { const ids = (o) => [].concat(o || []).map((c) => [].concat(c.rawId)[0]).filter(Boolean); const mk = (k, o) => ids(o).length ? { operator: 'OR', dimensions: ids(o).map((v) => ({ key: k, value: v })) } : null; const f = [mk('compartmentId', compartment), mk('resourceId', resource)].filter(Boolean); return f.length ? { operator: 'AND', filters: f } : null; })() }}"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "pathToData": "items"
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "groupBy",
+            "label": "Group by",
+            "isMulti": true,
+            "defaultValue": [
+                "service"
+            ],
+            "options": [
+                {
+                    "value": "service",
+                    "label": "Service"
+                },
+                {
+                    "value": "compartmentName",
+                    "label": "Compartment"
+                },
+                {
+                    "value": "region",
+                    "label": "Region"
+                },
+                {
+                    "value": "skuName",
+                    "label": "SKU"
+                },
+                {
+                    "value": "resourceId",
+                    "label": "Resource"
+                }
+            ]
+        },
+        {
+            "type": "switch",
+            "name": "queryType",
+            "label": "Type",
+            "defaultValue": "COST",
+            "options": [
+                {
+                    "value": "COST",
+                    "label": "Cost"
+                },
+                {
+                    "value": "USAGE",
+                    "label": "Usage"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "compartment",
+            "label": "Compartment(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Compartment"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "resource",
+            "label": "Resource(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Compute Instance",
+                        "Load Balancer",
+                        "Autonomous Database",
+                        "Bucket",
+                        "Function"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timeUsageStarted",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "computedAmount",
+            "displayName": "Cost",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "computedQuantity",
+            "displayName": "Quantity",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "currency",
+            "displayName": "Currency",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string"
+        },
+        {
+            "name": "service",
+            "displayName": "Service",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "compartmentName",
+            "displayName": "Compartment",
+            "shape": "string"
+        },
+        {
+            "name": "compartmentPath",
+            "displayName": "Compartment path",
+            "shape": "string"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "skuName",
+            "displayName": "SKU",
+            "shape": "string"
+        },
+        {
+            "name": "resourceId",
+            "displayName": "Resource OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "resourceName",
+            "displayName": "Resource",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ]
+}

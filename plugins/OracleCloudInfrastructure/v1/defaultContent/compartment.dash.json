@@ -1,0 +1,687 @@
+{
+    "name": "Compartment",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [
+        "{{variables.[Compartment]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "3b5fb38e-06b1-4e17-8eb6-79851f3c1fbc",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 5,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "Imported properties of this compartment",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties"
+                    },
+                    "timeframe": "none",
+                    "scope": {
+                        "scope": "{{scopes.[Compartments]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Compartment]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "description",
+                                        "title": "Description",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lifecycleState",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "timeCreated",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    },
+                                    {
+                                        "field": "isRoot",
+                                        "title": "Root Compartment",
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 4,
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dc017daa-0873-42f7-b581-d55318ffea47",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Resources",
+                    "description": "Resources directly in this compartment, across all subscribed regions",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[resources]}}",
+                        "name": "resources",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "compartment": {
+                                "scope": "{{scopes.[Compartments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compartment]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        }
+                    },
+                    "timeframe": "none",
+                    "scope": {
+                        "scope": "{{scopes.[Regions]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "count",
+                                        "type": "quantitative",
+                                        "title": "Resources"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarLabelPosition": "none"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5c166fbc-5ec9-4891-bbad-101d33d8caad",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost This Month",
+                    "description": "Month-to-date cost for this compartment",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[costAndUsage]}}",
+                        "name": "costAndUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "service"
+                            ],
+                            "compartment": {
+                                "scope": "{{scopes.[Compartments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compartment]}}"
+                            },
+                            "resource": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "currency",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "computedAmount"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "timeframe": "thisMonth",
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "computedAmount_sum",
+                                        "type": "quantitative"
+                                    }
+                                ],
+                                "label": {
+                                    "field": "currency_uniqueValues",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "scalarLabelPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f88e9355-39ea-415b-bbed-794b394a63d5",
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost Last 30 Days",
+                    "description": "Cost for this compartment over the last 30 days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[costAndUsage]}}",
+                        "name": "costAndUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "service"
+                            ],
+                            "compartment": {
+                                "scope": "{{scopes.[Compartments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compartment]}}"
+                            },
+                            "resource": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "currency",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "computedAmount"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "timeframe": "last30days",
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "computedAmount_sum",
+                                        "type": "quantitative"
+                                    }
+                                ],
+                                "label": {
+                                    "field": "currency_uniqueValues",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "scalarLabelPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "702f497b-5e95-4392-92ef-d8fa3933661f",
+                "x": 1,
+                "y": 2,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Cost by Service",
+                    "description": "Daily cost for this compartment over the last 30 days, stacked by service",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[costAndUsage]}}",
+                        "name": "costAndUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "service"
+                            ],
+                            "compartment": {
+                                "scope": "{{scopes.[Compartments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compartment]}}"
+                            },
+                            "resource": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "timeUsageStarted",
+                                    "byDay"
+                                ],
+                                [
+                                    "service",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "computedAmount"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "timeUsageStarted_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "timeframe": "last30days",
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "timeUsageStarted_byDay",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "computedAmount_sum",
+                                    "type": "quantitative",
+                                    "title": "Cost"
+                                },
+                                "series": {
+                                    "field": "service_uniqueValues",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "049c606f-227b-4243-9ead-743bb1c4018f",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Resources by Type",
+                    "description": "Resources in this compartment, by type",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[resources]}}",
+                        "name": "resources",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "compartment": {
+                                "scope": "{{scopes.[Compartments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compartment]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "sourceType",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "count",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "timeframe": "none",
+                    "scope": {
+                        "scope": "{{scopes.[Regions]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "sourceType_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Type"
+                                },
+                                "value": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Resources"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 62,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "pieLegendStyle": "table",
+                                "pieBorderRadius": 4,
+                                "piePadAngle": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9676bc1f-b372-43a0-b27d-5f989d8de567",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Cost by Service",
+                    "description": "Cost for this compartment over the last 30 days, by service",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[costAndUsage]}}",
+                        "name": "costAndUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "service"
+                            ],
+                            "compartment": {
+                                "scope": "{{scopes.[Compartments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compartment]}}"
+                            },
+                            "resource": []
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "service",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "computedAmount"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "computedAmount_sum",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "timeframe": "last30days",
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "service_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                },
+                                "y": {
+                                    "field": "computedAmount_sum",
+                                    "type": "quantitative",
+                                    "title": "Cost"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e79efc2c-b403-4944-90b1-9d26aa86f3be",
+                "x": 0,
+                "y": 8,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Resource List",
+                    "description": "Every resource directly in this compartment (excluding terminated and deleted)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[resources]}}",
+                        "name": "resources",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "compartment": {
+                                "scope": "{{scopes.[Compartments]}}",
+                                "workspace": "{{workspaceId}}",
+                                "variable": "{{variables.[Compartment]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "sourceType",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "timeframe": "none",
+                    "scope": {
+                        "scope": "{{scopes.[Regions]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "displayName",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "sourceType",
+                                        "title": "Type",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "defaultColor": "#64748B"
+                                        }
+                                    },
+                                    {
+                                        "field": "compartment",
+                                        "title": "Compartment",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lifecycleState",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "status"
+                                        }
+                                    },
+                                    {
+                                        "field": "availabilityDomain",
+                                        "title": "Availability Domain",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "timeCreated",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableSort": {
+                                    "field": "sourceType",
+                                    "direction": "asc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
