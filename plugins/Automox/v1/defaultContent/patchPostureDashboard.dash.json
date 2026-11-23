@@ -19,23 +19,49 @@
                 "config": {
                     "_type": "tile/data-stream",
                     "title": "Pending Patch Operations",
-                    "description": "Counts pending device x package-version patch operations, not individual devices",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "description": "One per device and package version, across every device with a pending patch",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "timeframe": "none",
                     "dataStream": {
-                        "id": "{{dataStreams.prepatchSummary}}",
-                        "name": "prepatchSummary",
-                        "pluginConfigId": "{{configId}}"
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "operations"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
+                                }
+                            ]
+                        }
                     },
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "prepatch.total",
+                                "value": "countValue_sum",
                                 "comparisonColumn": "none",
-                                "label": "Pending Patch Operations (not devices)"
+                                "label": "Pending Patch Operations"
                             }
                         }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pre-Patch Counts]}}",
+                        "workspace": "{{workspaceId}}"
                     }
                 }
             },
@@ -50,20 +76,50 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Needs Attention",
+                    "title": "Devices with Pending Patches",
                     "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "timeframe": "none",
                     "dataStream": {
-                        "id": "{{dataStreams.prepatchSummary}}",
-                        "name": "prepatchSummary",
-                        "pluginConfigId": "{{configId}}"
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "devices"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
+                                }
+                            ]
+                        }
                     },
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
-                            "data-stream-scalar": { "value": "prepatch.needsAttention", "comparisonColumn": "none" }
+                            "data-stream-scalar": {
+                                "value": "countValue_sum",
+                                "comparisonColumn": "none",
+                                "label": "Devices"
+                            }
                         }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pre-Patch Counts]}}",
+                        "workspace": "{{workspaceId}}"
                     }
                 }
             },
@@ -78,20 +134,54 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "Critical",
-                    "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "title": "Critical Operations",
+                    "description": "Pending patch operations with critical severity",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "timeframe": "none",
                     "dataStream": {
-                        "id": "{{dataStreams.prepatchSummary}}",
-                        "name": "prepatchSummary",
-                        "pluginConfigId": "{{configId}}"
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "severity"
+                                },
+                                {
+                                    "column": "countLabel",
+                                    "operation": "equals",
+                                    "value": "Critical"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
+                                }
+                            ]
+                        }
                     },
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
-                            "data-stream-scalar": { "value": "prepatch.critical", "comparisonColumn": "none" }
+                            "data-stream-scalar": {
+                                "value": "countValue_sum",
+                                "comparisonColumn": "none"
+                            }
                         }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pre-Patch Counts]}}",
+                        "workspace": "{{workspaceId}}"
                     }
                 }
             },
@@ -106,20 +196,54 @@
                 "z": 0,
                 "config": {
                     "_type": "tile/data-stream",
-                    "title": "High",
-                    "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "title": "High Operations",
+                    "description": "Pending patch operations with high severity",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "timeframe": "none",
                     "dataStream": {
-                        "id": "{{dataStreams.prepatchSummary}}",
-                        "name": "prepatchSummary",
-                        "pluginConfigId": "{{configId}}"
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "severity"
+                                },
+                                {
+                                    "column": "countLabel",
+                                    "operation": "equals",
+                                    "value": "High"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
+                                }
+                            ]
+                        }
                     },
                     "visualisation": {
                         "type": "data-stream-scalar",
                         "config": {
-                            "data-stream-scalar": { "value": "prepatch.high", "comparisonColumn": "none" }
+                            "data-stream-scalar": {
+                                "value": "countValue_sum",
+                                "comparisonColumn": "none"
+                            }
                         }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pre-Patch Counts]}}",
+                        "workspace": "{{workspaceId}}"
                     }
                 }
             },
@@ -136,18 +260,63 @@
                     "_type": "tile/data-stream",
                     "title": "Pending Patch Operations by Severity",
                     "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "timeframe": "none",
                     "dataStream": {
-                        "id": "{{dataStreams.prepatchSummary}}",
-                        "name": "prepatchSummary",
-                        "pluginConfigId": "{{configId}}"
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "severity"
+                                }
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "countLabel",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "countValue_sum",
+                                    "desc"
+                                ]
+                            ]
+                        }
                     },
                     "visualisation": {
                         "type": "data-stream-table",
                         "config": {
-                            "data-stream-table": { "transpose": true }
+                            "data-stream-table": {
+                                "transpose": false,
+                                "columnOrder": [
+                                    "countLabel_uniqueValues",
+                                    "countValue_sum"
+                                ]
+                            }
                         }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Pre-Patch Counts]}}",
+                        "workspace": "{{workspaceId}}"
                     }
                 }
             },
@@ -164,7 +333,9 @@
                     "_type": "tile/data-stream",
                     "title": "Devices with Pending Patches",
                     "description": "",
-                    "activePluginConfigIds": ["{{configId}}"],
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
                     "timeframe": "none",
                     "dataStream": {
                         "id": "{{dataStreams.prepatchDevices}}",
@@ -172,8 +343,14 @@
                         "pluginConfigId": "{{configId}}",
                         "sort": {
                             "by": [
-                                ["os_family", "asc"],
-                                ["name", "asc"]
+                                [
+                                    "os_family",
+                                    "asc"
+                                ],
+                                [
+                                    "name",
+                                    "asc"
+                                ]
                             ]
                         }
                     },
@@ -194,7 +371,9 @@
                                     "patchNames",
                                     "patchSeverities"
                                 ],
-                                "hiddenColumns": ["id"]
+                                "hiddenColumns": [
+                                    "id"
+                                ]
                             }
                         }
                     }

@@ -27,11 +27,24 @@
                     "dataStream": {
                         "id": "datastream-properties",
                         "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "connection"
+                                }
+                            ]
+                        },
                         "group": {
                             "by": [],
                             "aggregate": [
                                 {
-                                    "type": "count"
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
                                 }
                             ]
                         }
@@ -40,13 +53,13 @@
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "count",
+                                "value": "countValue_sum",
                                 "comparisonColumn": "none"
                             }
                         }
                     },
                     "scope": {
-                        "scope": "{{scopes.[Devices]}}",
+                        "scope": "{{scopes.[Device Counts]}}",
                         "workspace": "{{workspaceId}}"
                     }
                 }
@@ -75,9 +88,14 @@
                             "multiOperation": "and",
                             "filters": [
                                 {
-                                    "column": "connected",
+                                    "column": "countKind",
                                     "operation": "equals",
-                                    "value": "true"
+                                    "value": "connection"
+                                },
+                                {
+                                    "column": "countLabel",
+                                    "operation": "equals",
+                                    "value": "Connected"
                                 }
                             ]
                         },
@@ -85,7 +103,10 @@
                             "by": [],
                             "aggregate": [
                                 {
-                                    "type": "count"
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
                                 }
                             ]
                         }
@@ -94,13 +115,13 @@
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "count",
+                                "value": "countValue_sum",
                                 "comparisonColumn": "none"
                             }
                         }
                     },
                     "scope": {
-                        "scope": "{{scopes.[Devices]}}",
+                        "scope": "{{scopes.[Device Counts]}}",
                         "workspace": "{{workspaceId}}"
                     }
                 }
@@ -129,9 +150,14 @@
                             "multiOperation": "and",
                             "filters": [
                                 {
-                                    "column": "connected",
+                                    "column": "countKind",
                                     "operation": "equals",
-                                    "value": "false"
+                                    "value": "connection"
+                                },
+                                {
+                                    "column": "countLabel",
+                                    "operation": "equals",
+                                    "value": "Disconnected"
                                 }
                             ]
                         },
@@ -139,7 +165,10 @@
                             "by": [],
                             "aggregate": [
                                 {
-                                    "type": "count"
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
                                 }
                             ]
                         }
@@ -148,13 +177,13 @@
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "count",
+                                "value": "countValue_sum",
                                 "comparisonColumn": "none"
                             }
                         }
                     },
                     "scope": {
-                        "scope": "{{scopes.[Devices]}}",
+                        "scope": "{{scopes.[Device Counts]}}",
                         "workspace": "{{workspaceId}}"
                     }
                 }
@@ -183,9 +212,14 @@
                             "multiOperation": "and",
                             "filters": [
                                 {
-                                    "column": "needs_reboot",
+                                    "column": "countKind",
                                     "operation": "equals",
-                                    "value": "true"
+                                    "value": "reboot"
+                                },
+                                {
+                                    "column": "countLabel",
+                                    "operation": "equals",
+                                    "value": "Needs Reboot"
                                 }
                             ]
                         },
@@ -193,7 +227,10 @@
                             "by": [],
                             "aggregate": [
                                 {
-                                    "type": "count"
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
                                 }
                             ]
                         }
@@ -202,13 +239,13 @@
                         "type": "data-stream-scalar",
                         "config": {
                             "data-stream-scalar": {
-                                "value": "count",
+                                "value": "countValue_sum",
                                 "comparisonColumn": "none"
                             }
                         }
                     },
                     "scope": {
-                        "scope": "{{scopes.[Devices]}}",
+                        "scope": "{{scopes.[Device Counts]}}",
                         "workspace": "{{workspaceId}}"
                     }
                 }
@@ -233,16 +270,29 @@
                     "dataStream": {
                         "id": "datastream-properties",
                         "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "compliance"
+                                }
+                            ]
+                        },
                         "group": {
                             "by": [
                                 [
-                                    "compliant",
+                                    "countLabel",
                                     "uniqueValues"
                                 ]
                             ],
                             "aggregate": [
                                 {
-                                    "type": "count"
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
                                 }
                             ]
                         }
@@ -251,8 +301,8 @@
                         "type": "data-stream-donut-chart",
                         "config": {
                             "data-stream-donut-chart": {
-                                "valueColumn": "count",
-                                "labelColumn": "compliant_uniqueValues",
+                                "valueColumn": "countValue_sum",
+                                "labelColumn": "countLabel_uniqueValues",
                                 "hideCenterValue": false,
                                 "showValuesAsPercentage": false,
                                 "legendPosition": "auto",
@@ -261,7 +311,7 @@
                         }
                     },
                     "scope": {
-                        "scope": "{{scopes.[Devices]}}",
+                        "scope": "{{scopes.[Device Counts]}}",
                         "workspace": "{{workspaceId}}"
                     }
                 }
@@ -318,23 +368,36 @@
                     "dataStream": {
                         "id": "datastream-properties",
                         "name": "properties",
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "countKind",
+                                    "operation": "equals",
+                                    "value": "os"
+                                }
+                            ]
+                        },
                         "group": {
                             "by": [
                                 [
-                                    "os_family",
+                                    "countLabel",
                                     "uniqueValues"
                                 ]
                             ],
                             "aggregate": [
                                 {
-                                    "type": "count"
+                                    "type": "sum",
+                                    "names": [
+                                        "countValue"
+                                    ]
                                 }
                             ]
                         },
                         "sort": {
                             "by": [
                                 [
-                                    "count",
+                                    "countValue_sum",
                                     "desc"
                                 ]
                             ]
@@ -344,9 +407,9 @@
                         "type": "data-stream-bar-chart",
                         "config": {
                             "data-stream-bar-chart": {
-                                "xAxisData": "os_family_uniqueValues",
+                                "xAxisData": "countLabel_uniqueValues",
                                 "yAxisData": [
-                                    "count"
+                                    "countValue_sum"
                                 ],
                                 "xAxisGroup": "none",
                                 "xAxisLabel": "",
@@ -368,7 +431,7 @@
                         }
                     },
                     "scope": {
-                        "scope": "{{scopes.[Devices]}}",
+                        "scope": "{{scopes.[Device Counts]}}",
                         "workspace": "{{workspaceId}}"
                     }
                 }

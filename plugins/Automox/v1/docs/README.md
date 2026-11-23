@@ -77,6 +77,8 @@ Drilldown** perspective, and a **Devices Needing Attention** worklist.
 | ---------------------- | -------------------- | ----------------------------------------------- |
 | **Automox Device**    | `GET /servers`      | A managed endpoint in the organization.       |
 | **Automox Policy**    | `GET /policies`     | A patch, required-software, or custom policy. |
+| **Automox Device Count** | `GET /servers`   | Devices in one category (for example Connected) within one 500-device page, used by the Estate Overview totals. |
+| **Automox Pre-Patch Count** | `GET /reports/prepatch` | Pending patch operations or devices in one category within one page of the pre-patch report, used by the Patch Posture totals. |
 
 **Relationships:** each Device is linked to the Policies applied to it (via
 the device's policy status list).
@@ -113,11 +115,25 @@ the device's policy status list).
   3,000 devices costs 7 requests each time it loads. On a 429, streams
   surface a message naming when the limit resets rather than silently
   failing; there is no automatic retry.
-- **Summary counts may cover only the first 500 devices** — Automox's API
-  reference describes the Pre-Patch total as counting the operations "in
-  this response", and the summary streams request one page of 500 devices.
-  Whether the counts cover the whole organization on a larger estate has
-  not been confirmed live.
+- **Dashboard counts come from the last import** — Estate Overview and the
+  Patch Posture totals add up counts the import writes for each page of
+  devices, so they cover the whole estate but are only as fresh as the last
+  import (every 12 hours by default). The device list can't be counted live
+  on a large estate: a live tile reads pages for at most 12 seconds, about
+  1,500 devices at Automox's response times, and a tile scope holds at most
+  500 objects. Build your own device counts on the Device Counts objects
+  rather than the Devices data stream.
+- **Count objects cover up to about 25,000 devices** — each 500-device page
+  writes about 10 count objects, and a tile scope reads at most 500.
+- **Live device lists stop after 12 seconds** — tables that list devices
+  (Devices with Pending Patches, Devices Needing Attention, and any tile on
+  the Devices data stream) show the rows read within 12 seconds and a "The
+  request timed out" warning on a large estate. Filter them by Server Group
+  ID to see the rest.
+- **Patch Posture severities count operations** — the severity tiles count
+  pending patch operations (device × package version), not distinct
+  software versions as Automox's own Pre-Patch report does, because only
+  operation counts add up across pages.
 - **Read-only** — the plugin never creates, modifies, or deletes anything in
   Automox.
 - **Not yet verified against a live tenant** — this plugin was built from
