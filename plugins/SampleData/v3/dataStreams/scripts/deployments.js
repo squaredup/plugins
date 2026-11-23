@@ -136,6 +136,13 @@ const availability30d = (s) => {
 
 const rows = [];
 const today = Math.floor(NOW / DAY);
+// One release train per week, 4.11 is this week, so the incident's 4.12.0 is the newest version
+const versionFor = (day, n) => {
+    const daysBack = today - day;
+    const train = 11 - Math.floor(daysBack / 7);
+    const patch = (6 - (daysBack % 7)) * 7 + n;
+    return train >= 0 ? `4.${train}.${patch}` : `3.${40 + train}.${patch}`;
+};
 for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
     const s = services[p.service];
     for (let day = Math.floor(windowStart / DAY); day <= Math.min(today, Math.floor((windowEnd - 1) / DAY)); day++) {
@@ -147,6 +154,8 @@ for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
             // Deploys land in working hours, 08:00-18:00 UTC
             const at = day * DAY + (8 + rand(`${key}:at`) * 10) * HOUR;
             if (at < windowStart || at > Math.min(windowEnd, NOW - 30 * MIN)) continue;
+            // The incident release is the last one out of its pipeline
+            if (p.id === incident.pipeline && at >= incidentStart - 6 * MIN) continue;
             const failed = rand(`${key}:fail`) < p.failureRate;
             const changeFailure = !failed && rand(`${key}:cf`) < p.failureRate * 0.6;
             rows.push({
@@ -157,7 +166,7 @@ for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
                 service: s.name,
                 team: teams[p.team].name,
                 tool: p.tool,
-                version: `${4 + Math.floor(day / 120) % 3}.${day % 40}.${n}`,
+                version: versionFor(day, n),
                 status: failed ? "Failed" : "Succeeded",
                 state: failed ? "error" : changeFailure ? "warning" : "success",
                 changeFailure,
