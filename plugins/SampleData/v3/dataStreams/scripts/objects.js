@@ -174,4 +174,16 @@ const customers = model.customers.map((c) => ({
     slaTarget: c.slaTarget,
     uses: (c.services || []).map((id) => services[id].name),
 }));
-result = [...services_, ...hosts, ...pipelines, ...customers];
+// Prefixed ids keep teams and regions apart from the service and host ids the streams scope on
+const teams_ = model.teams.map((t) => ({
+    id: `team-${t.id}`,
+    name: t.name,
+    type: "Team",
+}));
+const regions_ = model.regions.map((r) => ({
+    id: `region-${r.id}`,
+    name: r.name,
+    type: "Region",
+    provider: r.provider,
+}));
+result = [...services_, ...hosts, ...pipelines, ...customers, ...teams_, ...regions_];
