@@ -201,7 +201,8 @@ for (const c of scoped(model.customers)) {
             if (opened < windowStart || opened > Math.min(windowEnd, NOW)) continue;
             const priority = pick(rand(`${key}:p`), priorities);
             const category = categoryList[Math.floor(rand(`${key}:c`) * categoryList.length)];
-            const service = servicePool[Math.floor(rand(`${key}:s`) * servicePool.length)];
+            const pool = usedBy(c.id).length ? usedBy(c.id).map((id) => services[id]) : servicePool;
+            const service = pool[Math.floor(rand(`${key}:s`) * pool.length)];
             if (!forService(service.id)) continue;
             rows.push(ticket(c, (day % 10000) * 200 + ci * 10 + n, key, opened, priority, category, service, 0.1 + Math.pow(rand(`${key}:res`), 2)));
         }
