@@ -51,8 +51,10 @@ The out-of-the-box dashboards are **Executive Overview**, **Service Health (NOC)
 | **Host**     | The sample model (19)  | A cloud virtual machine running a service.   |
 | **Pipeline** | The sample model (6)   | A release pipeline that deploys a service.   |
 | **Customer** | The sample model (20)  | A customer account with an SLA.              |
+| **Team**     | The sample model (5)   | An engineering team that owns services.      |
+| **Region**   | The sample model (3)   | A cloud region that hosts services.          |
 
-**Relationships:** each Host runs a Service, and each Pipeline deploys a Service.
+**Relationships:** each Host runs a Service, each Pipeline deploys a Service, each Service calls the Services it depends on, each Customer uses Services, each Team owns its Services and Pipelines, and each Region hosts its Services and Hosts.
 
 ## Known limitations
 
