@@ -1,0 +1,92 @@
+{
+    "name": "userSignIns",
+    "displayName": "Copilot User Sign-ins",
+    "description": "Last Microsoft Entra sign-in for each user with a Microsoft 365 Copilot licence, read live (needs AuditLog.Read.All and Microsoft Entra ID P1 or P2)",
+    "tags": [
+        "User"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "v1.0/users",
+        "pathToData": "value",
+        "expandInnerObjects": true,
+        "headers": [
+            {
+                "key": "ConsistencyLevel",
+                "value": "eventual"
+            }
+        ],
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "assignedPlans/any(p:p/servicePlanId eq a62f8878-de10-42f3-b68f-6149a25ceb97 and p/capabilityStatus eq 'Enabled') or assignedPlans/any(p:p/servicePlanId eq 3f30311c-6b1e-48a4-ab79-725b469da960 and p/capabilityStatus eq 'Enabled')"
+            },
+            {
+                "key": "$count",
+                "value": "true"
+            },
+            {
+                "key": "$select",
+                "value": "id,displayName,userPrincipalName,accountEnabled,signInActivity"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "$top",
+                "value": "500"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "@odata.nextLink"
+            }
+        }
+    },
+    "matches": "none",
+    "timeframes": false,
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User principal name",
+            "shape": "string"
+        },
+        {
+            "name": "accountEnabled",
+            "displayName": "Account enabled",
+            "shape": "boolean"
+        },
+        {
+            "name": "lastSignInDateTime",
+            "displayName": "Last sign-in",
+            "shape": "date",
+            "computed": true,
+            "valueExpression": "{{ $['signInActivity.lastSuccessfulSignInDateTime'] || null }}"
+        },
+        {
+            "name": "signInActivity.lastSuccessfulSignInDateTime",
+            "displayName": "Last successful sign-in",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "signInActivity.lastSignInDateTime",
+            "displayName": "Last sign-in attempt",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "id",
+            "displayName": "Object ID",
+            "shape": "guid",
+            "visible": false
+        }
+    ]
+}

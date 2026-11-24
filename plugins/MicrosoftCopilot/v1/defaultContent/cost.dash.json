@@ -1,0 +1,419 @@
+{
+    "name": "Cost & Capacity",
+    "schemaVersion": "1.5",
+    "timeframe": "last30days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "d43e3456-7b1a-5b9f-a5fd-d3daf79f05ad",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Copilot Studio Credits",
+                    "description": "Whether the tenant is within its prepaid Copilot Credit capacity this month, and how many pay-as-you-go credits it has used",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT CASE \"capacity.status\" WHEN 'WithinCapacity' THEN 'Within capacity' WHEN 'CoveredOverage' THEN 'Overage covered' WHEN 'Overage' THEN 'In overage' ELSE COALESCE(\"capacity.status\", 'Unknown') END AS \"label\", \"capacityState\" AS \"state\", CONCAT_WS(' · ', CASE WHEN \"capacity.entitled.value\" > 0 THEN FORMAT('{:,.0f} of {:,.0f} prepaid', \"capacity.consumed.value\", \"capacity.entitled.value\") END, FORMAT('{:,.0f} pay-as-you-go', COALESCE(\"payGo.consumed.value\", 0))) AS \"detail\" FROM \"credits\"",
+                            "tables": [
+                                {
+                                    "tableName": "credits",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[creditCapacity]}}",
+                                            "name": "creditCapacity"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "statusGrid",
+                            "encoding": {
+                                "label": {
+                                    "field": "label",
+                                    "type": "nominal"
+                                },
+                                "status": {
+                                    "field": "state",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "statusGridColumnsPerRow": 1,
+                                "statusGridLabelWrap": true,
+                                "statusGridSecondaryTemplate": "{{{{raw}}}}{{detail}}{{{{/raw}}}}",
+                                "labelFontSize": 16,
+                                "secondaryFontSize": 12
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "e8b64d25-b9dd-4f1a-a9b2-261ceda64876",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Cost Budgets",
+                    "description": "Cost Management budgets at the Cost Management scope, with spend so far this period and the forecast at period end. Amber at 80% used or when the forecast exceeds the budget, red when it's exceeded",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[budgets]}}",
+                        "name": "budgets",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "percentUsed",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "budgetState",
+                                        "title": "",
+                                        "renderer": {
+                                            "type": "status",
+                                            "showLabel": false
+                                        },
+                                        "width": 32
+                                    },
+                                    {
+                                        "field": "name",
+                                        "title": "Budget",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "currentSpend",
+                                        "title": "Spent",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right",
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "amount",
+                                        "title": "Budget",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0
+                                        },
+                                        "align": "right",
+                                        "width": 90
+                                    },
+                                    {
+                                        "field": "percentUsed",
+                                        "title": "Used %",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "max": 100,
+                                            "suffix": "%",
+                                            "thresholds": [
+                                                {
+                                                    "to": 79,
+                                                    "color": "#22c55e"
+                                                },
+                                                {
+                                                    "to": 99,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "percentForecast",
+                                        "title": "Forecast",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 0,
+                                            "suffix": "%",
+                                            "thresholds": [
+                                                {
+                                                    "to": 100,
+                                                    "color": "#9ca3af"
+                                                },
+                                                {
+                                                    "to": 100000,
+                                                    "color": "#f59e0b"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right",
+                                        "width": 110
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableHideCount": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "391d9af4-cde3-556c-98ef-68b34d639d02",
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Copilot and AI Spend",
+                    "description": "Daily Azure cost of Copilot Studio, Copilot pay-as-you-go and Azure AI services from Cost Management, by service, with each service's total for the timeframe",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"usageDate\" AS \"day\", \"group\" || ' (' || \"currency\" || ')' AS \"service\", SUM(\"cost\") AS \"cost\" FROM \"spend\" GROUP BY 1, 2 ORDER BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "spend",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[spend]}}",
+                                            "name": "spend",
+                                            "dataSourceConfig": {
+                                                "groupBy": "ServiceName",
+                                                "scopeOfCosts": "copilot"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "day",
+                                    "type": "temporal",
+                                    "title": "Day"
+                                },
+                                "y": {
+                                    "field": "cost",
+                                    "type": "quantitative",
+                                    "title": "Cost",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "service",
+                                    "type": "nominal",
+                                    "title": "Service"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "right",
+                                "cartesianLegendStyle": "table",
+                                "cartesianLegendStats": [
+                                    "sum"
+                                ],
+                                "cartesianBarBorderRadius": 2,
+                                "cartesianYAxisDecimalPlaces": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9f452077-0ef4-57e4-a763-87cd074034ad",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "Credit Allocations by Environment",
+                    "description": "Capacity allocated to each Power Platform environment, by currency. Environments that can't hold allocations aren't listed",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[environmentCapacity]}}",
+                        "name": "environmentCapacity",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "allocated",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Copilot Environments]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "environmentName",
+                                        "title": "Environment",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "currency",
+                                        "title": "Currency",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "defaultColor": "#3b82f6"
+                                        }
+                                    },
+                                    {
+                                        "field": "allocated",
+                                        "title": "Allocated",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#3b82f6"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ac929a02-cbef-4e8c-81ef-6ab6013be8cd",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Copilot Emissions",
+                    "description": "Monthly carbon emissions from Microsoft 365 Copilot use, by emissions scope (scope 2 location-based), as reported by Microsoft Graph. Microsoft's Emissions Impact Dashboard reports these figures in metric tons of CO2e",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"monthStart\" AS \"month\", 'Scope 1' AS \"scope\", CAST(SUM(\"scope1Emissions\") AS DOUBLE) AS \"emissions\" FROM \"emissions\" GROUP BY 1 UNION ALL SELECT \"monthStart\", 'Scope 2', CAST(SUM(\"scope2LocationBasedEmissions\") AS DOUBLE) FROM \"emissions\" GROUP BY 1 UNION ALL SELECT \"monthStart\", 'Scope 3', CAST(SUM(\"scope3Emissions\") AS DOUBLE) FROM \"emissions\" GROUP BY 1 ORDER BY 1, 2",
+                            "tables": [
+                                {
+                                    "tableName": "emissions",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[emissions]}}",
+                                            "name": "emissions"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "month",
+                                    "type": "temporal",
+                                    "title": "Month"
+                                },
+                                "y": {
+                                    "field": "emissions",
+                                    "type": "quantitative",
+                                    "title": "Emissions (CO2e)",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "scope",
+                                    "type": "nominal",
+                                    "title": "Scope"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "legendPosition": "bottom",
+                                "cartesianBarBorderRadius": 2,
+                                "cartesianYAxisDecimalPlaces": 4,
+                                "mappedColors": {
+                                    "Scope 1": "#f59e0b",
+                                    "Scope 2": "#3b82f6",
+                                    "Scope 3": "#a855f7"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

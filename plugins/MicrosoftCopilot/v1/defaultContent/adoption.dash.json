@@ -1,0 +1,881 @@
+{
+    "name": "Adoption & Seats",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "5ed7b80b-9286-5563-bf30-0948c657b525",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Seats in Use",
+                    "description": "Microsoft 365 Copilot seats assigned out of those purchased. Amber when 40% or more of the seats are unassigned",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT REPLACE(REPLACE(\"skuPartNumber\", 'Microsoft_365_', 'M365 '), '_', ' ') AS \"licence\", \"assigned\", \"purchased\" FROM \"licences\"",
+                            "tables": [
+                                {
+                                    "tableName": "licences",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[licences]}}",
+                                            "name": "licences"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "assigned",
+                                    "type": "quantitative"
+                                },
+                                "max": {
+                                    "field": "purchased",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "licence",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 0.6,
+                                        "color": "#f59e0b"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#22c55e"
+                                    }
+                                ],
+                                "ringGridTrackWidth": 10,
+                                "labelFontSize": 13
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2b361145-82d8-518a-8f7b-5e657236ecd5",
+                "x": 1,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Active Users",
+                    "description": "Copilot-enabled users who used Copilot in any app in the last 28 days",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT 'Last 28 days' AS \"label\", \"activeUsers\", \"enabledUsers\" FROM \"adoption\" WHERE \"app\" = 'Any app'",
+                            "tables": [
+                                {
+                                    "tableName": "adoption",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[adoptionSummary]}}",
+                                            "name": "adoptionSummary",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "ringGrid",
+                            "encoding": {
+                                "value": {
+                                    "field": "activeUsers",
+                                    "type": "quantitative"
+                                },
+                                "max": {
+                                    "field": "enabledUsers",
+                                    "type": "quantitative"
+                                },
+                                "label": {
+                                    "field": "label",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "ringGridThresholds": [
+                                    {
+                                        "to": 0.4,
+                                        "color": "#ef4444"
+                                    },
+                                    {
+                                        "to": 0.7,
+                                        "color": "#f59e0b"
+                                    },
+                                    {
+                                        "to": 1,
+                                        "color": "#22c55e"
+                                    }
+                                ],
+                                "ringGridTrackWidth": 10,
+                                "labelFontSize": 13
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0af47596-434f-5c25-877d-90c446b41ebc",
+                "x": 2,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Prompts",
+                    "description": "Prompts submitted to Copilot across all apps in the last 28 days, and the average per active user",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"totalPrompts\" AS \"prompts\", ROUND(\"averagePrompts\") AS \"perUser\" FROM \"adoption\" WHERE \"app\" = 'Any app'",
+                            "tables": [
+                                {
+                                    "tableName": "adoption",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[adoptionSummary]}}",
+                                            "name": "adoptionSummary",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "prompts",
+                                        "type": "quantitative",
+                                        "title": "Prompts in 28 days"
+                                    },
+                                    {
+                                        "field": "perUser",
+                                        "type": "quantitative",
+                                        "title": "Average per user"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 1
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "69eab436-60c8-447c-b908-bcc69e4928f9",
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Seats to Reclaim",
+                    "description": "Licensed users idle for more than 28 days, who have never used Copilot, or whose account is disabled: candidates for reclaiming the licence",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT SUM(CASE WHEN \"seatStatus\" IN ('Idle', 'Never used', 'Account disabled') THEN 1 ELSE 0 END) AS \"reclaim\", COUNT(*) AS \"seats\" FROM \"activity\" WHERE (\"department\" IS NULL OR CAST(\"department\" AS VARCHAR) NOT LIKE 'Object not found%')",
+                            "tables": [
+                                {
+                                    "tableName": "activity",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userActivity]}}",
+                                            "name": "userActivity",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "reclaim",
+                                        "type": "quantitative",
+                                        "title": "Seats to reclaim"
+                                    },
+                                    {
+                                        "field": "seats",
+                                        "type": "quantitative",
+                                        "title": "Licensed users"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 1
+                            }
+                        }
+                    }
+                },
+                "x": 3,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0
+            },
+            {
+                "i": "53a77d15-61db-5626-b137-22c25eb89728",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Adoption by App",
+                    "description": "Percentage of Copilot-enabled users who used Copilot in each app in the last 28 days",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"app\", \"activeRate\" AS \"rate\" FROM \"adoption\" WHERE \"app\" NOT IN ('Any app', 'Copilot Chat (all)') ORDER BY \"activeRate\" DESC, \"app\"",
+                            "tables": [
+                                {
+                                    "tableName": "adoption",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[adoptionSummary]}}",
+                                            "name": "adoptionSummary",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bullet",
+                            "encoding": {
+                                "value": {
+                                    "field": "rate",
+                                    "type": "quantitative",
+                                    "title": "Active rate"
+                                },
+                                "label": {
+                                    "field": "app",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "gaugeMin": 0,
+                                "gaugeMax": 100,
+                                "bulletFillColor": "#3b82f6",
+                                "bulletLabelWidth": 140,
+                                "bulletTrackHeight": 14
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4a277e0a-e95b-596d-a930-5292561f329d",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Daily Activity",
+                    "description": "Users active in any Copilot app each day, and prompts submitted, over the last 28 days",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"reportDate\" AS \"date\", \"activeUsers\", \"promptsSubmitted\" AS \"prompts\" FROM \"trend\" WHERE \"app\" = 'Any app' ORDER BY \"reportDate\"",
+                            "tables": [
+                                {
+                                    "tableName": "trend",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[adoptionTrend]}}",
+                                            "name": "adoptionTrend",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date",
+                                    "type": "temporal"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "cartesianY2AxisField": "prompts",
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "activeUsers": "#22c55e",
+                                    "prompts": "#3b82f6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "323139b5-1cf8-56d9-b74d-da0c78a5ecee",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Seats by Status",
+                    "description": "Copilot-licensed users by seat status: Active (used in the last 7 days), Low use (8–28 days), Idle (over 28 days), Never used, or Account disabled",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"seatStatus\" AS \"status\", COUNT(*) AS \"users\" FROM \"activity\" WHERE (\"department\" IS NULL OR CAST(\"department\" AS VARCHAR) NOT LIKE 'Object not found%') GROUP BY 1",
+                            "tables": [
+                                {
+                                    "tableName": "activity",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userActivity]}}",
+                                            "name": "userActivity",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "status",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "users",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 14,
+                                "pieLabels": "nameAndValue",
+                                "mappedColors": {
+                                    "Active": "#22c55e",
+                                    "Low use": "#f59e0b",
+                                    "Idle": "#ef4444",
+                                    "Never used": "#6b7280",
+                                    "Account disabled": "#a855f7"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "033c11f9-3f22-5ed7-8ed5-30fe5b94b6d6",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Seats to Review",
+                    "description": "Licensed users who haven't used Copilot for more than 7 days, have never used it, or whose account is disabled, with their department. Candidates for training or for reclaiming the licence",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"displayName\", \"department\", \"seatStatus\", \"lastActivityDate\", \"daysSinceLastActivity\" FROM \"activity\" WHERE \"seatStatus\" <> 'Active' AND (\"department\" IS NULL OR CAST(\"department\" AS VARCHAR) NOT LIKE 'Object not found%') ORDER BY \"daysSinceLastActivity\" DESC NULLS FIRST",
+                            "tables": [
+                                {
+                                    "tableName": "activity",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userActivity]}}",
+                                            "name": "userActivity",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "displayName",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "department",
+                                        "title": "Department",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "seatStatus",
+                                        "title": "Status",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Active": "#22c55e",
+                                                "Low use": "#f59e0b",
+                                                "Idle": "#ef4444",
+                                                "Never used": "#6b7280",
+                                                "Account disabled": "#a855f7"
+                                            }
+                                        },
+                                        "width": 130
+                                    },
+                                    {
+                                        "field": "lastActivityDate",
+                                        "title": "Last used",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        },
+                                        "width": 120
+                                    },
+                                    {
+                                        "field": "daysSinceLastActivity",
+                                        "title": "Days idle",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right",
+                                        "width": 100
+                                    }
+                                ]
+                            },
+                            "style": {}
+                        }
+                    }
+                }
+            },
+            {
+                "i": "0ae0d24a-25fa-4c3c-9fb6-67ea729bc256",
+                "x": 0,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Adoption by Department",
+                    "description": "Copilot seats per department, the share used in the last 28 days, and prompts per seat over 28 days. Department comes from Microsoft Entra ID through the imported Copilot Users",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT COALESCE(NULLIF(TRIM(CASE WHEN CAST(\"department\" AS VARCHAR) LIKE 'Object not found%' THEN NULL ELSE \"department\" END), ''), '(No department)') AS \"department\", COUNT(*) AS \"seats\", CAST(ROUND(100.0 * SUM(CASE WHEN \"daysSinceLastActivity\" <= 28 THEN 1 ELSE 0 END) / COUNT(*), 0) AS DOUBLE) AS \"activePct\", CAST(ROUND(SUM(\"promptsSubmitted\") * 1.0 / COUNT(*), 1) AS DOUBLE) AS \"promptsPerSeat\" FROM \"activity\" WHERE CAST(\"department\" AS VARCHAR) NOT LIKE 'Object not found%' OR \"department\" IS NULL GROUP BY 1 ORDER BY 2 DESC",
+                            "tables": [
+                                {
+                                    "tableName": "activity",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userActivity]}}",
+                                            "name": "userActivity",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "department",
+                                        "title": "Department",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "seats",
+                                        "title": "Seats",
+                                        "renderer": {
+                                            "type": "number"
+                                        },
+                                        "align": "right",
+                                        "width": 100
+                                    },
+                                    {
+                                        "field": "activePct",
+                                        "title": "Active % (28d)",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "max": 100,
+                                            "suffix": "%",
+                                            "thresholds": [
+                                                {
+                                                    "to": 49,
+                                                    "color": "#ef4444"
+                                                },
+                                                {
+                                                    "to": 74,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#22c55e"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "promptsPerSeat",
+                                        "title": "Prompts / seat",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 1
+                                        },
+                                        "align": "right",
+                                        "width": 140
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableSort": {
+                                    "field": "seats",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f90a5d15-8cda-5354-b904-f9696a3ca96a",
+                "x": 2,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Top Users by Prompts",
+                    "description": "The ten users who submitted the most Copilot prompts in the last 28 days",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"user\", \"prompts\" FROM (SELECT \"displayName\" AS \"user\", \"promptsSubmitted\" AS \"prompts\" FROM \"activity\" WHERE \"promptsSubmitted\" > 0 ORDER BY \"promptsSubmitted\" DESC LIMIT 10) ORDER BY \"prompts\" ASC",
+                            "tables": [
+                                {
+                                    "tableName": "activity",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userActivity]}}",
+                                            "name": "userActivity",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "user",
+                                    "type": "nominal",
+                                    "title": "User"
+                                },
+                                "y": {
+                                    "field": "prompts",
+                                    "type": "quantitative",
+                                    "title": "Prompts"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "showLabels": true,
+                                "colors": [
+                                    "#3b82f6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "beb384bc-63e5-4410-a64a-308285195c6f",
+                "x": 0,
+                "y": 11,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Possible Leavers",
+                    "description": "Copilot seats whose user hasn't signed in to Microsoft Entra for 30 days or whose account is disabled, from live sign-in data. Needs AuditLog.Read.All and Microsoft Entra ID P1 or P2",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT s.\"displayName\", s.\"userPrincipalName\", CASE WHEN s.\"accountEnabled\" = false THEN 'Account disabled' ELSE 'No recent sign-in' END AS \"reason\", s.\"lastSignInDateTime\", DATE_DIFF('day', CAST(s.\"lastSignInDateTime\" AS TIMESTAMP), CAST(NOW() AS TIMESTAMP)) AS \"daysSinceSignIn\", a.\"lastActivityDate\" FROM \"signins\" s LEFT JOIN \"activity\" a ON LOWER(a.\"userPrincipalName\") = LOWER(s.\"userPrincipalName\") WHERE s.\"accountEnabled\" = false OR s.\"lastSignInDateTime\" IS NULL OR CAST(s.\"lastSignInDateTime\" AS TIMESTAMP) < NOW() - INTERVAL 30 DAY ORDER BY \"daysSinceSignIn\" DESC NULLS FIRST",
+                            "tables": [
+                                {
+                                    "tableName": "signins",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userSignIns]}}",
+                                            "name": "userSignIns"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                },
+                                {
+                                    "tableName": "activity",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[userActivity]}}",
+                                            "name": "userActivity",
+                                            "dataSourceConfig": {
+                                                "period": "D28"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "displayName",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "userPrincipalName",
+                                        "title": "User principal name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "reason",
+                                        "title": "Reason",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Account disabled": "#a855f7",
+                                                "No recent sign-in": "#ec4899"
+                                            }
+                                        },
+                                        "width": 150
+                                    },
+                                    {
+                                        "field": "lastSignInDateTime",
+                                        "title": "Last sign-in",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        },
+                                        "width": 130
+                                    },
+                                    {
+                                        "field": "lastActivityDate",
+                                        "title": "Last used Copilot",
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        },
+                                        "width": 140
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

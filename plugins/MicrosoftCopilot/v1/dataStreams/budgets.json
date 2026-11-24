@@ -1,0 +1,146 @@
+{
+    "name": "budgets",
+    "displayName": "Cost Budgets",
+    "description": "Cost Management budgets at the Cost Management scope, with spend and forecast against each budget this period",
+    "tags": [
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "baseUrl": "https://management.azure.com",
+        "endpointPath": "{{dataSource.costScope}}/providers/Microsoft.Consumption/budgets",
+        "getArgs": [
+            {
+                "key": "api-version",
+                "value": "2023-05-01"
+            }
+        ],
+        "paging": {
+            "mode": "nextUrl",
+            "in": {
+                "realm": "payload",
+                "path": "nextLink"
+            }
+        },
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/costManagement.js"
+        },
+        "postRequestScript": "budgets.js"
+    },
+    "matches": "none",
+    "timeframes": false,
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Budget",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "budgetState",
+            "displayName": "State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "warning": [
+                            "warning"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "amount",
+            "displayName": "Budget amount",
+            "shape": "number"
+        },
+        {
+            "name": "currentSpend",
+            "displayName": "Spent",
+            "shape": "number"
+        },
+        {
+            "name": "forecastSpend",
+            "displayName": "Forecast (period end)",
+            "shape": "number"
+        },
+        {
+            "name": "currency",
+            "displayName": "Currency",
+            "shape": "string"
+        },
+        {
+            "name": "percentUsed",
+            "displayName": "Used %",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "percentForecast",
+            "displayName": "Forecast % (period end)",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "timeGrain",
+            "displayName": "Reset period",
+            "shape": "string"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "filters",
+            "displayName": "Filters",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "periodStart",
+            "displayName": "Period start",
+            "shape": "date"
+        },
+        {
+            "name": "periodEnd",
+            "displayName": "Period end",
+            "shape": "date"
+        },
+        {
+            "name": "endDate",
+            "displayName": "Budget expires",
+            "shape": "date"
+        },
+        {
+            "name": "id",
+            "displayName": "Budget ID",
+            "shape": "string",
+            "visible": false
+        }
+    ]
+}
