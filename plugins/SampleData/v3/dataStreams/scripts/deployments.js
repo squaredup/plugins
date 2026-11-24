@@ -102,10 +102,19 @@ const services = byId(model.services);
 const regions = byId(model.regions);
 const teams = byId(model.teams);
 
-// Host, deployment and ticket streams can also be scoped to services (the Service
-// perspective); rows are then narrowed to those services
-const serviceFilter = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => services[id]));
+// Service, host, deployment and ticket streams can also be scoped to services, or to
+// the team that owns them, the region that hosts them or a customer that uses them;
+// rows are then narrowed to those services
+const customersById = byId(model.customers);
+const scopeIds = (context.objects || []).map((o) => unwrap(o.rawId));
+const usedBy = (id) => (customersById[id] && customersById[id].services) || [];
+const serviceFilter = new Set(
+    model.services
+        .filter((s) => scopeIds.some((id) => id === s.id || id === `team-${s.team}` || id === `region-${s.region}` || usedBy(id).includes(s.id)))
+        .map((s) => s.id),
+);
 const forService = (serviceId) => serviceFilter.size === 0 || serviceFilter.has(serviceId);
+const scopedServices = () => model.services.filter((s) => forService(s.id));
 
 // Golden signals for a service at time t
 const stress = (s, t) => Math.min(1, serviceImpact(s.id, t) + blip(s.id, t));
@@ -136,6 +145,13 @@ const availability30d = (s) => {
 
 const rows = [];
 const today = Math.floor(NOW / DAY);
+// One release train per week, 4.11 is this week, so the incident's 4.12.0 is the newest
+// version. Every 40 trains roll over into the previous major, so no component goes negative
+const versionFor = (day, n) => {
+    const train = 11 - Math.floor((today - day) / 7);
+    const patch = (6 - ((today - day) % 7)) * 7 + n;
+    return `${4 + Math.floor(train / 40)}.${((train % 40) + 40) % 40}.${patch}`;
+};
 for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
     const s = services[p.service];
     for (let day = Math.floor(windowStart / DAY); day <= Math.min(today, Math.floor((windowEnd - 1) / DAY)); day++) {
@@ -147,6 +163,8 @@ for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
             // Deploys land in working hours, 08:00-18:00 UTC
             const at = day * DAY + (8 + rand(`${key}:at`) * 10) * HOUR;
             if (at < windowStart || at > Math.min(windowEnd, NOW - 30 * MIN)) continue;
+            // The incident release is the last one out of its pipeline
+            if (p.id === incident.pipeline && at >= incidentStart - 6 * MIN) continue;
             const failed = rand(`${key}:fail`) < p.failureRate;
             const changeFailure = !failed && rand(`${key}:cf`) < p.failureRate * 0.6;
             rows.push({
@@ -157,7 +175,7 @@ for (const p of scoped(model.pipelines).filter((p) => forService(p.service))) {
                 service: s.name,
                 team: teams[p.team].name,
                 tool: p.tool,
-                version: `${4 + Math.floor(day / 120) % 3}.${day % 40}.${n}`,
+                version: versionFor(day, n),
                 status: failed ? "Failed" : "Succeeded",
                 state: failed ? "error" : changeFailure ? "warning" : "success",
                 changeFailure,

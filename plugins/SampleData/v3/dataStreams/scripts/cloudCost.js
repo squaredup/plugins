@@ -102,10 +102,19 @@ const services = byId(model.services);
 const regions = byId(model.regions);
 const teams = byId(model.teams);
 
-// Host, deployment and ticket streams can also be scoped to services (the Service
-// perspective); rows are then narrowed to those services
-const serviceFilter = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => services[id]));
+// Service, host, deployment and ticket streams can also be scoped to services, or to
+// the team that owns them, the region that hosts them or a customer that uses them;
+// rows are then narrowed to those services
+const customersById = byId(model.customers);
+const scopeIds = (context.objects || []).map((o) => unwrap(o.rawId));
+const usedBy = (id) => (customersById[id] && customersById[id].services) || [];
+const serviceFilter = new Set(
+    model.services
+        .filter((s) => scopeIds.some((id) => id === s.id || id === `team-${s.team}` || id === `region-${s.region}` || usedBy(id).includes(s.id)))
+        .map((s) => s.id),
+);
 const forService = (serviceId) => serviceFilter.size === 0 || serviceFilter.has(serviceId);
+const scopedServices = () => model.services.filter((s) => forService(s.id));
 
 // Golden signals for a service at time t
 const stress = (s, t) => Math.min(1, serviceImpact(s.id, t) + blip(s.id, t));
@@ -142,7 +151,7 @@ const categories = [
 ];
 const rows = [];
 const today = Math.floor(NOW / DAY);
-for (const s of scoped(model.services)) {
+for (const s of scopedServices()) {
     const dailyBudget = (s.monthlyCost * 1.08) / 30;
     for (let day = Math.floor(windowStart / DAY); day <= Math.min(today, Math.floor((windowEnd - 1) / DAY)); day++) {
         // Search has a cost anomaly: an index rebuild left extra nodes running for the last 9 days

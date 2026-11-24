@@ -102,10 +102,19 @@ const services = byId(model.services);
 const regions = byId(model.regions);
 const teams = byId(model.teams);
 
-// Host, deployment and ticket streams can also be scoped to services (the Service
-// perspective); rows are then narrowed to those services
-const serviceFilter = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => services[id]));
+// Service, host, deployment and ticket streams can also be scoped to services, or to
+// the team that owns them, the region that hosts them or a customer that uses them;
+// rows are then narrowed to those services
+const customersById = byId(model.customers);
+const scopeIds = (context.objects || []).map((o) => unwrap(o.rawId));
+const usedBy = (id) => (customersById[id] && customersById[id].services) || [];
+const serviceFilter = new Set(
+    model.services
+        .filter((s) => scopeIds.some((id) => id === s.id || id === `team-${s.team}` || id === `region-${s.region}` || usedBy(id).includes(s.id)))
+        .map((s) => s.id),
+);
 const forService = (serviceId) => serviceFilter.size === 0 || serviceFilter.has(serviceId);
+const scopedServices = () => model.services.filter((s) => forService(s.id));
 
 // Golden signals for a service at time t
 const stress = (s, t) => Math.min(1, serviceImpact(s.id, t) + blip(s.id, t));
@@ -135,7 +144,7 @@ const availability30d = (s) => {
 // --- End shared block ---
 
 const rows = [];
-for (const s of scoped(model.services)) {
+for (const s of scopedServices()) {
     for (const t of buckets()) {
         rows.push({ timestamp: iso(t), serviceId: s.id, service: s.name, ...signals(s, t) });
     }

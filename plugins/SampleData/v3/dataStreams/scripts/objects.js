@@ -102,10 +102,19 @@ const services = byId(model.services);
 const regions = byId(model.regions);
 const teams = byId(model.teams);
 
-// Host, deployment and ticket streams can also be scoped to services (the Service
-// perspective); rows are then narrowed to those services
-const serviceFilter = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => services[id]));
+// Service, host, deployment and ticket streams can also be scoped to services, or to
+// the team that owns them, the region that hosts them or a customer that uses them;
+// rows are then narrowed to those services
+const customersById = byId(model.customers);
+const scopeIds = (context.objects || []).map((o) => unwrap(o.rawId));
+const usedBy = (id) => (customersById[id] && customersById[id].services) || [];
+const serviceFilter = new Set(
+    model.services
+        .filter((s) => scopeIds.some((id) => id === s.id || id === `team-${s.team}` || id === `region-${s.region}` || usedBy(id).includes(s.id)))
+        .map((s) => s.id),
+);
 const forService = (serviceId) => serviceFilter.size === 0 || serviceFilter.has(serviceId);
+const scopedServices = () => model.services.filter((s) => forService(s.id));
 
 // Golden signals for a service at time t
 const stress = (s, t) => Math.min(1, serviceImpact(s.id, t) + blip(s.id, t));
@@ -143,6 +152,7 @@ const services_ = model.services.map((s) => ({
     region: regions[s.region].name,
     provider: s.provider,
     sloTarget: s.sloTarget,
+    calls: model.dependencies.filter((d) => d.from === s.id).map((d) => services[d.to].name),
 }));
 const hosts = model.hosts.map((h) => ({
     id: h.id,
@@ -171,5 +181,18 @@ const customers = model.customers.map((c) => ({
     city: c.city,
     country: c.country,
     slaTarget: c.slaTarget,
+    uses: (c.services || []).map((id) => services[id].name),
 }));
-result = [...services_, ...hosts, ...pipelines, ...customers];
+// Prefixed ids keep teams and regions apart from the service and host ids the streams scope on
+const teams_ = model.teams.map((t) => ({
+    id: `team-${t.id}`,
+    name: t.name,
+    type: "Team",
+}));
+const regions_ = model.regions.map((r) => ({
+    id: `region-${r.id}`,
+    name: r.name,
+    type: "Region",
+    provider: r.provider,
+}));
+result = [...services_, ...hosts, ...pipelines, ...customers, ...teams_, ...regions_];

@@ -102,10 +102,19 @@ const services = byId(model.services);
 const regions = byId(model.regions);
 const teams = byId(model.teams);
 
-// Host, deployment and ticket streams can also be scoped to services (the Service
-// perspective); rows are then narrowed to those services
-const serviceFilter = new Set((context.objects || []).map((o) => unwrap(o.rawId)).filter((id) => services[id]));
+// Service, host, deployment and ticket streams can also be scoped to services, or to
+// the team that owns them, the region that hosts them or a customer that uses them;
+// rows are then narrowed to those services
+const customersById = byId(model.customers);
+const scopeIds = (context.objects || []).map((o) => unwrap(o.rawId));
+const usedBy = (id) => (customersById[id] && customersById[id].services) || [];
+const serviceFilter = new Set(
+    model.services
+        .filter((s) => scopeIds.some((id) => id === s.id || id === `team-${s.team}` || id === `region-${s.region}` || usedBy(id).includes(s.id)))
+        .map((s) => s.id),
+);
 const forService = (serviceId) => serviceFilter.size === 0 || serviceFilter.has(serviceId);
+const scopedServices = () => model.services.filter((s) => forService(s.id));
 
 // Golden signals for a service at time t
 const stress = (s, t) => Math.min(1, serviceImpact(s.id, t) + blip(s.id, t));
@@ -192,7 +201,8 @@ for (const c of scoped(model.customers)) {
             if (opened < windowStart || opened > Math.min(windowEnd, NOW)) continue;
             const priority = pick(rand(`${key}:p`), priorities);
             const category = categoryList[Math.floor(rand(`${key}:c`) * categoryList.length)];
-            const service = servicePool[Math.floor(rand(`${key}:s`) * servicePool.length)];
+            const pool = usedBy(c.id).length ? usedBy(c.id).map((id) => services[id]) : servicePool;
+            const service = pool[Math.floor(rand(`${key}:s`) * pool.length)];
             if (!forService(service.id)) continue;
             rows.push(ticket(c, (day % 10000) * 200 + ci * 10 + n, key, opened, priority, category, service, 0.1 + Math.pow(rand(`${key}:res`), 2)));
         }
