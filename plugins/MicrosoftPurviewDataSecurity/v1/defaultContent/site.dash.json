@@ -1,0 +1,395 @@
+{
+    "name": "Site",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [
+        "{{variables.[Site]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "7277f988-fea5-4ba6-8de9-1c74e714ce89",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Site Details",
+                    "description": "The SharePoint site or OneDrive account",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Sites]}}",
+                        "variable": "{{variables.[Site]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "variables": [
+                        "{{variables.[Site]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "siteUrl",
+                                        "title": "URL",
+                                        "renderer": {
+                                            "type": "link"
+                                        }
+                                    },
+                                    {
+                                        "field": "workload",
+                                        "title": "Workload",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableTranspose": true,
+                                "richTableWrapText": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ddf140cf-e125-48a0-943c-dc5dd851109d",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Site Activity",
+                    "description": "File events on this site in the dashboard timeframe, and the distinct files they touched",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fileActivity]}}",
+                        "name": "fileActivity",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [],
+                            "sites": {
+                                "variable": "{{variables.[Site]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Sites]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Site]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "events",
+                                        "type": "quantitative",
+                                        "title": "Events"
+                                    },
+                                    {
+                                        "field": "files",
+                                        "type": "quantitative",
+                                        "title": "Files"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 2
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "73b7c174-77e5-4486-ac47-45a622902307",
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "File Activity over Time",
+                    "description": "File activity on this site in the dashboard timeframe, by kind of activity",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fileActivity]}}",
+                        "name": "fileActivity",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "time",
+                                "category"
+                            ],
+                            "sites": {
+                                "variable": "{{variables.[Site]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Sites]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Site]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "events",
+                                    "type": "quantitative",
+                                    "title": "Events",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "category",
+                                    "type": "nominal",
+                                    "title": "Category"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 2,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Access": "#3b82f6",
+                                    "Modify": "#8b5cf6",
+                                    "Create/Upload": "#22c55e",
+                                    "Download/Sync": "#06b6d4",
+                                    "Delete": "#ef4444",
+                                    "Share": "#f59e0b",
+                                    "Anonymous link": "#ec4899",
+                                    "Other": "#94a3b8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2c8d494a-13ba-49a2-8f80-bc3b5bf72bb1",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sharing and Anonymous Links",
+                    "description": "Who shared from this site and used its anonymous links most in the dashboard timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fileActivity]}}",
+                        "name": "fileActivity",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "user",
+                                "category"
+                            ],
+                            "categories": [
+                                "Share",
+                                "Anonymous link"
+                            ],
+                            "top": 10,
+                            "sites": {
+                                "variable": "{{variables.[Site]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Sites]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "events",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Site]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "user",
+                                    "type": "nominal",
+                                    "title": "User"
+                                },
+                                "y": {
+                                    "field": "events",
+                                    "type": "quantitative",
+                                    "title": "Events",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "category",
+                                    "type": "nominal",
+                                    "title": "Category"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 2,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Share": "#f59e0b",
+                                    "Anonymous link": "#ec4899"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c381f11f-72db-46e9-83b6-4441e0e38108",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Label Activity",
+                    "description": "The most frequent sensitivity label events on this site's files in the dashboard timeframe, by person, action and label",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[labelActivity]}}",
+                        "name": "labelActivity",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "user",
+                                "action",
+                                "label"
+                            ],
+                            "top": 25,
+                            "sites": {
+                                "variable": "{{variables.[Site]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Sites]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "events",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Site]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "user",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "action",
+                                        "title": "Action",
+                                        "width": 130,
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Applied": "#22c55e",
+                                                "Changed": "#3b82f6",
+                                                "Upgraded": "#8b5cf6",
+                                                "Downgraded": "#f97316",
+                                                "Removed": "#ef4444",
+                                                "Change failed": "#b91c1c",
+                                                "Opened": "#06b6d4",
+                                                "Renamed": "#94a3b8",
+                                                "Detected in email": "#6366f1"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "sensitivityLabel",
+                                        "title": "Label",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "events",
+                                        "title": "Events",
+                                        "width": 80,
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

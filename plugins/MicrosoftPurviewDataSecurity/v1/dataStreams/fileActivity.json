@@ -1,0 +1,237 @@
+{
+    "name": "fileActivity",
+    "displayName": "File Activity",
+    "description": "File and sharing activity in SharePoint and OneDrive, grouped by the dimensions you choose (time, user, site, workload, category, activity), with sharing and anonymous link use separated out (needs Defender for Cloud Apps with the Microsoft 365 connector)",
+    "tags": [
+        "Activity"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "v1.0/security/runHuntingQuery",
+        "postBody": {
+            "Query": "let binSize = {{ (new Date(timeframe.end) - new Date(timeframe.start)) <= 86400000 ? '1h' : '1d' }};\nlet selectedSites = dynamic({{ JSON.stringify((sites || []).map(o => [].concat(o.rawId)[0]).filter(Boolean)) }});\nlet selectedUsers = dynamic({{ JSON.stringify((users || []).map(o => [].concat(o.rawId)[0]).filter(Boolean)) }});\nlet source = CloudAppEvents\n| where Timestamp between (datetime({{timeframe.start}}) .. datetime({{timeframe.end}}))\n| where Application in ('Microsoft SharePoint Online', 'Microsoft OneDrive for Business')\n| extend userId = tolower(AccountObjectId), activity = ActionType, workload = iff(Application == 'Microsoft OneDrive for Business', 'OneDrive', 'SharePoint')\n| where array_length(selectedUsers) == 0 or set_has_element(selectedUsers, userId)\n| extend category = case(\n    activity startswith 'AnonymousLink', 'Anonymous link',\n    activity startswith 'SharingLink' or activity startswith 'SecureLink' or activity startswith 'CompanyLink' or activity startswith 'SharingInvitation' or activity startswith 'AddedTo' and activity contains 'Link' or activity in ('SharingSet', 'SharingRevoked', 'Broke sharing inheritance', 'SharingInheritanceBroken', 'FileRequestUsed'), 'Share',\n    activity contains 'Deleted' or activity contains 'Recycled' or activity contains 'Purged', 'Delete',\n    activity startswith 'FileSync' or activity contains 'Downloaded', 'Download/Sync',\n    activity in ('FileUploaded', 'FileUploadedPartial', 'FolderCreated', 'FileCreated', 'TeamsMeetingRecordingUploaded'), 'Create/Upload',\n    activity startswith 'FileModified' or activity startswith 'FolderModified' or activity contains 'Renamed' or activity contains 'Moved' or activity contains 'Copied', 'Modify',\n    activity startswith 'FileAccessed' or activity in ('FilePreviewed', 'FileTranscriptContentAccessed', 'FileTimelineMetadataAccessed'), 'Access',\n    'Other')\n{{ (() => { const vals = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); const ok = ['Access', 'Modify', 'Create/Upload', 'Download/Sync', 'Delete', 'Share', 'Anonymous link', 'Other']; const c = vals(typeof categories === 'undefined' ? null : categories).filter((v) => ok.includes(v)); return c.length ? '| where category in (' + c.map((v) => \"'\" + v + \"'\").join(', ') + ')' : ''; })() }}\n| extend raw = todynamic(RawEventData)\n| extend siteUrl = tolower(trim_end('/', tostring(raw.SiteUrl))), uid = tolower(tostring(raw.UserId)), objectKey = tostring(raw.ObjectId)\n| where array_length(selectedSites) == 0 or set_has_element(selectedSites, siteUrl)\n| extend user = iff(uid contains '@', uid, iff(isempty(uid) or uid == 'anonymous' or uid startswith 'urn:spo:', 'Anonymous', uid));\n{{ (() => { const vals = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); const known = ['time', 'user', 'site', 'workload', 'category', 'activity']; const sel = ((typeof groupBy === 'undefined' || groupBy === null) ? ['time', 'category'] : vals(groupBy)).filter((d) => known.includes(d)); const cols = { time: ['timestamp = bin(Timestamp, binSize)'], user: ['user', 'userId'], site: ['siteUrl'], workload: ['workload'], category: ['category'], activity: ['activity'] }; const names = (d) => cols[d].map((c) => c.split(' = ')[0]); const by = sel.flatMap((d) => cols[d]); const nt = sel.filter((d) => d !== 'time').flatMap(names); const t = typeof top === 'undefined' ? null : (top && typeof top === 'object' ? top.value : top); const n = Math.floor(Number(t)); const byFiles = by.concat(['objectKey']).join(', '); const stage1 = '| summarize eventCount = count() by ' + byFiles; const grp = by.length ? ' by ' + sel.flatMap(names).join(', ') : ''; let q = ''; const ranked = (n > 0 && nt.length) ? 'let ranked = base | summarize rankTotal = sum(eventCount) by ' + nt.join(', ') + ' | top ' + n + ' by rankTotal desc | project ' + nt.join(', ') + '; ' : ''; q = 'let base = materialize(source ' + stage1 + '); ' + ranked + 'base' + ((n > 0 && nt.length) ? ' | join kind=inner ranked on ' + nt.join(', ') : '') + ' | summarize events = sum(eventCount), files = countif(isnotempty(objectKey))' + grp; const missing = []; if (!sel.includes('time')) missing.push('timestamp = datetime(' + timeframe.start + ')'); if (!sel.includes('user')) missing.push(\"user = ''\", \"userId = ''\"); if (!sel.includes('site')) missing.push(\"siteUrl = ''\"); if (!sel.includes('workload')) missing.push(\"workload = ''\"); if (!sel.includes('category')) missing.push(\"category = ''\"); if (!sel.includes('activity')) missing.push(\"activity = ''\"); return q + (missing.length ? ' | extend ' + missing.join(', ') : '') + ' | project timestamp, user, userId, siteUrl, workload, category, activity, events, files | order by timestamp asc, events desc'; })() }}"
+        },
+        "pathToData": "results",
+        "postRequestScript": "fileActivity.js",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "user",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "userId",
+            "displayName": "User ID",
+            "shape": "string",
+            "sourceType": "User",
+            "visible": false
+        },
+        {
+            "name": "userName",
+            "displayName": "User Name",
+            "sourceId": "userId",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "siteUrl",
+            "displayName": "Site URL",
+            "shape": "string",
+            "sourceType": "Site",
+            "visible": false
+        },
+        {
+            "name": "site",
+            "displayName": "Site",
+            "sourceId": "siteUrl",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "workload",
+            "displayName": "Workload",
+            "shape": "string"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "activity",
+            "displayName": "Activity",
+            "shape": "string"
+        },
+        {
+            "name": "events",
+            "displayName": "Events",
+            "shape": "number"
+        },
+        {
+            "name": "files",
+            "displayName": "Files",
+            "shape": "number"
+        },
+        {
+            "sourceId": "userId",
+            "sourceType": "User",
+            "name": "userName"
+        },
+        {
+            "sourceId": "siteUrl",
+            "sourceType": "Site",
+            "name": "site"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ],
+    "providesPluginDiagnostics": true,
+    "manualConfigApply": true,
+    "ui": [
+        {
+            "name": "groupBy",
+            "label": "Group by",
+            "type": "autocomplete",
+            "isMulti": true,
+            "isClearable": true,
+            "defaultValue": [
+                "time",
+                "category"
+            ],
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "time",
+                        "label": "Time"
+                    },
+                    {
+                        "value": "user",
+                        "label": "User"
+                    },
+                    {
+                        "value": "site",
+                        "label": "Site"
+                    },
+                    {
+                        "value": "workload",
+                        "label": "Workload"
+                    },
+                    {
+                        "value": "category",
+                        "label": "Category"
+                    },
+                    {
+                        "value": "activity",
+                        "label": "Activity"
+                    }
+                ]
+            },
+            "help": "Sets what each row represents. Fewer dimensions return a smaller, faster result."
+        },
+        {
+            "name": "top",
+            "label": "Top",
+            "type": "number",
+            "help": "Keeps only the N groups with the most events, not counting time. Leave empty for all groups.",
+            "validation": {
+                "min": 1
+            }
+        },
+        {
+            "name": "categories",
+            "label": "Categories",
+            "type": "autocomplete",
+            "isMulti": true,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "Access",
+                        "label": "Access"
+                    },
+                    {
+                        "value": "Modify",
+                        "label": "Modify"
+                    },
+                    {
+                        "value": "Create/Upload",
+                        "label": "Create/Upload"
+                    },
+                    {
+                        "value": "Download/Sync",
+                        "label": "Download/Sync"
+                    },
+                    {
+                        "value": "Delete",
+                        "label": "Delete"
+                    },
+                    {
+                        "value": "Share",
+                        "label": "Share"
+                    },
+                    {
+                        "value": "Anonymous link",
+                        "label": "Anonymous link"
+                    },
+                    {
+                        "value": "Other",
+                        "label": "Other"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "objects",
+            "name": "users",
+            "label": "Users",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "sites",
+            "label": "Sites",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        }
+    ]
+}

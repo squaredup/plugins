@@ -1,0 +1,56 @@
+{
+    "name": "importSites",
+    "displayName": "Import - Sites",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "v1.0/security/runHuntingQuery",
+        "postBody": {
+            "Query": "CloudAppEvents | where Timestamp > ago(30d) | where Application in ('Microsoft SharePoint Online', 'Microsoft OneDrive for Business') | extend rawSite = trim_end('/', tostring(RawEventData.SiteUrl)) | where isnotempty(rawSite) | extend siteUrl = tolower(rawSite) | where hash(siteUrl, 2) == {{shardIndex}} | summarize arg_max(Timestamp, rawSite, Application) by siteUrl | extend path = trim('/', tostring(parse_url(rawSite).Path)) | project siteUrl, name = iff(isempty(path), tostring(parse_url(rawSite).Host), path), workload = iff(Application has 'OneDrive', 'OneDrive', 'SharePoint')"
+        },
+        "pathToData": "results",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "siteUrl",
+            "displayName": "Site URL",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "name",
+            "displayName": "Site",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "workload",
+            "displayName": "Workload",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false,
+    "providesPluginDiagnostics": true,
+    "visibility": {
+        "type": "hidden"
+    },
+    "ui": [
+        {
+            "name": "shardIndex",
+            "label": "Shard index",
+            "type": "text",
+            "defaultValue": "0"
+        }
+    ]
+}

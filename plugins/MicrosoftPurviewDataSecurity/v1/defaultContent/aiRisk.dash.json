@@ -1,0 +1,559 @@
+{
+    "name": "AI Risk",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "5bb16b60-7e4b-4229-9187-d27081aa4c1d",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 1,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/text",
+                    "title": "",
+                    "description": "",
+                    "visualisation": {
+                        "config": {
+                            "content": "AI interaction tiles come from advanced hunting and need the Microsoft Defender for Cloud Apps Microsoft 365 app connector with its Microsoft 365 activities component selected. They cover up to the last 30 days.",
+                            "fontSize": 14,
+                            "align": "left",
+                            "autoSize": true
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f59ceb84-fe57-499e-89f4-38acd28aeb08",
+                "x": 0,
+                "y": 1,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI Activity and Detections",
+                    "description": "Copilot and AI app interactions in the dashboard timeframe, prompt injection (XPIA) detections in resources they read, jailbreak attempts, and resources that matched a DLP policy",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "time",
+                                "aiApp"
+                            ]
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "uniqueInteractions"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "xpiaDetections"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "jailbreakAttempts"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "dlpPolicyMatches"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "uniqueInteractions_sum",
+                                        "type": "quantitative",
+                                        "title": "Interactions"
+                                    },
+                                    {
+                                        "field": "xpiaDetections_sum",
+                                        "type": "quantitative",
+                                        "title": "Prompt injections"
+                                    },
+                                    {
+                                        "field": "jailbreakAttempts_sum",
+                                        "type": "quantitative",
+                                        "title": "Jailbreak attempts"
+                                    },
+                                    {
+                                        "field": "dlpPolicyMatches_sum",
+                                        "type": "quantitative",
+                                        "title": "DLP policy matches"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f82d6e3f-f15b-4d46-9c66-b0dd59d96c51",
+                "x": 2,
+                "y": 1,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Open Alerts by Source",
+                    "description": "Security for AI, insider risk and data loss prevention alerts that are new or in progress, whenever they were raised",
+                    "activePluginConfigIds": [],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT COUNT(*) FILTER (WHERE \"serviceSource\" = 'Security for AI') AS \"securityForAi\", COUNT(*) FILTER (WHERE \"serviceSource\" = 'Insider risk management') AS \"insiderRisk\", COUNT(*) FILTER (WHERE \"serviceSource\" = 'Data loss prevention') AS \"dlp\" FROM \"alerts\"",
+                            "tables": [
+                                {
+                                    "tableName": "alerts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts",
+                                            "dataSourceConfig": {
+                                                "status": [
+                                                    "new",
+                                                    "inProgress"
+                                                ]
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "securityForAi",
+                                        "type": "quantitative",
+                                        "title": "Security for AI"
+                                    },
+                                    {
+                                        "field": "insiderRisk",
+                                        "type": "quantitative",
+                                        "title": "Insider risk"
+                                    },
+                                    {
+                                        "field": "dlp",
+                                        "type": "quantitative",
+                                        "title": "Data loss prevention"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "52ddf95f-ce5b-4b14-ba6e-3f7d502b107c",
+                "x": 0,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI Interactions over Time",
+                    "description": "Copilot and AI app interactions in the dashboard timeframe, by AI app",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "time",
+                                "aiApp"
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "uniqueInteractions",
+                                    "type": "quantitative",
+                                    "title": "Interactions",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "aiApp",
+                                    "type": "nominal",
+                                    "title": "AI App"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "ddb51b88-f4d9-4274-ab2c-634ba72d8f08",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Labelled Data Reached by AI",
+                    "description": "Interactions that reached labelled data in the dashboard timeframe, and the labelled resources they read, by sensitivity label in priority order (highest on the right). An interaction counts once for each label it reached",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "label"
+                            ]
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "sensitivityLabelId",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "labelPriority",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "sensitivityLabel",
+                                    "type": "nominal",
+                                    "title": "Sensitivity Label"
+                                },
+                                "y": [
+                                    {
+                                        "field": "interactions",
+                                        "type": "quantitative",
+                                        "title": "Interactions"
+                                    },
+                                    {
+                                        "field": "labelledResources",
+                                        "type": "quantitative",
+                                        "title": "Labelled resources"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#8b5cf6",
+                                    "#f97316"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3ec8dd15-6a33-40e2-b3ee-07a7468c47b4",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top AI Users",
+                    "description": "The 10 people with the most Copilot and AI app interactions in the dashboard timeframe, the labelled resources their interactions read, and the risks detected in them",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "user"
+                            ],
+                            "top": 10
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "uniqueInteractions",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "user",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "uniqueInteractions",
+                                        "title": "Interactions",
+                                        "width": 110,
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    {
+                                        "field": "labelledResources",
+                                        "title": "Labelled Resources",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#f97316"
+                                        }
+                                    },
+                                    {
+                                        "field": "dlpPolicyMatches",
+                                        "title": "DLP Policy Matches",
+                                        "width": 150,
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    {
+                                        "field": "xpiaDetections",
+                                        "title": "Prompt Injections",
+                                        "width": 140,
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    {
+                                        "field": "jailbreakAttempts",
+                                        "title": "Jailbreak Attempts",
+                                        "width": 150,
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "68a09791-1301-4135-b6e7-e6256e9eaee2",
+                "x": 0,
+                "y": 9,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI and Insider Risk Alerts",
+                    "description": "Security for AI and insider risk management alerts raised in the dashboard timeframe, highest severity first. Select a row to open the alert in the Microsoft Purview portal",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT UPPER(SUBSTR(\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(\"severity[Expanded].rawState\", 2) AS \"severity\", \"title\", \"serviceSource\" AS \"source\", CASE \"status\" WHEN 'new' THEN 'New' WHEN 'inProgress' THEN 'In progress' WHEN 'resolved' THEN 'Resolved' ELSE \"status\" END AS \"status\", \"users\", COALESCE(\"assignedTo\", '') AS \"assignedTo\", \"createdDateTime\" AS \"created\", \"alertWebUrl\" AS \"link\" FROM \"alerts\" ORDER BY CASE \"severity[Expanded].rawState\" WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END, \"createdDateTime\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "alerts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts",
+                                            "dataSourceConfig": {
+                                                "source": [
+                                                    "microsoftSecurityForAI",
+                                                    "microsoftInsiderRiskManagement"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity",
+                                        "title": "Severity",
+                                        "width": 120,
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "High": "#ef4444",
+                                                "Medium": "#f59e0b",
+                                                "Low": "#3b82f6",
+                                                "Informational": "#6b7280"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "title",
+                                        "title": "Alert",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "source",
+                                        "title": "Source",
+                                        "width": 190,
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Data loss prevention": "#3b82f6",
+                                                "Insider risk management": "#d97706",
+                                                "Security for AI": "#8b5cf6"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "width": 110,
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "users",
+                                        "title": "Users",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "color": "#6366f1"
+                                        }
+                                    },
+                                    {
+                                        "field": "assignedTo",
+                                        "title": "Assigned To",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "created",
+                                        "title": "Created",
+                                        "width": 130,
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowLinkField": "link"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

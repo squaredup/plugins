@@ -1,0 +1,397 @@
+{
+    "name": "AI App",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [
+        "{{variables.[AI App]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "69d05760-9bc1-4eb8-ae4e-a63692ef35d9",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "AI App Details",
+                    "description": "The AI app as Microsoft Purview records it",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[AI Apps]}}",
+                        "variable": "{{variables.[AI App]}}",
+                        "workspace": "{{workspaceId}}"
+                    },
+                    "variables": [
+                        "{{variables.[AI App]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "application",
+                                        "title": "Application",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "interactionType",
+                                        "title": "Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableTranspose": true,
+                                "richTableWrapText": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "17e46efa-c20d-46c5-934b-fca7c6bc4bb9",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Activity and Detections",
+                    "description": "Interactions with this AI app in the dashboard timeframe, and the prompt injections, jailbreak attempts and DLP policy matches in them",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "time",
+                                "appHost"
+                            ],
+                            "aiApps": {
+                                "variable": "{{variables.[AI App]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[AI Apps]}}"
+                            }
+                        },
+                        "group": {
+                            "by": [],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "uniqueInteractions"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "xpiaDetections"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "jailbreakAttempts"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "dlpPolicyMatches"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[AI App]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "uniqueInteractions_sum",
+                                        "type": "quantitative",
+                                        "title": "Interactions"
+                                    },
+                                    {
+                                        "field": "xpiaDetections_sum",
+                                        "type": "quantitative",
+                                        "title": "Prompt injections"
+                                    },
+                                    {
+                                        "field": "jailbreakAttempts_sum",
+                                        "type": "quantitative",
+                                        "title": "Jailbreak attempts"
+                                    },
+                                    {
+                                        "field": "dlpPolicyMatches_sum",
+                                        "type": "quantitative",
+                                        "title": "DLP policy matches"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "c4a71d11-d7bb-46f8-9fa6-a534652b6c12",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Interactions over Time",
+                    "description": "Interactions with this AI app in the dashboard timeframe, by the app it was used in",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "time",
+                                "appHost"
+                            ],
+                            "aiApps": {
+                                "variable": "{{variables.[AI App]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[AI Apps]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[AI App]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "uniqueInteractions",
+                                    "type": "quantitative",
+                                    "title": "Interactions",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "appHost",
+                                    "type": "nominal",
+                                    "title": "App Host"
+                                }
+                            },
+                            "style": {
+                                "cartesianAreaGradient": true,
+                                "legendPosition": "bottom"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "3b72c817-0c4f-48fe-a421-303d3a377700",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Users",
+                    "description": "The 10 people who used this AI app most in the dashboard timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "user"
+                            ],
+                            "top": 10,
+                            "aiApps": {
+                                "variable": "{{variables.[AI App]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[AI Apps]}}"
+                            }
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "uniqueInteractions",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[AI App]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "user",
+                                    "type": "nominal",
+                                    "title": "User"
+                                },
+                                "y": {
+                                    "field": "uniqueInteractions",
+                                    "type": "quantitative",
+                                    "title": "Interactions"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "showLabels": true,
+                                "colors": [
+                                    "#8b5cf6"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7d2fbe8e-56ab-4d9a-ad3d-b3309e83ba41",
+                "x": 0,
+                "y": 5,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Labelled Data Reached",
+                    "description": "The sensitivity labels on data this AI app reached in the dashboard timeframe, least to most sensitive. An interaction counts once for each label it reached",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[aiInteractions]}}",
+                        "name": "aiInteractions",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "label"
+                            ],
+                            "aiApps": {
+                                "variable": "{{variables.[AI App]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[AI Apps]}}"
+                            }
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "sensitivityLabelId",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "labelPriority",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[AI App]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "sensitivityLabel",
+                                    "type": "nominal",
+                                    "title": "Sensitivity Label"
+                                },
+                                "y": [
+                                    {
+                                        "field": "interactions",
+                                        "type": "quantitative",
+                                        "title": "Interactions"
+                                    },
+                                    {
+                                        "field": "labelledResources",
+                                        "type": "quantitative",
+                                        "title": "Labelled resources"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "cartesianBarBorderRadius": 4,
+                                "legendPosition": "bottom",
+                                "colors": [
+                                    "#8b5cf6",
+                                    "#f97316"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

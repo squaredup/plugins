@@ -1,0 +1,624 @@
+{
+    "name": "Overview",
+    "schemaVersion": "1.5",
+    "timeframe": "last7days",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "760cba51-3876-49fc-8fae-b285a70231c8",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Open Alerts",
+                    "description": "Data loss prevention, insider risk and Security for AI alerts that are new or in progress, whenever they were raised, by severity, and how many have no one assigned",
+                    "activePluginConfigIds": [],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT COUNT(*) FILTER (WHERE \"severity[Expanded].rawState\" = 'high') AS \"high\", COUNT(*) FILTER (WHERE \"severity[Expanded].rawState\" = 'medium') AS \"medium\", COUNT(*) FILTER (WHERE \"severity[Expanded].rawState\" = 'low') AS \"low\", COUNT(*) FILTER (WHERE \"severity[Expanded].rawState\" = 'informational') AS \"informational\", COUNT(*) FILTER (WHERE \"assignedTo\" IS NULL OR \"assignedTo\" = '') AS \"unassigned\" FROM \"alerts\"",
+                            "tables": [
+                                {
+                                    "tableName": "alerts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts",
+                                            "dataSourceConfig": {
+                                                "status": [
+                                                    "new",
+                                                    "inProgress"
+                                                ]
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "high",
+                                        "type": "quantitative",
+                                        "title": "High"
+                                    },
+                                    {
+                                        "field": "medium",
+                                        "type": "quantitative",
+                                        "title": "Medium"
+                                    },
+                                    {
+                                        "field": "low",
+                                        "type": "quantitative",
+                                        "title": "Low"
+                                    },
+                                    {
+                                        "field": "informational",
+                                        "type": "quantitative",
+                                        "title": "Informational"
+                                    },
+                                    {
+                                        "field": "unassigned",
+                                        "type": "quantitative",
+                                        "title": "Unassigned"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 5
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "9c4183f6-fc1c-4efe-9c93-123902ec0a1d",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Alerts by Source",
+                    "description": "Alerts raised each day in the dashboard timeframe, by the Purview solution that raised them",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[alerts]}}",
+                        "name": "alerts",
+                        "pluginConfigId": "{{configId}}",
+                        "group": {
+                            "by": [
+                                [
+                                    "createdDateTime",
+                                    "byDay"
+                                ],
+                                [
+                                    "serviceSource",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "createdDateTime_byDay",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "createdDateTime_byDay",
+                                    "type": "temporal",
+                                    "title": "Created"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Alerts"
+                                },
+                                "series": {
+                                    "field": "serviceSource_uniqueValues",
+                                    "type": "nominal",
+                                    "title": "Source"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 2,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Data loss prevention": "#3b82f6",
+                                    "Insider risk management": "#d97706",
+                                    "Security for AI": "#8b5cf6"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "8b21718b-7540-4e03-8d3e-93bfec993012",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Users in Alerts",
+                    "description": "The users named in the most alerts raised in the dashboard timeframe",
+                    "activePluginConfigIds": [],
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT REPLACE(TRIM(\"part\"), '\"', '') AS \"user\", CAST(COUNT(*) AS DOUBLE) AS \"alerts\" FROM (SELECT UNNEST(STRING_SPLIT(REPLACE(REPLACE(CAST(\"users\" AS VARCHAR), '[', ''), ']', ''), ',')) AS \"part\" FROM \"alerts\" WHERE \"users\" IS NOT NULL) WHERE REPLACE(TRIM(\"part\"), '\"', '') <> '' GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 10",
+                            "tables": [
+                                {
+                                    "tableName": "alerts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "user",
+                                    "type": "nominal",
+                                    "title": "User"
+                                },
+                                "y": {
+                                    "field": "alerts",
+                                    "type": "quantitative",
+                                    "title": "Alerts"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "showLabels": true,
+                                "colors": [
+                                    "#6366f1"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "4308052a-1595-4f11-96ee-d82d20fae084",
+                "x": 0,
+                "y": 5,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Open Alert List",
+                    "description": "Alerts that are new or in progress, whenever they were raised, highest severity first. Select a row to open the alert in the Microsoft Purview portal",
+                    "activePluginConfigIds": [],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT UPPER(SUBSTR(\"severity[Expanded].rawState\", 1, 1)) || SUBSTR(\"severity[Expanded].rawState\", 2) AS \"severity\", \"title\", \"serviceSource\" AS \"source\", CASE \"status\" WHEN 'new' THEN 'New' WHEN 'inProgress' THEN 'In progress' WHEN 'resolved' THEN 'Resolved' ELSE \"status\" END AS \"status\", \"users\", COALESCE(\"assignedTo\", '') AS \"assignedTo\", \"createdDateTime\" AS \"created\", \"alertWebUrl\" AS \"link\" FROM \"alerts\" ORDER BY CASE \"severity[Expanded].rawState\" WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END, \"createdDateTime\" DESC",
+                            "tables": [
+                                {
+                                    "tableName": "alerts",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[alerts]}}",
+                                            "name": "alerts",
+                                            "dataSourceConfig": {
+                                                "status": [
+                                                    "new",
+                                                    "inProgress"
+                                                ]
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "severity",
+                                        "title": "Severity",
+                                        "width": 120,
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "High": "#ef4444",
+                                                "Medium": "#f59e0b",
+                                                "Low": "#3b82f6",
+                                                "Informational": "#6b7280"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "title",
+                                        "title": "Alert",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "source",
+                                        "title": "Source",
+                                        "width": 190,
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Data loss prevention": "#3b82f6",
+                                                "Insider risk management": "#d97706",
+                                                "Security for AI": "#8b5cf6"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "field": "status",
+                                        "title": "Status",
+                                        "width": 110,
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "users",
+                                        "title": "Users",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "color": "#6366f1"
+                                        }
+                                    },
+                                    {
+                                        "field": "assignedTo",
+                                        "title": "Assigned To",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "created",
+                                        "title": "Created",
+                                        "width": 130,
+                                        "renderer": {
+                                            "type": "date",
+                                            "relative": true
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableRowLinkField": "link",
+                                "richTableRowHighlight": {
+                                    "field": "severity",
+                                    "colors": {
+                                        "High": "rgba(239,68,68,0.10)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "dde6635c-9100-4191-9104-8199d88b7106",
+                "x": 0,
+                "y": 9,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Label Activity",
+                    "description": "Sensitivity label events in the dashboard timeframe: labels applied, changed or removed, labelled files opened, and labelled email detected",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[labelActivity]}}",
+                        "name": "labelActivity",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "time",
+                                "action"
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "timestamp",
+                                    "type": "temporal",
+                                    "title": "Time"
+                                },
+                                "y": {
+                                    "field": "events",
+                                    "type": "quantitative",
+                                    "title": "Events",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "action",
+                                    "type": "nominal",
+                                    "title": "Action"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianBarBorderRadius": 2,
+                                "legendPosition": "bottom",
+                                "mappedColors": {
+                                    "Applied": "#22c55e",
+                                    "Changed": "#3b82f6",
+                                    "Upgraded": "#8b5cf6",
+                                    "Downgraded": "#f97316",
+                                    "Removed": "#ef4444",
+                                    "Change failed": "#b91c1c",
+                                    "Opened": "#06b6d4",
+                                    "Renamed": "#94a3b8",
+                                    "Detected in email": "#6366f1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "a2374c8c-9da8-46f0-97c8-4e713f6fbe0d",
+                "x": 2,
+                "y": 9,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Sites by Anonymous Link Use",
+                    "description": "The SharePoint sites and OneDrive accounts whose anonymous (Anyone) links were created or used most in the dashboard timeframe",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[fileActivity]}}",
+                        "name": "fileActivity",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": [
+                                "site"
+                            ],
+                            "categories": [
+                                "Anonymous link"
+                            ],
+                            "top": 10
+                        },
+                        "filter": {
+                            "multiOperation": "and",
+                            "filters": [
+                                {
+                                    "column": "siteUrl",
+                                    "operation": "notempty"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "events",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "site",
+                                    "type": "nominal",
+                                    "title": "Site"
+                                },
+                                "y": {
+                                    "field": "events",
+                                    "type": "quantitative",
+                                    "title": "Events"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "cartesianBarBorderRadius": 4,
+                                "showLabels": true,
+                                "colors": [
+                                    "#ec4899"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "2f8ce4e9-a6e0-4b3f-a89a-8eaa1a29e808",
+                "x": 0,
+                "y": 12,
+                "w": 4,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Sensitivity Labels",
+                    "description": "The sensitivity labels published in the tenant, lowest priority first, with whether each applies encryption and the content it can be applied to",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[sensitivityLabels]}}",
+                        "name": "sensitivityLabels",
+                        "pluginConfigId": "{{configId}}",
+                        "sort": {
+                            "by": [
+                                [
+                                    "sensitivity",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "fullName",
+                                        "title": "Label",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "sensitivity",
+                                        "title": "Priority",
+                                        "width": 90,
+                                        "align": "right",
+                                        "renderer": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    {
+                                        "field": "color",
+                                        "title": "Colour",
+                                        "width": 100,
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "hasProtection",
+                                        "title": "Encryption",
+                                        "width": 110,
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No",
+                                            "trueColor": "#22c55e",
+                                            "falseColor": "#64748b"
+                                        }
+                                    },
+                                    {
+                                        "field": "isActive",
+                                        "title": "Active",
+                                        "width": 90,
+                                        "renderer": {
+                                            "type": "boolean",
+                                            "trueLabel": "Yes",
+                                            "falseLabel": "No",
+                                            "trueColor": "#22c55e",
+                                            "falseColor": "#64748b"
+                                        }
+                                    },
+                                    {
+                                        "field": "contentFormats",
+                                        "title": "Applies To",
+                                        "renderer": {
+                                            "type": "tag-list",
+                                            "color": "#3b82f6"
+                                        }
+                                    },
+                                    {
+                                        "field": "tooltip",
+                                        "title": "Description",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableCellPadding": 6,
+                                "richTableHideCount": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

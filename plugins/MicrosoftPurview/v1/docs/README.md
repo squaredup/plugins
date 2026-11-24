@@ -1,5 +1,5 @@
 
-This plugin connects SquaredUp to Microsoft Purview and surfaces data governance posture across collections, data sources, scans, classifications, policies, and lineage.
+This plugin connects SquaredUp to the [Microsoft Purview](https://learn.microsoft.com/en-us/purview/purview) data governance solutions, the Data Map and Unified Catalog, and surfaces data governance posture across collections, data sources, scans, classifications, policies, and lineage. For Microsoft Purview data security, such as Copilot and AI app activity and sensitivity labels, use the **Microsoft Purview Data Security** plugin.
 
 ## What it does
 
