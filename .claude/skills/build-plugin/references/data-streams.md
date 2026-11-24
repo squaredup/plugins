@@ -593,11 +593,11 @@ Always use `displayName` — column names in scripts are often terse API field n
 
 _Value_
 
-| Shape       | Notes                                                                    |
-| ----------- | ------------------------------------------------------------------------ |
-| `"string"`  | Plain text                                                               |
-| `"number"`  | Numeric. Options: `decimalPlaces` (0–10), `thousandsSeparator` (boolean) |
-| `"boolean"` | Boolean                                                                  |
+| Shape       | Notes                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `"string"`  | Plain text                                                                                                                       |
+| `"number"`  | Numeric. Options: `decimalPlaces` (0–10), `significantFigures` (1–10, overrides `decimalPlaces`), `thousandsSeparator` (boolean) |
+| `"boolean"` | Boolean                                                                                                                          |
 
 _Time_
 
@@ -610,9 +610,9 @@ _Time_
 
 _Math_
 
-| Shape       | Notes                                                                     |
-| ----------- | ------------------------------------------------------------------------- |
-| `"percent"` | Percentage 0–100. Options: `asZeroToOne` (multiply by 100 before display) |
+| Shape       | Notes                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------- |
+| `"percent"` | Percentage 0–100. Options: `asZeroToOne` (multiply by 100 before display), plus the `number` options |
 
 _Data size_ (auto-scale, 1024 factors): `"bytes"`, `"kilobytes"`, `"megabytes"`, `"gigabytes"`, `"terabytes"`, `"petabytes"`, `"exabytes"`, `"zettabytes"`, `"yottabytes"`
 
@@ -649,7 +649,10 @@ _List_
 { "name": "updatedAt", "shape": ["date", { "format": "dd/MM/yyyy hh:mm", "timeZone": "Etc/UTC" }] }
 { "name": "health", "shape": ["state", { "map": { "success": ["ok","active"], "error": ["failed","down"], "warning": ["degraded"] } }] }
 { "name": "cost", "shape": ["currency", { "code": "jpy" }] }
+{ "name": "availability", "shape": ["percent", { "significantFigures": 4 }] }
 ```
+
+Use `significantFigures` for values that sit at different magnitudes but should line up, such as availability and SLA percentages near 100: at 4, `100` shows as `100.0%` beside `99.95%` rather than widening the column as `100.00%`. Whole-number digits are never rounded (`12,345` stays `12,345`).
 
 ### List columns (`array` shape)
 
