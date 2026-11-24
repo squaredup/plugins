@@ -34,7 +34,7 @@ Some data also depends on tenant licences rather than permissions:
 
 ### 3. Show user names in usage reports (optional)
 
-Microsoft 365 hides user names in usage reports by default. The plugin works with names hidden, but the **Copilot User Activity** data stream then shows anonymous IDs instead of names, and its rows can't be matched to imported Copilot Users, so the per-user filter and the **Copilot User** dashboard show no activity, and department and sign-in details can't be shown.
+Microsoft 365 hides user names in usage reports by default. The plugin works with names hidden, but the **Copilot User Activity** data stream then shows anonymous IDs instead of names, and its rows can't be matched to imported Copilot Users, so the per-user filter and the **Copilot User** dashboard show no activity, department and sign-in details can't be shown, and the seat tiles on **Adoption & Seats** (Seats to Reclaim, Seats by Status, Seats to Review and Adoption by Department) show no seats, because they only count users matched to a current licence.
 
 This is a tenant-wide setting: showing names applies to **all** Microsoft 365 usage reports, not only Copilot's. Check your organization's privacy policy before you change it. To show names:
 
@@ -91,7 +91,7 @@ On save, the plugin checks that it can read licences, Microsoft 365 Copilot usag
 - **Licence use**: Copilot seats purchased, assigned and available, so unused seats stand out.
 - **Adoption**: enabled and active users per Microsoft 365 app (Teams, Outlook, Word, Excel, PowerPoint, Copilot Chat and more), daily trends, and prompts submitted.
 - **Per-user activity**: when each licensed user last used Copilot and in which apps, with users who haven't used it for over 7 or 28 days flagged.
-- **Seats to reclaim**: each licensed user's department and account state, with a seat status (Active, Low use, Idle, Never used or Account disabled), adoption by department, and users who haven't signed in for 30 days.
+- **Seats to reclaim**: each licensed user's department and account state, with a seat status (Active, Low use, Idle, Never used, Account disabled, or Unknown for users who can't be matched to an imported Copilot User), adoption by department, and users who haven't signed in for 30 days.
 - **Copilot Studio credits**: prepaid capacity, consumption and pay-as-you-go usage this month, and whether the tenant is within capacity or in overage.
 - **Spend**: daily Azure costs for Copilot Studio, Copilot Chat pay-as-you-go and Azure AI services, by service, meter or resource, and spend against Cost Management budgets with a forecast for the period.
 - **AI app sign-ins**: which AI apps people sign in to with their work account, such as Copilot, ChatGPT Enterprise or Claude's Microsoft 365 connectors.
@@ -123,7 +123,7 @@ Each **Copilot User**, **Environment** and **Agent** also has its own perspectiv
 - **Copilot Daily User Activity**: whether each licensed user was active, their prompts and the apps they used, per day over the last 7 days of reporting (account-wide, or filtered to selected users).
 - **Copilot Credit Capacity**: prepaid and pay-as-you-go Copilot Credit usage this month, with capacity status (account-wide).
 - **Environment Credit Allocations**: capacity allocated to each environment, by currency (per environment).
-- **Copilot Spend**: daily cost and usage quantity from Azure Cost Management, grouped by service, meter category, meter, resource group, resource or resource type, for Copilot and AI services or all services (account-wide).
+- **Copilot Spend**: daily cost from Azure Cost Management, grouped by service, meter category, meter, resource group, resource or resource type, for Copilot and AI services or all services (account-wide). Usage quantity is only given when grouped by meter, because other groupings mix units. Grouped by resource above a single subscription, each resource is labelled with its subscription name.
 - **Cost Budgets**: each Cost Management budget at the configured scope, with its amount, spend so far this period, forecast at period end and filters (account-wide).
 - **AI App Sign-ins**: successful and failed Microsoft Entra sign-ins per application over 7 or 30 days, with each AI app's vendor, for AI apps only or all apps (account-wide).
 - **AI App Permissions**: one row per permission grant held by an AI app used in the last 30 days: delegated grants for all users or one user (named), and application permissions, with the API they're granted on and whether they go beyond basic sign-in (account-wide).
@@ -135,7 +135,7 @@ Each **Copilot User**, **Environment** and **Agent** also has its own perspectiv
 
 | Object type | API source | Represents |
 | ----------- | ---------- | ---------- |
-| **Copilot User** | Microsoft Graph `GET /v1.0/users`, filtered to users with an enabled Microsoft 365 Copilot service plan | A user licensed for Microsoft 365 Copilot, identified by user principal name, with their Microsoft Entra object ID, mail, department, job title and account state. |
+| **Copilot User** | Microsoft Graph `GET /v1.0/users`, filtered to users with a Microsoft 365 Copilot service plan that is enabled or in its grace period | A user licensed for Microsoft 365 Copilot, identified by user principal name, with their Microsoft Entra object ID, mail, department, job title and account state. |
 | **Environment** | Power Platform admin API `GET /providers/Microsoft.BusinessAppPlatform/scopes/admin/environments` | A Power Platform environment, where Copilot Studio agents are built and credits are allocated. |
 | **Agent** | Microsoft Graph `GET /v1.0/copilot/admin/catalog/packages` (needs Microsoft Agent 365) | An agent in the Agent 365 registry, such as a Copilot Studio or Agent Builder agent, or one from Microsoft or a publisher. |
 
@@ -144,7 +144,7 @@ Each **Agent** is related to the **Copilot Users** who own it (*is owned by*), m
 ## Known limitations
 
 - **Usage reports lag by about two days**, and use Microsoft's fixed 7, 28, 90 and 180-day periods, chosen with each data stream's **Period** setting rather than the dashboard timeframe.
-- **Users who recently lost their licence still appear** in Copilot User Activity: Microsoft's report covers anyone licensed in the last 180 days. They're no longer imported as Copilot Users, so their department, job title and account state show **Object not found**; the out-of-the-box tiles leave these blank.
+- **Users who recently lost their licence still appear** in Copilot User Activity: Microsoft's report covers anyone licensed in the last 180 days. They're no longer imported as Copilot Users, so their department, job title and account state show **Object not found** and their seat status is **Unknown**; the out-of-the-box seat tiles leave them out.
 - **Last sign-in needs AuditLog.Read.All and Microsoft Entra ID P1 or P2**: without them, Copilot User Sign-ins and the Possible Leavers tile show an error, and nothing else is affected.
 - **Department, job title and account state are as recent as the last import**: Copilot User Activity reads them from the imported Copilot Users, so its seat status flags a disabled account once the next import has run.
 - **Copilot Chat use by unlicensed users isn't reported**: Microsoft Graph only covers users with a Microsoft 365 Copilot licence.

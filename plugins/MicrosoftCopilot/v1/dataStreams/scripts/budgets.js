@@ -55,7 +55,9 @@ result = (data.value || []).map((b) => {
     const forecast =
         amountOf(p.forecastSpend) ??
         (spent !== null && share !== null && share > 0.02 ? spent / share : null);
-    const used = pct(spent, amount);
+    // Rounded to the 1 decimal place shown, so the state and the tile's colour bands agree.
+    const usedRaw = pct(spent, amount);
+    const used = usedRaw === null ? null : Math.round(usedRaw * 10) / 10;
     const forecastUsed = pct(forecast, amount);
     // Over budget = error; 80% used, or on course to exceed it, = warning.
     const state =

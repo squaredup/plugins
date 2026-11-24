@@ -1,7 +1,7 @@
 {
     "name": "spend",
     "displayName": "Copilot Spend",
-    "description": "Daily Azure Cost Management spend and usage quantity for Copilot and AI services, by service, meter or resource",
+    "description": "Daily Azure Cost Management spend for Copilot and AI services, by service, meter or resource, with usage quantity when grouped by meter",
     "tags": [
         "Cost"
     ],
@@ -35,12 +35,7 @@
                         "function": "Sum"
                     }
                 },
-                "grouping": [
-                    {
-                        "type": "Dimension",
-                        "name": "{{groupBy || 'ServiceName'}}"
-                    }
-                ],
+                "grouping": "{{ groupBy === 'ResourceId' ? [ { type: 'Dimension', name: 'ResourceId' }, { type: 'Dimension', name: 'SubscriptionName' } ] : [ { type: 'Dimension', name: groupBy || 'ServiceName' } ] }}",
                 "filter": "{{scopeOfCosts === 'all' ? undefined : { or: [ { dimensions: { name: 'ResourceType', operator: 'In', values: ['microsoft.powerplatform/accounts'] } }, { dimensions: { name: 'ServiceName', operator: 'In', values: ['Cognitive Services','Azure OpenAI Service','Azure AI Services','Copilot Studio','Microsoft Copilot Studio','Power Platform','Foundry Models','Foundry Tools'] } } ] } }}"
             }
         },
