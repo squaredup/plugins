@@ -108,7 +108,7 @@ The out-of-the-box dashboards include an estate-wide **Overview** and an **Agent
 - **Copilot Adoption**: enabled users, active users and active rate per app over a 7, 28, 90 or 180-day period, with prompt totals (account-wide).
 - **Copilot Adoption Trend**: daily enabled and active users per app over the chosen period (account-wide).
 - **Copilot User Activity**: last activity per app, days since last use, prompts and active days for each licensed user, with department, job title, account state and seat status (account-wide, or filtered to selected users).
-- **Copilot User Sign-ins**: each Copilot-licensed user's account state and last Microsoft Entra sign-in, read live (account-wide).
+- **Copilot User Sign-ins**: each Copilot-licensed user's account state and last successful Microsoft Entra sign-in, read live (account-wide). Failed sign-in attempts don't count, so a leaver's account can't look active because someone tried to sign in to it.
 - **Copilot Daily User Activity**: whether each licensed user was active, their prompts and the apps they used, per day over the last 7 days of reporting (account-wide, or filtered to selected users).
 - **Copilot Credit Capacity**: prepaid and pay-as-you-go Copilot Credit usage this month, with capacity status (account-wide).
 - **Environment Credit Allocations**: capacity allocated to each environment, by currency (per environment).

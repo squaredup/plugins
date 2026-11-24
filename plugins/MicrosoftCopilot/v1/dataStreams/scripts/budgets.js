@@ -7,7 +7,8 @@ const pct = (part, whole) => (part !== null && whole > 0 ? (part / whole) * 100 
 
 // Azure only returns forecastSpend for some budgets. Without it, the forecast is a straight
 // line from the spend so far in the current period (Monthly, Quarterly or Annually, counted
-// from the budget's start date). Billing-period grains can't be placed, so they get none.
+// from the budget's start date). Billing-period grains can't be placed, and budgets that haven't
+// started have no current period, so they get none.
 const MONTHS = { Monthly: 1, Quarterly: 3, Annually: 12 };
 const currentPeriod = (start, grain) => {
     const step = MONTHS[grain];
@@ -16,6 +17,9 @@ const currentPeriod = (start, grain) => {
         return null;
     }
     const now = new Date();
+    if (now < from) {
+        return null;
+    }
     const elapsed =
         (now.getUTCFullYear() - from.getUTCFullYear()) * 12 + (now.getUTCMonth() - from.getUTCMonth());
     const at = (n) => new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + n, from.getUTCDate()));
