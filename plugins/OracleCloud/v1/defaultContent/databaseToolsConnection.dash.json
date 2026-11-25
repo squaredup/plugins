@@ -1,0 +1,498 @@
+{
+    "name": "Database Tools Connection",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [
+        "{{variables.[Database Tools Connection]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "bbf8adf1-2dcc-4324-8751-7f373efdaa0d",
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Current Load",
+                    "description": "Host CPU, average active sessions, sessions and executions per second from the last 60 seconds of v$sysmetric",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sqlQuery]}}",
+                        "name": "sqlQuery",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "sql": "SELECT\n    ROUND(MAX(CASE WHEN metric_name = 'Host CPU Utilization (%)' THEN value END), 1) AS \"cpuPct\",\n    ROUND(MAX(CASE WHEN metric_name = 'Average Active Sessions' THEN value END), 2) AS \"activeSessions\",\n    ROUND(MAX(CASE WHEN metric_name = 'Session Count' THEN value END)) AS \"sessions\",\n    ROUND(MAX(CASE WHEN metric_name = 'Executions Per Sec' THEN value END), 1) AS \"execsPerSec\"\nFROM v$sysmetric\nWHERE group_id = 2",
+                            "rowLimit": 1000
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Database Tools Connections]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Database Tools Connection]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Database Tools Connection]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "cpuPct",
+                                        "type": "quantitative",
+                                        "title": "Host CPU (%)"
+                                    },
+                                    {
+                                        "field": "activeSessions",
+                                        "type": "quantitative",
+                                        "title": "Avg Active Sessions"
+                                    },
+                                    {
+                                        "field": "sessions",
+                                        "type": "quantitative",
+                                        "title": "Sessions"
+                                    },
+                                    {
+                                        "field": "execsPerSec",
+                                        "type": "quantitative",
+                                        "title": "Executions/s"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 4
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "91755e40-4ead-4c49-a78d-191f189caed8",
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Tablespace Usage",
+                    "description": "Used space per tablespace from dba_tablespace_usage_metrics, fullest first (needs SELECT on DBA views)",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sqlQuery]}}",
+                        "name": "sqlQuery",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "sql": "SELECT m.tablespace_name AS \"tablespace\",\n    ROUND(m.used_percent, 1) AS \"usedPct\",\n    ROUND(m.used_space * t.block_size / 1073741824, 2) AS \"usedGB\",\n    ROUND(m.tablespace_size * t.block_size / 1073741824, 2) AS \"maxGB\"\nFROM dba_tablespace_usage_metrics m\nJOIN dba_tablespaces t ON t.tablespace_name = m.tablespace_name\nORDER BY m.used_percent DESC",
+                            "rowLimit": 1000
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Database Tools Connections]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Database Tools Connection]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Database Tools Connection]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "tablespace",
+                                        "title": "Tablespace",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "usedPct",
+                                        "title": "Used",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "max": 100,
+                                            "thresholds": [
+                                                {
+                                                    "to": 80,
+                                                    "color": "#16a34a"
+                                                },
+                                                {
+                                                    "to": 90,
+                                                    "color": "#f59e0b"
+                                                },
+                                                {
+                                                    "to": 100,
+                                                    "color": "#ef4444"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "field": "usedGB",
+                                        "title": "Used (GB)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "maxGB",
+                                        "title": "Max Size (GB)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "5c88dde0-4d90-4c22-a733-d52e978a95db",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Active Sessions by Wait Class",
+                    "description": "Active user sessions right now, on CPU or by the wait class they are waiting in",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sqlQuery]}}",
+                        "name": "sqlQuery",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "sql": "SELECT CASE WHEN state = 'WAITING' THEN wait_class ELSE 'CPU' END AS \"waitClass\",\n    COUNT(*) AS \"sessions\"\nFROM v$session\nWHERE status = 'ACTIVE' AND type = 'USER'\nGROUP BY CASE WHEN state = 'WAITING' THEN wait_class ELSE 'CPU' END\nORDER BY 2 DESC",
+                            "rowLimit": 1000
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Database Tools Connections]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Database Tools Connection]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Database Tools Connection]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "waitClass",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "sessions",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 16,
+                                "mappedColors": {
+                                    "CPU": "#16a34a"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "1e7f25bb-2a0a-443a-8038-b8b2c1ad2927",
+                "x": 0,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top Wait Events",
+                    "description": "The 10 non-idle wait events with the most time waited since the instance started",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sqlQuery]}}",
+                        "name": "sqlQuery",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "sql": "SELECT event AS \"event\",\n    wait_class AS \"waitClass\",\n    total_waits AS \"totalWaits\",\n    ROUND(time_waited_micro / 1000000, 1) AS \"timeWaitedSec\"\nFROM v$system_event\nWHERE wait_class <> 'Idle'\nORDER BY time_waited_micro DESC\nFETCH FIRST 10 ROWS ONLY",
+                            "rowLimit": 1000
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Database Tools Connections]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Database Tools Connection]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Database Tools Connection]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "event",
+                                        "title": "Event",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "waitClass",
+                                        "title": "Wait Class",
+                                        "renderer": {
+                                            "type": "badge"
+                                        }
+                                    },
+                                    {
+                                        "field": "totalWaits",
+                                        "title": "Waits",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "timeWaitedSec",
+                                        "title": "Time Waited (s)",
+                                        "renderer": {
+                                            "type": "bar"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f8c63d3f-6ef0-42ab-a46e-a46dc4a20544",
+                "x": 2,
+                "y": 5,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Top SQL by Elapsed Time",
+                    "description": "The 10 cached SQL statements with the most total elapsed time",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[sqlQuery]}}",
+                        "name": "sqlQuery",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "sql": "SELECT sql_id AS \"sqlId\",\n    SUBSTR(sql_text, 1, 200) AS \"sqlText\",\n    executions AS \"executions\",\n    ROUND(elapsed_time / 1000000, 2) AS \"elapsedSec\",\n    ROUND(cpu_time / 1000000, 2) AS \"cpuSec\"\nFROM v$sql\nORDER BY elapsed_time DESC\nFETCH FIRST 10 ROWS ONLY",
+                            "rowLimit": 1000
+                        }
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Database Tools Connections]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Database Tools Connection]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Database Tools Connection]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "sqlId",
+                                        "title": "SQL ID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "sqlText",
+                                        "title": "SQL",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "executions",
+                                        "title": "Executions",
+                                        "renderer": {
+                                            "type": "number",
+                                            "compact": true
+                                        },
+                                        "align": "right"
+                                    },
+                                    {
+                                        "field": "elapsedSec",
+                                        "title": "Elapsed (s)",
+                                        "renderer": {
+                                            "type": "bar"
+                                        }
+                                    },
+                                    {
+                                        "field": "cpuSec",
+                                        "title": "CPU (s)",
+                                        "renderer": {
+                                            "type": "number",
+                                            "decimals": 2
+                                        },
+                                        "align": "right"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "detailsPanel": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "7b46f2bd-0105-4896-9e2f-b8709f816f04",
+                "x": 0,
+                "y": 8,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "Properties of this connection captured at import, including its compartment and tags",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Database Tools Connections]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Database Tools Connection]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Database Tools Connection]}}"
+                    ],
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "resourceType",
+                                        "title": "Resource Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lifecycleState",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "region",
+                                        "title": "Region",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "availabilityDomain",
+                                        "title": "Availability Domain",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "compartmentId",
+                                        "title": "Compartment OCID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ociTags",
+                                        "title": "Tags",
+                                        "renderer": {
+                                            "type": "tag-list"
+                                        }
+                                    },
+                                    {
+                                        "field": "timeCreated",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

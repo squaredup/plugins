@@ -1,0 +1,484 @@
+{
+    "name": "Compartment",
+    "schemaVersion": "1.5",
+    "timeframe": "last24hours",
+    "variables": [
+        "{{variables.[Compartment]}}"
+    ],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "b00bb164-a89b-47e1-84d0-45fbc60746ea",
+                "x": 0,
+                "y": 0,
+                "w": 1,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Properties",
+                    "description": "Name, description and state of this compartment",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "datastream-properties",
+                        "name": "properties",
+                        "pluginConfigId": "{{configId}}"
+                    },
+                    "scope": {
+                        "scope": "{{scopes.[Compartments]}}",
+                        "workspace": "{{workspaceId}}",
+                        "variable": "{{variables.[Compartment]}}"
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "timeframe": "none",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "name",
+                                        "title": "Name",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "description",
+                                        "title": "Description",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "lifecycleState",
+                                        "title": "State",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "parentCompartmentId",
+                                        "title": "Parent Compartment OCID",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "timeCreated",
+                                        "title": "Created",
+                                        "renderer": {
+                                            "type": "date"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableTranspose": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "f4a077e1-059c-4b2a-b9c8-110aaa5d2271",
+                "x": 1,
+                "y": 0,
+                "w": 3,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Daily Cost by Service",
+                    "description": "Daily cost of each service in this compartment over the last 30 days",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[costAndUsage]}}",
+                        "name": "costAndUsage",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "groupBy": "service",
+                            "granularity": "DAILY",
+                            "queryType": "COST",
+                            "resources": [],
+                            "compartment": {
+                                "variable": "{{variables.[Compartment]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Compartments]}}"
+                            }
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "timeframe": "last30days",
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "line",
+                            "encoding": {
+                                "x": {
+                                    "field": "date",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "amount",
+                                    "type": "quantitative",
+                                    "title": "Cost",
+                                    "aggregate": "sum"
+                                },
+                                "series": {
+                                    "field": "group",
+                                    "type": "nominal"
+                                }
+                            },
+                            "style": {
+                                "cartesianStack": "on",
+                                "cartesianAreaGradient": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "037ab8de-d038-420a-9be4-fdf726459bb6",
+                "x": 0,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Log Events by Type",
+                    "description": "The 10 most frequent log event types in this compartment, including audit, service and custom logs",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[logSearch]}}",
+                        "name": "logSearch",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "search $__scope | summarize count() as events by type | sort by events desc",
+                            "scope": {
+                                "variable": "{{variables.[Compartment]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Compartments]}}"
+                            },
+                            "limit": 100
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "events",
+                                    "desc"
+                                ]
+                            ],
+                            "top": 10
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "type",
+                                    "type": "nominal",
+                                    "title": "Event Type"
+                                },
+                                "y": {
+                                    "field": "events",
+                                    "type": "quantitative",
+                                    "title": "Events"
+                                }
+                            },
+                            "style": {
+                                "cartesianHorizontal": true,
+                                "showLabels": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "81872094-d9f5-49dd-b43a-de456691dfc3",
+                "x": 2,
+                "y": 3,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Audit Events Over Time",
+                    "description": "Write operations recorded by OCI Audit in this compartment, per hour",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[auditEvents]}}",
+                        "name": "auditEvents",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "includeReads": false,
+                            "compartment": {
+                                "variable": "{{variables.[Compartment]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Compartments]}}"
+                            },
+                            "limit": 200
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "time",
+                                    "byHour"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "count"
+                                }
+                            ]
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "time_byHour",
+                                    "asc"
+                                ]
+                            ]
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "bar",
+                            "encoding": {
+                                "x": {
+                                    "field": "time_byHour",
+                                    "type": "temporal"
+                                },
+                                "y": {
+                                    "field": "count",
+                                    "type": "quantitative",
+                                    "title": "Events"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "d8008236-8432-445f-94db-6384cbd47d20",
+                "x": 0,
+                "y": 6,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Audit Events",
+                    "description": "Write operations recorded by OCI Audit in this compartment, most recent first",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[auditEvents]}}",
+                        "name": "auditEvents",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "includeReads": false,
+                            "compartment": {
+                                "variable": "{{variables.[Compartment]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Compartments]}}"
+                            },
+                            "limit": 200
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "time",
+                                        "title": "Time",
+                                        "renderer": {
+                                            "type": "date",
+                                            "showMilliseconds": true
+                                        }
+                                    },
+                                    {
+                                        "field": "outcome",
+                                        "title": "Outcome",
+                                        "renderer": {
+                                            "type": "status",
+                                            "showLabel": false
+                                        },
+                                        "width": 80,
+                                        "align": "center"
+                                    },
+                                    {
+                                        "field": "eventName",
+                                        "title": "Event",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "principalName",
+                                        "title": "Principal",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "resourceName",
+                                        "title": "Resource",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "compartmentName",
+                                        "title": "Compartment",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "ipAddress",
+                                        "title": "IP Address",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "detailsPanel": true,
+                                "richTableSort": {
+                                    "field": "time",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "b48592f1-1695-4115-9778-517dcb2e8f3a",
+                "x": 0,
+                "y": 10,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "title": "Recent Log Events",
+                    "description": "The latest log events from every log in this compartment",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "dataStream": {
+                        "id": "{{dataStreams.[logSearch]}}",
+                        "name": "logSearch",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "query": "search $__scope | sort by datetime desc",
+                            "scope": {
+                                "variable": "{{variables.[Compartment]}}",
+                                "workspace": "{{workspaceId}}",
+                                "scope": "{{scopes.[Compartments]}}"
+                            },
+                            "limit": 100
+                        }
+                    },
+                    "variables": [
+                        "{{variables.[Compartment]}}"
+                    ],
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "time",
+                                        "title": "Time",
+                                        "renderer": {
+                                            "type": "date",
+                                            "showMilliseconds": true
+                                        }
+                                    },
+                                    {
+                                        "field": "type",
+                                        "title": "Type",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "message",
+                                        "title": "Message",
+                                        "renderer": {
+                                            "type": "logMessage"
+                                        }
+                                    },
+                                    {
+                                        "field": "source",
+                                        "title": "Source",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "detailsPanel": true,
+                                "richTableSort": {
+                                    "field": "time",
+                                    "direction": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
