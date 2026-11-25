@@ -20,8 +20,21 @@
 // Grafana-style time macros ($__timeFilter etc.) in SQL sent to the Database
 // Tools Runtime executeSql action, and "[auto]" intervals in MQL queries.
 
-const realmDomain = (secrets.realmDomain || "oraclecloud.com").trim();
-const homeRegion = (secrets.homeRegion || "").trim();
+// A data source resolves scriptingVariables once, when it is created, and
+// editing a field later doesn't refresh them. Prefer the live field values
+// from the data source config, and fall back to the scripting variables.
+// The private key is only taken from the config when it arrives decrypted.
+const liveConfig = context.dataSources?.[0] ?? {};
+const setting = (name) => {
+    const live = liveConfig[name];
+    if (typeof live === "string" && live.trim() && !live.startsWith("squp_encrypted")) {
+        return live;
+    }
+    return secrets[name] ?? "";
+};
+
+const realmDomain = (setting("realmDomain") || "oraclecloud.com").trim();
+const homeRegion = setting("homeRegion").trim();
 
 // Host templates per service, from the OCI SDK endpoint definitions.
 const SERVICE_HOSTS = {
@@ -194,10 +207,10 @@ const signingString = headerOrder
     .map((name) => `${name}: ${name === "(request-target)" ? requestTarget : signedHeaders[name]}`)
     .join("\n");
 
-const key = await importPrivateKey(secrets.privateKey);
+const key = await importPrivateKey(setting("privateKey"));
 const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, encoder.encode(signingString));
 
-const keyId = [secrets.tenancyOcid, secrets.userOcid, secrets.fingerprint].map((v) => String(v || "").trim()).join("/");
+const keyId = ["tenancyOcid", "userOcid", "fingerprint"].map((name) => setting(name).trim()).join("/");
 
 // Drop any differently-cased duplicates the platform set, so the values sent
 // are exactly the values signed.
