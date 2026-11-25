@@ -1,0 +1,39 @@
+{
+    "name": "resourceSearchImport",
+    "displayName": "Resources by Region",
+    "description": "OCI resources of the configured types in one region, from the Resource Search service",
+    "tags": ["Resources"],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/query/{{object.rawId}}/20180409/resources",
+        "postBody": {
+            "type": "Structured",
+            "query": "query {{ (Array.isArray(dataSource.resourceTypes) && dataSource.resourceTypes.length ? dataSource.resourceTypes.map((t) => (t && t.value) || t) : ['all']).join(', ') }} resources where lifeCycleState != 'TERMINATED' && lifeCycleState != 'DELETED' && lifeCycleState != 'TERMINATING' && lifeCycleState != 'DELETING'",
+            "matchingContextType": "NONE"
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": { "realm": "queryArg", "path": "limit", "value": "1000" },
+            "in": { "realm": "header", "path": "opc-next-page" },
+            "out": { "realm": "queryArg", "path": "page" }
+        },
+        "postRequestScript": "resourceSearchImport.js",
+        "errorHandling": { "type": "script", "script": "errorHandling/ociError.js" }
+    },
+    "matches": { "sourceType": { "type": "equals", "value": "OCI Region" } },
+    "visibility": { "type": "hidden" },
+    "metadata": [
+        { "name": "identifier", "displayName": "OCID", "shape": "string", "role": "id", "visible": false },
+        { "name": "displayName", "displayName": "Name", "shape": "string", "role": "label" },
+        { "name": "sourceType", "displayName": "Type", "shape": "string" },
+        { "name": "resourceType", "displayName": "OCI Resource Type", "shape": "string" },
+        { "name": "region", "displayName": "Region", "shape": "string" },
+        { "name": "compartmentId", "displayName": "Compartment OCID", "shape": "string", "visible": false },
+        { "name": "lifecycleState", "displayName": "State", "shape": "string" },
+        { "name": "availabilityDomain", "displayName": "Availability Domain", "shape": "string" },
+        { "name": "timeCreated", "displayName": "Created", "shape": "date" },
+        { "name": "freeformTags", "displayName": "Tags", "shape": ["array", { "itemShape": "string" }] }
+    ],
+    "timeframes": false
+}

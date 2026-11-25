@@ -1,0 +1,158 @@
+{
+    "name": "apiGatewayMetrics",
+    "displayName": "API Gateway Metrics",
+    "description": "API Gateway performance metrics over time from the OCI Monitoring namespace oci_apigateway",
+    "tags": [
+        "Metrics",
+        "Networking"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "metric",
+            "label": "Metric",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "help": "Any metric in the `oci_apigateway` namespace. Type a name to use one that isn't listed.",
+            "defaultValue": [
+                {
+                    "value": "HttpRequests"
+                }
+            ],
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "HttpRequests",
+                        "label": "HttpRequests"
+                    },
+                    {
+                        "value": "HttpResponses",
+                        "label": "HttpResponses"
+                    },
+                    {
+                        "value": "BytesReceived",
+                        "label": "BytesReceived"
+                    },
+                    {
+                        "value": "BytesSent",
+                        "label": "BytesSent"
+                    },
+                    {
+                        "value": "Latency",
+                        "label": "Latency"
+                    },
+                    {
+                        "value": "InternalLatency",
+                        "label": "InternalLatency"
+                    },
+                    {
+                        "value": "BackendHttpResponses",
+                        "label": "BackendHttpResponses"
+                    }
+                ]
+            },
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "statistic",
+            "label": "Statistic",
+            "defaultValue": "mean",
+            "options": [
+                {
+                    "value": "mean",
+                    "label": "mean"
+                },
+                {
+                    "value": "max",
+                    "label": "max"
+                },
+                {
+                    "value": "min",
+                    "label": "min"
+                },
+                {
+                    "value": "sum",
+                    "label": "sum"
+                },
+                {
+                    "value": "count",
+                    "label": "count"
+                },
+                {
+                    "value": "rate",
+                    "label": "rate"
+                }
+            ]
+        }
+    ],
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/telemetry/{{object.region}}/20180401/metrics/actions/summarizeMetricsData",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{object.compartmentId}}"
+            }
+        ],
+        "postBody": {
+            "namespace": "oci_apigateway",
+            "query": "{{ [].concat(typeof metric === 'undefined' || metric === null ? [] : metric).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'HttpRequests' }}[auto]{resourceId = \"{{object.rawId}}\"}.{{ [].concat(typeof statistic === 'undefined' || statistic === null ? [] : statistic).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'mean' }}()",
+            "startTime": "{{timeframe.start}}",
+            "endTime": "{{timeframe.end}}"
+        },
+        "postRequestScript": "metricSeries.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "OCI API Gateway"
+        }
+    },
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "resourceId",
+            "displayName": "Resource OCID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true
+}

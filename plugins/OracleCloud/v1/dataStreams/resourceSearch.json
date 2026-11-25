@@ -1,0 +1,109 @@
+{
+    "name": "resourceSearch",
+    "displayName": "Resource Search",
+    "description": "OCI resources in a region matching a Resource Search structured query",
+    "tags": [
+        "Resources"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "textarea",
+            "name": "query",
+            "label": "Query",
+            "rows": 2,
+            "defaultValue": "query all resources where lifeCycleState != 'TERMINATED' && lifeCycleState != 'DELETED'",
+            "help": "A [Resource Search query](https://docs.oracle.com/en-us/iaas/Content/Search/Concepts/querysyntax.htm), for example `query instance resources where lifeCycleState = 'STOPPED'`.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "region",
+            "label": "Region",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "isClearable": true,
+            "help": "Leave empty for the tenancy's home region.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "regionSubscriptions",
+                "dataSourceConfig": {}
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/query/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'home' }}/20180409/resources",
+        "postBody": {
+            "type": "Structured",
+            "query": "{{ String(query || '').trim() }}",
+            "matchingContextType": "NONE"
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "pathToData": "items",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "resourceType",
+            "displayName": "Resource Type",
+            "shape": "string"
+        },
+        {
+            "name": "lifecycleState",
+            "displayName": "State",
+            "shape": "string"
+        },
+        {
+            "name": "availabilityDomain",
+            "displayName": "Availability Domain",
+            "shape": "string"
+        },
+        {
+            "name": "timeCreated",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "compartmentId",
+            "displayName": "Compartment OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "identifier",
+            "displayName": "OCID",
+            "shape": "string",
+            "role": "sourceId",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

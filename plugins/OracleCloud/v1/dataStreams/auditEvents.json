@@ -1,0 +1,158 @@
+{
+    "name": "auditEvents",
+    "displayName": "Audit Events",
+    "description": "OCI Audit events for API activity in the tenancy, including nested compartments",
+    "tags": [
+        "Logs",
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "toggle",
+            "name": "includeReads",
+            "label": "Include read-only (GET) requests",
+            "defaultValue": false
+        },
+        {
+            "type": "objects",
+            "name": "compartment",
+            "label": "Compartment (optional)",
+            "help": "Leave empty for the whole tenancy.",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "OCI Compartment"
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "region",
+            "label": "Region",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "isClearable": true,
+            "help": "Leave empty for the tenancy's home region.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "regionSubscriptions",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Maximum results",
+            "defaultValue": 500,
+            "validation": {
+                "min": 1,
+                "max": 1000
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/logging/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'home' }}/20190909/search",
+        "getArgs": [
+            {
+                "key": "limit",
+                "value": "{{ Math.min(Math.max(Number(limit) || 500, 1), 1000) }}"
+            }
+        ],
+        "postBody": {
+            "timeStart": "{{timeframe.start}}",
+            "timeEnd": "{{timeframe.end}}",
+            "searchQuery": "{{ 'search \"' + ([].concat(typeof compartment === 'undefined' || !compartment ? [] : compartment).map((o) => [].concat(o.rawId)[0]).filter(Boolean)[0] || dataSource.tenancyOcid.trim()) + '/_Audit_Include_Subcompartment\"' + (String(includeReads) === 'true' ? '' : \" | where data.request.action != 'GET'\") + ' | sort by datetime desc' }}",
+            "isReturnFieldInfo": false
+        },
+        "postRequestScript": "auditEvents.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "time",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "eventName",
+            "displayName": "Event",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "principalName",
+            "displayName": "Principal",
+            "shape": "string"
+        },
+        {
+            "name": "action",
+            "displayName": "Action",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Response Status",
+            "shape": "string"
+        },
+        {
+            "name": "outcome",
+            "displayName": "Outcome",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "resourceName",
+            "displayName": "Resource",
+            "shape": "string"
+        },
+        {
+            "name": "compartmentName",
+            "displayName": "Compartment",
+            "shape": "string"
+        },
+        {
+            "name": "ipAddress",
+            "displayName": "Source IP",
+            "shape": "string"
+        },
+        {
+            "name": "userAgent",
+            "displayName": "User Agent",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "source",
+            "displayName": "Service",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ],
+    "defaultTimeframe": "last24hours"
+}

@@ -1,0 +1,202 @@
+{
+    "name": "alarmStatus",
+    "displayName": "Alarm Status",
+    "description": "Current status of OCI Monitoring alarms in a region, optionally for one resource",
+    "tags": [
+        "Alarms",
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "region",
+            "label": "Region",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "isClearable": true,
+            "help": "Leave empty for the tenancy's home region.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "regionSubscriptions",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "type": "objects",
+            "name": "resource",
+            "label": "Resource (optional)",
+            "help": "Only alarms whose query targets this resource. The resource's region is used when Region is empty.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "OCI Compute Instance",
+                        "OCI Autonomous Database",
+                        "OCI DB System",
+                        "OCI Database",
+                        "OCI MySQL DB System",
+                        "OCI Bucket",
+                        "OCI Load Balancer",
+                        "OCI Network Load Balancer",
+                        "OCI VCN",
+                        "OCI Subnet",
+                        "OCI Block Volume",
+                        "OCI Boot Volume",
+                        "OCI OKE Cluster",
+                        "OCI Functions Application",
+                        "OCI Function",
+                        "OCI API Gateway",
+                        "OCI Stream",
+                        "OCI Log Group",
+                        "OCI Alarm",
+                        "OCI Database Tools Connection"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "statuses",
+            "label": "Status",
+            "isMulti": true,
+            "defaultValue": [
+                "FIRING",
+                "OK",
+                "SUSPENDED"
+            ],
+            "options": [
+                {
+                    "value": "FIRING",
+                    "label": "Firing"
+                },
+                {
+                    "value": "OK",
+                    "label": "OK"
+                },
+                {
+                    "value": "SUSPENDED",
+                    "label": "Suspended"
+                }
+            ]
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "oci/telemetry/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i))[0] || [].concat(typeof resource === 'undefined' || !resource ? [] : resource).map((o) => [].concat(o.region)[0]).filter(Boolean)[0] || 'home' }}/20180401/alarms/status",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{dataSource.tenancyOcid.trim()}}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "true"
+            },
+            {
+                "key": "resourceId",
+                "value": "{{ [].concat(typeof resource === 'undefined' || !resource ? [] : resource).map((o) => [].concat(o.rawId)[0]).filter(Boolean)[0] || null }}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "alarmStatus.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "displayName",
+            "displayName": "Alarm",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "error"
+                        ],
+                        "warning": [
+                            "warning"
+                        ],
+                        "success": [
+                            "success"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": "string"
+        },
+        {
+            "name": "timestampTriggered",
+            "displayName": "Triggered",
+            "shape": "date"
+        },
+        {
+            "name": "suppressedUntil",
+            "displayName": "Suppressed Until",
+            "shape": "date",
+            "visible": false
+        },
+        {
+            "name": "alarmSummary",
+            "displayName": "Summary",
+            "shape": "string"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "id",
+            "displayName": "Alarm OCID",
+            "shape": "string",
+            "role": "sourceId",
+            "visible": false
+        },
+        {
+            "name": "sourceType",
+            "displayName": "Type",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "OCI Alarm",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

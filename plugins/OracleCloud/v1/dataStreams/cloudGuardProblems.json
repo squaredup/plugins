@@ -1,0 +1,176 @@
+{
+    "name": "cloudGuardProblems",
+    "displayName": "Cloud Guard Problems",
+    "description": "Open OCI Cloud Guard problems with their risk level and affected resource",
+    "tags": [
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "region",
+            "label": "Cloud Guard reporting region",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "isClearable": true,
+            "help": "Leave empty for the tenancy's home region. Use the reporting region chosen when Cloud Guard was enabled.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "regionSubscriptions",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "type": "objects",
+            "name": "compartment",
+            "label": "Compartment (optional)",
+            "help": "Leave empty for the whole tenancy, including every nested compartment.",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "OCI Compartment"
+                }
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "oci/cloudguard/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'home' }}/20200131/problems",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{ [].concat(typeof compartment === 'undefined' || !compartment ? [] : compartment).map((o) => [].concat(o.rawId)[0]).filter(Boolean)[0] || dataSource.tenancyOcid.trim() }}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "true"
+            },
+            {
+                "key": "accessLevel",
+                "value": "ACCESSIBLE"
+            },
+            {
+                "key": "lifecycleDetail",
+                "value": "OPEN"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "pathToData": "items",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "resourceName",
+            "displayName": "Resource",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "riskLevel",
+            "displayName": "Risk",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "CRITICAL",
+                            "HIGH"
+                        ],
+                        "warning": [
+                            "MEDIUM",
+                            "LOW"
+                        ],
+                        "unknown": [
+                            "MINOR"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "detectorRuleId",
+            "displayName": "Problem",
+            "shape": "string"
+        },
+        {
+            "name": "resourceType",
+            "displayName": "Resource Type",
+            "shape": "string"
+        },
+        {
+            "name": "regions",
+            "displayName": "Regions",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "labels",
+            "displayName": "Labels",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "timeFirstDetected",
+            "displayName": "First Detected",
+            "shape": "date"
+        },
+        {
+            "name": "timeLastDetected",
+            "displayName": "Last Detected",
+            "shape": "date"
+        },
+        {
+            "name": "detectorId",
+            "displayName": "Detector",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "compartmentId",
+            "displayName": "Compartment OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "resourceId",
+            "displayName": "Resource OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "id",
+            "displayName": "Problem OCID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

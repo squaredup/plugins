@@ -1,0 +1,146 @@
+{
+    "name": "logSearch",
+    "displayName": "Log Search",
+    "description": "OCI Logging events or aggregated results returned by a Logging Query Language search",
+    "tags": [
+        "Logs"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "textarea",
+            "name": "query",
+            "label": "Query",
+            "rows": 4,
+            "defaultValue": "search $__scope | sort by datetime desc",
+            "help": "A [Logging Query Language](https://docs.oracle.com/en-us/iaas/Content/Logging/Reference/query_language_specification.htm) search, for example `search $__scope | where data.level = 'ERROR' | sort by datetime desc` or `search $__scope | summarize count() by type`. `$__scope` becomes the compartments or log groups picked below, or the root compartment.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "objects",
+            "name": "scope",
+            "label": "Compartments or log groups (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "OCI Compartment",
+                        "OCI Log Group"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "region",
+            "label": "Region",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "isClearable": true,
+            "help": "Leave empty for the tenancy's home region.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "regionSubscriptions",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "type": "number",
+            "name": "limit",
+            "label": "Maximum results",
+            "defaultValue": 500,
+            "validation": {
+                "min": 1,
+                "max": 1000
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/logging/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'home' }}/20190909/search",
+        "getArgs": [
+            {
+                "key": "limit",
+                "value": "{{ Math.min(Math.max(Number(limit) || 500, 1), 1000) }}"
+            }
+        ],
+        "postBody": {
+            "timeStart": "{{timeframe.start}}",
+            "timeEnd": "{{timeframe.end}}",
+            "searchQuery": "{{ String(query || '').split('$__scope').join((() => { const sel = [].concat(typeof scope === 'undefined' || !scope ? [] : scope); if (!sel.length) return '\"' + dataSource.tenancyOcid.trim() + '\"'; return sel.map((o) => { const id = [].concat(o.rawId)[0]; const c = [].concat(o.compartmentId)[0]; return '\"' + (c && o.type === 'OCI Log Group' ? c + '/' + id : id) + '\"'; }).join(', '); })()) }}",
+            "isReturnFieldInfo": false
+        },
+        "postRequestScript": "logSearch.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "manualConfigApply": true,
+    "metadata": [
+        {
+            "name": "time",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "message",
+            "displayName": "Message",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "type",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "source",
+            "displayName": "Source",
+            "shape": "string"
+        },
+        {
+            "name": "subject",
+            "displayName": "Subject",
+            "shape": "string"
+        },
+        {
+            "name": "logGroupId",
+            "displayName": "Log Group OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "logId",
+            "displayName": "Log OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "compartmentId",
+            "displayName": "Compartment OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "data",
+            "displayName": "Data",
+            "shape": "json",
+            "visible": false
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days"
+    ],
+    "defaultTimeframe": "last1hour"
+}

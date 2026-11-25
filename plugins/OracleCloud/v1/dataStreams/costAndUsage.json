@@ -1,0 +1,182 @@
+{
+    "name": "costAndUsage",
+    "displayName": "Cost and Usage",
+    "description": "OCI cost or usage per day or month, grouped by service, compartment, region, SKU or resource",
+    "tags": [
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "groupBy",
+            "label": "Group by",
+            "defaultValue": "service",
+            "options": [
+                {
+                    "value": "service",
+                    "label": "Service"
+                },
+                {
+                    "value": "compartmentName",
+                    "label": "Compartment"
+                },
+                {
+                    "value": "region",
+                    "label": "Region"
+                },
+                {
+                    "value": "skuName",
+                    "label": "SKU"
+                },
+                {
+                    "value": "resourceId",
+                    "label": "Resource"
+                },
+                {
+                    "value": "tagNamespace",
+                    "label": "Tag namespace"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "granularity",
+            "label": "Granularity",
+            "defaultValue": "DAILY",
+            "options": [
+                {
+                    "value": "DAILY",
+                    "label": "Daily"
+                },
+                {
+                    "value": "MONTHLY",
+                    "label": "Monthly"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "queryType",
+            "label": "Measure",
+            "defaultValue": "COST",
+            "options": [
+                {
+                    "value": "COST",
+                    "label": "Cost"
+                },
+                {
+                    "value": "USAGE",
+                    "label": "Usage"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "resources",
+            "label": "Resources (optional)",
+            "help": "Only the cost of these resources.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "OCI Compute Instance",
+                        "OCI Autonomous Database",
+                        "OCI DB System",
+                        "OCI Database",
+                        "OCI MySQL DB System",
+                        "OCI Bucket",
+                        "OCI Load Balancer",
+                        "OCI Network Load Balancer",
+                        "OCI VCN",
+                        "OCI Subnet",
+                        "OCI Block Volume",
+                        "OCI Boot Volume",
+                        "OCI OKE Cluster",
+                        "OCI Functions Application",
+                        "OCI Function",
+                        "OCI API Gateway",
+                        "OCI Stream",
+                        "OCI Log Group",
+                        "OCI Alarm",
+                        "OCI Database Tools Connection"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "compartment",
+            "label": "Compartments (optional)",
+            "help": "Only the cost of these compartments.",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "OCI Compartment"
+                }
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/usageapi/home/20200107/usage",
+        "postBody": "{{ JSON.stringify((() => { const ids = [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.rawId)[0]).filter(Boolean); const comps = [].concat(typeof compartment === 'undefined' || !compartment ? [] : compartment).map((o) => [].concat(o.rawId)[0]).filter(Boolean); const dims = ids.map((v) => ({ key: 'resourceId', value: v })).concat(comps.map((v) => ({ key: 'compartmentId', value: v }))); const g = [].concat(typeof groupBy === 'undefined' || groupBy === null ? [] : groupBy).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'service'; return { tenantId: dataSource.tenancyOcid.trim(), timeUsageStarted: new Date(new Date(timeframe.start).setUTCHours(0, 0, 0, 0)).toISOString(), timeUsageEnded: (() => { const d = new Date(timeframe.end); const f = new Date(new Date(d).setUTCHours(0, 0, 0, 0)); return (f.getTime() === d.getTime() ? f : new Date(f.getTime() + 86400000)).toISOString(); })(), granularity: [].concat(typeof granularity === 'undefined' || granularity === null ? [] : granularity).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'DAILY', queryType: [].concat(typeof queryType === 'undefined' || queryType === null ? [] : queryType).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'COST', groupBy: g === 'tagNamespace' ? [] : [g], groupByTag: g === 'tagNamespace' ? [{ namespace: 'Oracle-Tags' }] : undefined, compartmentDepth: g === 'compartmentName' ? 6 : undefined, filter: dims.length ? { operator: 'OR', dimensions: dims } : undefined }; })()) }}",
+        "postRequestScript": "costAndUsage.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "group",
+            "displayName": "Group",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "amount",
+            "displayName": "Cost",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "currency",
+            "displayName": "Currency",
+            "shape": "string"
+        },
+        {
+            "name": "quantity",
+            "displayName": "Usage Quantity",
+            "shape": "number"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string"
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter",
+        "thisYear",
+        "lastYear"
+    ],
+    "defaultTimeframe": "last30days"
+}

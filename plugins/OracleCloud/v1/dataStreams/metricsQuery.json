@@ -1,0 +1,175 @@
+{
+    "name": "metricsQuery",
+    "displayName": "Metrics Query (MQL)",
+    "description": "Any OCI Monitoring metric over time, queried with Monitoring Query Language (MQL)",
+    "tags": [
+        "Metrics"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "namespace",
+            "label": "Namespace",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "help": "Metric namespace, for example `oci_computeagent` or `oci_autonomous_database`.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "metricNamespaces",
+                "dataSourceConfig": {}
+            },
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "textarea",
+            "name": "query",
+            "label": "MQL query",
+            "rows": 3,
+            "defaultValue": "CpuUtilization[auto].mean()",
+            "help": "An [MQL](https://docs.oracle.com/en-us/iaas/Content/Monitoring/Reference/mql.htm) expression such as `CpuUtilization[auto]{availabilityDomain =~ \"*AD-1\"}.max()`. Use `[auto]` to pick the interval from the timeframe (1m up to a day, 5m up to a week, 1h up to a month, then 1d).",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "region",
+            "label": "Region",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "isClearable": true,
+            "help": "Leave empty for the tenancy's home region.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "regionSubscriptions",
+                "dataSourceConfig": {}
+            }
+        },
+        {
+            "type": "objects",
+            "name": "compartment",
+            "label": "Compartment (optional)",
+            "help": "Leave empty for the whole tenancy, including every nested compartment.",
+            "matches": {
+                "sourceType": {
+                    "type": "equals",
+                    "value": "OCI Compartment"
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "resources",
+            "label": "Resources (optional)",
+            "help": "Adds a `resourceId` filter to the query for the selected resources.",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "OCI Compute Instance",
+                        "OCI Autonomous Database",
+                        "OCI DB System",
+                        "OCI Database",
+                        "OCI MySQL DB System",
+                        "OCI Bucket",
+                        "OCI Load Balancer",
+                        "OCI Network Load Balancer",
+                        "OCI VCN",
+                        "OCI Subnet",
+                        "OCI Block Volume",
+                        "OCI Boot Volume",
+                        "OCI OKE Cluster",
+                        "OCI Functions Application",
+                        "OCI Function",
+                        "OCI API Gateway",
+                        "OCI Stream",
+                        "OCI Log Group",
+                        "OCI Alarm",
+                        "OCI Database Tools Connection"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "name": "resourceGroup",
+            "label": "Resource group (optional)",
+            "help": "Only for custom metrics published with a resource group."
+        }
+    ],
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/telemetry/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i))[0] || [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.region)[0]).filter(Boolean)[0] || 'home' }}/20180401/metrics/actions/summarizeMetricsData",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{ [].concat(typeof compartment === 'undefined' || !compartment ? [] : compartment).map((o) => [].concat(o.rawId)[0]).filter(Boolean)[0] || dataSource.tenancyOcid.trim() }}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "{{ ([].concat(typeof compartment === 'undefined' || !compartment ? [] : compartment).map((o) => [].concat(o.rawId)[0]).filter(Boolean)[0] || dataSource.tenancyOcid.trim()) === dataSource.tenancyOcid.trim() ? 'true' : null }}"
+            }
+        ],
+        "postBody": {
+            "namespace": "{{ [].concat(typeof namespace === 'undefined' || namespace === null ? [] : namespace).map((i) => (i && i.value !== undefined ? i.value : i))[0] }}",
+            "resourceGroup": "{{ (typeof resourceGroup === 'string' && resourceGroup.trim()) || undefined }}",
+            "query": "{{ (() => { const q = String([].concat(typeof query === 'undefined' || query === null ? [] : query).map((i) => (i && i.value !== undefined ? i.value : i))[0] || '').trim(); const ids = [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.rawId)[0]).filter(Boolean); if (!ids.length) return q; const f = ids.length === 1 ? 'resourceId = \"' + ids[0] + '\"' : 'resourceId =~ \"' + ids.join('|') + '\"'; const i = q.indexOf(']'); if (i < 0) return q; return q[i + 1] === '{' ? q.slice(0, i + 2) + f + ' && ' + q.slice(i + 2) : q.slice(0, i + 1) + '{' + f + '}' + q.slice(i + 1); })() }}",
+            "startTime": "{{timeframe.start}}",
+            "endTime": "{{timeframe.end}}"
+        },
+        "postRequestScript": "metricSeries.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "manualConfigApply": true,
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "series",
+            "displayName": "Series",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "unit",
+            "displayName": "Unit",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "resourceId",
+            "displayName": "Resource OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "dimensions",
+            "displayName": "Dimensions",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": true
+}

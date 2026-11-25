@@ -1,0 +1,64 @@
+{
+    "name": "sqlQuery",
+    "displayName": "SQL Query",
+    "description": "Rows returned by a SQL query run on a database through an OCI Database Tools connection",
+    "tags": [
+        "Database",
+        "SQL"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "ui": [
+        {
+            "type": "code",
+            "name": "sql",
+            "label": "SQL",
+            "language": "sql",
+            "defaultValue": "SELECT metric_name, ROUND(value, 2) AS value, metric_unit\nFROM v$sysmetric\nWHERE group_id = 2\nORDER BY metric_name",
+            "help": "Runs as the Database Tools connection's database user, so give that user read-only privileges. Time macros use the tile's timeframe in UTC: `$__timeFilter(col)`, `$__timeFrom`, `$__timeTo`, `$__timeGroup(col, '5m')`, `$__unixEpochFrom`, `$__unixEpochTo`.",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "number",
+            "name": "rowLimit",
+            "label": "Maximum rows",
+            "defaultValue": 1000,
+            "validation": {
+                "min": 1,
+                "max": 10000
+            }
+        }
+    ],
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/dbtools/{{object.region}}/20230222/databaseToolsConnections/{{object.rawId}}/actions/executeSql",
+        "postBody": {
+            "type": "SYNCHRONOUS",
+            "input": {
+                "type": "STANDARD",
+                "statementText": "{{ String(sql || '').trim().replace(/;\\s*$/, '') }}",
+                "offset": 0,
+                "limit": "{{ Math.min(Math.max(Number(rowLimit) || 1000, 1), 10000) }}"
+            }
+        },
+        "postRequestScript": "sqlQuery.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": {
+        "sourceType": {
+            "type": "equals",
+            "value": "OCI Database Tools Connection"
+        }
+    },
+    "manualConfigApply": true,
+    "metadata": [
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": true
+}

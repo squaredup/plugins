@@ -1,0 +1,53 @@
+{
+    "name": "metricNamespaces",
+    "displayName": "Metric Namespaces",
+    "description": "OCI Monitoring metric namespaces that have data in the tenancy's home region",
+    "tags": [
+        "Metrics"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/telemetry/home/20180401/metrics/actions/listMetrics",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{dataSource.tenancyOcid.trim()}}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "true"
+            }
+        ],
+        "postBody": {
+            "groupBy": [
+                "namespace"
+            ]
+        },
+        "postRequestScript": "metricNamespaces.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "label",
+            "displayName": "Namespace",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "string",
+            "role": "value",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

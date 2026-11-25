@@ -1,0 +1,142 @@
+{
+    "name": "announcements",
+    "displayName": "Announcements",
+    "description": "OCI service announcements for the tenancy, such as maintenance, outages and required actions",
+    "tags": [
+        "Health"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "oci/announcements/home/20180904/announcements",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{dataSource.tenancyOcid.trim()}}"
+            },
+            {
+                "key": "lifecycleState",
+                "value": "ACTIVE"
+            },
+            {
+                "key": "sortBy",
+                "value": "timeCreated"
+            },
+            {
+                "key": "sortOrder",
+                "value": "DESC"
+            },
+            {
+                "key": "timeOneEarliestTime",
+                "value": "{{timeframe.start}}"
+            },
+            {
+                "key": "timeOneLatestTime",
+                "value": "{{timeframe.end}}"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "100"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "pathToData": "items",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "summary",
+            "displayName": "Summary",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "announcementType",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "services",
+            "displayName": "Services",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "affectedRegions",
+            "displayName": "Regions",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "timeOneTitle",
+            "displayName": "Start Label",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "timeOneValue",
+            "displayName": "Start",
+            "shape": "date"
+        },
+        {
+            "name": "timeTwoValue",
+            "displayName": "End",
+            "shape": "date"
+        },
+        {
+            "name": "referenceTicketNumber",
+            "displayName": "Reference",
+            "shape": "string"
+        },
+        {
+            "name": "isBanner",
+            "displayName": "Banner",
+            "shape": "boolean",
+            "visible": false
+        },
+        {
+            "name": "timeCreated",
+            "displayName": "Published",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth",
+        "thisQuarter",
+        "lastQuarter"
+    ],
+    "defaultTimeframe": "last30days"
+}

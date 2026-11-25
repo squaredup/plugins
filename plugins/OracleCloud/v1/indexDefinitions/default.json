@@ -1,0 +1,58 @@
+{
+    "steps": [
+        {
+            "name": "regions",
+            "dataStream": { "name": "regionSubscriptions" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "regionName",
+                "name": "regionName",
+                "type": { "value": "OCI Region" },
+                "properties": ["regionKey", "isHomeRegion"]
+            }
+        },
+        {
+            "name": "rootCompartment",
+            "dataStream": { "name": "tenancy" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "id",
+                "name": "name",
+                "type": { "value": "OCI Compartment" },
+                "properties": ["description"]
+            }
+        },
+        {
+            "name": "compartments",
+            "dataStream": { "name": "compartments" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "id",
+                "name": "name",
+                "type": { "value": "OCI Compartment" },
+                "properties": ["description", { "parentCompartmentId": "compartmentId" }, "lifecycleState", "timeCreated"]
+            }
+        },
+        {
+            "name": "resources",
+            "dataStream": { "name": "resourceSearchImport" },
+            "scope": { "query": "g.V().has(\"sourceType\", \"OCI Region\")" },
+            "timeframe": "none",
+            "objectMapping": {
+                "id": "identifier",
+                "name": "displayName",
+                "type": "sourceType",
+                "properties": [
+                    "resourceType",
+                    "region",
+                    "compartmentId",
+                    "lifecycleState",
+                    "availabilityDomain",
+                    "timeCreated",
+                    { "ociTags": "freeformTags" }
+                ]
+            },
+            "dependsOn": ["regions"]
+        }
+    ]
+}
