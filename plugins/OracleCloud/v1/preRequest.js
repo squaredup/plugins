@@ -54,6 +54,9 @@ if (routed) {
 
 // --- SQL time macros ------------------------------------------------------------
 
+// The WebAPI base plugin sends JSON.stringify(body), so body must stay an
+// object and the signed hash must cover exactly that serialization. A string
+// body would be encoded twice and no longer match its signature.
 const isPost = String(method).toLowerCase() === "post";
 let bodyText = "";
 if (isPost) {
@@ -64,7 +67,8 @@ if (isPost) {
     if (/\/metrics\/actions\/summarizeMetricsData$/.test(url.pathname) && bodyText.includes("[auto]")) {
         bodyText = expandAutoInterval(bodyText);
     }
-    body = bodyText;
+    body = JSON.parse(bodyText);
+    bodyText = JSON.stringify(body);
 }
 
 // "[auto]" in an MQL query picks the finest interval OCI allows for the
