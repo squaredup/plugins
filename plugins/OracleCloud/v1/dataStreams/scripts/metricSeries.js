@@ -6,6 +6,8 @@ result = (Array.isArray(data) ? data : []).flatMap((series) => {
     const label =
         dims.resourceDisplayName ||
         dims.resourceName ||
+        dims.resourceId ||
+        dims.resourceID ||
         Object.entries(dims)
             .map(([k, v]) => `${k}=${v}`)
             .join(", ") ||
