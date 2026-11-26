@@ -1,0 +1,178 @@
+{
+    "name": "optimizerRecommendations",
+    "displayName": "Cloud Advisor Recommendations",
+    "description": "OCI Cloud Advisor recommendations for cost, performance, availability and security, with estimated savings and affected resource counts",
+    "tags": [
+        "Cost",
+        "Optimization"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "category",
+            "label": "Category",
+            "isMulti": true,
+            "options": [
+                {
+                    "value": "cost-management-name",
+                    "label": "Cost management"
+                },
+                {
+                    "value": "performance-name",
+                    "label": "Performance"
+                },
+                {
+                    "value": "high-availability-name",
+                    "label": "High availability"
+                },
+                {
+                    "value": "security-name",
+                    "label": "Security"
+                }
+            ]
+        },
+        {
+            "type": "choiceChips",
+            "name": "statuses",
+            "label": "Status",
+            "isMulti": true,
+            "defaultValue": [
+                "PENDING"
+            ],
+            "options": [
+                {
+                    "value": "PENDING",
+                    "label": "Pending"
+                },
+                {
+                    "value": "POSTPONED",
+                    "label": "Postponed"
+                },
+                {
+                    "value": "DISMISSED",
+                    "label": "Dismissed"
+                },
+                {
+                    "value": "IMPLEMENTED",
+                    "label": "Implemented"
+                }
+            ]
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "oci/optimizer/home/20200606/recommendations",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{dataSource.tenancyOcid.trim()}}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "true"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "optimizerRecommendations.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/optimizer.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Recommendation",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "importance",
+            "displayName": "Importance",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "CRITICAL",
+                            "HIGH"
+                        ],
+                        "warning": [
+                            "MODERATE"
+                        ],
+                        "unknown": [
+                            "LOW",
+                            "MINOR"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "estimatedCostSaving",
+            "displayName": "Estimated Saving",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "pendingResources",
+            "displayName": "Pending Resources",
+            "shape": "number"
+        },
+        {
+            "name": "totalResources",
+            "displayName": "Resources",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "timeUpdated",
+            "displayName": "Updated",
+            "shape": "date"
+        },
+        {
+            "name": "id",
+            "displayName": "Recommendation OCID",
+            "shape": "string",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

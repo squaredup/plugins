@@ -36,7 +36,11 @@ const setting = (name) => {
 const realmDomain = (setting("realmDomain") || "oraclecloud.com").trim();
 const homeRegion = setting("homeRegion").trim();
 
-// Host templates per service, from the OCI SDK endpoint definitions.
+// Host templates per service, from the OCI SDK endpoint definitions. Any
+// service not listed uses OCI's common pattern <service>.<region>.oci.<domain>
+// (for example optimizer), so adding a service rarely needs a script change.
+// That matters: each data source keeps the copy of this script it was created
+// with, so a change here only reaches data sources added afterwards.
 const SERVICE_HOSTS = {
     announcements: (r) => `announcements.${r}.${realmDomain}`,
     audit: (r) => `audit.${r}.${realmDomain}`,
@@ -56,10 +60,7 @@ const SERVICE_HOSTS = {
 const routed = url.pathname.match(/^\/+oci\/([a-z]+)\/([a-z0-9-]*)(\/.*)$/);
 if (routed) {
     const [, service, regionSegment, rest] = routed;
-    const hostFor = SERVICE_HOSTS[service];
-    if (!hostFor) {
-        api.report.error(`Unknown OCI service "${service}" in endpoint path.`);
-    }
+    const hostFor = SERVICE_HOSTS[service] ?? ((r) => `${service}.${r}.oci.${realmDomain}`);
     const region = !regionSegment || regionSegment === "home" ? homeRegion : regionSegment;
     url.host = hostFor(region);
     url.pathname = rest;

@@ -1,60 +1,12 @@
 {
     "name": "costAndUsage",
     "displayName": "Cost and Usage",
-    "description": "OCI cost or usage per day or month, grouped by service, compartment, region, SKU or resource",
+    "description": "OCI cost or usage from the Usage API, per day or month, grouped and filtered by service, SKU, region, compartment, resource or tag, with an optional forecast",
     "tags": [
         "Cost"
     ],
     "baseDataSourceName": "httpRequestUnscoped",
     "ui": [
-        {
-            "type": "choiceChips",
-            "name": "groupBy",
-            "label": "Group by",
-            "defaultValue": "service",
-            "options": [
-                {
-                    "value": "service",
-                    "label": "Service"
-                },
-                {
-                    "value": "compartmentName",
-                    "label": "Compartment"
-                },
-                {
-                    "value": "region",
-                    "label": "Region"
-                },
-                {
-                    "value": "skuName",
-                    "label": "SKU"
-                },
-                {
-                    "value": "resourceId",
-                    "label": "Resource"
-                },
-                {
-                    "value": "tagNamespace",
-                    "label": "Tag namespace"
-                }
-            ]
-        },
-        {
-            "type": "choiceChips",
-            "name": "granularity",
-            "label": "Granularity",
-            "defaultValue": "DAILY",
-            "options": [
-                {
-                    "value": "DAILY",
-                    "label": "Daily"
-                },
-                {
-                    "value": "MONTHLY",
-                    "label": "Monthly"
-                }
-            ]
-        },
         {
             "type": "choiceChips",
             "name": "queryType",
@@ -72,56 +24,213 @@
             ]
         },
         {
-            "type": "objects",
-            "name": "resources",
-            "label": "Resources (optional)",
-            "help": "Only the cost of these resources.",
-            "matches": {
-                "sourceType": {
-                    "type": "oneOf",
-                    "values": [
-                        "OCI Compute Instance",
-                        "OCI Autonomous Database",
-                        "OCI DB System",
-                        "OCI Database",
-                        "OCI MySQL DB System",
-                        "OCI Bucket",
-                        "OCI Load Balancer",
-                        "OCI Network Load Balancer",
-                        "OCI VCN",
-                        "OCI Subnet",
-                        "OCI Block Volume",
-                        "OCI Boot Volume",
-                        "OCI OKE Cluster",
-                        "OCI Functions Application",
-                        "OCI Function",
-                        "OCI API Gateway",
-                        "OCI Stream",
-                        "OCI Log Group",
-                        "OCI Alarm",
-                        "OCI Database Tools Connection"
-                    ]
+            "type": "choiceChips",
+            "name": "granularity",
+            "label": "Granularity",
+            "defaultValue": "DAILY",
+            "options": [
+                {
+                    "value": "DAILY",
+                    "label": "Daily"
+                },
+                {
+                    "value": "MONTHLY",
+                    "label": "Monthly"
+                },
+                {
+                    "value": "TOTAL",
+                    "label": "Total"
                 }
-            }
+            ]
         },
         {
-            "type": "objects",
-            "name": "compartment",
-            "label": "Compartments (optional)",
-            "help": "Only the cost of these compartments.",
-            "matches": {
-                "sourceType": {
-                    "type": "equals",
-                    "value": "OCI Compartment"
+            "type": "choiceChips",
+            "name": "groupBy",
+            "label": "Group by",
+            "isMulti": true,
+            "defaultValue": [
+                "service"
+            ],
+            "options": [
+                {
+                    "value": "service",
+                    "label": "Service"
+                },
+                {
+                    "value": "skuName",
+                    "label": "SKU"
+                },
+                {
+                    "value": "region",
+                    "label": "Region"
+                },
+                {
+                    "value": "compartmentName",
+                    "label": "Compartment"
+                },
+                {
+                    "value": "compartmentPath",
+                    "label": "Compartment path"
+                },
+                {
+                    "value": "resourceId",
+                    "label": "Resource"
+                },
+                {
+                    "value": "platform",
+                    "label": "Platform"
+                },
+                {
+                    "value": "unit",
+                    "label": "Unit"
                 }
-            }
+            ]
+        },
+        {
+            "type": "text",
+            "name": "groupByTag",
+            "label": "Group by tag (optional)",
+            "help": "A tag as `namespace.key`, for example `Oracle-Tags.CreatedBy` or `CostCenter.Project`."
+        },
+        {
+            "type": "fieldGroup",
+            "label": "Filters",
+            "fields": [
+                {
+                    "type": "autocomplete",
+                    "name": "services",
+                    "label": "Services",
+                    "isMulti": true,
+                    "allowCustomValues": true,
+                    "isClearable": true,
+                    "data": {
+                        "source": "dataStream",
+                        "dataStreamName": "costServices",
+                        "dataSourceConfig": {}
+                    }
+                },
+                {
+                    "type": "autocomplete",
+                    "name": "regions",
+                    "label": "Regions",
+                    "isMulti": true,
+                    "allowCustomValues": true,
+                    "isClearable": true,
+                    "data": {
+                        "source": "dataStream",
+                        "dataStreamName": "regionSubscriptions",
+                        "dataSourceConfig": {}
+                    }
+                },
+                {
+                    "type": "objects",
+                    "name": "compartment",
+                    "label": "Compartments",
+                    "matches": {
+                        "sourceType": {
+                            "type": "equals",
+                            "value": "OCI Compartment"
+                        }
+                    }
+                },
+                {
+                    "type": "objects",
+                    "name": "resources",
+                    "label": "Resources",
+                    "matches": {
+                        "sourceType": {
+                            "type": "oneOf",
+                            "values": [
+                                "OCI Compute Instance",
+                                "OCI Autonomous Database",
+                                "OCI DB System",
+                                "OCI Database",
+                                "OCI MySQL DB System",
+                                "OCI Bucket",
+                                "OCI Load Balancer",
+                                "OCI Network Load Balancer",
+                                "OCI VCN",
+                                "OCI Subnet",
+                                "OCI Block Volume",
+                                "OCI Boot Volume",
+                                "OCI OKE Cluster",
+                                "OCI Functions Application",
+                                "OCI Function",
+                                "OCI API Gateway",
+                                "OCI Stream",
+                                "OCI Log Group",
+                                "OCI Alarm",
+                                "OCI Database Tools Connection"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "type": "autocomplete",
+                    "name": "tagFilter",
+                    "label": "Tags",
+                    "isMulti": true,
+                    "allowCustomValues": true,
+                    "isClearable": true,
+                    "help": "Type tags as `namespace.key=value`, for example `CostCenter.Project=Payroll`.",
+                    "data": {
+                        "source": "fixed",
+                        "values": []
+                    }
+                }
+            ]
+        },
+        {
+            "type": "toggle",
+            "name": "includeForecast",
+            "label": "Add forecast",
+            "defaultValue": false,
+            "help": "Adds OCI's forecast after the last complete day. Actual cost then ends yesterday (UTC), because OCI only forecasts from complete days. Forecast rows have Forecast = true."
+        },
+        {
+            "type": "fieldGroup",
+            "visible": {
+                "includeForecast": "true"
+            },
+            "fields": [
+                {
+                    "type": "number",
+                    "name": "forecastDays",
+                    "label": "Forecast days",
+                    "defaultValue": 30,
+                    "validation": {
+                        "min": 1,
+                        "max": 365
+                    }
+                }
+            ]
         }
     ],
     "config": {
         "httpMethod": "post",
         "endpointPath": "oci/usageapi/home/20200107/usage",
-        "postBody": "{{ JSON.stringify((() => { const ids = [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.rawId)[0]).filter(Boolean); const comps = [].concat(typeof compartment === 'undefined' || !compartment ? [] : compartment).map((o) => [].concat(o.rawId)[0]).filter(Boolean); const dims = ids.map((v) => ({ key: 'resourceId', value: v })).concat(comps.map((v) => ({ key: 'compartmentId', value: v }))); const g = [].concat(typeof groupBy === 'undefined' || groupBy === null ? [] : groupBy).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'service'; return { tenantId: dataSource.tenancyOcid.trim(), timeUsageStarted: new Date(new Date(timeframe.start).setUTCHours(0, 0, 0, 0)).toISOString(), timeUsageEnded: (() => { const d = new Date(timeframe.end); const f = new Date(new Date(d).setUTCHours(0, 0, 0, 0)); return (f.getTime() === d.getTime() ? f : new Date(f.getTime() + 86400000)).toISOString(); })(), granularity: [].concat(typeof granularity === 'undefined' || granularity === null ? [] : granularity).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'DAILY', queryType: [].concat(typeof queryType === 'undefined' || queryType === null ? [] : queryType).map((i) => (i && i.value !== undefined ? i.value : i))[0] || 'COST', groupBy: g === 'tagNamespace' ? [] : [g], groupByTag: g === 'tagNamespace' ? [{ namespace: 'Oracle-Tags' }] : undefined, compartmentDepth: g === 'compartmentName' ? 6 : undefined, filter: dims.length ? { operator: 'OR', dimensions: dims } : undefined }; })()) }}",
-        "postRequestScript": "costAndUsage.js",
+        "getArgs": [
+            {
+                "key": "limit",
+                "value": "1000"
+            }
+        ],
+        "postBody": "{{ JSON.stringify((() => { const groups = [].concat(typeof groupBy === 'undefined' || groupBy === null ? [] : groupBy).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null); const tagKey = [].concat(typeof groupByTag === 'undefined' || groupByTag === null ? [] : groupByTag).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0]; const orGroup = (key, values) => values.length ? [{ operator: 'OR', dimensions: values.map((value) => ({ key, value })) }] : []; const tagFilters = [].concat(typeof tagFilter === 'undefined' || tagFilter === null ? [] : tagFilter).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null).map((t) => String(t).match(/^([^.=]+)\\.([^=]+)=(.*)$/)).filter(Boolean).map((m) => ({ namespace: m[1].trim(), key: m[2].trim(), value: m[3].trim() })); const groupsOfFilters = [].concat(orGroup('service', [].concat(typeof services === 'undefined' || services === null ? [] : services).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)), orGroup('region', [].concat(typeof regions === 'undefined' || regions === null ? [] : regions).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)), orGroup('compartmentId', [].concat(typeof compartment === 'undefined' || !compartment ? [] : compartment).map((o) => [].concat(o.rawId)[0]).filter(Boolean)), orGroup('resourceId', [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.rawId)[0]).filter(Boolean)), tagFilters.length ? [{ operator: 'OR', tags: tagFilters }] : []); const filter = groupsOfFilters.length === 0 ? undefined : groupsOfFilters.length === 1 ? groupsOfFilters[0] : { operator: 'AND', filters: groupsOfFilters }; const tagPartsX = tagKey ? String(tagKey).split('.') : []; const fcDays = String([].concat(typeof includeForecast === 'undefined' || includeForecast === null ? [] : includeForecast).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0]) === 'true' ? Math.min(Math.max(Number([].concat(typeof forecastDays === 'undefined' || forecastDays === null ? [] : forecastDays).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0]) || 30, 1), 365) : 0; const actualEnd = (() => { const d = new Date(timeframe.end); const f = new Date(new Date(d).setUTCHours(0, 0, 0, 0)); return f.getTime() === d.getTime() ? f : new Date(f.getTime() + 86400000); })(); const lastFullDay = new Date(new Date().setUTCHours(0, 0, 0, 0) - 86400000); const end = fcDays && actualEnd > lastFullDay ? lastFullDay : actualEnd; return { tenantId: dataSource.tenancyOcid.trim(), timeUsageStarted: new Date(new Date(timeframe.start).setUTCHours(0, 0, 0, 0)).toISOString(), timeUsageEnded: end.toISOString(), granularity: ([].concat(typeof granularity === 'undefined' || granularity === null ? [] : granularity).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || 'DAILY') === 'TOTAL' ? 'MONTHLY' : ([].concat(typeof granularity === 'undefined' || granularity === null ? [] : granularity).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || 'DAILY'), isAggregateByTime: [].concat(typeof granularity === 'undefined' || granularity === null ? [] : granularity).map((i) => (i && i.value !== undefined ? i.value : i))[0] === 'TOTAL' ? true : undefined, queryType: [].concat(typeof queryType === 'undefined' || queryType === null ? [] : queryType).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || 'COST', groupBy: groups.length ? groups : (tagPartsX.length ? [] : ['service']), groupByTag: tagPartsX.length >= 2 ? [{ namespace: tagPartsX[0], key: tagPartsX.slice(1).join('.') }] : undefined, compartmentDepth: groups.some((g) => g.startsWith('compartment')) ? 7 : undefined, forecast: fcDays ? { forecastType: 'BASIC', timeForecastStarted: end.toISOString(), timeForecastEnded: new Date(end.getTime() + fcDays * 86400000).toISOString() } : undefined, filter }; })()) }}",
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "none"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "pathToData": "items",
         "errorHandling": {
             "type": "script",
             "script": "errorHandling/ociError.js"
@@ -130,24 +239,18 @@
     "matches": "none",
     "metadata": [
         {
-            "name": "date",
+            "name": "timeUsageStarted",
             "displayName": "Date",
             "shape": "date",
             "role": "timestamp"
         },
         {
-            "name": "group",
-            "displayName": "Group",
-            "shape": "string",
-            "role": "label"
-        },
-        {
-            "name": "amount",
+            "name": "computedAmount",
             "displayName": "Cost",
             "shape": [
-                "number",
+                "currency",
                 {
-                    "decimalPlaces": 2
+                    "code": "{{column.currency}}"
                 }
             ],
             "role": "value"
@@ -158,7 +261,7 @@
             "shape": "string"
         },
         {
-            "name": "quantity",
+            "name": "computedQuantity",
             "displayName": "Usage Quantity",
             "shape": "number"
         },
@@ -166,6 +269,77 @@
             "name": "unit",
             "displayName": "Unit",
             "shape": "string"
+        },
+        {
+            "name": "service",
+            "displayName": "Service",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "skuName",
+            "displayName": "SKU",
+            "shape": "string"
+        },
+        {
+            "name": "skuPartNumber",
+            "displayName": "SKU Part Number",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "compartmentName",
+            "displayName": "Compartment",
+            "shape": "string"
+        },
+        {
+            "name": "compartmentPath",
+            "displayName": "Compartment Path",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "resourceId",
+            "displayName": "Resource OCID",
+            "shape": "string"
+        },
+        {
+            "name": "resourceName",
+            "displayName": "Resource",
+            "shape": "string"
+        },
+        {
+            "name": "platform",
+            "displayName": "Platform",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "tags",
+            "displayName": "Tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "valueExpression": "{{ ($['tags'] || []).map((t) => (t && typeof t === 'object' ? `${t.namespace}.${t.key}=${t.value}` : t)) }}"
+        },
+        {
+            "name": "isForecast",
+            "displayName": "Forecast",
+            "shape": "boolean"
+        },
+        {
+            "name": "timeUsageEnded",
+            "displayName": "Period End",
+            "shape": "date",
+            "visible": false
         }
     ],
     "timeframes": [

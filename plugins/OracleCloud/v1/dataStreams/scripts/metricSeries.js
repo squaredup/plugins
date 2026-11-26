@@ -12,6 +12,15 @@ const nameById = new Map(
         .map((o) => [String(unwrap(o.rawId)).toLowerCase(), unwrap(o.name) || unwrap(o.displayName)]),
 );
 
+// Legend format, as in the OCI Grafana plugin: {metric} and any dimension
+// name, for example "{metric} - {resourceDisplayName}". Unknown names stay as
+// typed. Double braces are accepted too.
+const legend = String([].concat(context.config?.legendFormat ?? [])[0] || "").trim();
+const applyLegend = (metricName, dims) =>
+    legend.replace(/\{\{?\s*([\w.-]+)\s*\}?\}/g, (token, name) =>
+        name === "metric" ? metricName : dims[name] !== undefined ? String(dims[name]) : token,
+    );
+
 result = (Array.isArray(data) ? data : []).flatMap((series) => {
     const dims = series.dimensions || {};
     const ocid = dims.resourceId || dims.resourceID;
@@ -25,10 +34,11 @@ result = (Array.isArray(data) ? data : []).flatMap((series) => {
             .map(([k, v]) => `${k}=${v}`)
             .join(", ") ||
         series.name;
+    const series_ = legend ? applyLegend(series.name, dims) : label;
     return (series.aggregatedDatapoints || []).map((point) => ({
         timestamp: point.timestamp,
         value: point.value,
-        series: label,
+        series: series_,
         metric: series.name,
         unit: series.metadata?.unit ?? null,
         resourceId: ocid || null,

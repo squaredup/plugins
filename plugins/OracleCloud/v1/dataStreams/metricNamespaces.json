@@ -1,14 +1,21 @@
 {
     "name": "metricNamespaces",
     "displayName": "Metric Namespaces",
-    "description": "OCI Monitoring metric namespaces that have data in the tenancy's home region",
+    "description": "OCI Monitoring metric namespaces that have data in a region",
     "tags": [
         "Metrics"
     ],
     "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "text",
+            "name": "region",
+            "label": "Region"
+        }
+    ],
     "config": {
         "httpMethod": "post",
-        "endpointPath": "oci/telemetry/home/20180401/metrics/actions/listMetrics",
+        "endpointPath": "oci/telemetry/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || 'home' }}/20180401/metrics/actions/listMetrics",
         "getArgs": [
             {
                 "key": "compartmentId",
@@ -24,6 +31,22 @@
                 "namespace"
             ]
         },
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
         "postRequestScript": "metricNamespaces.js",
         "errorHandling": {
             "type": "script",
@@ -37,7 +60,7 @@
     "metadata": [
         {
             "name": "label",
-            "displayName": "Namespace",
+            "displayName": "Label",
             "shape": "string",
             "role": "label"
         },

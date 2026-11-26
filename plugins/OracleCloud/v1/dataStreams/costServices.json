@@ -1,0 +1,51 @@
+{
+    "name": "costServices",
+    "displayName": "Cost Services",
+    "description": "OCI services that have cost in the last 90 days",
+    "tags": [
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "oci/usageapi/home/20200107/usage",
+        "postBody": {
+            "tenantId": "{{dataSource.tenancyOcid.trim()}}",
+            "timeUsageStarted": "{{ new Date(new Date(Date.now() - 90 * 86400000).setUTCHours(0, 0, 0, 0)).toISOString() }}",
+            "timeUsageEnded": "{{ new Date(new Date().setUTCHours(0, 0, 0, 0)).toISOString() }}",
+            "granularity": "MONTHLY",
+            "queryType": "COST",
+            "groupBy": [
+                "service"
+            ],
+            "isAggregateByTime": true
+        },
+        "pathToData": "items",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/ociError.js"
+        }
+    },
+    "matches": "none",
+    "visibility": {
+        "type": "hidden"
+    },
+    "metadata": [
+        {
+            "name": "service",
+            "displayName": "Service",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "string",
+            "role": "value",
+            "computed": true,
+            "valueExpression": "{{ $['service'] }}",
+            "visible": false
+        }
+    ],
+    "timeframes": false
+}

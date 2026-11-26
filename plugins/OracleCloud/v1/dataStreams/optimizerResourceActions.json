@@ -1,0 +1,174 @@
+{
+    "name": "optimizerResourceActions",
+    "displayName": "Cloud Advisor Resource Actions",
+    "description": "Individual OCI Cloud Advisor actions per resource, such as resizing or terminating idle resources, with estimated savings",
+    "tags": [
+        "Cost",
+        "Optimization"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "resources",
+            "label": "Resources (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "OCI Compute Instance",
+                        "OCI Autonomous Database",
+                        "OCI DB System",
+                        "OCI Database",
+                        "OCI MySQL DB System",
+                        "OCI Bucket",
+                        "OCI Load Balancer",
+                        "OCI Network Load Balancer",
+                        "OCI VCN",
+                        "OCI Subnet",
+                        "OCI Block Volume",
+                        "OCI Boot Volume",
+                        "OCI OKE Cluster",
+                        "OCI Functions Application",
+                        "OCI Function",
+                        "OCI API Gateway",
+                        "OCI Stream",
+                        "OCI Log Group",
+                        "OCI Alarm",
+                        "OCI Database Tools Connection"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "statuses",
+            "label": "Status",
+            "isMulti": true,
+            "defaultValue": [
+                "PENDING"
+            ],
+            "options": [
+                {
+                    "value": "PENDING",
+                    "label": "Pending"
+                },
+                {
+                    "value": "POSTPONED",
+                    "label": "Postponed"
+                },
+                {
+                    "value": "DISMISSED",
+                    "label": "Dismissed"
+                },
+                {
+                    "value": "IMPLEMENTED",
+                    "label": "Implemented"
+                }
+            ]
+        }
+    ],
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "oci/optimizer/home/20200606/resourceActions",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{dataSource.tenancyOcid.trim()}}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "true"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "optimizerResourceActions.js",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/optimizer.js"
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "name",
+            "displayName": "Resource",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "resourceType",
+            "displayName": "Resource Type",
+            "shape": "string"
+        },
+        {
+            "name": "action",
+            "displayName": "Action",
+            "shape": "string"
+        },
+        {
+            "name": "estimatedCostSaving",
+            "displayName": "Estimated Saving",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "compartmentName",
+            "displayName": "Compartment",
+            "shape": "string"
+        },
+        {
+            "name": "actionUrl",
+            "displayName": "Details",
+            "shape": [
+                "url",
+                {
+                    "label": "Open"
+                }
+            ]
+        },
+        {
+            "name": "resourceId",
+            "displayName": "Resource OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "recommendationId",
+            "displayName": "Recommendation OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "timeUpdated",
+            "displayName": "Updated",
+            "shape": "date"
+        }
+    ],
+    "timeframes": false
+}

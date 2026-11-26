@@ -1,38 +1,27 @@
 {
     "name": "metricsQuery",
-    "displayName": "Metrics Query (MQL)",
-    "description": "Any OCI Monitoring metric over time, queried with Monitoring Query Language (MQL)",
+    "displayName": "Metrics",
+    "description": "Any OCI Monitoring metric over time, picked from namespaces, metrics and dimensions or written in Monitoring Query Language (MQL)",
     "tags": [
         "Metrics"
     ],
     "baseDataSourceName": "httpRequestUnscoped",
     "ui": [
         {
-            "type": "autocomplete",
-            "name": "namespace",
-            "label": "Namespace",
-            "isMulti": false,
-            "allowCustomValues": true,
-            "help": "Metric namespace, for example `oci_computeagent` or `oci_autonomous_database`.",
-            "data": {
-                "source": "dataStream",
-                "dataStreamName": "metricNamespaces",
-                "dataSourceConfig": {}
-            },
-            "validation": {
-                "required": true
-            }
-        },
-        {
-            "type": "textarea",
-            "name": "query",
-            "label": "MQL query",
-            "rows": 3,
-            "defaultValue": "CpuUtilization[auto].mean()",
-            "help": "An [MQL](https://docs.oracle.com/en-us/iaas/Content/Monitoring/Reference/mql.htm) expression such as `CpuUtilization[auto]{availabilityDomain =~ \"*AD-1\"}.max()`. Use `[auto]` to pick the interval from the timeframe (1m up to a day, 5m up to a week, 1h up to a month, then 1d).",
-            "validation": {
-                "required": true
-            }
+            "type": "choiceChips",
+            "name": "queryMode",
+            "label": "Query mode",
+            "defaultValue": "builder",
+            "options": [
+                {
+                    "value": "builder",
+                    "label": "Builder"
+                },
+                {
+                    "value": "mql",
+                    "label": "MQL"
+                }
+            ]
         },
         {
             "type": "autocomplete",
@@ -41,7 +30,7 @@
             "isMulti": false,
             "allowCustomValues": true,
             "isClearable": true,
-            "help": "Leave empty for the tenancy's home region.",
+            "help": "Leave empty for the home region, or the region of the first selected resource.",
             "data": {
                 "source": "dataStream",
                 "dataStreamName": "regionSubscriptions",
@@ -52,7 +41,7 @@
             "type": "objects",
             "name": "compartment",
             "label": "Compartment (optional)",
-            "help": "Leave empty for the whole tenancy, including every nested compartment.",
+            "help": "Leave empty for the whole tenancy, including nested compartments.",
             "matches": {
                 "sourceType": {
                     "type": "equals",
@@ -61,10 +50,199 @@
             }
         },
         {
+            "type": "autocomplete",
+            "name": "namespace",
+            "label": "Namespace",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "help": "For example `oci_computeagent` or `oci_autonomous_database`.",
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "metricNamespaces",
+                "dataSourceConfig": {
+                    "region": {
+                        "fieldName": "region"
+                    }
+                }
+            },
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "resourceGroup",
+            "label": "Resource group (optional)",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "isClearable": true,
+            "data": {
+                "source": "dataStream",
+                "dataStreamName": "metricResourceGroups",
+                "dataSourceConfig": {
+                    "region": {
+                        "fieldName": "region"
+                    },
+                    "namespace": {
+                        "fieldName": "namespace"
+                    }
+                }
+            }
+        },
+        {
+            "type": "fieldGroup",
+            "visible": {
+                "queryMode": "builder"
+            },
+            "fields": [
+                {
+                    "type": "autocomplete",
+                    "name": "metric",
+                    "label": "Metric",
+                    "isMulti": false,
+                    "allowCustomValues": true,
+                    "data": {
+                        "source": "dataStream",
+                        "dataStreamName": "metricNames",
+                        "dataSourceConfig": {
+                            "region": {
+                                "fieldName": "region"
+                            },
+                            "namespace": {
+                                "fieldName": "namespace"
+                            },
+                            "resourceGroup": {
+                                "fieldName": "resourceGroup"
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "autocomplete",
+                    "name": "dimensions",
+                    "label": "Dimensions (optional)",
+                    "isMulti": true,
+                    "allowCustomValues": true,
+                    "isClearable": true,
+                    "help": "Filter on dimension values, such as `availabilityDomain = …`. Several values of the same dimension are combined with OR, different dimensions with AND.",
+                    "data": {
+                        "source": "dataStream",
+                        "dataStreamName": "metricDimensions",
+                        "dataSourceConfig": {
+                            "region": {
+                                "fieldName": "region"
+                            },
+                            "namespace": {
+                                "fieldName": "namespace"
+                            },
+                            "metric": {
+                                "fieldName": "metric"
+                            },
+                            "resourceGroup": {
+                                "fieldName": "resourceGroup"
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "choiceChips",
+                    "name": "statistic",
+                    "label": "Statistic",
+                    "defaultValue": "mean",
+                    "options": [
+                        {
+                            "value": "mean",
+                            "label": "mean"
+                        },
+                        {
+                            "value": "max",
+                            "label": "max"
+                        },
+                        {
+                            "value": "min",
+                            "label": "min"
+                        },
+                        {
+                            "value": "sum",
+                            "label": "sum"
+                        },
+                        {
+                            "value": "count",
+                            "label": "count"
+                        },
+                        {
+                            "value": "rate",
+                            "label": "rate"
+                        },
+                        {
+                            "value": "p50",
+                            "label": "p50"
+                        },
+                        {
+                            "value": "p90",
+                            "label": "p90"
+                        },
+                        {
+                            "value": "p95",
+                            "label": "p95"
+                        },
+                        {
+                            "value": "p99",
+                            "label": "p99"
+                        }
+                    ]
+                },
+                {
+                    "type": "choiceChips",
+                    "name": "interval",
+                    "label": "Interval",
+                    "defaultValue": "auto",
+                    "options": [
+                        {
+                            "value": "auto",
+                            "label": "auto"
+                        },
+                        {
+                            "value": "1m",
+                            "label": "1m"
+                        },
+                        {
+                            "value": "5m",
+                            "label": "5m"
+                        },
+                        {
+                            "value": "1h",
+                            "label": "1h"
+                        },
+                        {
+                            "value": "1d",
+                            "label": "1d"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fieldGroup",
+            "visible": {
+                "queryMode": "mql"
+            },
+            "fields": [
+                {
+                    "type": "textarea",
+                    "name": "query",
+                    "label": "MQL query",
+                    "rows": 3,
+                    "defaultValue": "CpuUtilization[auto].mean()",
+                    "help": "An [MQL](https://docs.oracle.com/en-us/iaas/Content/Monitoring/Reference/mql.htm) expression such as `CpuUtilization[auto]{availabilityDomain =~ \"*AD-1\"}.max()`. `[auto]` picks the interval from the timeframe."
+                }
+            ]
+        },
+        {
             "type": "objects",
             "name": "resources",
             "label": "Resources (optional)",
-            "help": "Adds a `resourceId` filter to the query for the selected resources.",
+            "help": "Adds a `resourceId` filter for the selected resources.",
             "matches": {
                 "sourceType": {
                     "type": "oneOf",
@@ -95,14 +273,14 @@
         },
         {
             "type": "text",
-            "name": "resourceGroup",
-            "label": "Resource group (optional)",
-            "help": "Only for custom metrics published with a resource group."
+            "name": "legendFormat",
+            "label": "Legend format (optional)",
+            "help": "Series name pattern using `{metric}` and any dimension name, for example `{metric} - {resourceDisplayName}`."
         }
     ],
     "config": {
         "httpMethod": "post",
-        "endpointPath": "oci/telemetry/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i))[0] || [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.region)[0]).filter(Boolean)[0] || 'home' }}/20180401/metrics/actions/summarizeMetricsData",
+        "endpointPath": "oci/telemetry/{{ [].concat(typeof region === 'undefined' || region === null ? [] : region).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.region)[0]).filter(Boolean)[0] || 'home' }}/20180401/metrics/actions/summarizeMetricsData",
         "getArgs": [
             {
                 "key": "compartmentId",
@@ -114,9 +292,9 @@
             }
         ],
         "postBody": {
-            "namespace": "{{ [].concat(typeof namespace === 'undefined' || namespace === null ? [] : namespace).map((i) => (i && i.value !== undefined ? i.value : i))[0] }}",
-            "resourceGroup": "{{ (typeof resourceGroup === 'string' && resourceGroup.trim()) || undefined }}",
-            "query": "{{ (() => { const q = String([].concat(typeof query === 'undefined' || query === null ? [] : query).map((i) => (i && i.value !== undefined ? i.value : i))[0] || '').trim(); const ids = [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.rawId)[0]).filter(Boolean); if (!ids.length) return q; const f = ids.length === 1 ? 'resourceId = \"' + ids[0] + '\"' : 'resourceId =~ \"' + ids.join('|') + '\"'; const i = q.indexOf(']'); if (i < 0) return q; return q[i + 1] === '{' ? q.slice(0, i + 2) + f + ' && ' + q.slice(i + 2) : q.slice(0, i + 1) + '{' + f + '}' + q.slice(i + 1); })() }}",
+            "namespace": "{{ [].concat(typeof namespace === 'undefined' || namespace === null ? [] : namespace).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] }}",
+            "resourceGroup": "{{ [].concat(typeof resourceGroup === 'undefined' || resourceGroup === null ? [] : resourceGroup).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || undefined }}",
+            "query": "{{ (() => { const mode = [].concat(typeof queryMode === 'undefined' || queryMode === null ? [] : queryMode).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || 'builder'; let q; if (mode === 'mql') { q = String([].concat(typeof query === 'undefined' || query === null ? [] : query).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || '').trim(); } else { const name = [].concat(typeof metric === 'undefined' || metric === null ? [] : metric).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || ''; const stat = [].concat(typeof statistic === 'undefined' || statistic === null ? [] : statistic).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || 'mean'; const window = [].concat(typeof interval === 'undefined' || interval === null ? [] : interval).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)[0] || 'auto'; const byKey = {}; for (const pair of [].concat(typeof dimensions === 'undefined' || dimensions === null ? [] : dimensions).map((i) => (i && i.value !== undefined ? i.value : i)).filter((v) => v !== '' && v != null)) { const i = String(pair).indexOf('='); if (i > 0) { const k = pair.slice(0, i).trim(); (byKey[k] = byKey[k] || []).push(pair.slice(i + 1).trim()); } } const parts = Object.entries(byKey).map(([k, vs]) => (vs.length === 1 ? k + ' = \"' + vs[0] + '\"' : k + ' =~ \"' + vs.join('|') + '\"')); const statExpr = ['p50', 'p90', 'p95', 'p99'].includes(stat) ? 'percentile(0.' + stat.slice(1) + ')' : stat + '()'; q = name + '[' + window + ']' + (parts.length ? '{' + parts.join(' && ') + '}' : '') + '.' + statExpr; } const ids = [].concat(typeof resources === 'undefined' || !resources ? [] : resources).map((o) => [].concat(o.rawId)[0]).filter(Boolean); if (!ids.length) return q; const f = ids.length === 1 ? 'resourceId = \"' + ids[0] + '\"' : 'resourceId =~ \"' + ids.join('|') + '\"'; const i = q.indexOf(']'); if (i < 0) return q; return q[i + 1] === '{' ? q.slice(0, i + 2) + f + ' && ' + q.slice(i + 2) : q.slice(0, i + 1) + '{' + f + '}' + q.slice(i + 1); })() }}",
             "startTime": "{{timeframe.start}}",
             "endTime": "{{timeframe.end}}"
         },
