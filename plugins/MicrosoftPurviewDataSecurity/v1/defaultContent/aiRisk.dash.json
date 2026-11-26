@@ -26,7 +26,7 @@
                             "content": "AI interaction tiles come from advanced hunting and need the Microsoft Defender for Cloud Apps Microsoft 365 app connector with its Microsoft 365 activities component selected. They cover up to the last 30 days.",
                             "fontSize": 14,
                             "align": "left",
-                            "autoSize": true
+                            "autoSize": false
                         }
                     }
                 }
@@ -184,7 +184,7 @@
                                     {
                                         "field": "dlp",
                                         "type": "quantitative",
-                                        "title": "Data loss prevention"
+                                        "title": "DLP"
                                     }
                                 ]
                             },
@@ -309,12 +309,14 @@
                                     {
                                         "field": "interactions",
                                         "type": "quantitative",
-                                        "title": "Interactions"
+                                        "title": "Interactions",
+                                        "aggregate": "sum"
                                     },
                                     {
                                         "field": "labelledResources",
                                         "type": "quantitative",
-                                        "title": "Labelled resources"
+                                        "title": "Labelled resources",
+                                        "aggregate": "sum"
                                     }
                                 ]
                             },
@@ -324,7 +326,8 @@
                                 "colors": [
                                     "#8b5cf6",
                                     "#f97316"
-                                ]
+                                ],
+                                "cartesianHorizontal": true
                             }
                         }
                     }
@@ -359,9 +362,49 @@
                         "sort": {
                             "by": [
                                 [
-                                    "uniqueInteractions",
+                                    "uniqueInteractions_sum",
                                     "desc"
                                 ]
+                            ]
+                        },
+                        "group": {
+                            "by": [
+                                [
+                                    "user",
+                                    "uniqueValues"
+                                ]
+                            ],
+                            "aggregate": [
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "uniqueInteractions"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "labelledResources"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "dlpPolicyMatches"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "xpiaDetections"
+                                    ]
+                                },
+                                {
+                                    "type": "sum",
+                                    "names": [
+                                        "jailbreakAttempts"
+                                    ]
+                                }
                             ]
                         }
                     },
@@ -372,23 +415,23 @@
                             "encoding": {
                                 "columns": [
                                     {
-                                        "field": "user",
+                                        "field": "user_uniqueValues",
                                         "title": "User",
                                         "renderer": {
                                             "type": "text"
                                         }
                                     },
                                     {
-                                        "field": "uniqueInteractions",
+                                        "field": "uniqueInteractions_sum",
                                         "title": "Interactions",
-                                        "width": 110,
+                                        "width": 130,
                                         "align": "right",
                                         "renderer": {
                                             "type": "number"
                                         }
                                     },
                                     {
-                                        "field": "labelledResources",
+                                        "field": "labelledResources_sum",
                                         "title": "Labelled Resources",
                                         "renderer": {
                                             "type": "bar",
@@ -396,27 +439,27 @@
                                         }
                                     },
                                     {
-                                        "field": "dlpPolicyMatches",
-                                        "title": "DLP Policy Matches",
-                                        "width": 150,
+                                        "field": "dlpPolicyMatches_sum",
+                                        "title": "DLP Matches",
+                                        "width": 130,
                                         "align": "right",
                                         "renderer": {
                                             "type": "number"
                                         }
                                     },
                                     {
-                                        "field": "xpiaDetections",
-                                        "title": "Prompt Injections",
-                                        "width": 140,
+                                        "field": "xpiaDetections_sum",
+                                        "title": "Injections",
+                                        "width": 120,
                                         "align": "right",
                                         "renderer": {
                                             "type": "number"
                                         }
                                     },
                                     {
-                                        "field": "jailbreakAttempts",
-                                        "title": "Jailbreak Attempts",
-                                        "width": 150,
+                                        "field": "jailbreakAttempts_sum",
+                                        "title": "Jailbreaks",
+                                        "width": 120,
                                         "align": "right",
                                         "renderer": {
                                             "type": "number"
@@ -481,7 +524,7 @@
                                     {
                                         "field": "severity",
                                         "title": "Severity",
-                                        "width": 120,
+                                        "width": 110,
                                         "renderer": {
                                             "type": "badge",
                                             "colors": {
@@ -497,12 +540,13 @@
                                         "title": "Alert",
                                         "renderer": {
                                             "type": "text"
-                                        }
+                                        },
+                                        "width": 280
                                     },
                                     {
                                         "field": "source",
                                         "title": "Source",
-                                        "width": 190,
+                                        "width": 180,
                                         "renderer": {
                                             "type": "badge",
                                             "colors": {
@@ -515,7 +559,7 @@
                                     {
                                         "field": "status",
                                         "title": "Status",
-                                        "width": 110,
+                                        "width": 115,
                                         "renderer": {
                                             "type": "text"
                                         }
@@ -526,14 +570,16 @@
                                         "renderer": {
                                             "type": "tag-list",
                                             "color": "#6366f1"
-                                        }
+                                        },
+                                        "width": 200
                                     },
                                     {
                                         "field": "assignedTo",
                                         "title": "Assigned To",
                                         "renderer": {
                                             "type": "text"
-                                        }
+                                        },
+                                        "width": 150
                                     },
                                     {
                                         "field": "created",
