@@ -1,0 +1,174 @@
+{
+    "name": "autonomousDatabaseMetrics",
+    "displayName": "Autonomous Database Metrics",
+    "description": "Time series of an autonomous database's CPU, storage, sessions and statement activity",
+    "tags": [
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "telemetry/{{object.region}}/20180401/metrics/actions/summarizeMetricsData",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{object.compartmentId}}"
+            }
+        ],
+        "postBody": {
+            "namespace": "oci_autonomous_database",
+            "query": "{{ metric || 'CpuUtilization' }}[{{ ((s) => s <= 21600 ? '1m' : s <= 172800 ? '5m' : s <= 2678400 ? '1h' : '1d')(timeframe.unixEnd - timeframe.unixStart) }}]{resourceId = \"{{object.rawId}}\"}.{{ ((x) => (x && x.value) || x || 'mean')([].concat(statistic)[0]) }}()",
+            "startTime": "{{timeframe.start}}",
+            "endTime": "{{timeframe.end}}",
+            "resolution": "{{ ((s) => s <= 21600 ? '1m' : s <= 172800 ? '5m' : s <= 2678400 ? '1h' : '1d')(timeframe.unixEnd - timeframe.unixStart) }}"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "metricData.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Autonomous Database"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "radio",
+            "name": "metric",
+            "label": "Metric",
+            "defaultValue": "CpuUtilization",
+            "options": [
+                {
+                    "value": "CpuUtilization",
+                    "label": "CPU utilization (%)"
+                },
+                {
+                    "value": "StorageUtilization",
+                    "label": "Storage utilization (%)"
+                },
+                {
+                    "value": "Sessions",
+                    "label": "Sessions (count)"
+                },
+                {
+                    "value": "ExecuteCount",
+                    "label": "Execute count (count)"
+                },
+                {
+                    "value": "CurrentLogons",
+                    "label": "Current logons (count)"
+                },
+                {
+                    "value": "RunningStatements",
+                    "label": "Running statements (count)"
+                },
+                {
+                    "value": "QueuedStatements",
+                    "label": "Queued statements (count)"
+                },
+                {
+                    "value": "FailedLogons",
+                    "label": "Failed logons (count)"
+                }
+            ]
+        },
+        {
+            "type": "autocomplete",
+            "name": "statistic",
+            "label": "Statistic",
+            "isMulti": false,
+            "isClearable": false,
+            "defaultValue": "mean",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "mean",
+                        "label": "Mean"
+                    },
+                    {
+                        "value": "max",
+                        "label": "Max"
+                    },
+                    {
+                        "value": "min",
+                        "label": "Min"
+                    },
+                    {
+                        "value": "sum",
+                        "label": "Sum"
+                    },
+                    {
+                        "value": "count",
+                        "label": "Count"
+                    },
+                    {
+                        "value": "rate",
+                        "label": "Rate"
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Timestamp",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "value",
+            "displayName": "Value",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "metric",
+            "displayName": "Metric",
+            "shape": "string"
+        },
+        {
+            "name": "resourceName",
+            "displayName": "Resource",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "resourceId",
+            "displayName": "Resource OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "namespace",
+            "displayName": "Namespace",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "dimensions",
+            "displayName": "Dimensions",
+            "shape": "json",
+            "visible": false
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}

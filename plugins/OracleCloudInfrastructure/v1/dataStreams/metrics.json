@@ -1,0 +1,138 @@
+{
+    "name": "metrics",
+    "displayName": "Metrics",
+    "description": "Time series for any OCI Monitoring metric, with an optional dimension filter and compartment",
+    "tags": [
+        "Performance"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "telemetry/{{object.rawId}}/20180401/metrics/actions/summarizeMetricsData",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{ [].concat(compartment || []).length ? [].concat([].concat(compartment)[0].rawId)[0] : dataSource.tenancyOcid.trim() }}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "{{ [].concat(compartment || []).length ? null : 'true' }}"
+            }
+        ],
+        "postBody": {
+            "namespace": "{{ ((x) => (x && x.value) || x)([].concat(namespace)[0]) }}",
+            "query": "{{ metric.trim() }}[{{ ((s) => s <= 21600 ? '1m' : s <= 172800 ? '5m' : s <= 2678400 ? '1h' : '1d')(timeframe.unixEnd - timeframe.unixStart) }}]{{ dimensionFilter && dimensionFilter.trim() ? '{' + dimensionFilter.trim() + '}' : '' }}.{{ ((x) => (x && x.value) || x || 'mean')([].concat(statistic)[0]) }}()",
+            "startTime": "{{timeframe.start}}",
+            "endTime": "{{timeframe.end}}",
+            "resolution": "{{ ((s) => s <= 21600 ? '1m' : s <= 172800 ? '5m' : s <= 2678400 ? '1h' : '1d')(timeframe.unixEnd - timeframe.unixStart) }}"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "postRequestScript": "metricData.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Region"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "namespace",
+            "label": "Namespace",
+            "help": "The OCI Monitoring namespace, for example `oci_computeagent`. Type to enter a namespace that is not listed",
+            "isMulti": false,
+            "allowCustomValues": true,
+            "validation": {
+                "required": true
+            },
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "oci_computeagent", "label": "oci_computeagent (Compute agent)" },
+                    { "value": "oci_lbaas", "label": "oci_lbaas (Load Balancer)" },
+                    { "value": "oci_nlb", "label": "oci_nlb (Network Load Balancer)" },
+                    { "value": "oci_autonomous_database", "label": "oci_autonomous_database (Autonomous Database)" },
+                    { "value": "oci_objectstorage", "label": "oci_objectstorage (Object Storage)" },
+                    { "value": "oci_blockstore", "label": "oci_blockstore (Block Volume)" },
+                    { "value": "oci_faas", "label": "oci_faas (Functions)" },
+                    { "value": "oci_vcn", "label": "oci_vcn (Virtual Cloud Network)" },
+                    { "value": "oci_oke", "label": "oci_oke (Kubernetes Engine)" },
+                    { "value": "oci_filestorage", "label": "oci_filestorage (File Storage)" }
+                ]
+            }
+        },
+        {
+            "type": "text",
+            "name": "metric",
+            "label": "Metric",
+            "placeholder": "CpuUtilization",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "statistic",
+            "label": "Statistic",
+            "isMulti": false,
+            "isClearable": false,
+            "defaultValue": "mean",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    { "value": "mean", "label": "Mean" },
+                    { "value": "max", "label": "Max" },
+                    { "value": "min", "label": "Min" },
+                    { "value": "sum", "label": "Sum" },
+                    { "value": "count", "label": "Count" },
+                    { "value": "rate", "label": "Rate" }
+                ]
+            }
+        },
+        {
+            "type": "text",
+            "name": "dimensionFilter",
+            "label": "Dimension filter",
+            "placeholder": "resourceDisplayName = \"web-1\"",
+            "help": "Optional. An OCI Monitoring Query Language dimension filter, written without the braces"
+        },
+        {
+            "type": "objects",
+            "name": "compartment",
+            "label": "Compartment",
+            "help": "Optional. Leave empty to query the whole tenancy, including every compartment",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Compartment"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        { "name": "timestamp", "displayName": "Timestamp", "shape": "date", "role": "timestamp" },
+        { "name": "value", "displayName": "Value", "shape": "number", "role": "value" },
+        { "name": "metric", "displayName": "Metric", "shape": "string" },
+        { "name": "resourceName", "displayName": "Resource", "shape": "string", "role": "label" },
+        { "name": "resourceId", "displayName": "Resource OCID", "shape": "string", "visible": false },
+        { "name": "region", "displayName": "Region", "shape": "string" },
+        { "name": "namespace", "displayName": "Namespace", "shape": "string", "visible": false },
+        { "name": "dimensions", "displayName": "Dimensions", "shape": "json", "visible": false }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days",
+        "thisMonth",
+        "lastMonth"
+    ]
+}

@@ -1,0 +1,158 @@
+{
+    "name": "budgets",
+    "displayName": "Budgets",
+    "description": "Cost budgets defined in the tenancy, with actual and forecasted spend against the budget amount",
+    "tags": [
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "usage/home/20190111/budgets",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{dataSource.tenancyOcid.trim()}}"
+            },
+            {
+                "key": "targetType",
+                "value": "ALL"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "budgets.js"
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "OCID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "amount",
+            "displayName": "Budget amount",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "actualSpend",
+            "displayName": "Actual spend",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "forecastedSpend",
+            "displayName": "Forecasted spend",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ]
+        },
+        {
+            "name": "percentSpent",
+            "displayName": "Percent spent",
+            "computed": true,
+            "valueExpression": "{{ $['amount'] ? ($['actualSpend'] / $['amount']) * 100 : null }}",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "percentForecast",
+            "displayName": "Percent forecast",
+            "computed": true,
+            "valueExpression": "{{ $['amount'] ? ($['forecastedSpend'] / $['amount']) * 100 : null }}",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "resetPeriod",
+            "displayName": "Reset period",
+            "shape": "string"
+        },
+        {
+            "name": "targetType",
+            "displayName": "Target type",
+            "shape": "string"
+        },
+        {
+            "name": "targets",
+            "displayName": "Targets",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "timeSpendComputed",
+            "displayName": "Spend computed",
+            "shape": "date"
+        },
+        {
+            "name": "lifecycleState",
+            "displayName": "State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "ACTIVE"
+                        ],
+                        "warning": [
+                            "INACTIVE"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "alertRuleCount",
+            "displayName": "Alert rules",
+            "shape": "number"
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}

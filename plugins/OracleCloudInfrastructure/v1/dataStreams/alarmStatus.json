@@ -1,0 +1,119 @@
+{
+    "name": "alarmStatus",
+    "displayName": "Alarm Status",
+    "description": "Current status of Monitoring alarms in the tenancy (including all compartments) for a region",
+    "tags": [
+        "Alerts"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "telemetry/{{object.rawId}}/20180401/alarms/status",
+        "getArgs": [
+            {
+                "key": "compartmentId",
+                "value": "{{dataSource.tenancyOcid.trim()}}"
+            },
+            {
+                "key": "compartmentIdInSubtree",
+                "value": "true"
+            }
+        ],
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "1000"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "alarmStatus.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Region"
+            ]
+        }
+    },
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "OCID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": "string"
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "health",
+            "displayName": "Health",
+            "computed": true,
+            "valueExpression": "{{ $['status'] === 'FIRING' ? (['CRITICAL','ERROR'].includes($['severity']) ? 'error' : 'warning') : ($['status'] === 'OK' ? 'success' : 'unknown') }}",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "success"
+                        ],
+                        "warning": [
+                            "warning"
+                        ],
+                        "error": [
+                            "error"
+                        ],
+                        "unknown": [
+                            "unknown"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "timestampTriggered",
+            "displayName": "Last triggered",
+            "shape": "date"
+        },
+        {
+            "name": "alarmSummary",
+            "displayName": "Summary",
+            "shape": "string"
+        },
+        {
+            "name": "suppression",
+            "displayName": "Suppression",
+            "shape": "json"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false
+}

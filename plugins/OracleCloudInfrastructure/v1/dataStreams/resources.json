@@ -1,0 +1,186 @@
+{
+    "name": "resources",
+    "displayName": "Resources",
+    "description": "Compute, storage, network, database, container and serverless resources in a region (excludes terminated and deleted resources)",
+    "tags": [
+        "Infrastructure"
+    ],
+    "baseDataSourceName": "httpRequestScopedSingle",
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "query/{{object.rawId}}/20180409/resources",
+        "postBody": {
+            "type": "Structured",
+            "query": "query instance, volume, bootvolume, vcn, subnet, loadbalancer, networkloadbalancer, autonomousdatabase, dbsystem, bucket, clusterscluster, filesystem, functionsapplication, functionsfunction resources where lifecycleState != 'TERMINATED' && lifecycleState != 'DELETED'{{ [].concat(compartment || []).length ? ' && (' + [].concat(compartment).map((c) => \"compartmentId = '\" + [].concat(c.rawId)[0] + \"'\").join(' || ') + ')' : '' }}",
+            "matchingContextType": "NONE"
+        },
+        "paging": {
+            "mode": "token",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "limit",
+                "value": "500"
+            },
+            "in": {
+                "realm": "header",
+                "path": "opc-next-page"
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        },
+        "postRequestScript": "resources.js"
+    },
+    "matches": {
+        "sourceType": {
+            "type": "oneOf",
+            "values": [
+                "Region"
+            ]
+        }
+    },
+    "ui": [
+        {
+            "type": "objects",
+            "name": "compartment",
+            "label": "Compartment(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Compartment"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "identifier",
+            "displayName": "OCID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "sourceType",
+            "displayName": "Type",
+            "shape": "string"
+        },
+        {
+            "name": "resourceType",
+            "displayName": "OCI resource type",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string"
+        },
+        {
+            "name": "compartmentId",
+            "displayName": "Compartment OCID",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "compartment",
+            "displayName": "Compartment",
+            "sourceId": "compartmentId",
+            "sourceType": "Compartment",
+            "objectPropertyPath": "name"
+        },
+        {
+            "name": "availabilityDomain",
+            "displayName": "Availability domain",
+            "shape": "string"
+        },
+        {
+            "name": "lifecycleState",
+            "displayName": "State",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "success": [
+                            "RUNNING",
+                            "AVAILABLE",
+                            "ACTIVE",
+                            "Running",
+                            "Available",
+                            "Active"
+                        ],
+                        "warning": [
+                            "STOPPED",
+                            "STOPPING",
+                            "STARTING",
+                            "PROVISIONING",
+                            "CREATING",
+                            "UPDATING",
+                            "SCALE_IN_PROGRESS",
+                            "MAINTENANCE_IN_PROGRESS",
+                            "RESTORE_IN_PROGRESS",
+                            "BACKUP_IN_PROGRESS",
+                            "INACTIVE",
+                            "DELETING",
+                            "TERMINATING",
+                            "Stopped",
+                            "Stopping",
+                            "Starting",
+                            "Provisioning",
+                            "Creating",
+                            "Updating",
+                            "Scale In Progress",
+                            "Maintenance In Progress",
+                            "Restore In Progress",
+                            "Backup In Progress",
+                            "Inactive",
+                            "Deleting",
+                            "Terminating"
+                        ],
+                        "error": [
+                            "FAILED",
+                            "UNAVAILABLE",
+                            "Failed",
+                            "Unavailable"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "timeCreated",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "freeformTags",
+            "displayName": "Freeform tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "definedTags",
+            "displayName": "Defined tags",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        }
+    ],
+    "timeframes": false
+}

@@ -1,0 +1,62 @@
+{
+    "name": "costSummary",
+    "displayName": "Cost Summary",
+    "description": "Cost per service for the last three days (checks access to cost data)",
+    "tags": [
+        "Cost"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "visibility": {
+        "type": "hidden"
+    },
+    "config": {
+        "httpMethod": "post",
+        "endpointPath": "usageapi/home/20200107/usage",
+        "postBody": {
+            "tenantId": "{{dataSource.tenancyOcid.trim()}}",
+            "timeUsageStarted": "{{ new Date(new Date().setUTCHours(0,0,0,0) - 3 * 86400000).toISOString() }}",
+            "timeUsageEnded": "{{ new Date(new Date().setUTCHours(0,0,0,0) - -1 * 86400000).toISOString() }}",
+            "granularity": "DAILY",
+            "queryType": "COST",
+            "groupBy": [
+                "service"
+            ]
+        },
+        "pathToData": "items",
+        "paging": {
+            "mode": "none"
+        }
+    },
+    "metadata": [
+        {
+            "name": "timeUsageStarted",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "service",
+            "displayName": "Service",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "computedAmount",
+            "displayName": "Cost",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 2
+                }
+            ],
+            "role": "value"
+        },
+        {
+            "name": "currency",
+            "displayName": "Currency",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false,
+    "matches": "none"
+}
