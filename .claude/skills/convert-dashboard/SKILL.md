@@ -58,6 +58,7 @@ Verify the output — check that:
 - `dashboard.version` is reset to `1` (the script forces this regardless of the pasted-in version)
 - `config.scopes[]` entries with `ids_defaultScopeIds` bindings are removed
 - Perspective tiles: `config.variables`, `config.scope.variable`, `config.scope.scope` are templatized
+- No column in `config.dataStream.metadata` keeps a `drilldown.dashboardId` or a `sourceLookup.configId`. The script turns a dashboard drilldown into `{}` and names each one on stderr. Where the column should open one of the plugin's own dashboards, set `"drilldown": { "pluginDashboardPath": "<path>" }` (see [data-streams.md, Drilldown metadata entry](../build-plugin/references/data-streams.md#drilldown-metadata-entry))
 - The tiles x/y/z positions have not been changed from the pasted dashboard JSON
 
 **Done when:** no hardcoded platform IDs remain in any tile.
