@@ -1,0 +1,57 @@
+{
+    "name": "locations",
+    "displayName": "Location List",
+    "description": "Automate locations, one row per location (import only)",
+    "tags": [
+        "Organization"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "locations",
+        "getArgs": [
+            {
+                "key": "orderBy",
+                "value": "Id asc"
+            }
+        ],
+        "expandInnerObjects": true,
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "500"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "."
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        }
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "clientId",
+            "displayName": "Client ID",
+            "computed": true,
+            "shape": "string",
+            "valueExpression": "{{ $['Client.Id'] == null ? null : String($['Client.Id']) }}"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false,
+    "visibility": {
+        "type": "hidden"
+    }
+}

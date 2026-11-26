@@ -1,0 +1,153 @@
+{
+    "name": "networkDevices",
+    "displayName": "Network Devices",
+    "description": "Network devices discovered by Automate probes (optionally filtered by client or location)",
+    "tags": [
+        "Devices",
+        "Network"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "networkdevices",
+        "expandInnerObjects": true,
+        "getArgs": [
+            {
+                "key": "condition",
+                "value": "{{ [(typeof client !== 'undefined' && client && client.length ? 'Client.Id in (' + client.flatMap((o) => o.rawId).join(',') + ')' : null), (typeof location !== 'undefined' && location && location.length ? 'Location.Id in (' + location.flatMap((o) => o.rawId).join(',') + ')' : null)].filter(Boolean).join(' and ') || null }}"
+            },
+            {
+                "key": "orderBy",
+                "value": "Id asc"
+            }
+        ],
+        "paging": {
+            "mode": "offset",
+            "pageSize": {
+                "realm": "queryArg",
+                "path": "pageSize",
+                "value": "1000"
+            },
+            "offset": {
+                "mode": "page",
+                "rowCountIn": {
+                    "realm": "payloadArraySize",
+                    "path": "."
+                },
+                "base": 1
+            },
+            "out": {
+                "realm": "queryArg",
+                "path": "page"
+            }
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "objects",
+            "name": "client",
+            "label": "Client(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Client"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "location",
+            "label": "Location(s)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Location"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "Id",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "Client.Id",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "Location.Id",
+            "shape": "number",
+            "visible": false
+        },
+        {
+            "name": "Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "ComputerName",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "networkDeviceId",
+            "displayName": "Network device ID",
+            "computed": true,
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['Id'] == null ? null : String($['Id']) }}"
+        },
+        {
+            "name": "clientId",
+            "displayName": "Client ID",
+            "computed": true,
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['Client.Id'] == null ? null : String($['Client.Id']) }}"
+        },
+        {
+            "name": "locationId",
+            "displayName": "Location ID",
+            "computed": true,
+            "shape": "string",
+            "visible": false,
+            "valueExpression": "{{ $['Location.Id'] == null ? null : String($['Location.Id']) }}"
+        },
+        {
+            "name": "deviceName",
+            "displayName": "Device",
+            "computed": true,
+            "shape": "string",
+            "role": "label",
+            "sourceId": "networkDeviceId",
+            "sourceType": "Network Device",
+            "valueExpression": "{{ $['Name'] || $['ComputerName'] || ('Network device ' + $['Id']) }}"
+        },
+        {
+            "name": "Client.Name",
+            "displayName": "Client",
+            "shape": "string",
+            "sourceId": "clientId",
+            "sourceType": "Client"
+        },
+        {
+            "name": "Location.Name",
+            "displayName": "Location",
+            "shape": "string",
+            "sourceId": "locationId",
+            "sourceType": "Location"
+        },
+        {
+            "pattern": ".*"
+        }
+    ],
+    "timeframes": false
+}
