@@ -53,6 +53,34 @@ if (allScopes) {
 const scopeName = scopeEntry?.name;
 const variableName = scopeEntry?.variable?.name;
 
+// A column drilldown can name a workspace dashboard or another data source, and neither exists in a
+// plugin. As the platform's own plugin export does: a dashboard id becomes {} (no dashboard, rather
+// than inheriting the data stream's), and a lookup in another data source turns the link off.
+function toPluginColumn(column, tile) {
+  if (!column || typeof column !== 'object') return column;
+
+  const converted = { ...column };
+
+  if (converted.sourceLookup?.configId) {
+    delete converted.sourceLookup;
+    delete converted.sourceId;
+    converted.drilldown = false;
+  } else if (converted.drilldown?.dashboardId) {
+    process.stderr.write(
+      `Tile "${tile.config?.title ?? tile.i}", column "${converted.name ?? converted.pattern ?? converted.cloneAs ?? converted.comparisonName}": ` +
+        `drilldown to ${converted.drilldown.dashboardId} removed. ` +
+        'Set "drilldown": { "pluginDashboardPath": "<path>" } if it should open one of the plugin\'s dashboards.\n'
+    );
+    converted.drilldown = {};
+  }
+
+  if (Array.isArray(converted.expand)) {
+    converted.expand = converted.expand.map(entry => toPluginColumn(entry, tile));
+  }
+
+  return converted;
+}
+
 function normalizeTile(tile) {
   const config = structuredClone(tile.config);
   if (!config) return tile;
@@ -63,6 +91,10 @@ function normalizeTile(tile) {
       s => !(s.bindings && 'ids_defaultScopeIds' in s.bindings)
     );
     if (config.scopes.length === 0) delete config.scopes;
+  }
+
+  if (Array.isArray(config.dataStream?.metadata)) {
+    config.dataStream.metadata = config.dataStream.metadata.map(column => toPluginColumn(column, tile));
   }
 
   // Templatize dataStream

@@ -761,17 +761,24 @@ Use it when the API returns a value in one unit but you want to display another,
 
 ### Drilldown metadata entry
 
-Links a column value to an object in the graph:
+Links a column's cells to an indexed object, opening one of the plugin's dashboards with its variable set to that object:
 
 ```json
 {
-    "sourceId": "deviceId", // column whose value is the sourceId
+    "name": "deviceName", // column whose cells link
+    "sourceId": "deviceId", // column whose value is the object's sourceId (can be this column)
     "sourceType": "My Device", // MUST be a fixed string — cannot be dynamic
-    "name": "deviceName" // column to use as the display name
+    "drilldown": { "pluginDashboardPath": "devices/device-health" } // the plugin dashboard to open
 }
 ```
 
 > ⚠️ `sourceType` must be a hardcoded string. Dynamic per-row sourceType is not supported.
+
+- **Without `drilldown`, the column only links in organizations with the Observability Graph**, where it opens the object's graph drilldown. Elsewhere it doesn't link at all. With `drilldown`, the Graph still opens the object's drilldown, on that dashboard.
+- **`pluginDashboardPath`** is the dashboard's path within the plugin: each folder under `defaultContent/`, then the dashboard's `name` (not its file name), each lowercased with spaces and punctuation turned into `-`. `defaultContent/Devices/device.dash.json` named `Device Health` is `devices/device-health`. A typo, a rename or a moved folder breaks the link silently: the platform ignores a `drilldown` it can't use rather than failing validation.
+- **Point it at a perspective for the type**: a dashboard whose variable's [scope](oob-content.md#scopesjson) holds the column's `sourceType`. Where the type has several, pick the one that fits what the stream shows. If the plugin has no dashboard for the type, leave `drilldown` out.
+- **Give every linking column its own `sourceType`**, even when its `sourceId` column has one: differently named columns are separate. Entries with the same `name` merge, so a second `{ "name", "sourceId", "sourceType", "drilldown" }` entry for an existing column works too.
+- **`"drilldown": false`** turns off a link the column would otherwise have, including the Graph's. Don't use it to mean "no dashboard".
 
 > ⚠️ **Blocks tiles** also require `linkColumn` in the viz config set to the same column as `name` in the drilldown entry. Without it, blocks render but don't navigate.
 
@@ -792,6 +799,8 @@ Replace a raw ID column with a human-readable property from a related indexed ob
 ```
 
 Appending a related object's list property this way lets tiles filter and group a stream's rows by it (e.g. issues filtered by their repository's topics). See [List columns](#list-columns-array-shape).
+
+These columns link to the object too, so give them a `drilldown` as in [Drilldown metadata entry](#drilldown-metadata-entry).
 
 ---
 

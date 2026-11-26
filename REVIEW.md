@@ -77,6 +77,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
     - SmartViz applies shapes whichever renderer a tile uses.
     - In a `state` shape, `map` lists the raw values for each state (e.g. `{ "success": ["Good"] }`), so the column still emits the raw labels.
 - **SmartViz matching and defaults.** SmartViz is documented by the platform's `squaredup skill visualize`, not in this repository; these points are kept here for reviewers only. Colour and value maps (`colors`, `mappedColors`, row highlights) match keys case-insensitively. `gaugeBands[].to` is a 0–1 fraction of the gauge range, not an absolute value. `ringGridMax` defaults to 100. The scalar `comparison` displays the value it is given; it does not calculate a delta.
+- **Links without the Observability Graph.** In an organization without the Graph, a `sourceId` column only links if it declares `drilldown`, and a URL column that links to `/drilldown/node` is dropped. See [data-streams.md, Drilldown metadata entry](.claude/skills/build-plugin/references/data-streams.md#drilldown-metadata-entry).
 - **Mustache expressions.** Unset variables resolve to an empty string; they do not throw. Do not suggest `typeof` guards.
 - **Configuration validation warns, it does not block.** A failing `configValidation` step shows a warning; the user can still save the data source.
 - **Dashboard variables and pickers.** A perspective tile that declares a variable does not run with an empty selection; it shows "No objects selected". Object pickers only offer objects that have been imported.
@@ -131,6 +132,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 - Template text - Any `{{…}}` other than the templating tokens (`configId`, `workspaceId`, `scopes.[…]`, `dataStreams.[…]`, `variables.[…]`) is substituted, normally to nothing, when the default content is installed. Flag it unless it is wrapped as `{{{{raw}}}}…{{{{/raw}}}}`. Common places are `labelFormat`, `cartesianTooltipTemplate` and `statusGridSecondaryTemplate`. See [oob-content.md, Templating tokens](.claude/skills/build-plugin/references/oob-content.md#templating-tokens).
 - Request volume - Flag overview tiles that send one request per object (per environment, per device) where an imported property or a single list call would do.
 - Timeframes - Check the stream's `timeframes` before calling a tile's timeframe redundant or wrong; a stream may only offer one range.
+- Renames - A dashboard's folders and `name` are its drilldown path. Flag a rename or move that leaves a `pluginDashboardPath` in `dataStreams/` naming the old path.
 
 ### Out-of-the-box dashboard manifest (defaultContent/\*\*/manifest.json)
 
@@ -153,6 +155,7 @@ SquaredUp behaviour that reviews have repeatedly got wrong. Treat these as estab
 - Deduplication - If multiple data streams share the same API endpoint and differ only by a filter, consider merging them into a single stream with a UI parameter to control the filter.
 - Capped results - Flag counts or totals calculated from a list whose total result the API caps (e.g. a search that never returns more than 2,000 rows), and filtering that happens in a script after such a request. Both silently undercount; the filter or count belongs in the API request. A per-page cap that the stream pages past is not a finding.
 - Optional request parameters - Omit an optional parameter when it is empty rather than sending an empty string, which many APIs reject.
+- Drilldowns - A `sourceId` column whose `sourceType` has a perspective in the plugin needs `"drilldown": { "pluginDashboardPath": "<path>" }`, with the path matching that dashboard's folders and `name`. Flag `"drilldown": false` used to mean "no dashboard", and URL columns built to link to `/drilldown/node`. See [data-streams.md, Drilldown metadata entry](.claude/skills/build-plugin/references/data-streams.md#drilldown-metadata-entry).
 - ui
     - displayName - First word uppercase, then lowercase (e.g. “Table name"). Single value: singular. Multiple values: “(s)" (e.g. Tables name(s)). Do not use “you" “Your" in display names. Keep text neutral, concise, and descriptive.
     - help - Use extremely sparingly. Never state the obvious. Only use when something important must be understood. Start with a verb where possible (e.g. “Supports the ServiceNow filtering definition format").
