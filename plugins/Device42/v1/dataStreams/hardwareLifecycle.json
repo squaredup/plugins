@@ -1,0 +1,166 @@
+{
+    "name": "hardwareLifecycle",
+    "displayName": "Hardware Lifecycle",
+    "description": "Hardware models in use, with their end-of-life and end-of-support dates and how many devices use each",
+    "tags": [
+        "Hardware",
+        "Lifecycle"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/services/data/v1.0/query/",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{ (() => { const ids = (sel) => [].concat(sel || []).map((o) => Number([].concat(o.rawId)[0])).filter((n) => Number.isInteger(n)); const where = []; const b = ids(typeof building === 'undefined' ? [] : building); if (b.length) where.push('d.calculated_building_fk in (' + b.join(',') + ')'); const c = ids(typeof customer === 'undefined' ? [] : customer); if (c.length) where.push('d.customer_fk in (' + c.join(',') + ')'); const r = ids(typeof rack === 'undefined' ? [] : rack); if (r.length) where.push('d.calculated_rack_fk in (' + r.join(',') + ')'); const t = [].concat(typeof deviceType === 'undefined' ? [] : deviceType).map((x) => (x && x.value) || x)[0] || ''; if (['physical', 'virtual', 'cluster', 'blade', 'other', 'unknown'].includes(t)) where.push(\"d.type = '\" + t + \"'\"); return 'select h.hardware_pk as hardware_id, h.name as hardware_model, v.name as manufacturer,' + ' h.end_of_life_date, h.end_of_support_date, count(d.device_pk) as devices' + ' from view_device_v2 d left join view_hardware_v2 h on h.hardware_pk = d.hardware_fk left join view_vendor_v1 v on v.vendor_pk = h.vendor_fk left join view_customer_v1 c on c.customer_pk = d.customer_fk left join view_building_v1 b on b.building_pk = d.calculated_building_fk left join view_room_v1 r on r.room_pk = d.calculated_room_fk left join view_rack_v1 k on k.rack_pk = d.calculated_rack_fk where d.hardware_fk is not null' + (where.length ? ' and ' + where.join(' and ') : '') + ' group by 1, 2, 3, 4, 5 order by 6 desc'; })() }}"
+            },
+            {
+                "key": "output_type",
+                "value": "json"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "choiceChips",
+            "name": "deviceType",
+            "label": "Device type (optional)",
+            "options": [
+                {
+                    "value": "physical",
+                    "label": "Physical"
+                },
+                {
+                    "value": "virtual",
+                    "label": "Virtual"
+                },
+                {
+                    "value": "cluster",
+                    "label": "Cluster"
+                },
+                {
+                    "value": "blade",
+                    "label": "Blade"
+                },
+                {
+                    "value": "other",
+                    "label": "Other"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "building",
+            "label": "Building (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Building"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Customer"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "hardware_model",
+            "displayName": "Hardware Model",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "hardware_id",
+            "displayName": "Hardware ID",
+            "shape": [
+                "number",
+                {
+                    "thousandsSeparator": false
+                }
+            ],
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "manufacturer",
+            "displayName": "Manufacturer",
+            "shape": "string"
+        },
+        {
+            "name": "devices",
+            "displayName": "Devices",
+            "shape": "number",
+            "role": "value"
+        },
+        {
+            "name": "end_of_life_date",
+            "displayName": "End of Life",
+            "shape": [
+                "date",
+                {
+                    "format": "yyyy-MM-dd",
+                    "timeZone": "Etc/UTC"
+                }
+            ]
+        },
+        {
+            "name": "end_of_support_date",
+            "displayName": "End of Support",
+            "shape": [
+                "date",
+                {
+                    "format": "yyyy-MM-dd",
+                    "timeZone": "Etc/UTC"
+                }
+            ]
+        },
+        {
+            "name": "lifecycle",
+            "displayName": "Lifecycle",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ (() => { const now = Date.now(); const eol = $['end_of_life_date'] ? Date.parse($['end_of_life_date']) : NaN; const eos = $['end_of_support_date'] ? Date.parse($['end_of_support_date']) : NaN; if (eos <= now) return 'Out of support'; if (eol <= now) return 'End of life'; if (eos - now < 180 * 86400000) return 'Support ending soon'; if (Number.isFinite(eol) || Number.isFinite(eos)) return 'Supported'; return 'No dates recorded'; })() }}"
+        },
+        {
+            "name": "lifecycleState",
+            "displayName": "Lifecycle State",
+            "computed": true,
+            "valueExpression": "{{ ({ 'Out of support': 'error', 'End of life': 'warning', 'Support ending soon': 'warning', 'Supported': 'success' })[$['lifecycle']] || 'unknown' }}",
+            "shape": "state"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "devices",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": false
+}

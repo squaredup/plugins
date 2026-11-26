@@ -1,0 +1,170 @@
+{
+    "name": "deviceSummary",
+    "displayName": "Device Summary",
+    "description": "Device counts grouped by type, operating system, building, customer, service level, hardware model, manufacturer or service status",
+    "tags": [
+        "Device",
+        "Inventory"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "/services/data/v1.0/query/",
+        "getArgs": [
+            {
+                "key": "query",
+                "value": "{{ (() => { const ids = (sel) => [].concat(sel || []).map((o) => Number([].concat(o.rawId)[0])).filter((n) => Number.isInteger(n)); const where = []; const b = ids(typeof building === 'undefined' ? [] : building); if (b.length) where.push('d.calculated_building_fk in (' + b.join(',') + ')'); const c = ids(typeof customer === 'undefined' ? [] : customer); if (c.length) where.push('d.customer_fk in (' + c.join(',') + ')'); const r = ids(typeof rack === 'undefined' ? [] : rack); if (r.length) where.push('d.calculated_rack_fk in (' + r.join(',') + ')'); const t = [].concat(typeof deviceType === 'undefined' ? [] : deviceType).map((x) => (x && x.value) || x)[0] || ''; if (['physical', 'virtual', 'cluster', 'blade', 'other', 'unknown'].includes(t)) where.push(\"d.type = '\" + t + \"'\"); const groups = {\"type\":\"coalesce(d.type, 'unknown')\",\"operatingSystem\":\"coalesce(d.os_name, '(no operating system)')\",\"building\":\"coalesce(b.name, '(no building)')\",\"customer\":\"coalesce(c.name, '(no customer)')\",\"serviceLevel\":\"coalesce(d.service_level, '(no service level)')\",\"hardwareModel\":\"coalesce(h.name, '(no hardware model)')\",\"manufacturer\":\"coalesce(v.name, '(no manufacturer)')\",\"inService\":\"case when d.in_service then 'In service' else 'Not in service' end\"}; const by = groups[[].concat(typeof groupBy === 'undefined' ? [] : groupBy).map((x) => (x && x.value) || x)[0]] || groups.type; return 'select ' + by + ' as category, count(*) as devices from view_device_v2 d left join view_hardware_v2 h on h.hardware_pk = d.hardware_fk left join view_vendor_v1 v on v.vendor_pk = h.vendor_fk left join view_customer_v1 c on c.customer_pk = d.customer_fk left join view_building_v1 b on b.building_pk = d.calculated_building_fk left join view_room_v1 r on r.room_pk = d.calculated_room_fk left join view_rack_v1 k on k.rack_pk = d.calculated_rack_fk' + (where.length ? ' where ' + where.join(' and ') : '') + ' group by 1 order by 2 desc, 1'; })() }}"
+            },
+            {
+                "key": "output_type",
+                "value": "json"
+            }
+        ],
+        "paging": {
+            "mode": "none"
+        },
+        "errorHandling": {
+            "type": "path",
+            "realm": "payload",
+            "path": "msg"
+        }
+    },
+    "matches": "none",
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "groupBy",
+            "label": "Group by",
+            "isMulti": false,
+            "defaultValue": "type",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "type",
+                        "label": "Type"
+                    },
+                    {
+                        "value": "operatingSystem",
+                        "label": "Operating system"
+                    },
+                    {
+                        "value": "building",
+                        "label": "Building"
+                    },
+                    {
+                        "value": "customer",
+                        "label": "Customer"
+                    },
+                    {
+                        "value": "serviceLevel",
+                        "label": "Service level"
+                    },
+                    {
+                        "value": "hardwareModel",
+                        "label": "Hardware model"
+                    },
+                    {
+                        "value": "manufacturer",
+                        "label": "Manufacturer"
+                    },
+                    {
+                        "value": "inService",
+                        "label": "In service"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "choiceChips",
+            "name": "deviceType",
+            "label": "Device type (optional)",
+            "options": [
+                {
+                    "value": "physical",
+                    "label": "Physical"
+                },
+                {
+                    "value": "virtual",
+                    "label": "Virtual"
+                },
+                {
+                    "value": "cluster",
+                    "label": "Cluster"
+                },
+                {
+                    "value": "blade",
+                    "label": "Blade"
+                },
+                {
+                    "value": "other",
+                    "label": "Other"
+                }
+            ]
+        },
+        {
+            "type": "objects",
+            "name": "building",
+            "label": "Building (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Building"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "customer",
+            "label": "Customer (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Customer"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "rack",
+            "label": "Rack (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Rack"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "devices",
+            "displayName": "Devices",
+            "shape": "number",
+            "role": "value"
+        }
+    ],
+    "defaultShaping": {
+        "sort": {
+            "by": [
+                [
+                    "devices",
+                    "desc"
+                ]
+            ]
+        }
+    },
+    "timeframes": false
+}
