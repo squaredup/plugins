@@ -15,10 +15,10 @@
 - [Pagination (paging)](#pagination)
 - [errorHandling](#errorhandling)
 - [pathToData](#pathtodata)
-- [timeframes](#timeframes)
+- [timeframes](#timeframes) — [Response size limit](#response-size-limit-6mb), [Paging time budget](#paging-time-budget-12s)
 - [defaultShaping](#defaultshaping)
 - [metadata — column definitions](#metadata-column-definitions)
-- [Post-request scripts](#post-request-scripts) — [Wiring a script](#wiring-a-script-to-a-stream), [When to use](#default-no-script), [Globals](#available-globals), [Non-JSON responses](#parsing-non-json-responses)
+- [Post-request scripts](#post-request-scripts) — [Wiring a script](#wiring-a-script-to-a-stream), [When to use](#default-no-script), [Globals](#available-globals), [Setting the paging cursor](#setting-the-paging-cursor-from-a-script), [Non-JSON responses](#parsing-non-json-responses)
 
 ---
 
@@ -367,6 +367,12 @@ In OOB dashboard tiles, set the stream parameter in the tile's `dataStream` conf
 
 > ⚠️ **`postBody` must be a JSON object, not a string, if [`paging`](#pagination) uses `realm: "body"`.** The server writes the page-size/cursor/offset value into the body with a path-based `set` that only runs against an object — against a string `postBody` it silently does nothing, and the request goes out without the paging value, with no error.
 
+> ⚠️ **`pageSize.value` is sent exactly as written.** The examples on this page write it as a string (`"value": "100"`), which suits a query argument or header. In the body, an API that checks types rejects `"100"`, so write a number:
+>
+> ```json
+> "pageSize": { "realm": "body", "path": "filters.pageSize", "value": 500 }
+> ```
+
 ---
 
 ## expandInnerObjects
@@ -393,7 +399,9 @@ Shows an **Apply** button instead of running on every config change. Use for exp
 
 The `paging` block in `config` controls how SquaredUp fetches multiple pages.
 
-Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page until the page cap and imports duplicates. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
+Only declare paging an endpoint actually honours: check that its paging parameters change the response. If the endpoint ignores them, SquaredUp re-fetches the same page: a tile repeats rows until the [paging time budget](#paging-time-budget-12s) runs out, an object import fails when pages repeat, and a cache sync fails when the cursor repeats. `"mode": "none"` with the limit written in the README is the better choice there. Before adding paging to a stream with a post-request script, read the [per-page warning](#post-request-scripts).
+
+**Check what the last page returns.** Paging stops when the cursor `in` reads is missing, empty, `null`, `false` or `0`. An API that still returns a cursor on its last page and marks the end some other way (`"hasMore": false`) keeps paging, and the failures above follow. Set the cursor yourself in a post-request script to fix it (see [Setting the paging cursor from a script](#setting-the-paging-cursor-from-a-script)).
 
 **No paging:**
 
@@ -524,7 +532,7 @@ Works on primitives too — a string, number, or boolean at the path is returned
 "timeframes": ["last24hours", "last7days"]   // limit to specific options
 ```
 
-**Canonical enum values** — these are the only valid entries in a `timeframes` array (and the only values `defaultTimeframe` accepts). Anything else fails validation with an opaque `✖ Invalid input`.
+**Canonical enum values** — these are the only valid entries in a `timeframes` array. Anything else fails validation with an opaque `✖ Invalid input`.
 
 ```text
 last1hour    last12hours   last24hours   last7days   last30days
@@ -552,9 +560,29 @@ The Lambda that runs a stream caps its response at ~6MB. Exceeding it surfaces a
 Remediation:
 
 - **If the endpoint can group, filter, or bucket server-side, push that down** (see [Push grouping, filtering and sorting down to the cheapest layer](#push-grouping-filtering-and-sorting-down-to-the-cheapest-layer)) — pre-aggregated rows are far smaller than raw ones, and this is often the only fix when even a short timeframe overflows.
-- Reduce the `pageSize` so each page (and the accumulated result) stays smaller.
-- Restrict `timeframes` to the ranges the endpoint can actually return within the cap, and set a conservative `defaultTimeframe` so new tiles don't open on the largest range.
+- Remove a timeframe that fails whether the stream is read live or from a cache (see [Prove each timeframe](#prove-each-timeframe)). `defaultTimeframe` can't steer new tiles to a shorter range (it only takes `"none"` or `"dashboard"`, see [timeframes](#timeframes)), so any tile can select a range you keep.
 - **Apply the same restriction to every sibling stream on the same endpoint family.** If one stream on an endpoint overflows at `last30days`, its siblings hitting the same (or a heavier) endpoint will too — fixing only the one you happened to test leaves the rest broken.
+
+**A smaller `pageSize` is not a fix.** The cap applies to each page and to the combined result, so a smaller page only helps when a single page is over it. It also means more pages, and a tile has a time budget for paging (below). Below the cap, a smaller page can turn the 500 into incomplete data with no error.
+
+### Paging time budget (~12s)
+
+A tile reads all of a stream's pages within about 12 seconds. When the time runs out, SquaredUp returns the rows read so far with a warning on the tile ("The request timed out. The tile may not display all available data.") rather than an error, and caches that partial result. The number of rows a tile gets therefore depends on the page size and on how fast the API answers: one plugin returned 1,400 rows at a page size of 50 and 2,500 at 100, for a window holding about 10,000.
+
+A cache works differently. Users can cache a stream (Settings > Cache), and the cache syncs it by reading one page per step, so this time budget doesn't apply. The ~6MB cap still applies to each page. But a cache can only use a timeframe the stream's `timeframes` allows (an unsupported one is replaced with a supported one), so removing a timeframe because live tiles cut it short also stops users caching it. Keep it instead (below).
+
+#### Prove each timeframe
+
+For each timeframe you offer, test the stream at that timeframe on the largest account you have:
+
+1. Read the last page in the output's `requests` (see [testing.md](testing.md#requests--the-plugin-diagnostics-raw-api-exchange)). If it still says there's another page (a next-page cursor or URL, or the API's own marker such as `"hasMore": true`), paging was cut short. If a script works out the cursor from the rows instead (NinjaOne's `devices.js`), the response has no marker, so check whether the last page came back full.
+2. Test again at a second page size and compare `data.metadata.rawRowCount`. The counts must match. A count that changes with the page size means the result was cut short.
+
+Passing both checks isn't proof on its own. They can't see an API that caps its total result and stops returning a cursor (see [Filter and count in the API](#push-grouping-filtering-and-sorting-down-to-the-cheapest-layer)), so compare against a count from the API or its documented limit too.
+
+A timeframe that fails only because paging is cut short can stay: a live tile shows the rows it read with a warning, and a cache of the stream gets every row. List those timeframes in the README's limitations and say they are only complete when the stream is cached. Remove a timeframe only when it fails cached as well as live.
+
+Choose `pageSize` for the per-page cap, not to control the total.
 
 ---
 
@@ -882,6 +910,19 @@ _.uniqBy(items, "id");
 _.orderBy(items, ["name"], ["asc"]);
 ```
 
+### Setting the paging cursor from a script
+
+A script can also set `pagingContext`. It replaces the cursor that `paging.in` read from the response, and `undefined` ends paging. Use it when the API marks its last page some other way than leaving the cursor out:
+
+```javascript
+// The API returns a cursor on every page and "hasMore": false on the last one.
+pagingContext = data.hasMore ? context.outputPagingContext : undefined;
+```
+
+Read the cursors from `context`: `context.outputPagingContext` is the one `paging.in` read from this response, and `context.pagingContext` is the one this page was requested with. Don't read the `pagingContext` variable itself. Until the script sets it, it holds a placeholder, not a cursor.
+
+The same approach works for a cursor that isn't in the response at all, such as the last row's id (NinjaOne's `devices.js`). Keep `paging` declared in the stream so the cursor is sent through `out`.
+
 ### The context object
 
 ```javascript
@@ -897,7 +938,7 @@ context.config; // current stream parameters (values set by the user in the tile
 > | Source                  | Global                                                                          | Filled by                                                                                   | Shape                                                                         |
 > | ----------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 > | **Scope**               | `context.objects`                                                               | the stream's `matches` (`httpRequestScopedSingle`) or `--object` in test mode               | array of object envelopes                                                     |
-> | **`objects` parameter** | `context.config.<name>` (the field's own `name`, e.g. `context.config.project`) | a tile-editor `objects` picker, or a dashboard variable bound via `dataSourceConfig.<name>` | array of object envelopes (multi-select), each `rawId` a single-element array |
+> | **`objects` parameter** | `context.config.<name>` (the field's own `name`, e.g. `context.config.project`) | a tile-editor `objects` picker, or a dashboard variable bound via `dataSourceConfig.<name>` | array of object envelopes (multi-select), each property (`rawId` included) a single-element array |
 >
 > A **consolidated** stream (`matches: "none"` + an optional `objects` param — see [One stream per shape](#one-stream-per-shape)) reads `context.config.<name>`, **not** `context.objects` (which is empty for it). Confusing the two means the filter silently never matches and the stream returns account-wide rows even when an object is selected.
 >
