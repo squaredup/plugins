@@ -84,7 +84,7 @@ The **Cost Budgets** data stream lists the [budgets](https://learn.microsoft.com
 | **Client secret** | Authenticates the app. | App registration → **Certificates & secrets**. | Yes |
 | **Cost Management scope** | The Azure scope to read Copilot spend and budgets from, such as `/subscriptions/<subscription ID>` or `/providers/Microsoft.Billing/billingAccounts/<billing account ID>`. Leave blank to skip spend and budget data. | Azure portal → the subscription or billing account → **Properties**. | No |
 
-On save, the plugin checks that it can read licences, Microsoft 365 Copilot usage reports and Copilot Studio credit capacity. A failed licence check means the credentials or Graph permissions are wrong and blocks setup. The other two checks only warn, and name the step to revisit.
+On save, the plugin checks that it can read licences, Microsoft 365 Copilot usage reports and Copilot Studio credit capacity. A failed licence check is reported as an error, because it usually means the credentials or Graph permissions are wrong. The data source can still be added, but fix the error first. The other two checks only warn, and name the step to revisit.
 
 ## What this plugin monitors
 
@@ -160,4 +160,3 @@ Each **Agent** is related to the **Copilot Users** who own it (*is owned by*), m
 - **Agents are untested against a live Agent 365 registry**: the data streams follow Microsoft's documented API, but haven't yet been run in a tenant with Agent 365. Microsoft doesn't say whether the registry lists every agent or only those owned by licensed users. The registry lists agents only, not plugins, MCP servers or Power Platform connectors, and doesn't report credit consumption.
 - **Budget forecasts are estimates**: Azure returns a forecast for some budgets only. Otherwise the forecast is a straight line from the spend so far in the current period, and budgets that reset on a billing period have no forecast.
 - **Copilot Emissions uses an undocumented Microsoft Graph beta report**: it may change without notice. Microsoft's Emissions Impact Dashboard reports the same scopes in metric tons of CO2e.
-- **Read-only**: the plugin never changes anything in Microsoft 365, Power Platform or Azure.
