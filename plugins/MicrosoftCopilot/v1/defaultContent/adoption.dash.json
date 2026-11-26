@@ -238,7 +238,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "SELECT SUM(CASE WHEN \"seatStatus\" IN ('Idle', 'Never used', 'Account disabled') THEN 1 ELSE 0 END) AS \"reclaim\", COUNT(*) AS \"seats\" FROM \"activity\" WHERE (\"department\" IS NULL OR CAST(\"department\" AS VARCHAR) NOT LIKE 'Object not found%')",
+                            "sql": "SELECT COALESCE(SUM(CASE WHEN \"seatStatus\" IN ('Idle', 'Never used', 'Account disabled') THEN 1 ELSE 0 END), 0) AS \"reclaim\", COUNT(*) AS \"seats\" FROM \"activity\" WHERE (\"department\" IS NULL OR CAST(\"department\" AS VARCHAR) NOT LIKE 'Object not found%')",
                             "tables": [
                                 {
                                     "tableName": "activity",
@@ -310,7 +310,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "SELECT \"app\", \"activeRate\" AS \"rate\" FROM \"adoption\" WHERE \"app\" NOT IN ('Any app', 'Copilot Chat (all)') ORDER BY \"activeRate\" DESC, \"app\"",
+                            "sql": "SELECT \"app\", CAST(ROUND(\"activeRate\") AS DOUBLE) AS \"rate\" FROM \"adoption\" WHERE \"app\" NOT IN ('Any app', 'Copilot Chat (all)') ORDER BY \"activeRate\" DESC, \"app\"",
                             "tables": [
                                 {
                                     "tableName": "adoption",
@@ -414,7 +414,8 @@
                                 "mappedColors": {
                                     "activeUsers": "#22c55e",
                                     "prompts": "#3b82f6"
-                                }
+                                },
+                                "cartesianYAxisDecimalPlaces": 0
                             }
                         }
                     }
@@ -718,7 +719,7 @@
                         "id": "datastream-sql",
                         "dataSourceConfig": {
                             "version": "2.0",
-                            "sql": "SELECT \"user\", \"prompts\" FROM (SELECT \"displayName\" AS \"user\", \"promptsSubmitted\" AS \"prompts\" FROM \"activity\" WHERE \"promptsSubmitted\" > 0 ORDER BY \"promptsSubmitted\" DESC LIMIT 10) ORDER BY \"prompts\" ASC",
+                            "sql": "SELECT \"displayName\" AS \"user\", \"promptsSubmitted\" AS \"prompts\" FROM \"activity\" WHERE \"promptsSubmitted\" > 0 ORDER BY \"promptsSubmitted\" DESC LIMIT 10",
                             "tables": [
                                 {
                                     "tableName": "activity",
@@ -761,7 +762,8 @@
                                 "showLabels": true,
                                 "colors": [
                                     "#3b82f6"
-                                ]
+                                ],
+                                "cartesianYAxisDecimalPlaces": 0
                             }
                         }
                     }
@@ -868,7 +870,7 @@
                                             "type": "date",
                                             "relative": true
                                         },
-                                        "width": 140
+                                        "width": 165
                                     }
                                 ]
                             }
