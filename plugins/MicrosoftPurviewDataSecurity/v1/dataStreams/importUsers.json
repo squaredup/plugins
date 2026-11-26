@@ -14,7 +14,7 @@
         "expandInnerObjects": false,
         "endpointPath": "v1.0/security/runHuntingQuery",
         "postBody": {
-            "Query": "IdentityInfo | where Timestamp > ago(14d) | where isnotempty(AccountObjectId) and isnotempty(AccountUpn) and Type == 'User' | extend entraObjectId = tolower(AccountObjectId) | where hash(entraObjectId, 4) == {{shardIndex}} | summarize arg_max(Timestamp, AccountUpn, AccountDisplayName, Department, JobTitle, IsAccountEnabled) by entraObjectId | project entraObjectId, displayName = iff(isempty(AccountDisplayName), tolower(AccountUpn), AccountDisplayName), userPrincipalName = tolower(AccountUpn), department = Department, jobTitle = JobTitle, accountEnabled = IsAccountEnabled, userType = iff(AccountUpn contains '#ext#', 'Guest', 'Member')"
+            "Query": "IdentityInfo | where Timestamp > ago(14d) | where isnotempty(AccountObjectId) and isnotempty(AccountUpn) and Type == 'User' | extend entraObjectId = tolower(AccountObjectId), membership = column_ifexists('TenantMembershipType', '') | where hash(entraObjectId, 8) == {{shardIndex}} | summarize arg_max(Timestamp, AccountUpn, AccountDisplayName, Department, JobTitle, IsAccountEnabled, membership) by entraObjectId | project entraObjectId, displayName = iff(isempty(AccountDisplayName), tolower(AccountUpn), AccountDisplayName), userPrincipalName = tolower(AccountUpn), department = Department, jobTitle = JobTitle, accountEnabled = IsAccountEnabled, userType = iff(isnotempty(membership), membership, iff(AccountUpn contains '#ext#', 'Guest', 'Member'))"
         },
         "pathToData": "results",
         "getArgs": [],
