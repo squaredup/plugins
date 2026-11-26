@@ -1,0 +1,111 @@
+{
+    "name": "userActivityDaily",
+    "displayName": "Copilot Daily User Activity",
+    "description": "Microsoft 365 Copilot activity per user per day for the last 7 days of reporting, with prompts and the apps used",
+    "tags": [
+        "Adoption",
+        "User"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/copilot/reports/getMicrosoft365CopilotUserCountSummary(period='D7')",
+        "postRequestScript": "userActivityDaily.js",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "none"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "@odata.nextLink"
+            }
+        }
+    },
+    "matches": "none",
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "objects",
+            "name": "users",
+            "label": "User (optional)",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": [
+        {
+            "name": "date",
+            "displayName": "Date",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "displayName",
+            "displayName": "Name",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "userPrincipalName",
+            "displayName": "User principal name",
+            "shape": "string"
+        },
+        {
+            "name": "isActive",
+            "displayName": "Active",
+            "shape": "boolean"
+        },
+        {
+            "name": "promptsSubmitted",
+            "displayName": "Prompts (all apps)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "chatWorkPrompts",
+            "displayName": "Copilot Chat (work) prompts",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "chatWebPrompts",
+            "displayName": "Copilot Chat (web) prompts",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "activeApps",
+            "displayName": "Apps used",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "reportRefreshDate",
+            "displayName": "Report refreshed",
+            "shape": "date"
+        }
+    ]
+}

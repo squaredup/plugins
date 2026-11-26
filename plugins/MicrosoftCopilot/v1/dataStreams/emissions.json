@@ -1,0 +1,100 @@
+{
+    "name": "emissions",
+    "displayName": "Copilot Emissions",
+    "description": "Monthly carbon emissions from Microsoft 365 Copilot use, by datacenter region and emissions scope (Microsoft Graph beta)",
+    "tags": [
+        "Sustainability"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/copilot/reports/getMicrosoft365CopilotEmissions",
+        "pathToData": "value",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "none"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "@odata.nextLink"
+            }
+        }
+    },
+    "matches": "none",
+    "timeframes": false,
+    "metadata": [
+        {
+            "name": "monthStart",
+            "displayName": "Month",
+            "shape": "date",
+            "role": "timestamp",
+            "computed": true,
+            "valueExpression": "{{ $['month'] ? $['month'] + '-01T00:00:00Z' : null }}"
+        },
+        {
+            "name": "region",
+            "displayName": "Region",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "totalEmissions",
+            "displayName": "Total emissions (location-based)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 6
+                }
+            ],
+            "computed": true,
+            "valueExpression": "{{ Number($['scope1Emissions'] || 0) + Number($['scope2LocationBasedEmissions'] || 0) + Number($['scope3Emissions'] || 0) }}"
+        },
+        {
+            "name": "scope1Emissions",
+            "displayName": "Scope 1",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 6
+                }
+            ]
+        },
+        {
+            "name": "scope2LocationBasedEmissions",
+            "displayName": "Scope 2 (location-based)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 6
+                }
+            ]
+        },
+        {
+            "name": "scope2MarketBasedEmissions",
+            "displayName": "Scope 2 (market-based)",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 6
+                }
+            ]
+        },
+        {
+            "name": "scope3Emissions",
+            "displayName": "Scope 3",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 6
+                }
+            ]
+        },
+        {
+            "name": "month",
+            "displayName": "Month (raw)",
+            "shape": "string",
+            "visible": false
+        }
+    ]
+}

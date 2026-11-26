@@ -1,0 +1,120 @@
+{
+    "name": "appSignIns",
+    "displayName": "AI App Sign-ins",
+    "description": "Microsoft Entra sign-ins per application over the period, with AI apps and their vendor picked out by name (apps that sign in with Microsoft Entra only)",
+    "tags": [
+        "Adoption",
+        "Security"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "endpointPath": "beta/reports/getAzureADApplicationSignInSummary(period='{{period || 'D30'}}')",
+        "postRequestScript": "appSignIns.js",
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": "none"
+            },
+            "in": {
+                "realm": "payload",
+                "path": "@odata.nextLink"
+            }
+        }
+    },
+    "matches": "none",
+    "timeframes": false,
+    "ui": [
+        {
+            "type": "radio",
+            "name": "period",
+            "label": "Period",
+            "defaultValue": "D30",
+            "options": [
+                {
+                    "value": "D7",
+                    "label": "7 days"
+                },
+                {
+                    "value": "D30",
+                    "label": "30 days"
+                }
+            ]
+        },
+        {
+            "type": "radio",
+            "name": "apps",
+            "label": "Apps",
+            "defaultValue": "ai",
+            "options": [
+                {
+                    "value": "ai",
+                    "label": "AI apps"
+                },
+                {
+                    "value": "all",
+                    "label": "All apps"
+                }
+            ]
+        }
+    ],
+    "metadata": [
+        {
+            "name": "appDisplayName",
+            "displayName": "App",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "aiVendor",
+            "displayName": "AI vendor",
+            "shape": "string"
+        },
+        {
+            "name": "successfulSignInCount",
+            "displayName": "Successful sign-ins",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "failedSignInCount",
+            "displayName": "Failed sign-ins",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "totalSignInCount",
+            "displayName": "Sign-ins",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "successPercentage",
+            "displayName": "Success %",
+            "shape": [
+                "percent",
+                {
+                    "decimalPlaces": 1
+                }
+            ]
+        },
+        {
+            "name": "appId",
+            "displayName": "Application (client) ID",
+            "shape": "string",
+            "visible": false
+        }
+    ]
+}

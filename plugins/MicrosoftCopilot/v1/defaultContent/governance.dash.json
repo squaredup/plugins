@@ -1,0 +1,447 @@
+{
+    "name": "AI Governance",
+    "schemaVersion": "1.5",
+    "timeframe": "none",
+    "variables": [],
+    "dashboard": {
+        "_type": "layout/grid",
+        "columns": 4,
+        "version": 1,
+        "contents": [
+            {
+                "i": "2a2b7fc2-1d91-4548-bbe4-0db9e45f8354",
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "AI App Use",
+                    "description": "AI apps people signed in to with Microsoft Entra in the last 30 days, the vendors behind them, and the sign-ins to them",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT COUNT(*) AS \"apps\", COUNT(DISTINCT \"aiVendor\") AS \"vendors\", SUM(\"totalSignInCount\") AS \"signIns\" FROM \"signins\"",
+                            "tables": [
+                                {
+                                    "tableName": "signins",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[appSignIns]}}",
+                                            "name": "appSignIns",
+                                            "dataSourceConfig": {
+                                                "period": "D30",
+                                                "apps": "ai"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        },
+                        "metadata": [
+                            {
+                                "name": "signIns",
+                                "shape": [
+                                    "number",
+                                    {
+                                        "decimalPlaces": 0,
+                                        "thousandsSeparator": true
+                                    }
+                                ]
+                            },
+                            {
+                                "pattern": ".*"
+                            }
+                        ]
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "apps",
+                                        "type": "quantitative",
+                                        "title": "AI apps"
+                                    },
+                                    {
+                                        "field": "vendors",
+                                        "type": "quantitative",
+                                        "title": "Vendors"
+                                    },
+                                    {
+                                        "field": "signIns",
+                                        "type": "quantitative",
+                                        "title": "Sign-ins"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                },
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0
+            },
+            {
+                "i": "6b5c90bd-b047-412a-9f63-9d0f44d861e6",
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Access Beyond Sign-in",
+                    "description": "Permission grants held by AI apps that reach Microsoft 365 data beyond basic sign-in: consented for all users, by individual users, or held by the app itself",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT SUM(CASE WHEN \"beyondSignIn\" AND \"grantedTo\" = 'All users' THEN 1 ELSE 0 END) AS \"allUsers\", SUM(CASE WHEN \"beyondSignIn\" AND \"grantedTo\" = 'One user' THEN 1 ELSE 0 END) AS \"oneUser\", SUM(CASE WHEN \"beyondSignIn\" AND \"permissionType\" = 'Application' THEN 1 ELSE 0 END) AS \"application\" FROM \"grants\"",
+                            "tables": [
+                                {
+                                    "tableName": "grants",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[aiAppPermissions]}}",
+                                            "name": "aiAppPermissions"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "scalar",
+                            "encoding": {
+                                "values": [
+                                    {
+                                        "field": "allUsers",
+                                        "type": "quantitative",
+                                        "title": "For all users"
+                                    },
+                                    {
+                                        "field": "oneUser",
+                                        "type": "quantitative",
+                                        "title": "By individual users"
+                                    },
+                                    {
+                                        "field": "application",
+                                        "type": "quantitative",
+                                        "title": "App permissions"
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "scalarColumns": 3
+                            }
+                        }
+                    }
+                },
+                "x": 2,
+                "y": 0,
+                "w": 2,
+                "h": 2,
+                "moved": false,
+                "static": false,
+                "z": 0
+            },
+            {
+                "i": "e5ca91bc-f1aa-494f-9f6b-4eef8d720623",
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "Sign-ins by Vendor",
+                    "description": "Sign-ins to AI apps over the last 30 days, by the vendor behind each app",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"aiVendor\" AS \"vendor\", SUM(\"totalSignInCount\") AS \"signIns\" FROM \"signins\" GROUP BY 1 ORDER BY 2 DESC",
+                            "tables": [
+                                {
+                                    "tableName": "signins",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[appSignIns]}}",
+                                            "name": "appSignIns",
+                                            "dataSourceConfig": {
+                                                "period": "D30",
+                                                "apps": "ai"
+                                            }
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "pie",
+                            "encoding": {
+                                "label": {
+                                    "field": "vendor",
+                                    "type": "nominal"
+                                },
+                                "value": {
+                                    "field": "signIns",
+                                    "type": "quantitative",
+                                    "aggregate": "sum"
+                                }
+                            },
+                            "style": {
+                                "pieInnerRadius": 60,
+                                "pieDonutCenterValue": "total",
+                                "labelFontSize": 14,
+                                "pieLabels": "nameAndValue"
+                            }
+                        }
+                    }
+                },
+                "x": 0,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0
+            },
+            {
+                "i": "0d997771-47d4-42f5-aa62-7f4e5f32cbcc",
+                "x": 2,
+                "y": 2,
+                "w": 2,
+                "h": 3,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [
+                        "{{configId}}"
+                    ],
+                    "title": "AI App Sign-ins",
+                    "description": "Sign-ins over the last 30 days to AI apps that use Microsoft Entra sign-in, such as Copilot, ChatGPT Enterprise or Claude connectors to Microsoft 365. Apps are recognised by name, and personal AI accounts aren't seen",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "{{dataStreams.[appSignIns]}}",
+                        "name": "appSignIns",
+                        "pluginConfigId": "{{configId}}",
+                        "dataSourceConfig": {
+                            "period": "D30",
+                            "apps": "ai"
+                        },
+                        "sort": {
+                            "by": [
+                                [
+                                    "totalSignInCount",
+                                    "desc"
+                                ]
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "appDisplayName",
+                                        "title": "App",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 185
+                                    },
+                                    {
+                                        "field": "aiVendor",
+                                        "title": "Vendor",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Microsoft Copilot": "#3b82f6",
+                                                "GitHub Copilot": "#6366f1",
+                                                "Anthropic": "#d97706",
+                                                "OpenAI": "#10b981",
+                                                "Google": "#ef4444",
+                                                "Other AI": "#6b7280"
+                                            },
+                                            "defaultColor": "#6b7280"
+                                        },
+                                        "width": 130
+                                    },
+                                    {
+                                        "field": "totalSignInCount",
+                                        "title": "Sign-ins",
+                                        "renderer": {
+                                            "type": "bar",
+                                            "color": "#3b82f6"
+                                        }
+                                    },
+                                    {
+                                        "field": "failedSignInCount",
+                                        "title": "Failed",
+                                        "renderer": {
+                                            "type": "number",
+                                            "thresholds": [
+                                                {
+                                                    "to": 0,
+                                                    "color": "#9ca3af"
+                                                },
+                                                {
+                                                    "to": 100000000,
+                                                    "color": "#f59e0b"
+                                                }
+                                            ]
+                                        },
+                                        "align": "right",
+                                        "width": 85
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableHideCount": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "i": "426c3e79-f52b-45b6-9366-0fe81d943488",
+                "x": 0,
+                "y": 5,
+                "w": 4,
+                "h": 4,
+                "moved": false,
+                "static": false,
+                "z": 0,
+                "config": {
+                    "_type": "tile/data-stream",
+                    "activePluginConfigIds": [],
+                    "title": "AI App Permissions",
+                    "description": "What AI apps people sign in to have been allowed to do: delegated permissions granted for all users or by individual users, and application permissions, with the API each is granted on. Red marks grants that go beyond basic sign-in",
+                    "timeframe": "none",
+                    "dataStream": {
+                        "id": "datastream-sql",
+                        "dataSourceConfig": {
+                            "version": "2.0",
+                            "sql": "SELECT \"appDisplayName\", \"publisher\", \"resource\", \"grantedTo\", COALESCE(\"userDisplayName\", '') AS \"user\", \"permissions\", CASE WHEN \"beyondSignIn\" THEN 'Beyond sign-in' ELSE 'Sign-in only' END AS \"reach\" FROM \"grants\" ORDER BY \"beyondSignIn\" DESC, \"appDisplayName\", \"grantedTo\"",
+                            "tables": [
+                                {
+                                    "tableName": "grants",
+                                    "config": {
+                                        "activePluginConfigIds": [
+                                            "{{configId}}"
+                                        ],
+                                        "dataStream": {
+                                            "id": "{{dataStreams.[aiAppPermissions]}}",
+                                            "name": "aiAppPermissions"
+                                        },
+                                        "timeframe": "none"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "vizSpec": {
+                        "version": "1.0",
+                        "visualization": {
+                            "chartType": "richTable",
+                            "encoding": {
+                                "columns": [
+                                    {
+                                        "field": "appDisplayName",
+                                        "title": "App",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "publisher",
+                                        "title": "Publisher",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 140
+                                    },
+                                    {
+                                        "field": "resource",
+                                        "title": "Granted on",
+                                        "renderer": {
+                                            "type": "text"
+                                        }
+                                    },
+                                    {
+                                        "field": "grantedTo",
+                                        "title": "Granted to",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "All users": "#d97706",
+                                                "One user": "#3b82f6",
+                                                "The app itself": "#ef4444"
+                                            }
+                                        },
+                                        "width": 120
+                                    },
+                                    {
+                                        "field": "user",
+                                        "title": "User",
+                                        "renderer": {
+                                            "type": "text"
+                                        },
+                                        "width": 140
+                                    },
+                                    {
+                                        "field": "reach",
+                                        "title": "Access",
+                                        "renderer": {
+                                            "type": "badge",
+                                            "colors": {
+                                                "Beyond sign-in": "#ef4444",
+                                                "Sign-in only": "#64748b"
+                                            }
+                                        },
+                                        "width": 120
+                                    },
+                                    {
+                                        "field": "permissions",
+                                        "title": "Permissions",
+                                        "renderer": {
+                                            "type": "tag-list"
+                                        }
+                                    }
+                                ]
+                            },
+                            "style": {
+                                "richTableWrapText": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
