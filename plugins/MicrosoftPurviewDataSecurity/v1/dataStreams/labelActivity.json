@@ -1,0 +1,314 @@
+{
+    "name": "labelActivity",
+    "displayName": "Label Activity",
+    "description": "Sensitivity label activity (applied, changed, removed, opened and more), grouped by the dimensions you choose: time, user, label, previous label, action, activity, application and site (needs Defender for Cloud Apps with the Microsoft 365 connector)",
+    "tags": [
+        "Information Protection"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "v1.0/security/runHuntingQuery",
+        "postBody": {
+            "Query": "let binSize = {{ (new Date(timeframe.end) - new Date(timeframe.start)) <= 86400000 ? '1h' : '1d' }};\nlet selectedLabels = dynamic({{ JSON.stringify((labels || []).map(o => [].concat(o.rawId)[0]).filter(Boolean).map(s => String(s).toLowerCase())) }});\nlet selectedUsers = dynamic({{ JSON.stringify((users || []).map(o => [].concat(o.rawId)[0]).filter(Boolean).map(s => String(s).toLowerCase())) }});\nlet selectedSites = dynamic({{ JSON.stringify((sites || []).map(o => [].concat(o.rawId)[0]).filter(Boolean).map(s => String(s).toLowerCase())) }});\nlet selectedActions = dynamic({{ JSON.stringify((typeof actions === 'undefined' || !actions ? [] : [].concat(actions)).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => ['Detected in email', 'Applied', 'Changed', 'Upgraded', 'Downgraded', 'Removed', 'Opened', 'Renamed', 'Change failed'].includes(m))) }});\nlet agg = materialize(CloudAppEvents\n| where Timestamp between (datetime({{timeframe.start}}) .. datetime({{timeframe.end}}))\n| where ActionType contains 'SensitivityLabel' or ActionType == 'MipLabel'\n| where AccountType != 'Application'\n| where array_length(selectedUsers) == 0 or set_has_element(selectedUsers, tolower(AccountObjectId))\n| extend raw = todynamic(RawEventData)\n| extend led = raw.SensitivityLabelEventData\n| extend wLabel = tolower(coalesce(tostring(led.SensitivityLabelId), tostring(raw.LabelId))), wPrev = tolower(tostring(led.OldSensitivityLabelId)), eventType = tostring(led.LabelEventType)\n| where isnotempty(wLabel) or isnotempty(wPrev)\n| where array_length(selectedLabels) == 0 or set_has_element(selectedLabels, wLabel) or set_has_element(selectedLabels, wPrev)\n| extend wSite = tolower(trim_end('/', tostring(raw.SiteUrl)))\n| where array_length(selectedSites) == 0 or set_has_element(selectedSites, wSite)\n| extend hasPrevious = isnotempty(wPrev)\n| extend wAction = case(\n    ActionType contains 'ChangeFailed', 'Change failed',\n    ActionType endswith 'Removed', 'Removed',\n    ActionType == 'SensitivityLabeledFileOpened', 'Opened',\n    ActionType == 'SensitivityLabeledFileRenamed', 'Renamed',\n    ActionType == 'MipLabel', 'Detected in email',\n    isempty(wLabel), 'Removed',\n    hasPrevious and eventType == '1', 'Upgraded',\n    hasPrevious and eventType == '2', 'Downgraded',\n    hasPrevious and eventType == '3', 'Removed',\n    hasPrevious or eventType == '4' or ActionType endswith 'Changed' or ActionType endswith 'Updated', 'Changed',\n    'Applied')\n| where array_length(selectedActions) == 0 or set_has_element(selectedActions, wAction)\n{{ (() => { const sel = (() => { const v = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); return (typeof groupBy === 'undefined' || groupBy === null) ? ['time', 'action'] : v(groupBy); })(); const M = { time: ['timestamp'], user: ['user', 'userId'], label: ['labelId'], previousLabel: ['previousLabelId'], action: ['action'], activity: ['activity'], application: ['application'], site: ['siteUrl'] }; const D = { timestamp: 'bin(Timestamp, binSize)', user: 'tolower(tostring(raw.UserId))', userId: 'tolower(AccountObjectId)', labelId: 'wLabel', previousLabelId: 'wPrev', action: 'wAction', activity: 'ActionType', application: 'Application', siteUrl: 'wSite' }; const E = { timestamp: 'datetime(' + timeframe.start + ')' }; const by = []; const off = []; Object.keys(M).forEach((k) => { (sel.includes(k) ? by : off).push(...M[k]); }); return by.length ? '| extend ' + by.map((c) => c + ' = ' + D[c]).join(', ') : ''; })() }}\n| extend objectKey = tostring(raw.ObjectId)\n| summarize events = count() by {{ (() => { const sel = (() => { const v = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); return (typeof groupBy === 'undefined' || groupBy === null) ? ['time', 'action'] : v(groupBy); })(); const M = { time: ['timestamp'], user: ['user', 'userId'], label: ['labelId'], previousLabel: ['previousLabelId'], action: ['action'], activity: ['activity'], application: ['application'], site: ['siteUrl'] }; const D = { timestamp: 'bin(Timestamp, binSize)', user: 'tolower(tostring(raw.UserId))', userId: 'tolower(AccountObjectId)', labelId: 'wLabel', previousLabelId: 'wPrev', action: 'wAction', activity: 'ActionType', application: 'Application', siteUrl: 'wSite' }; const E = { timestamp: 'datetime(' + timeframe.start + ')' }; const by = []; const off = []; Object.keys(M).forEach((k) => { (sel.includes(k) ? by : off).push(...M[k]); }); return by.length ? by.join(', ') + ', ' : ''; })() }}objectKey\n| summarize events = sum(events), items = countif(isnotempty(objectKey)){{ (() => { const sel = (() => { const v = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); return (typeof groupBy === 'undefined' || groupBy === null) ? ['time', 'action'] : v(groupBy); })(); const M = { time: ['timestamp'], user: ['user', 'userId'], label: ['labelId'], previousLabel: ['previousLabelId'], action: ['action'], activity: ['activity'], application: ['application'], site: ['siteUrl'] }; const D = { timestamp: 'bin(Timestamp, binSize)', user: 'tolower(tostring(raw.UserId))', userId: 'tolower(AccountObjectId)', labelId: 'wLabel', previousLabelId: 'wPrev', action: 'wAction', activity: 'ActionType', application: 'Application', siteUrl: 'wSite' }; const E = { timestamp: 'datetime(' + timeframe.start + ')' }; const by = []; const off = []; Object.keys(M).forEach((k) => { (sel.includes(k) ? by : off).push(...M[k]); }); return by.length ? ' by ' + by.join(', ') : ''; })() }});\nagg\n{{ (() => { const sel = (() => { const v = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); return (typeof groupBy === 'undefined' || groupBy === null) ? ['time', 'action'] : v(groupBy); })(); const M = { time: ['timestamp'], user: ['user', 'userId'], label: ['labelId'], previousLabel: ['previousLabelId'], action: ['action'], activity: ['activity'], application: ['application'], site: ['siteUrl'] }; const D = { timestamp: 'bin(Timestamp, binSize)', user: 'tolower(tostring(raw.UserId))', userId: 'tolower(AccountObjectId)', labelId: 'wLabel', previousLabelId: 'wPrev', action: 'wAction', activity: 'ActionType', application: 'Application', siteUrl: 'wSite' }; const E = { timestamp: 'datetime(' + timeframe.start + ')' }; const by = []; const off = []; Object.keys(M).forEach((k) => { (sel.includes(k) ? by : off).push(...M[k]); }); const n = Math.floor(Number(typeof top === 'undefined' ? 0 : top)); const nt = by.filter((c) => c !== 'timestamp'); if (!(n > 0) || !nt.length) { return ''; } const k = nt.join(', '); return '| join kind=inner (agg | summarize total = sum(events) by ' + k + ' | top ' + Math.min(n, 10000) + ' by total desc | project ' + k + ') on ' + k; })() }}\n{{ (() => { const sel = (() => { const v = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); return (typeof groupBy === 'undefined' || groupBy === null) ? ['time', 'action'] : v(groupBy); })(); const M = { time: ['timestamp'], user: ['user', 'userId'], label: ['labelId'], previousLabel: ['previousLabelId'], action: ['action'], activity: ['activity'], application: ['application'], site: ['siteUrl'] }; const D = { timestamp: 'bin(Timestamp, binSize)', user: 'tolower(tostring(raw.UserId))', userId: 'tolower(AccountObjectId)', labelId: 'wLabel', previousLabelId: 'wPrev', action: 'wAction', activity: 'ActionType', application: 'Application', siteUrl: 'wSite' }; const E = { timestamp: 'datetime(' + timeframe.start + ')' }; const by = []; const off = []; Object.keys(M).forEach((k) => { (sel.includes(k) ? by : off).push(...M[k]); }); return off.length ? '| extend ' + off.map((c) => c + ' = ' + (E[c] || \"''\")).join(', ') : ''; })() }}\n| project timestamp, user, userId, labelId, previousLabelId, action, activity, application, siteUrl, events, items\n| order by timestamp asc, events desc"
+        },
+        "pathToData": "results",
+        "postRequestScript": "labelActivity.js",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "user",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "userId",
+            "displayName": "User ID",
+            "shape": "string",
+            "sourceType": "User",
+            "visible": false
+        },
+        {
+            "name": "userName",
+            "displayName": "User Name",
+            "sourceId": "userId",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "labelId",
+            "displayName": "Sensitivity Label ID",
+            "shape": "string",
+            "sourceType": "Sensitivity Label",
+            "visible": false
+        },
+        {
+            "name": "sensitivityLabel",
+            "displayName": "Sensitivity Label",
+            "sourceId": "labelId",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "labelPriority",
+            "displayName": "Label Priority",
+            "sourceId": "labelId",
+            "objectPropertyPath": "priority",
+            "shape": "number",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && typeof object.priority !== 'undefined') ? object.priority : null }}"
+        },
+        {
+            "name": "previousLabelId",
+            "displayName": "Previous Label ID",
+            "shape": "string",
+            "sourceType": "Sensitivity Label",
+            "visible": false
+        },
+        {
+            "name": "previousLabel",
+            "displayName": "Previous Label",
+            "sourceId": "previousLabelId",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "action",
+            "displayName": "Action",
+            "shape": "string"
+        },
+        {
+            "name": "activity",
+            "displayName": "Activity",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "application",
+            "displayName": "Application",
+            "shape": "string"
+        },
+        {
+            "name": "siteUrl",
+            "displayName": "Site URL",
+            "shape": "string",
+            "sourceType": "Site",
+            "visible": false
+        },
+        {
+            "name": "site",
+            "displayName": "Site",
+            "sourceId": "siteUrl",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "events",
+            "displayName": "Events",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "items",
+            "displayName": "Items",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "sourceId": "userId",
+            "sourceType": "User",
+            "name": "userName"
+        },
+        {
+            "sourceId": "labelId",
+            "sourceType": "Sensitivity Label",
+            "name": "sensitivityLabel"
+        },
+        {
+            "sourceId": "siteUrl",
+            "sourceType": "Site",
+            "name": "site"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ],
+    "providesPluginDiagnostics": true,
+    "manualConfigApply": true,
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "groupBy",
+            "label": "Group by",
+            "isMulti": true,
+            "isClearable": true,
+            "defaultValue": [
+                "time",
+                "action"
+            ],
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "time",
+                        "label": "Time"
+                    },
+                    {
+                        "value": "user",
+                        "label": "User"
+                    },
+                    {
+                        "value": "label",
+                        "label": "Label"
+                    },
+                    {
+                        "value": "previousLabel",
+                        "label": "Previous label"
+                    },
+                    {
+                        "value": "action",
+                        "label": "Action"
+                    },
+                    {
+                        "value": "activity",
+                        "label": "Activity"
+                    },
+                    {
+                        "value": "application",
+                        "label": "Application"
+                    },
+                    {
+                        "value": "site",
+                        "label": "Site"
+                    }
+                ]
+            },
+            "help": "Sets what each row represents. Fewer dimensions return a smaller, faster result."
+        },
+        {
+            "type": "number",
+            "name": "top",
+            "label": "Top",
+            "help": "Keeps only the N groups with the most events, not counting time. Leave empty for all groups.",
+            "validation": {
+                "min": 1
+            }
+        },
+        {
+            "type": "autocomplete",
+            "name": "actions",
+            "label": "Actions",
+            "isMulti": true,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "Detected in email",
+                        "label": "Detected in email"
+                    },
+                    {
+                        "value": "Applied",
+                        "label": "Applied"
+                    },
+                    {
+                        "value": "Changed",
+                        "label": "Changed"
+                    },
+                    {
+                        "value": "Upgraded",
+                        "label": "Upgraded"
+                    },
+                    {
+                        "value": "Downgraded",
+                        "label": "Downgraded"
+                    },
+                    {
+                        "value": "Removed",
+                        "label": "Removed"
+                    },
+                    {
+                        "value": "Opened",
+                        "label": "Opened"
+                    },
+                    {
+                        "value": "Renamed",
+                        "label": "Renamed"
+                    },
+                    {
+                        "value": "Change failed",
+                        "label": "Change failed"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "objects",
+            "name": "labels",
+            "label": "Sensitivity labels",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Sensitivity Label"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "users",
+            "label": "Users",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "sites",
+            "label": "Sites",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Site"
+                    ]
+                }
+            }
+        }
+    ]
+}

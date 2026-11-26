@@ -1,0 +1,47 @@
+{
+    "name": "importAiApps",
+    "displayName": "Import - AI Apps",
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "v1.0/security/runHuntingQuery",
+        "postBody": {
+            "Query": "CloudAppEvents | where Timestamp > ago(30d) | where ActionType in ('CopilotInteraction', 'AIAppInteraction') | extend appId = tostring(RawEventData.AppIdentity) | where isnotempty(appId) | summarize arg_max(Timestamp, Application, ActionType) by appId | project appId, application = Application, interactionType = iff(ActionType == 'CopilotInteraction', 'Copilot', 'Third-party AI')"
+        },
+        "pathToData": "results",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "appId",
+            "displayName": "AI App",
+            "shape": "string",
+            "role": "id"
+        },
+        {
+            "name": "application",
+            "displayName": "Application",
+            "shape": "string"
+        },
+        {
+            "name": "interactionType",
+            "displayName": "Type",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false,
+    "providesPluginDiagnostics": true,
+    "visibility": {
+        "type": "hidden"
+    }
+}

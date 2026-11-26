@@ -1,0 +1,335 @@
+{
+    "name": "alerts",
+    "displayName": "Alerts",
+    "description": "Microsoft Purview data loss prevention, insider risk and Security for AI alerts",
+    "tags": [
+        "Alerts",
+        "AI"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": {
+                    "value": "none",
+                    "label": "none"
+                }
+            },
+            "in": {
+                "realm": {
+                    "value": "payload",
+                    "label": "payload"
+                },
+                "path": "@odata.nextLink"
+            }
+        },
+        "endpointPath": "v1.0/security/alerts_v2",
+        "postRequestScript": "alerts.js",
+        "getArgs": [
+            {
+                "key": "$filter",
+                "value": "{{ (() => { const vals = (a) => (Array.isArray(a) ? a : (a ? [a] : [])).map((m) => (m && typeof m === 'object' ? m.value : m)).filter((m) => m); const any = (field, list) => '(' + list.map((v) => field + \" eq '\" + v + \"'\").join(' or ') + ')'; const all = ['dataLossPrevention', 'microsoftInsiderRiskManagement', 'microsoftSecurityForAI']; const src = vals(typeof source === 'undefined' ? null : source); const sev = vals(typeof severity === 'undefined' ? null : severity); const sta = vals(typeof status === 'undefined' ? null : status); const col = vals(typeof timeframeCol === 'undefined' ? null : timeframeCol)[0] || 'createdDateTime'; const parts = [any('serviceSource', src.length ? src : all)]; if (sev.length) parts.push(any('severity', sev)); if (sta.length) parts.push(any('status', sta)); if (timeframe.enum !== 'none') parts.push(col + ' ge ' + timeframe.start + ' and ' + col + ' le ' + timeframe.end); return parts.join(' and '); })() }}"
+            }
+        ],
+        "headers": [
+            {
+                "key": "Prefer",
+                "value": "include-unknown-enum-members"
+            }
+        ]
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "title",
+            "displayName": "Alert",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "severity",
+            "displayName": "Severity",
+            "shape": [
+                "state",
+                {
+                    "map": {
+                        "error": [
+                            "high"
+                        ],
+                        "warning": [
+                            "medium"
+                        ],
+                        "unknown": [
+                            "low",
+                            "informational",
+                            "unknown",
+                            "unknownFutureValue"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "status",
+            "displayName": "Status",
+            "shape": "string"
+        },
+        {
+            "name": "serviceSource",
+            "displayName": "Source",
+            "shape": "string"
+        },
+        {
+            "name": "detectionSource",
+            "displayName": "Detection Source",
+            "shape": "string"
+        },
+        {
+            "name": "category",
+            "displayName": "Category",
+            "shape": "string"
+        },
+        {
+            "name": "productName",
+            "displayName": "Product Name",
+            "shape": "string"
+        },
+        {
+            "name": "description",
+            "displayName": "Description",
+            "shape": "string"
+        },
+        {
+            "name": "createdDateTime",
+            "displayName": "Created",
+            "shape": "date"
+        },
+        {
+            "name": "firstActivityDateTime",
+            "displayName": "First Activity",
+            "shape": "date"
+        },
+        {
+            "name": "lastActivityDateTime",
+            "displayName": "Last Activity",
+            "shape": "date"
+        },
+        {
+            "name": "lastUpdateDateTime",
+            "displayName": "Last Update",
+            "shape": "date"
+        },
+        {
+            "name": "resolvedDateTime",
+            "displayName": "Resolved",
+            "shape": "date"
+        },
+        {
+            "name": "assignedTo",
+            "displayName": "Assigned To",
+            "shape": "string"
+        },
+        {
+            "name": "classification",
+            "displayName": "Classification",
+            "shape": "string"
+        },
+        {
+            "name": "determination",
+            "displayName": "Determination",
+            "shape": "string"
+        },
+        {
+            "name": "incidentId",
+            "displayName": "Incident ID",
+            "shape": "string"
+        },
+        {
+            "name": "alertWebUrl",
+            "displayName": "Alert Link",
+            "shape": [
+                "url",
+                {
+                    "label": "Open alert"
+                }
+            ]
+        },
+        {
+            "name": "users",
+            "displayName": "Users",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "userIds",
+            "displayName": "User IDs",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ],
+            "visible": false
+        },
+        {
+            "name": "files",
+            "displayName": "Files",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "evidenceCount",
+            "displayName": "Evidence Count",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        }
+    ],
+    "timeframes": true,
+    "supportsNoneTimeframe": true,
+    "manualConfigApply": true,
+    "providesPluginDiagnostics": true,
+    "ui": [
+        {
+            "name": "source",
+            "label": "Source",
+            "type": "autocomplete",
+            "isMulti": true,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "dataLossPrevention",
+                        "label": "Data loss prevention"
+                    },
+                    {
+                        "value": "microsoftInsiderRiskManagement",
+                        "label": "Insider risk management"
+                    },
+                    {
+                        "value": "microsoftSecurityForAI",
+                        "label": "Security for AI"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "severity",
+            "label": "Severity",
+            "type": "autocomplete",
+            "isMulti": true,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "high",
+                        "label": "High"
+                    },
+                    {
+                        "value": "medium",
+                        "label": "Medium"
+                    },
+                    {
+                        "value": "low",
+                        "label": "Low"
+                    },
+                    {
+                        "value": "informational",
+                        "label": "Informational"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "status",
+            "label": "Status",
+            "type": "autocomplete",
+            "isMulti": true,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "new",
+                        "label": "New"
+                    },
+                    {
+                        "value": "inProgress",
+                        "label": "In progress"
+                    },
+                    {
+                        "value": "resolved",
+                        "label": "Resolved"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "users",
+            "label": "Users",
+            "type": "objects",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "timeframeCol",
+            "label": "Timeframe column",
+            "type": "autocomplete",
+            "tileEditorStep": [
+                "Timeframe"
+            ],
+            "isMulti": false,
+            "isClearable": false,
+            "defaultValue": "createdDateTime",
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "createdDateTime",
+                        "label": "Creation time"
+                    },
+                    {
+                        "value": "lastActivityDateTime",
+                        "label": "Last activity time"
+                    },
+                    {
+                        "value": "lastUpdateDateTime",
+                        "label": "Last update time"
+                    }
+                ]
+            }
+        }
+    ]
+}

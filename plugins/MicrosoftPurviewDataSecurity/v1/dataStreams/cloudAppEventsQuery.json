@@ -1,0 +1,49 @@
+{
+    "name": "cloudAppEventsQuery",
+    "displayName": "Cloud App Events Query",
+    "description": "Your own KQL over Defender for Cloud Apps activity in the timeframe, starting from the advanced hunting CloudAppEvents table (needs Defender for Cloud Apps with the Microsoft 365 connector)",
+    "tags": [
+        "Activity"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "v1.0/security/runHuntingQuery",
+        "postBody": {
+            "Query": "CloudAppEvents\n| where Timestamp between (datetime({{timeframe.start}}) .. datetime({{timeframe.end}}))\n{{ ((q) => q.startsWith('|') ? q : '| ' + q)(String(query || '').trim()) }}"
+        },
+        "getArgs": [],
+        "headers": [],
+        "postRequestScript": "cloudAppEventsQuery.js"
+    },
+    "matches": "none",
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ],
+    "manualConfigApply": true,
+    "providesPluginDiagnostics": true,
+    "ui": [
+        {
+            "name": "query",
+            "label": "Query",
+            "type": "code",
+            "language": "kusto",
+            "help": "Continues from CloudAppEvents, already filtered to the timeframe. Start with a pipe, for example: | where ActionType == 'FileDownloaded' | summarize Downloads = count() by Application. Avoid backslashes, which are removed.",
+            "validation": {
+                "required": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,116 @@
+{
+    "name": "sensitivityLabels",
+    "displayName": "Sensitivity Labels",
+    "description": "Sensitivity labels defined in the tenant, with their priority, colour and protection settings",
+    "tags": [
+        "Information Protection"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "get",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "nextUrl",
+            "pageSize": {
+                "realm": {
+                    "value": "none",
+                    "label": "none"
+                }
+            },
+            "in": {
+                "realm": {
+                    "value": "payload",
+                    "label": "payload"
+                },
+                "path": "@odata.nextLink"
+            }
+        },
+        "expandInnerObjects": true,
+        "endpointPath": "beta/security/informationProtection/sensitivityLabels",
+        "pathToData": "value",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "id",
+            "displayName": "Label ID",
+            "shape": "string",
+            "role": "id",
+            "visible": false
+        },
+        {
+            "name": "fullName",
+            "displayName": "Label",
+            "shape": "string",
+            "role": "label",
+            "computed": true,
+            "valueExpression": "{{ typeof $['parent.name'] === 'string' && $['parent.name'] ? $['parent.name'] + ' / ' + $['name'] : $['name'] }}"
+        },
+        {
+            "name": "name",
+            "displayName": "Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "parent.name",
+            "displayName": "Parent Label Name",
+            "shape": "string",
+            "visible": false
+        },
+        {
+            "name": "parentName",
+            "displayName": "Parent Label",
+            "shape": "string",
+            "computed": true,
+            "valueExpression": "{{ typeof $['parent.name'] === 'string' && $['parent.name'] ? $['parent.name'] : null }}"
+        },
+        {
+            "name": "sensitivity",
+            "displayName": "Priority",
+            "shape": "number"
+        },
+        {
+            "name": "color",
+            "displayName": "Colour",
+            "shape": "string"
+        },
+        {
+            "name": "isActive",
+            "displayName": "Active",
+            "shape": "boolean"
+        },
+        {
+            "name": "isAppliable",
+            "displayName": "Can Be Applied",
+            "shape": "boolean"
+        },
+        {
+            "name": "hasProtection",
+            "displayName": "Encryption",
+            "shape": "boolean"
+        },
+        {
+            "name": "contentFormats",
+            "displayName": "Applies To",
+            "shape": [
+                "array",
+                {
+                    "itemShape": "string"
+                }
+            ]
+        },
+        {
+            "name": "tooltip",
+            "displayName": "Description",
+            "shape": "string"
+        }
+    ],
+    "timeframes": false,
+    "providesPluginDiagnostics": true
+}

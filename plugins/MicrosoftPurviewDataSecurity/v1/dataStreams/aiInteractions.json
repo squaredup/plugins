@@ -1,0 +1,272 @@
+{
+    "name": "aiInteractions",
+    "displayName": "AI Interactions",
+    "description": "Copilot and AI app interactions, grouped as you choose (time, user, AI app, app host, sensitivity label), with the sensitivity labels of the data they reach (needs Defender for Cloud Apps with the Microsoft 365 connector)",
+    "tags": [
+        "AI",
+        "Information Protection"
+    ],
+    "baseDataSourceName": "httpRequestUnscoped",
+    "config": {
+        "httpMethod": "post",
+        "errorHandling": {
+            "type": "script",
+            "script": "errorHandling/microsoftGraphApi.js"
+        },
+        "paging": {
+            "mode": "none"
+        },
+        "expandInnerObjects": false,
+        "endpointPath": "v1.0/security/runHuntingQuery",
+        "postBody": {
+            "Query": "let binSize = {{ (new Date(timeframe.end) - new Date(timeframe.start)) <= 86400000 ? '1h' : '1d' }};\nlet groups = dynamic({{ JSON.stringify(((typeof groupBy === 'undefined' || groupBy === null) ? ['time', 'aiApp'] : [].concat(groupBy).map((m) => (m && typeof m === 'object') ? m.value : m)).filter((v) => ['time', 'user', 'aiApp', 'appHost', 'label'].includes(v))) }});\nlet gTime = set_has_element(groups, 'time');\nlet gUser = set_has_element(groups, 'user');\nlet gApp = set_has_element(groups, 'aiApp');\nlet gHost = set_has_element(groups, 'appHost');\nlet gLabel = set_has_element(groups, 'label');\nlet topLimit = {{ (() => { const n = Math.floor(Number(typeof top === 'undefined' ? 0 : top)); return n > 0 ? n : 1000000000; })() }};\nlet selectedLabels = dynamic({{ JSON.stringify((labels || []).map(o => [].concat(o.rawId)[0]).filter(Boolean).map(s => String(s).toLowerCase())) }});\nlet selectedUsers = dynamic({{ JSON.stringify((users || []).map(o => [].concat(o.rawId)[0]).filter(Boolean).map(s => String(s).toLowerCase())) }});\nlet selectedApps = dynamic({{ JSON.stringify((aiApps || []).map(o => [].concat(o.rawId)[0]).filter(Boolean)) }});\nlet needExpand = gLabel or array_length(selectedLabels) > 0;\nCloudAppEvents\n| where Timestamp between (datetime({{timeframe.start}}) .. datetime({{timeframe.end}}))\n| where ActionType in ('CopilotInteraction', 'AIAppInteraction')\n| extend uid = tolower(tostring(AccountObjectId))\n| where array_length(selectedUsers) == 0 or set_has_element(selectedUsers, uid)\n| extend raw = todynamic(RawEventData)\n| extend ced = raw.CopilotEventData\n| extend appId = tostring(raw.AppIdentity)\n| where array_length(selectedApps) == 0 or set_has_element(selectedApps, appId)\n| extend user = iff(gUser, tolower(tostring(raw.UserId)), ''), userId = iff(gUser, uid, ''), aiApp = iff(gApp, appId, ''), appHost = iff(gHost, tostring(ced.AppHost), ''), topLabel = tolower(tostring(ced.SensitivityLabelId))\n| extend res = iff(array_length(ced.AccessedResources) > 0, ced.AccessedResources, dynamic([]))\n| extend labelSet = iff(needExpand, set_union(extract_all('\"sensitivitylabelid\":\"([0-9a-f-]+)\"', tolower(tostring(res))), iff(isempty(topLabel), dynamic([]), pack_array(topLabel))), dynamic([]))\n| extend jailbreak = tostring(ced.Messages) has '\"JailbreakDetected\":true'\n| extend rs = array_concat(res, pack_array(bag_pack('sentinel', true, 'SensitivityLabelId', topLabel)))\n| project Timestamp, user, userId, aiApp, appHost, labelSet, jailbreak, rs\n| serialize\n| extend ix = row_number()\n| mv-apply r = rs on (\n    extend isRes = isempty(tostring(r.sentinel)), isLab = isnotempty(tostring(r.SensitivityLabelId)), rl = iff(needExpand, tolower(tostring(r.SensitivityLabelId)), '')\n    | summarize resourcesAccessed = countif(isRes), labelledResources = countif(isRes and isLab), dlpPolicyMatches = countif(isRes and isnotempty(tostring(r.PolicyDetails)) and tostring(r.PolicyDetails) !in ('[]', '{}')), xpiaDetections = countif(isRes and tobool(r.XPIADetected)) by rl\n)\n| extend counted = iff(isnotempty(rl) or array_length(labelSet) == 0, 1, 0)\n| extend pick = iff(array_length(set_intersect(labelSet, selectedLabels)) > 0, set_intersect(labelSet, selectedLabels), labelSet)\n| extend primary = iff(counted == 1 and rl == iff(array_length(pick) == 0, '', tostring(array_sort_asc(pick)[0])), 1, 0)\n| where counted == 1 or resourcesAccessed > 0\n| where array_length(selectedLabels) == 0 or set_has_element(selectedLabels, rl)\n| summarize c = max(counted), pr = max(iff(gLabel, primary, counted)), resourcesAccessed = sum(resourcesAccessed), labelledResources = sum(labelledResources), dlpPolicyMatches = sum(dlpPolicyMatches), xpiaDetections = sum(xpiaDetections), jb = max(toint(jailbreak)) by ix, timestamp = iff(gTime, bin(Timestamp, binSize), datetime({{timeframe.start}})), user, userId, aiApp, appHost, sensitivityLabelId = iff(gLabel, rl, '')\n| summarize interactions = sum(c), uniqueInteractions = sum(pr), resourcesAccessed = sum(resourcesAccessed), labelledResources = sum(labelledResources), dlpPolicyMatches = sum(dlpPolicyMatches), xpiaDetections = sum(xpiaDetections), jailbreakAttempts = sumif(pr, jb == 1) by timestamp, user, userId, aiApp, appHost, sensitivityLabelId\n| extend gk = strcat(user, '|', userId, '|', aiApp, '|', appHost, '|', sensitivityLabelId)\n| as hint.materialized=true T\n| join kind=leftsemi (T | summarize tot = sum(uniqueInteractions) by gk | top topLimit by tot desc | project gk) on gk\n| project-away gk\n| order by timestamp asc, uniqueInteractions desc"
+        },
+        "pathToData": "results",
+        "postRequestScript": "aiInteractions.js",
+        "getArgs": [],
+        "headers": []
+    },
+    "matches": "none",
+    "metadata": [
+        {
+            "name": "timestamp",
+            "displayName": "Time",
+            "shape": "date",
+            "role": "timestamp"
+        },
+        {
+            "name": "user",
+            "displayName": "User",
+            "shape": "string",
+            "role": "label"
+        },
+        {
+            "name": "userId",
+            "displayName": "User ID",
+            "shape": "string",
+            "sourceType": "User",
+            "visible": false
+        },
+        {
+            "name": "userName",
+            "displayName": "User Name",
+            "sourceId": "userId",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "aiApp",
+            "displayName": "AI App",
+            "shape": "string",
+            "sourceType": "AI App"
+        },
+        {
+            "name": "appHost",
+            "displayName": "App Host",
+            "shape": "string"
+        },
+        {
+            "name": "sensitivityLabelId",
+            "displayName": "Sensitivity Label ID",
+            "shape": "string",
+            "sourceType": "Sensitivity Label",
+            "visible": false
+        },
+        {
+            "name": "sensitivityLabel",
+            "displayName": "Sensitivity Label",
+            "sourceId": "sensitivityLabelId",
+            "objectPropertyPath": "name",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && object.name) || null }}"
+        },
+        {
+            "name": "labelPriority",
+            "displayName": "Label Priority",
+            "sourceId": "sensitivityLabelId",
+            "objectPropertyPath": "priority",
+            "shape": "number",
+            "valueExpression": "{{ (typeof object !== 'undefined' && object && typeof object.priority !== 'undefined') ? object.priority : null }}"
+        },
+        {
+            "name": "interactions",
+            "displayName": "Interactions",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "uniqueInteractions",
+            "displayName": "Unique Interactions",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "resourcesAccessed",
+            "displayName": "Resources Accessed",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "labelledResources",
+            "displayName": "Labelled Resources",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "dlpPolicyMatches",
+            "displayName": "DLP Policy Matches",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "xpiaDetections",
+            "displayName": "XPIA Detections",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "name": "jailbreakAttempts",
+            "displayName": "Jailbreak Attempts",
+            "shape": [
+                "number",
+                {
+                    "decimalPlaces": 0
+                }
+            ]
+        },
+        {
+            "sourceId": "userId",
+            "sourceType": "User",
+            "name": "userName"
+        },
+        {
+            "sourceId": "aiApp",
+            "sourceType": "AI App",
+            "name": "aiApp"
+        },
+        {
+            "sourceId": "sensitivityLabelId",
+            "sourceType": "Sensitivity Label",
+            "name": "sensitivityLabel"
+        }
+    ],
+    "timeframes": [
+        "last1hour",
+        "last12hours",
+        "last24hours",
+        "last7days",
+        "last30days"
+    ],
+    "providesPluginDiagnostics": true,
+    "manualConfigApply": true,
+    "ui": [
+        {
+            "type": "autocomplete",
+            "name": "groupBy",
+            "label": "Group by",
+            "isMulti": true,
+            "isClearable": true,
+            "data": {
+                "source": "fixed",
+                "values": [
+                    {
+                        "value": "time",
+                        "label": "Time"
+                    },
+                    {
+                        "value": "user",
+                        "label": "User"
+                    },
+                    {
+                        "value": "aiApp",
+                        "label": "AI app"
+                    },
+                    {
+                        "value": "appHost",
+                        "label": "App host"
+                    },
+                    {
+                        "value": "label",
+                        "label": "Sensitivity label"
+                    }
+                ]
+            },
+            "defaultValue": [
+                "time",
+                "aiApp"
+            ],
+            "help": "Sets what each row represents. Fewer dimensions return a smaller, faster result."
+        },
+        {
+            "type": "number",
+            "name": "top",
+            "label": "Top",
+            "help": "Keeps only the N groups with the most unique interactions, not counting time. Leave empty for all groups.",
+            "validation": {
+                "min": 1
+            }
+        },
+        {
+            "type": "objects",
+            "name": "labels",
+            "label": "Sensitivity labels",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "Sensitivity Label"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "users",
+            "label": "Users",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "User"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "objects",
+            "name": "aiApps",
+            "label": "AI apps",
+            "matches": {
+                "sourceType": {
+                    "type": "oneOf",
+                    "values": [
+                        "AI App"
+                    ]
+                }
+            }
+        }
+    ]
+}
