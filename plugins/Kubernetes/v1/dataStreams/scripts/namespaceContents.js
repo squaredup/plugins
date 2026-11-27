@@ -170,7 +170,10 @@ result = (data.items || []).map((item) => {
         return {
             ...base,
             ingressClassName:
-                (item.spec && item.spec.ingressClassName) || undefined,
+                (item.spec && item.spec.ingressClassName) ||
+                (item.metadata.annotations &&
+                    item.metadata.annotations["kubernetes.io/ingress.class"]) ||
+                "Cluster default",
             hosts,
             primaryBackendServiceName:
                 defaultBackendService || firstRuleService || undefined,

@@ -33,8 +33,13 @@ result = (data.items || []).map((item) => {
         uid: item.metadata.uid,
         name: item.metadata.name,
         namespace: item.metadata.namespace,
+        // Fall back to the legacy annotation, then to the cluster's default
+        // class, so the column is always present on the object.
         ingressClassName:
-            (item.spec && item.spec.ingressClassName) || undefined,
+            (item.spec && item.spec.ingressClassName) ||
+            (item.metadata.annotations &&
+                item.metadata.annotations["kubernetes.io/ingress.class"]) ||
+            "Cluster default",
         hosts: hosts,
         primaryBackendServiceName: primaryBackendServiceName,
     };
